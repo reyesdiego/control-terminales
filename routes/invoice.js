@@ -13,13 +13,15 @@ module.exports = function(app) {
 	var Invoice = require('../models/invoice.js');
 	//GET - Return all invoiceHeaders in the DB
 	getInvoices = function(req, res) {
-
-		Invoice.find(function(err, invoices) {
-			if(!err) {
-				res.send(invoices);
-			} else {
-				console.log('ERROR: ' + err);
-			}
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
+			Invoice.find(function(err, invoices) {
+				if(!err) {
+					res.send(invoices);
+				} else {
+					console.log('ERROR: ' + err);
+				}
+			});
 		});
 	};
 
@@ -142,6 +144,4 @@ module.exports = function(app) {
 			}
 		});
 	})
-
-
 }
