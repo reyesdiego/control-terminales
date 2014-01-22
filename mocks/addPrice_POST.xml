@@ -1,0 +1,30 @@
+<RestClientRequest>
+  <option name="httpMethod" value="POST" />
+  <option name="urlBase" value="http://localhost:3101" />
+  <option name="urlPath" value="agp/addprice" />
+  <option name="headers">
+    <list>
+      <KeyValuePair>
+        <option name="key" value="Accept" />
+        <option name="value" value="*/*" />
+      </KeyValuePair>
+      <KeyValuePair>
+        <option name="key" value="Cache-Control" />
+        <option name="value" value="no-cache" />
+      </KeyValuePair>
+      <KeyValuePair>
+        <option name="key" value="Content-Type" />
+        <option name="value" value="application/json" />
+      </KeyValuePair>
+    </list>
+  </option>
+  <option name="parameters">
+    <list />
+  </option>
+  <option name="parametersEnabled" value="true" />
+  <option name="haveTextToSend" value="true" />
+  <option name="haveFileToSend" value="false" />
+  <option name="isFileUpload" value="false" />
+  <option name="textToSend" value="{&quot;description&quot;:&quot;Lavado de contenedor&quot;, &quot;topPrice&quot;: 100, &quot;unit&quot;:&quot;tn&quot;, &quot;currency&quot;: &quot;PES&quot;}" />
+  <option name="filesToSend" value="" />
+</RestClientRequest>

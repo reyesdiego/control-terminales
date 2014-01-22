@@ -1,0 +1,144 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <soapenv:Body>
+        <autorizarComprobante xmlns="">
+            <ns1:autorizarComprobanteRequest xsi:type="ns1:AutorizarComprobanteRequestType" xmlns:ns1="http://impl.service.wsmtxca.afip.gov.ar/service/">
+                <authRequest xsi:type="ns1:AuthRequestType">
+                    <token xsi:type="xsd:string">PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9InllcyI/Pgo8c3NvIHZlcnNpb249IjIuMCI+CiAgICA8aWQgdW5pcXVlX2lkPSI5OTMzMDY4NzEiIHNyYz0iQ049d3NhYSwgTz1BRklQLX=</token>
+                    <sign xsi:type="xsd:string">Tku7n+7ZX89LWFe7moAwQfdhi0656MEuhw1ucAdAlVohffLMJpEG7RCKpvqnHhmNPRj41J1qPVMU76SGRlqhfl8YDaWAQX5UCHIlpgbQ7Rden9EjRWs6/M2muDlEIvCLROkzIeVZ7aowus8Z+BAPq+DxQykSoo5M0khSDrDsj8U=</sign>
+                    <cuitRepresentada xsi:type="xsd:long">30678167238</cuitRepresentada>
+                </authRequest>
+                <comprobanteCAERequest xsi:type="ns1:ComprobanteType">
+                    <codigoTipoComprobante xsi:type="xsd:short">1</codigoTipoComprobante>
+                    <numeroPuntoVenta xsi:type="xsd:short">24</numeroPuntoVenta>
+                    <numeroComprobante xsi:type="xsd:long">115469</numeroComprobante>
+                    <fechaEmision xsi:type="xsd:date">2014-01-03 09:23:29</fechaEmision>
+                    <codigoTipoAutorizacion xsi:type="ns1:CodigoTipoAutorizacionSimpleType" xsi:nil="true"/>
+                    <codigoAutorizacion xsi:type="xsd:long" xsi:nil="true"/>
+                    <fechaVencimiento xsi:type="xsd:date" xsi:nil="true"/>
+                    <codigoTipoDocumento xsi:type="xsd:short">80</codigoTipoDocumento>
+                    <numeroDocumento xsi:type="xsd:long">30702086279</numeroDocumento>
+                    <importeGravado xsi:type="xsd:decimal">4184.34</importeGravado>
+                    <importeNoGravado xsi:type="xsd:decimal" xsi:nil="true"/>
+                    <importeExento xsi:type="xsd:decimal" xsi:nil="true"/>
+                    <importeSubtotal xsi:type="xsd:decimal">4184.34</importeSubtotal>
+                    <importeOtrosTributos xsi:type="xsd:decimal">116.49</importeOtrosTributos>
+                    <importeTotal xsi:type="xsd:decimal">5179.54</importeTotal>
+                    <codigoMoneda xsi:type="xsd:string">PES</codigoMoneda>
+                    <cotizacionMoneda xsi:type="xsd:decimal">1</cotizacionMoneda>
+                    <observaciones xsi:type="xsd:string" xsi:nil="true"/>
+                    <codigoConcepto xsi:type="xsd:short">2</codigoConcepto>
+                    <fechaServicioDesde xsi:type="xsd:date">2014-01-03 09:23:29</fechaServicioDesde>
+                    <fechaServicioHasta xsi:type="xsd:date">2014-01-03 09:23:29</fechaServicioHasta>
+                    <fechaVencimientoPago xsi:type="xsd:date">2014-01-03 09:23:29</fechaVencimientoPago>
+                    <arrayComprobantesAsociados xsi:type="ns1:ComprobanteAsociadoType" xsi:nil="true"/>
+                    <arrayOtrosTributos soapenc:arrayType="ns1:OtroTributoType[1]" xsi:type="soapenc:Array" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/">
+                        <otroTributo xsi:type="ns1:OtroTributoType"><codigo xsi:type="xsd:short">3</codigo>
+                            <descripcion xsi:type="xsd:string">INGRESOS BRUTOS</descripcion>
+                            <baseImponible xsi:type="xsd:decimal">3</baseImponible>
+                            <importe xsi:type="xsd:decimal">116.49</importe>
+                        </otroTributo>
+                    </arrayOtrosTributos>
+                    <arrayItems soapenc:arrayType="ns1:ItemType[9]" xsi:type="soapenc:Array" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/">
+                        <item xsi:type="ns1:ItemType">
+                            <unidadesMtx xsi:type="xsd:int">1</unidadesMtx>
+                            <codigoMtx xsi:type="xsd:string">7790001001078</codigoMtx>
+                            <codigo xsi:type="xsd:string">CBHU1501236</codigo>
+                            <descripcion xsi:type="xsd:string">A.G.P.</descripcion>
+                            <cantidad xsi:type="xsd:decimal">11.5</cantidad>
+                            <codigoUnidadMedida xsi:type="xsd:short">29</codigoUnidadMedida>
+                            <precioUnitario xsi:type="xsd:decimal">26.20</precioUnitario>
+                            <importeBonificacion xsi:type="xsd:decimal" xs:nil="true"/>
+                            <codigoCondicionIVA xsi:type="xsd:short">5</codigoCondicionIVA>
+                            <importeIVA xsi:type="xsd:decimal">63.27</importeIVA>
+                            <importeItem xsi:type="xsd:decimal">364.57</importeItem>
+                        </item>
+                        <item xsi:type="ns1:ItemType">
+                            <unidadesMtx xsi:type="xsd:int">1</unidadesMtx>
+                            <codigoMtx xsi:type="xsd:string">7790001001665</codigoMtx>
+                            <codigo xsi:type="xsd:string"> CBHU1501236</codigo>
+                            <descripcion xsi:type="xsd:string">CARGO POR SEGURIDAD</descripcion>
+                            <cantidad xsi:type="xsd:decimal">1</cantidad>
+                            <codigoUnidadMedida xsi:type="xsd:short">7</codigoUnidadMedida
+                                    ><precioUnitario xsi:type="xsd:decimal">72.05</precioUnitario>
+                            <importeBonificacion xsi:type="xsd:decimal" xsi:nil="true"/>
+                            <codigoCondicionIVA xsi:type="xsd:short">5</codigoCondicionIVA>
+                            <importeIVA xsi:type="xsd:decimal">15.13</importeIVA>
+                            <importeItem xsi:type="xsd:decimal">87.18</importeItem>
+                        </item>
+                        <item xsi:type="ns1:ItemType">
+                            <unidadesMtx xsi:type="xsd:int">1</unidadesMtx>
+                            <codigoMtx xsi:type="xsd:string">7790001001580</codigoMtx>
+                            <codigo xsi:type="xsd:string"> CBHU1501236</codigo>
+                            <descripcion xsi:type="xsd:string">T1 GANCHO A ENTREGA DENTRO DE 5 DIAS FCL DE 40</descripcion>
+                            <cantidad xsi:type="xsd:decimal">1</cantidad>
+                            <codigoUnidadMedida xsi:type="xsd:short">7</codigoUnidadMedida>
+                            <precioUnitario xsi:type="xsd:decimal">1055.27</precioUnitario>
+                            <importeBonificacion xsi:type="xsd:decimal" xsi:nil="true"/>
+                            <codigoCondicionIVA xsi:type="xsd:short">5</codigoCondicionIVA>
+                            <importeIVA xsi:type="xsd:decimal">221.61</importeIVA>
+                            <importeItem xsi:type="xsd:decimal">1276.88</importeItem>
+                        </item>
+                        <item xsi:type="ns1:ItemType">
+                            <unidadesMtx xsi:type="xsd:int">1</unidadesMtx>
+                            <codigoMtx xsi:type="xsd:string">7790001001689</codigoMtx>
+                            <codigo xsi:type="xsd:string"> CBHU1501236</codigo>
+                            <descripcion xsi:type="xsd:string">MANIPULEO EXTRA</descripcion>
+                            <cantidad xsi:type="xsd:decimal">1</cantidad>
+                            <codigoUnidadMedida xsi:type="xsd:short">7</codigoUnidadMedida>
+                            <precioUnitario xsi:type="xsd:decimal">606.60</precioUnitario>
+                            <importeBonificacion xsi:type="xsd:decimal" xsi:nil="true"/>
+                            <codigoCondicionIVA xsi:type="xsd:short">5</codigoCondicionIVA>
+                            <importeIVA xsi:type="xsd:decimal">127.39</importeIVA>
+                            <importeItem xsi:type="xsd:decimal">733.99</importeItem></item>
+                        <item xsi:type="ns1:ItemType">
+                            <unidadesMtx xsi:type="xsd:int">1</unidadesMtx>
+                            <codigoMtx xsi:type="xsd:string">7790001001405</codigoMtx>
+                            <codigo xsi:type="xsd:string"> CBHU1501236</codigo>
+                            <descripcion xsi:type="xsd:string">TRABAJOS EXTRAS (I)</descripcion>
+                            <cantidad xsi:type="xsd:decimal">1</cantidad>
+                            <codigoUnidadMedida xsi:type="xsd:short">7</codigoUnidadMedida>
+                            <precioUnitario xsi:type="xsd:decimal">98.25</precioUnitario>
+                            <importeBonificacion xsi:type="xsd:decimal" xsi:nil="true"/>
+                            <codigoCondicionIVA xsi:type="xsd:short">5</codigoCondicionIVA>
+                            <importeIVA xsi:type="xsd:decimal">20.63</importeIVA>
+                            <importeItem xsi:type="xsd:decimal">118.88</importeItem>
+                        </item>
+                        <item xsi:type="ns1:ItemType">
+                            <unidadesMtx xsi:type="xsd:int">1</unidadesMtx>
+                            <codigoMtx xsi:type="xsd:string">7790001001405</codigoMtx>
+                            <codigo xsi:type="xsd:string"> CBHU1501236</codigo>
+                            <descripcion xsi:type="xsd:string">ADICIONAL FUERA DE NORMA</descripcion>
+                            <cantidad xsi:type="xsd:decimal">1</cantidad>
+                            <codigoUnidadMedida xsi:type="xsd:short">7</codigoUnidadMedida>
+                            <precioUnitario xsi:type="xsd:decimal">1319.10</precioUnitario>
+                            <importeBonificacion xsi:type="xsd:decimal" xsi:nil="true"/>
+                            <codigoCondicionIVA xsi:type="xsd:short">5</codigoCondicionIVA>
+                            <importeIVA xsi:type="xsd:decimal">277.01</importeIVA>
+                            <importeItem xsi:type="xsd:decimal">1596.11</importeItem>
+                        </item>
+                        <item xsi:type="ns1:ItemType">
+                            <unidadesMtx xsi:type="xsd:int">1</unidadesMtx>
+                            <codigoMtx xsi:type="xsd:string">7790001001610</codigoMtx>
+                            <codigo xsi:type="xsd:string"> CBHU1501236</codigo>
+                            <descripcion xsi:type="xsd:string">BARRIDO Y LIMPIEZA VACIOS</descripcion>
+                            <cantidad xsi:type="xsd:decimal">1</cantidad>
+                            <codigoUnidadMedida xsi:type="xsd:short">7</codigoUnidadMedida>
+                            <precioUnitario xsi:type="xsd:decimal">192.57</precioUnitario>
+                            <importeBonificacion xsi:type="xsd:decimal" xsi:nil="true"/>
+                            <codigoCondicionIVA xsi:type="xsd:short">5</codigoCondicionIVA>
+                            <importeIVA xsi:type="xsd:decimal">40.44</importeIVA>
+                            <importeItem xsi:type="xsd:decimal">233.01</importeItem>
+                        </item>
+                    </arrayItems>
+                    <arraySubtotalesIVA soapenc:arrayType="ns1:SubtotalIVAType[1]" xsi:type="soapenc:Array" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/">
+                        <subtotalIVA xsi:type="ns1:SubtotalIVAType">
+                            <codigo xsi:type="xsd:short">5</codigo>
+                            <importe xsi:type="xsd:decimal">878.71</importe>
+                        </subtotalIVA>
+                    </arraySubtotalesIVA>
+                    <arrayDatosAdicionales xsi:type="ns1:DatoAdicionalType" xsi:nil="true"/>
+                </comprobanteCAERequest>
+            </ns1:autorizarComprobanteRequest>
+        </autorizarComprobante>
+    </soapenv:Body>
+</soapenv:Envelope>
