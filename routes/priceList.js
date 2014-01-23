@@ -1,11 +1,13 @@
 /**
  * Created by Administrator on 1/10/14.
  */
+'use strict'
+
 module.exports = function (app){
 
 	var PriceList = require('../models/priceList.js');
 
-	getPriceList = function (req, res){
+	function getPriceList (req, res){
 
 		PriceList.find(function(err, priceList){
 			if(!err) {
@@ -16,7 +18,7 @@ module.exports = function (app){
 		})
 	};
 
-	addPrice = function (req, res){
+	function addPrice (req, res){
 
 		var price = new PriceList({
 			description: req.body.description,
@@ -36,4 +38,5 @@ module.exports = function (app){
 
 	app.get('/agp/pricelist', getPriceList);
 	app.post('/agp/addprice', addPrice);
+
 }

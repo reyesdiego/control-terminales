@@ -5,9 +5,10 @@ var mongoose = require('mongoose'),
 	Schema   = mongoose.Schema;
 
 var invoiceSchema = new Schema({
+	terminal:				{ type: String, required: true },
 	codigoTipoComprobante:	{ type: Number },
 	numeroPuntoVenta:		{ type: Number },
-	numeroComprobante:		{ type: Number },
+	numeroComprobante:		{ type: Number, required: true },
 	fechaEmision:			{ type: Date },
 	codigoTipoAutorizacion:	{ type: String },
 	codigoAutorizacion:		{ type: Number },
@@ -19,7 +20,7 @@ var invoiceSchema = new Schema({
 	importeExento:			{ type: Number },
 	importeSubtotal:		{ type: Number },
 	importeOtrosTributos:	{ type: Number },
-	importeTotal:			{ type: Number },
+	importeTotal:			{ type: Number, required: true },
 	codigoMoneda:			{ type: String, enum:
 		['PES', 'DOL', 'EUR'] },
 	cotizacionMoneda: 		{ type: Number },
@@ -31,9 +32,9 @@ var invoiceSchema = new Schema({
 	details:				[{
 									unidadesMtx:		{type: Number},
 									codigoMtx:			{type: String},
-									codigo:				{type: String},
-									descripcion:		{type: String},
-									cantidad:			{type: Number},
+									codigo:				{type: String, required: true},
+									descripcion:		{type: String, required: true},
+									cantidad:			{type: Number, required: true},
 									codigoUnidadMedida:	{type: Number},
 									precioUnitario:		{type: Number},
 									importeBonificacion:{type: Number},
@@ -42,5 +43,6 @@ var invoiceSchema = new Schema({
 									importeItem:		{type: Number}
 							}]
 });
+invoiceSchema.index({numeroComprobante:1, terminal:1},{unique:true});
 
 module.exports = mongoose.model('Invoice', invoiceSchema);
