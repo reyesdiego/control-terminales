@@ -20,7 +20,7 @@ var TokenModel = mongoose.model('Token', Token);
 
 var Account = new Schema({
 	email: { type: String, required: true, lowercase:true, index: { unique: true } },
-	terminal: {type: String, required: true, lowercase: true, enum: ['BACTSA', 'TRP', 'TERMINAL4']},
+	terminal: {type: String, required: true, uppercase:true, enum: ['BACTSSA', 'TRP', 'TERMINAL4']},
 	full_name: {type: String, required: true},//TODO: break out first / last names
 	date_created: {type: Date, default: Date.now},
 	token: {type: Object},

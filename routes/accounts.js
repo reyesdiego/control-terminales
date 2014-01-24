@@ -27,8 +27,8 @@ module.exports = function (app, passport) {
 	 * @param {Object} req the request object
 	 * @param {Object} res the response object
 	 */
-	app.post('/register', function(req, res) {
-		var name = req.body.fullname;
+	app.post('/agp/register', function(req, res) {
+		var name = req.body.full_name;
 		var email = req.body.email;
 		var password = req.body.password;
 		var terminal = req.body.terminal;
@@ -48,11 +48,10 @@ module.exports = function (app, passport) {
 					message = flash(null, 'Sorry. There was an error processing your request. Please try again or contact technical support.');
 				}
 
-				res.render('register', message);
-			}
-			else {
+//				res.render('register', message);
+			} else {
 				//Successfully registered user
-				res.redirect('login?registered=1');
+				res.send(account);
 			}
 		});
 	});
