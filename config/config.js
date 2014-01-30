@@ -16,5 +16,5 @@ module.exports = {
 	'ttl': 3600000, //1 hour
 	'resetTokenExpiresMinutes': 20, //20 minutes later
 	'mongo_url': 'mongodb://localhost/terapi', // looks like mongodb://<user>:<pass>@mongo.onmodulus.net:27017/Mikha4ot
-	'uri': 'http://200.70.5.142:640'
+	'server_url': 'http://200.70.5.142:640'
 };
