@@ -38,19 +38,24 @@ Account.statics.decode = function(data) {
 };
 
 Account.statics.verifyToken = function(incomingToken, cb) {
+	var errMsg='';
 
 	if (incomingToken !== undefined){
 		console.log('incomingToken: ' + incomingToken);
 		try {
 			var decoded = jwt.decode(incomingToken, tokenSecret);
 		} catch (e){
-			cb({error: 'Token decoding error.' + e.message});
+			errMsg = 'Token decoding error.' + e.message;
+			console.log(errMsg);
+			cb({error: errMsg});
 		}
 		//Now do a lookup on that email in mongodb ... if exists it's a real user
 		if (decoded && decoded.email) {
 			this.findOne({email: decoded.email}, function(err, usr) {
 				if(err || !usr) {
-					cb({error: 'Issue finding user.'});
+					errMsg = 'Issue finding user.';
+					console.log(errMsg);
+					cb({error: errMsg});
 				} else if (incomingToken === usr.token.token) {
 					if (cb !== undefined){
 						cb(false, {terminal: usr.terminal, email: usr.email, token: usr.token, date_created: usr.date_created, full_name: usr.full_name});
@@ -60,8 +65,9 @@ Account.statics.verifyToken = function(incomingToken, cb) {
 				}
 			});
 		} else {
-			console.log('Whoa! Couldn\'t even decode incoming token!');
-			res.json({error: 'Issue decoding incoming token.'});
+			errMsg = 'Issue decoding incoming token.';
+			console.log(errMsg);
+			cb({error: errMsg});
 		}
 	} else {
 		var errMsg = 'Invalid or missing Token';

@@ -16,13 +16,18 @@ module.exports = function(app) {
 	function getInvoices (req, res) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
-			Invoice.find(function(err, invoices) {
-				if(!err) {
-					res.send(invoices);
-				} else {
-					console.log('ERROR: ' + err);
-				}
-			});
+			if (err){
+				console.log(usr);
+				res.send(err);
+			} else {
+				Invoice.find(function(err, invoices) {
+					if(!err) {
+						res.send(invoices);
+					} else {
+						console.log('ERROR: ' + err);
+					}
+				});
+			}
 		});
 	};
 
@@ -41,10 +46,13 @@ module.exports = function(app) {
 			var incomingToken = req.headers.token;
 
 			Account.verifyToken(incomingToken, function(err, usr) {
-				Invoice.find({terminal:usr.terminal}).sort({numeroComprobante:-1}).limit(1).find({},function(err, data){
 
-					var previousInvoice;
-					if (data.length>0) previousInvoice = data[0];
+				var previousInvoice;
+
+				if (err) {
+					console.log(err);
+					res.send(err);
+				} else {
 
 					var et = require('elementtree');
 					var XML = et.XML;
@@ -53,68 +61,72 @@ module.exports = function(app) {
 					var subElement = et.SubElement;
 
 					var etree = et.parse(postData);
-
 					var header = etree.find('.//comprobanteCAERequest');
 
-					if ((previousInvoice !== undefined && previousInvoice.numeroComprobante + 1 === parseInt(header.findtext('numeroComprobante'), 10))
-						|| previousInvoice === undefined ) {
+					var codigoTipoComprobante = header.findtext('codigoTipoComprobante');
 
-						console.log('numeroComprobante Correcto: %s', header.findtext('numeroComprobante'));
+					Invoice.find({terminal: usr.terminal, codigoTipoComprobante: codigoTipoComprobante}).sort({numeroComprobante: -1}).limit(1).find({}, function (err, data) {
 
-						var headerNew = {
-							terminal: usr.terminal,
-							numeroComprobante: header.findtext('numeroComprobante'),
-							codigoTipoDocumento: header.findtext('codigoTipoDocumento'),
-							numeroDocumento: header.findtext('numeroDocumento'),
-							importeGravado: header.findtext('importeGravado'),
-							importeNoGravado: header.findtext('importeNoGravado'),
-							importeExento: header.findtext('importeExento'),
-							importeSubtotal: header.findtext('importeSubtotal'),
-							importeOtrosTributos: header.findtext('importeOtrosTributos'),
-							importeTotal: header.findtext('importeTotal'),
-							codigoMoneda: header.findtext('codigoMoneda'),
-							cotizacionMoneda: header.findtext('cotizacionMoneda'),
-							observaciones: header.findtext('observaciones'),
-							codigoConcepto: header.findtext('codigoConcepto'),
-							details: []
-						}
+						if (data.length > 0) previousInvoice = data[0];
 
-						//_addInvoiceHeader(headerNew);
+						if ((previousInvoice !== undefined && previousInvoice.numeroComprobante + 1 === parseInt(header.findtext('numeroComprobante'), 10))
+							|| previousInvoice === undefined) {
 
+							console.log('numeroComprobante Correcto: %s', header.findtext('numeroComprobante'));
 
-						var items = etree.findall('.//item');
-						items.forEach( function (item) {
-							var detail = {
-								unidadesMtx: item.findtext('unidadesMtx'),
-								codigoMtx: item.findtext('codigoMtx'),
-								codigo: item.findtext('codigo'),
-								descripcion: item.findtext('descripcion'),
-								cantidad: item.findtext('cantidad'),
-								codigoUnidadMedida: item.findtext('codigoUnidadMedida'),
-								precioUnitario: item.findtext('precioUnitario'),
-								importeBonificacion: item.findtext('importeBonificacion'),
-								codigoCondicionIva: item.findtext('codigoCondicionIVA'),
-								importeIva: item.findtext('importeIVA'),
-								importeItem: item.findtext('importeItem')
-							};
-							//				var detailNew = _addInvoiceDetail(detail)
-							headerNew.details.push(detail);
-						});
-						var invoice2add = new Invoice(headerNew);
-						invoice2add.save(function (err) {
-							if (!err) {
-								console.log('Created');
-								console.log("items:%s inserted", items.length);
-								res.send(invoice2add);
-							} else {
-								console.log('ERROR: ' + err);
+							var headerNew = {
+								terminal: usr.terminal,
+								codigoTipoComprobante: header.findtext('codigoTipoComprobante'),
+								numeroComprobante: header.findtext('numeroComprobante'),
+								codigoTipoDocumento: header.findtext('codigoTipoDocumento'),
+								numeroDocumento: header.findtext('numeroDocumento'),
+								importeGravado: header.findtext('importeGravado'),
+								importeNoGravado: header.findtext('importeNoGravado'),
+								importeExento: header.findtext('importeExento'),
+								importeSubtotal: header.findtext('importeSubtotal'),
+								importeOtrosTributos: header.findtext('importeOtrosTributos'),
+								importeTotal: header.findtext('importeTotal'),
+								codigoMoneda: header.findtext('codigoMoneda'),
+								cotizacionMoneda: header.findtext('cotizacionMoneda'),
+								observaciones: header.findtext('observaciones'),
+								codigoConcepto: header.findtext('codigoConcepto'),
+								details: []
 							}
-						});
-					} else {
-						console.log('numeroComprobante Incorrecto: %s', header.findtext('numeroComprobante'));
-						res.send({"error": "numeroComprobante Incorrecto:" + header.findtext('numeroComprobante')})
-					}
-				});
+
+							var items = etree.findall('.//item');
+							items.forEach(function (item) {
+								var detail = {
+									unidadesMtx: item.findtext('unidadesMtx'),
+									codigoMtx: item.findtext('codigoMtx'),
+									codigo: item.findtext('codigo'),
+									descripcion: item.findtext('descripcion'),
+									cantidad: item.findtext('cantidad'),
+									codigoUnidadMedida: item.findtext('codigoUnidadMedida'),
+									precioUnitario: item.findtext('precioUnitario'),
+									importeBonificacion: item.findtext('importeBonificacion'),
+									codigoCondicionIva: item.findtext('codigoCondicionIVA'),
+									importeIva: item.findtext('importeIVA'),
+									importeItem: item.findtext('importeItem')
+								};
+
+								headerNew.details.push(detail);
+							});
+							var invoice2add = new Invoice(headerNew);
+							invoice2add.save(function (err) {
+								if (!err) {
+									console.log('Created with %s Items.', items.length);
+									res.send(invoice2add);
+								} else {
+									console.log('ERROR: ' + err);
+									res.send({"error": 'ERROR: ' + err})
+								}
+							});
+						} else {
+							console.log('numeroComprobante Incorrecto: %s', header.findtext('numeroComprobante'));
+							res.send({"error": "numeroComprobante Incorrecto:" + header.findtext('numeroComprobante')})
+						}
+					});
+				}
 			});
 		});
 	};
@@ -146,12 +158,11 @@ module.exports = function(app) {
 	app.get('/test', function(req, res){
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
-			if (!err){
-				console.log(usr);
-				res.send({"test":"OK", user: usr});
-			}
-			else{
+			if (err) {
 				res.send(err);
+			} else {
+				console.log(usr);
+				res.send({"test": "OK", user: usr});
 			}
 		});
 	})

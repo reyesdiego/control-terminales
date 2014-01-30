@@ -1,13 +1,14 @@
 /**
  * Created by Administrator on 1/10/14.
  */
-'use strict'
+'use strict';
 
 module.exports = function (app){
 
 	var PriceList = require('../models/priceList.js');
 
 	function getPriceList (req, res){
+		'use strict';
 
 		PriceList.find(function(err, priceList){
 			if(!err) {
@@ -16,15 +17,17 @@ module.exports = function (app){
 				console.log('ERROR: ' + err);
 			}
 		})
-	};
+	}
 
 	function addPrice (req, res){
+		'use strict';
 
 		var price = new PriceList({
-			description: req.body.description,
-			unit: req.body.topPrice,
-			currency: req.body.currency,
-			topPrice: req.body.topPrice
+			code:		req.body.code.toUpperCase(),
+			description:req.body.description,
+			unit:		req.body.unit,
+			currency:	req.body.currency,
+			topPrice:	req.body.topPrice
 		});
 		price.save(function (err){
 			if(!err) {
@@ -34,9 +37,9 @@ module.exports = function (app){
 				console.log('ERROR: ' + err);
 			}
 		});
-	};
+	}
 
 	app.get('/agp/pricelist', getPriceList);
 	app.post('/agp/addprice', addPrice);
 
-}
+};
