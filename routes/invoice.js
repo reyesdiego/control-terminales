@@ -12,7 +12,7 @@ module.exports = function(app) {
 
 	var Invoice = require('../models/invoice.js');
 
-	//GET - Return all invoiceHeaders in the DB
+	//GET - Return all invoice in the DB
 	function getInvoices (req, res) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
@@ -20,7 +20,7 @@ module.exports = function(app) {
 				console.log(usr);
 				res.send(err);
 			} else {
-				Invoice.find(function(err, invoices) {
+				Invoice.find({terminal: usr.terminal},function(err, invoices) {
 					if(!err) {
 						res.send(invoices);
 					} else {
