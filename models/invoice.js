@@ -21,26 +21,40 @@ var invoiceSchema = new Schema({
 	importeSubtotal:		{ type: Number },
 	importeOtrosTributos:	{ type: Number },
 	importeTotal:			{ type: Number, required: true },
-	codigoMoneda:			{ type: String, enum:
-		['PES', 'DOL', 'EUR'] },
+	codigoMoneda:			{ type: String, enum: ['PES', 'DOL', 'EUR'] },
 	cotizacionMoneda: 		{ type: Number },
 	observaciones: 			{ type: String },
 	codigoConcepto: 		{ type: Number },
 	fechaServicioDesde:		{ type: Date },
 	fechaServicioHasta:		{ type: Date },
 	fechaVencimientoPago:	{ type: Date },
+	buque:					{
+								codigo: { type: String },
+								nombre:	{ type: String },
+								viaje:	{ type: String }
+							},
 	details:				[{
-									unidadesMtx:		{type: Number},
-									codigoMtx:			{type: String},
-									codigo:				{type: String, required: true},
-									descripcion:		{type: String, required: true},
-									cantidad:			{type: Number, required: true},
-									codigoUnidadMedida:	{type: Number},
-									precioUnitario:		{type: Number},
-									importeBonificacion:{type: Number},
-									codigoCondicionIva:	{type: Number},
-									importeIva:			{type: Number},
-									importeItem:		{type: Number}
+								contenedor:			{type: String},
+								unidadesMtx:		{type: Number},
+								codigoMtx:			{type: String},
+								codigo:				{type: String, required: true},
+								descripcion:		{type: String, required: true},
+								cantidad:			{type: Number, required: true},
+								codigoUnidadMedida:	{type: Number},
+								precioUnitario:		{type: Number},
+								importeBonificacion:{type: Number},
+								codigoCondicionIva:	{type: Number},
+								importeIva:			{type: Number},
+								importeItem:		{type: Number}
+							}],
+	otrosTributos:			[{
+								descripcion:		{type: String},
+								baseImponible:		{type: Number},
+								importe:			{type: Number}
+							}],
+	subtotalesIva:			[{
+								codigo:				{type: Number},
+								importe:			{type: Number}
 							}]
 });
 invoiceSchema.index({numeroComprobante:1, terminal:1},{unique:true});

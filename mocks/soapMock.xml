@@ -8,6 +8,9 @@
                     <cuitRepresentada xsi:type="xsd:long">30678167238</cuitRepresentada>
                 </authRequest>
                 <comprobanteCAERequest xsi:type="ns1:ComprobanteType">
+                    <buqueCodigo>991</buqueCodigo>
+                    <buqueDescripcion>Titanic</buqueDescripcion>
+                    <viaje>112/322</viaje>
                     <codigoTipoComprobante xsi:type="xsd:short">1</codigoTipoComprobante>
                     <numeroPuntoVenta xsi:type="xsd:short">24</numeroPuntoVenta>
                     <numeroComprobante xsi:type="xsd:long">115469</numeroComprobante>

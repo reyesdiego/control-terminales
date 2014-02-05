@@ -29,6 +29,7 @@ module.exports = function(app) {
 				});
 			}
 		});
+
 	};
 
 	function addInvoice ( req, res) {
@@ -90,12 +91,18 @@ module.exports = function(app) {
 								cotizacionMoneda: header.findtext('cotizacionMoneda'),
 								observaciones: header.findtext('observaciones'),
 								codigoConcepto: header.findtext('codigoConcepto'),
+								buque: {
+											codigo: header.findtext('buqueCodigo'),
+											nombre: header.findtext('buqueDescripcion'),
+											viaje: header.findtext('viaje')
+										},
 								details: []
 							}
 
 							var items = etree.findall('.//item');
 							items.forEach(function (item) {
 								var detail = {
+									contenedor: item.findtext('codigo'),
 									unidadesMtx: item.findtext('unidadesMtx'),
 									codigoMtx: item.findtext('codigoMtx'),
 									codigo: item.findtext('codigo'),
@@ -122,8 +129,13 @@ module.exports = function(app) {
 								}
 							});
 						} else {
-							console.log('numeroComprobante Incorrecto: %s', header.findtext('numeroComprobante'));
-							res.send({"error": "numeroComprobante Incorrecto:" + header.findtext('numeroComprobante')})
+							var nextOne = '';
+							if (previousInvoice !== undefined){
+								nextOne = previousInvoice.numeroComprobante + 1;
+							}
+
+							console.log('numeroComprobante Incorrecto: %s, numero correcto: %s', header.findtext('numeroComprobante'), nextOne);
+							res.send({"error": 'numeroComprobante Incorrecto:' + header.findtext('numeroComprobante') + ', numeroComprobante correcto:' + nextOne})
 						}
 					});
 				}

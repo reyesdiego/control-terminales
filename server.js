@@ -22,9 +22,18 @@ app.configure(function () {
 
 app.all('/*', function(req, res, next) {
 	res.header("Access-Control-Allow-Origin", "*");
-//	res.header("Access-Control-Allow-Headers", 'X-Requested-With, Content-Type');
-	res.header('Access-Control-Allow-Methods', 'GET, POST', 'DELETE', 'PUT');
-	next();
+	res.header("Access-Control-Allow-Headers", 'X-Requested-With, Content-Type, token');
+	res.header('Access-Control-Allow-Methods', 'GET, POST', 'DELETE', 'PUT', 'OPTIONS');
+	res.header('Access-Control-Request-Method', 'GET');
+	res.header('Access-Control-Request-Headers', 'token');
+
+	if ('OPTIONS' == req.method) {
+		res.send(200);
+	}
+	else {
+		next();
+	}
+//	next();
 });
 
 var Account = require(__dirname +'/models/account');
