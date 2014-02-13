@@ -1,17 +1,29 @@
 /**
- * Created by Diego Reyes on 1/7/14.
+ * Created by Diego Reyes on 2/7/14.
  */
-var express = require('express'),
-	http    = require('http'),
-	mongoose= require('mongoose'),
-	passport = require('passport'),
+
+var express		= require('express'),
+	https		= require('https'),
+	mongoose	= require('mongoose'),
+	passport	= require('passport'),
 	LocalStrategy = require('passport-local').Strategy,
-	path	= require('path');
+	path		= require('path');
+
+var fs = require('fs');
 
 var config = require(__dirname + '/config/config.js');
 
+var options = {
+	key: fs.readFileSync('certificate.pem'),
+	cert: fs.readFileSync('certrequest.pem'),
+	// Ask for the client's cert
+	requestCert: false,
+	// Don't automatically reject
+	rejectUnauthorized: false
+};
+
 var app = express();
-var server = http.createServer(app);
+var server = https.createServer(options, app);
 
 app.configure(function () {
 	app.use(express.bodyParser());
@@ -40,7 +52,18 @@ var Account = require(__dirname +'/models/account');
 passport.use(Account.createStrategy());
 
 app.get('/', function(req, res) {
-	res.send("Servicio Rest Terminales Portuarias. A.G.P.");
+//	res.send("Servicio Rest Terminales Portuarias. A.G.P.");
+		if (req.client.authorized) {
+		res.writeHead(200, {"Content-Type":"application/json"});
+		res.end('{"status":"approved"}');
+		// console.log(req.client);
+		console.log("Approved Client ", req.client.socket.remoteAddress);
+	} else {
+		res.writeHead(401, {"Content-Type":"application/json"});
+		res.end('{"status":"denied"}');
+		// console.log(req.client);
+		console.log("Denied Client " , req.client.socket.remoteAddress);
+	}
 });
 
 mongoose.connect(config.mongo_url, function(err, res) {
@@ -55,6 +78,9 @@ routes = require('./routes/accounts')(app, passport);
 routes = require('./routes/invoice')(app);
 routes = require('./routes/priceList')(app);
 
-server.listen(8080, function() {
-	console.log("Node server running on http://localhost:8080");
+var port = 8080;
+server.listen(port, function() {
+	console.log("Node server running on http://localhost:%s", port);
 });
+
+

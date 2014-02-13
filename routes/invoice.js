@@ -80,6 +80,7 @@ module.exports = function(app) {
 								codigoTipoComprobante: header.findtext('codigoTipoComprobante'),
 								numeroComprobante: header.findtext('numeroComprobante'),
 								codigoTipoDocumento: header.findtext('codigoTipoDocumento'),
+								fechaEmision: header.findtext('fechaEmision'),
 								numeroDocumento: header.findtext('numeroDocumento'),
 								importeGravado: header.findtext('importeGravado'),
 								importeNoGravado: header.findtext('importeNoGravado'),
@@ -157,7 +158,7 @@ module.exports = function(app) {
 					}
 				});
 			}
-			else{
+			else {
 				res.send(err);
 			}
 		});

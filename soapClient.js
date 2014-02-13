@@ -1,12 +1,23 @@
-/**
- * Created by Administrator on 1/14/14.
- */
+var soap = require('soap');
 
-var soap = require("soap");
-var url = 'http://127.0.0.1:1337/testService?wsdl';
-var args = {myArg1: 1, myArg2: 1};
+var url = 'https://api.authorize.net/soap/v1/Service.asmx?WSDL';
+
 soap.createClient(url, function(err, client) {
-	client.test2(args, function(err, result) {
-		console.log(result);
-	});
+
+	var args = {
+		merchantAuthentication: {
+			name: '285tUPuS',
+			transactionKey: '58JKJ4T95uee75wd'
+		}
+	};
+
+	client.Service.ServiceSoap12.GetTransactionDetails(args,
+		function(err, result) {
+
+			if (err) {
+				console.log(err);
+			} else {
+				console.log(result.GetTransactionDetailsResult[0].messages);
+			}
+		});
 });
