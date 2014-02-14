@@ -4,57 +4,60 @@
 var mongoose = require('mongoose'),
 	Schema   = mongoose.Schema;
 
-var invoiceSchema = new Schema({
+var invoiceSchema = new Schema(
+	{
 	terminal:				{ type: String, required: true },
-	codigoTipoComprobante:	{ type: Number },
-	numeroPuntoVenta:		{ type: Number },
-	numeroComprobante:		{ type: Number, required: true },
-	fechaEmision:			{ type: Date },
-	codigoTipoAutorizacion:	{ type: String },
-	codigoAutorizacion:		{ type: Number },
-	fechaVencimiento:		{ type: Date },
-	codigoTipoDocumento:    { type: Number },
-	numeroDocumento: 	    { type: Number },
-	importeGravado:			{ type: Number },
-	importeNoGravado:		{ type: Number },
-	importeExento:			{ type: Number },
-	importeSubtotal:		{ type: Number },
-	importeOtrosTributos:	{ type: Number },
-	importeTotal:			{ type: Number, required: true },
-	codigoMoneda:			{ type: String, enum: ['PES', 'DOL', 'EUR'] },
-	cotizacionMoneda: 		{ type: Number },
-	observaciones: 			{ type: String },
-	codigoConcepto: 		{ type: Number },
-	fechaServicioDesde:		{ type: Date },
-	fechaServicioHasta:		{ type: Date },
-	fechaVencimientoPago:	{ type: Date },
+	codTipoComprob:			{ type: Number },
+	nroPtoVenta:			{ type: Number },
+	nroComprob:				{ type: Number, required: true },
+	codTipoAutoriz:			{ type: String },
+	codAutoriz:				{ type: Number },
+	fechaVto:				{ type: Date },
+	codTipoDoc:				{ type: Number },
+	nroDoc:					{ type: Number },
+	importe:				{
+								Gravado:		{ type: Number },
+								NoGravado:		{ type: Number },
+								Exento:			{ type: Number },
+								Subtotal:		{ type: Number },
+								OtrosTributos:	{ type: Number },
+								Total:			{ type: Number, required: true }
+	},
+	codMoneda:				{ type: String, enum: ['PES', 'DOL', 'EUR'] },
+	cotiMoneda:				{ type: Number },
+	observa:	 			{ type: String },
+	codConcepto:			{ type: Number },
+	fecha:{
+		Emision:			{ type: Date },
+		Desde:				{ type: Date },
+		Hasta:				{ type: Date },
+		VtoPago:			{ type: Date }
+	},
 	buque:					{
-								codigo: { type: String },
+								codigo:	{ type: String },
 								nombre:	{ type: String },
 								viaje:	{ type: String }
 							},
-	details:				[{
+	detalle:[
+		{
 								contenedor:			{type: String},
-								unidadesMtx:		{type: Number},
-								codigoMtx:			{type: String},
-								codigo:				{type: String, required: true},
-								descripcion:		{type: String, required: true},
-								cantidad:			{type: Number, required: true},
-								codigoUnidadMedida:	{type: Number},
-								precioUnitario:		{type: Number},
-								importeBonificacion:{type: Number},
-								codigoCondicionIva:	{type: Number},
-								importeIva:			{type: Number},
-								importeItem:		{type: Number}
-							}],
+								items:[
+									{
+										id:			{type: String, required: true},
+										cnt:		{type: Number, required: true},
+										uniMed:		{type: Number},
+										impUni:		{type: Number},
+										impIva:		{type: Number},
+										impTot:		{type: Number}
+									}
+								]
+		}
+	],
 	otrosTributos:			[{
-								descripcion:		{type: String},
-								baseImponible:		{type: Number},
-								importe:			{type: Number}
-							}],
-	subtotalesIva:			[{
-								codigo:				{type: Number},
-								importe:			{type: Number}
+								id:				{type: Number},
+								desc	:		{type: String},
+								imponible:		{type: Number},
+								imp:			{type: Number}
 							}]
 });
 invoiceSchema.index({numeroComprobante:1, terminal:1},{unique:true});
