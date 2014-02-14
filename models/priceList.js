@@ -4,7 +4,7 @@
 var mongoose = require('mongoose');
 
 var priceList = new mongoose.Schema({
-	code:			{type: String},
+	code:			{type: String, required:true},
 	description:	{type: String},
 	unit:			{type: String},
 	currency:		{type: String},

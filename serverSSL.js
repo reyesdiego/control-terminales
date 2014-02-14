@@ -14,8 +14,8 @@ var fs = require('fs');
 var config = require(__dirname + '/config/config.js');
 
 var options = {
-	key: fs.readFileSync('certificate.pem'),
-	cert: fs.readFileSync('certrequest.pem'),
+	key: fs.readFileSync('./certificates/key.pem'),
+	cert: fs.readFileSync('./certificates/cert.pem'),
 	// Ask for the client's cert
 	requestCert: false,
 	// Don't automatically reject
