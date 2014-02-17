@@ -1,7 +1,3 @@
-/**
- * Created by Diego Reyes on 2/17/14.
- */
-
 'use strict';
 
 var path = require('path');
@@ -11,7 +7,7 @@ var Account = require(path.join(__dirname, '..', '/models/account'));
  * Created by Diego Reyes on 1/7/14.
  *
  * @module Routes
- */
+  */
 module.exports = function(app) {
 
 	var Invoice = require('../models/invoice.js');
@@ -49,97 +45,32 @@ module.exports = function(app) {
 		req.addListener("end", function() {
 			console.log("Received POST data ");
 			var incomingToken = req.headers.token;
-			postData = JSON.parse(postData);
-//			Account.verifyToken(incomingToken, function(err, usr) {
+
+			Account.verifyToken(incomingToken, function(err, usr) {
 
 				var previousInvoice;
-var err;
+
 				if (err) {
 					console.log(err);
 					res.send(err);
 				} else {
-console.log(postData);
 
-					var invoice = {
-						terminal:	"BACTSSA",
-					codTipoComprob:	postData.codTipoComprob,
-					nroPtoVenta:	postData.nroPtoVenta,
-					nroComprob:		postData.nroComprob,
-					codTipoAutoriz:	postData.codTipoAutoriz,
-					codAutoriz:		postData.codAutoriz,
-					fechaVto:		postData.fechaVto,
-					codTipoDoc:		postData.codTipoDoc,
-					nroDoc:			postData.nroDoc,
-					clienteId:		postData.clientId,
-					razon:			postData.razon,
-					importe:		{
-										gravado:		postData.impGrav,
-										noGravado:		postData.impNoGrav,
-										exento:			postData.impExento,
-										subtotal:		postData.impSubtot,
-										iva:			postData.impIva,
-										otrosTributos:	postData.impOtrosTrib,
-										total:			postData.impTotal
-									},
-					codMoneda:		postData.codMoneda,
-					cotiMoneda:		postData.cotiMoneda,
-					observa:	 	postData.observa,
-					codConcepto:	postData.codConcepto,
-					fecha:			{
-										emision:	postData.fechaEmision,
-										vcto:		postData.fechaVcto,
-										desde:		postData.fechaServDesde,
-										hasta:		postData.fechaServHasta,
-										vctoPago:	postData.fechaVctoPago
-									},
-					buque:			{
-										codigo:	postData.codigo,
-										nombre:	postData.nombre,
-										viaje:	postData.viaje
-									},
-					detalle:		[],
-					otrosTributos:	[]
-					}
+					var et = require('elementtree');
+					var XML = et.XML;
+					var ElementTree = et.ElementTree;
+					var element = et.Element;
+					var subElement = et.SubElement;
 
-					postData.detalle.forEach(function (container){
-						var cont = {
-							contenedor:		container.contenedor,
-							items: []
-						};
-						container.items.forEach(function (item){
-							cont.items
-						})
-						invoice.detalle.push(
-						);
-					}
-					);
-					var invoice2add = new Invoice(invoice);
-					invoice2add.save(function (err) {
-						if (!err) {
-							res.send(invoice2add);
-						} else {
-							console.log('ERROR: ' + err);
-							res.send({"error": 'ERROR: ' + err})
-						}
-					});
+					var etree = et.parse(postData);
+					var header = etree.find('.//comprobanteCAERequest');
 
-//					for () {
-//						invoice.otrosTributos.push(
-//						{
-//							id:			,
-//							desc	:	,
-//							imponible:	,
-//							imp:
-//						})
-//					}
+					var codigoTipoComprobante = header.findtext('codigoTipoComprobante');
 
-console.log(invoice);
-					return;
 					Invoice.find({terminal: usr.terminal, codigoTipoComprobante: codigoTipoComprobante}).sort({numeroComprobante: -1}).limit(1).find({}, function (err, data) {
 
 						if (data.length > 0) previousInvoice = data[0];
 
-						if (1===1 || (previousInvoice !== undefined && previousInvoice.numeroComprobante + 1 === parseInt(header.findtext('numeroComprobante'), 10))
+						if ((previousInvoice !== undefined && previousInvoice.numeroComprobante + 1 === parseInt(header.findtext('numeroComprobante'), 10))
 							|| previousInvoice === undefined) {
 
 							console.log('numeroComprobante Correcto: %s', header.findtext('numeroComprobante'));
@@ -162,14 +93,33 @@ console.log(invoice);
 								observaciones: header.findtext('observaciones'),
 								codigoConcepto: header.findtext('codigoConcepto'),
 								buque: {
-									codigo: header.findtext('buqueCodigo'),
-									nombre: header.findtext('buqueDescripcion'),
-									viaje: header.findtext('viaje')
-								},
+											codigo: header.findtext('buqueCodigo'),
+											nombre: header.findtext('buqueDescripcion'),
+											viaje: header.findtext('viaje')
+										},
 								details: []
 							}
 
+							var items = etree.findall('.//item');
+							items.forEach(function (item) {
+								var detail = {
+									contenedor: item.findtext('codigo'),
+									unidadesMtx: item.findtext('unidadesMtx'),
+									codigoMtx: item.findtext('codigoMtx'),
+									codigo: item.findtext('codigo'),
+									descripcion: item.findtext('descripcion'),
+									cantidad: item.findtext('cantidad'),
+									codigoUnidadMedida: item.findtext('codigoUnidadMedida'),
+									precioUnitario: item.findtext('precioUnitario'),
+									importeBonificacion: item.findtext('importeBonificacion'),
+									codigoCondicionIva: item.findtext('codigoCondicionIVA'),
+									importeIva: item.findtext('importeIVA'),
+									importeItem: item.findtext('importeItem')
+								};
 
+								headerNew.details.push(detail);
+							});
+							var invoice2add = new Invoice(headerNew);
 							invoice2add.save(function (err) {
 								if (!err) {
 									console.log('Created with %s Items.', items.length);
@@ -191,7 +141,7 @@ console.log(invoice);
 					});
 				}
 			});
-//		});
+		});
 	};
 
 	function removeInvoices ( req, res){
@@ -212,7 +162,7 @@ console.log(invoice);
 				res.send(err);
 			}
 		});
-	}
+	};
 
 	app.get('/invoices', getInvoices);
 	app.post('/invoice', addInvoice);
@@ -230,4 +180,3 @@ console.log(invoice);
 		});
 	})
 }
-

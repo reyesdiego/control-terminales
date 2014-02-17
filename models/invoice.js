@@ -7,31 +7,34 @@ var mongoose = require('mongoose'),
 var invoiceSchema = new Schema(
 	{
 	terminal:				{ type: String, required: true },
-	codTipoComprob:			{ type: Number },
+	codTipoComprob:			{ type: String },
 	nroPtoVenta:			{ type: Number },
 	nroComprob:				{ type: Number, required: true },
+	fechaEmision:			{ type: Date },
 	codTipoAutoriz:			{ type: String },
 	codAutoriz:				{ type: Number },
-	fechaVto:				{ type: Date },
+	fechaVcto:				{ type: Date },
 	codTipoDoc:				{ type: Number },
 	nroDoc:					{ type: Number },
 	importe:				{
-								Gravado:		{ type: Number },
-								NoGravado:		{ type: Number },
-								Exento:			{ type: Number },
-								Subtotal:		{ type: Number },
-								OtrosTributos:	{ type: Number },
-								Total:			{ type: Number, required: true }
+								gravado:		{ type: Number },
+								noGravado:		{ type: Number },
+								exento:			{ type: Number },
+								iva:			{ type: Number },
+								subtotal:		{ type: Number },
+								otrosTributos:	{ type: Number },
+								total:			{ type: Number, required: true }
 	},
 	codMoneda:				{ type: String, enum: ['PES', 'DOL', 'EUR'] },
 	cotiMoneda:				{ type: Number },
 	observa:	 			{ type: String },
 	codConcepto:			{ type: Number },
 	fecha:{
-		Emision:			{ type: Date },
-		Desde:				{ type: Date },
-		Hasta:				{ type: Date },
-		VtoPago:			{ type: Date }
+		emision:			{ type: Date },
+		vcto:				{ type: Date },
+		desde:				{ type: Date },
+		hasta:				{ type: Date },
+		vctoPago:			{ type: Date }
 	},
 	buque:					{
 								codigo:	{ type: String },
