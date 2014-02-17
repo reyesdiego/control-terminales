@@ -39,7 +39,8 @@ module.exports = function (app){
 		});
 	}
 
-	app.get('/agp/pricelist', getPriceList);
-	app.post('/agp/addprice', addPrice);
+	app.get('/agp/prices', getPriceList);
+	app.get('/agp/price/{:id}', getPriceList);
+	app.post('/agp/price', addPrice);
 
 };
