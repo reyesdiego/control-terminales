@@ -78,7 +78,8 @@ routes = require('./routes/accounts')(app, passport);
 routes = require('./routes/invoice')(app);
 routes = require('./routes/priceList')(app);
 
-var port = 8080;
+var processArgs = process.argv.slice(2);
+var port = processArgs[0];
 server.listen(port, function() {
 	console.log("Node server running on http://localhost:%s", port);
 });
