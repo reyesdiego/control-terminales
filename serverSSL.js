@@ -76,7 +76,7 @@ mongoose.connect(config.mongo_url, function(err, res) {
 
 routes = require('./routes/accounts')(app, passport);
 routes = require('./routes/invoice')(app);
-routes = require('./routes/priceList')(app);
+routes = require('./routes/price')(app);
 
 var processArgs = process.argv.slice(2);
 var port = processArgs[0];

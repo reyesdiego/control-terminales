@@ -61,7 +61,7 @@ var err;
 console.log(postData);
 
 					var invoice = {
-						terminal:	"BACTSSA",
+					terminal:	"BACTSSA",
 					codTipoComprob:	postData.codTipoComprob,
 					nroPtoVenta:	postData.nroPtoVenta,
 					nroComprob:		postData.nroComprob,
@@ -107,12 +107,18 @@ console.log(postData);
 							items: []
 						};
 						container.items.forEach(function (item){
-							cont.items
-						})
-						invoice.detalle.push(
-						);
-					}
-					);
+							cont.items.push(
+							{
+								id:			item.id,
+								cnt:		item.cnt,
+								uniMed:		item.uniMed,
+								impUnit:	item.impUni,
+								impIva:		item.impIva,
+								impTot:		item.impTot
+							});
+						});
+						invoice.detalle.push(cont);
+					});
 					var invoice2add = new Invoice(invoice);
 					invoice2add.save(function (err) {
 						if (!err) {

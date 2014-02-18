@@ -3,7 +3,7 @@
  */
 var mongoose = require('mongoose');
 
-var priceList = new mongoose.Schema({
+var price = new mongoose.Schema({
 	code:			{type: String, required:true},
 	description:	{type: String},
 	unit:			{type: String},
@@ -11,7 +11,7 @@ var priceList = new mongoose.Schema({
 	topPrice:		{type: Number}
 });
 
-priceList.virtual('unitCurrency').get(function(){
+price.virtual('unitCurrency').get(function(){
 	var cur, unit;
 	if (this.unit === 'TN')
 		unit = 'tn';
@@ -27,7 +27,7 @@ priceList.virtual('unitCurrency').get(function(){
 
 	return cur + '/' + unit;
 });
-priceList.set('toJSON', {virtuals: true,
+price.set('toJSON', {virtuals: true,
 	transform: function(doc, ret, options) {
 		delete ret._id;
 		delete ret.unit;
@@ -37,4 +37,4 @@ priceList.set('toJSON', {virtuals: true,
 	}
 });
 
-module.exports = mongoose.model('PriceList', priceList);
+module.exports = mongoose.model('prices', price);
