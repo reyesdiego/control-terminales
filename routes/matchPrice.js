@@ -36,5 +36,6 @@ module.exports = function (app){
 
 	app.get('/agp/matchprices', getMatchPrices);
 	app.post('/agp/matchprice', addMatchPrice);
+	app.put('/agp/matchprice', addMatchPrice);
 
 };
