@@ -23,7 +23,8 @@ module.exports = function (app){
 		'use strict';
 
 		var _price = new price({
-			code:		req.body.code.toUpperCase(),
+			_id:		req.body._id.toUpperCase(),
+//			code:		req.body.code.toUpperCase(),
 			description:req.body.description,
 			unit:		req.body.unit,
 			currency:	req.body.currency,

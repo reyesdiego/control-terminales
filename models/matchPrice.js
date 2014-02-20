@@ -4,10 +4,10 @@
 var mongoose = require('mongoose');
 
 var matchpPrice = new mongoose.Schema({
-	terminal:		{ type: String, required: true},
-	codes:			[
+	_id:	{type: String, required: true},
+	codes:	[
 		{
-			codeAgp:	{type: String, required: true},
+			terminal:	{ type: String, required: true},
 			codes:		[String]
 		}
 	]

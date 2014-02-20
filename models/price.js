@@ -4,11 +4,13 @@
 var mongoose = require('mongoose');
 
 var price = new mongoose.Schema({
-	code:			{type: String, required:true},
+	_id:			{type: String},
+	code:			{type: String},
 	description:	{type: String},
 	unit:			{type: String},
 	currency:		{type: String},
-	topPrice:		{type: Number}
+	topPrice:		{type: Number},
+	matches:		[{type: String, ref:'matchprices'}]
 });
 
 price.virtual('unitCurrency').get(function(){

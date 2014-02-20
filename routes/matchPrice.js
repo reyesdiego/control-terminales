@@ -6,17 +6,29 @@
 module.exports = function (app){
 
 	var matchPrice = require('../models/matchPrice.js');
+	var price = require('../models/price.js');
 
 	function getMatchPrices (req, res){
 		'use strict';
 
-		matchPrice.find(function(err, matchPrices){
-			if(!err) {
-				res.send(matchPrices);
-			} else {
-				console.log('ERROR: ' + err);
-			}
-		});
+//		matchPrice.find(function(err, matchPrices){
+//			if(!err) {
+//				res.send(matchPrices);
+//			} else {
+//				console.log('ERROR: ' + err);
+//			}
+//		});
+
+		price.find()
+			.populate('matches')
+			.exec(function (err, matchPrices) {
+				if(!err) {
+					res.send(matchPrices);
+				} else {
+					console.log('ERROR: ' + err);
+				}
+			})
+
 	}
 
 	function addMatchPrice (req, res){
