@@ -11,24 +11,15 @@ module.exports = function (app){
 	function getMatchPrices (req, res){
 		'use strict';
 
-//		matchPrice.find(function(err, matchPrices){
-//			if(!err) {
-//				res.send(matchPrices);
-//			} else {
-//				console.log('ERROR: ' + err);
-//			}
-//		});
-
 		price.find()
-			.populate('matches')
-			.exec(function (err, matchPrices) {
-				if(!err) {
-					res.send(matchPrices);
-				} else {
-					console.log('ERROR: ' + err);
-				}
-			})
-
+		.populate({path:'match', match:{"codes.terminal":req.params.terminal}})
+		.exec(function (err, prices) {
+			if(!err) {
+				res.send(prices);
+			} else {
+				console.log('ERROR: ' + err);
+			}
+		});
 	}
 
 	function addMatchPrice (req, res){
@@ -36,17 +27,30 @@ module.exports = function (app){
 
 		var matchprice = new matchPrice(req.body);
 
-		matchprice.save(function (err){
+		price.findOne({_id: matchprice._id}, function(err, item){
 			if(!err) {
-				console.log('Created');
-				res.send(matchprice);
+				if (item){
+					matchprice.save(function (err){
+						if(!err) {
+							console.log('matchprice Created');
+							item.match = matchprice._id;
+							item.save(function(){
+								console.log('price Updated');
+								res.send(matchprice);
+							})
+						} else {
+							console.log('ERROR: ' + err);
+						}
+					});
+				}
 			} else {
 				console.log('ERROR: ' + err);
 			}
-		});
+		})
+
 	}
 
-	app.get('/agp/matchprices', getMatchPrices);
+	app.get('/agp/matchprices/:terminal', getMatchPrices);
 	app.post('/agp/matchprice', addMatchPrice);
 	app.put('/agp/matchprice', addMatchPrice);
 

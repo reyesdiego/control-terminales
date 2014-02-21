@@ -3,8 +3,8 @@
  */
 var mongoose = require('mongoose');
 
-var matchpPrice = new mongoose.Schema({
-	_id:	{type: String, required: true},
+var matchPrice = new mongoose.Schema({
+	_id:	{type: String},
 	codes:	[
 		{
 			terminal:	{ type: String, required: true},
@@ -13,4 +13,4 @@ var matchpPrice = new mongoose.Schema({
 	]
 });
 
-module.exports = mongoose.model('matchprices', matchpPrice);
+module.exports = mongoose.model('matchprices', matchPrice);
