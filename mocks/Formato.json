@@ -1,57 +1,57 @@
 {
 	"buqueId":432,
-	"buqueDesc": "FWIS FRISIA WISMAR",
-	"viaje": "015",
-	"codTipoComprob": "A",
-	"nroPtoVenta": 19,
-	"nroComprob": 54792,
-	"fechaEmision": "2013/05/31",
-	"codTipoAutoriz": 0,
-	"codAutoriz": 0,
-	"fechaVcto": "2013/05/31",
-	"codTipoDoc": 1,
-	"nroDoc": 30548089405,
-	"clienteId": 1,
-	"razon": "INTERPACK S.A.",
-	"impGrav": 1000,
-	"impNoGrav": 100,
-	"impExento": 50,
-	"impSubtot": 1150,
-	"impOtrosTrib": 0,
-	"impIva": 200,
-	"impTotal": 1350,
-	"codMoneda": "DOL",
-	"cotiMoneda": 7.34,
-	"observa": null,
-	"codConcepto": "",
-	"fechaServDesde": "2013/05/31",
-	"fechaServHasta": "2013/05/31",
-	"fechaVctoPago": "2013/05/31",
-	"otrosTributos":	[
+	"buqueDesc":"FWIS FRISIA WISMAR",
+	"viaje":"015",
+	"codTipoComprob":"A",
+	"nroPtoVenta":19,
+	"nroComprob":54792,
+	"fechaEmision":"2013/05/31",
+	"codTipoAutoriz":0,
+	"codAutoriz":0,
+	"fechaVcto":"2013/05/31",
+	"codTipoDoc":1,
+	"nroDoc":30548089405,
+	"clienteId":1,
+	"razon":"INTERPACK S.A.",
+	"impGrav":1000,
+	"impNoGrav":100,
+	"impExento":50,
+	"impSubtot":1150,
+	"impOtrosTrib":0,
+	"impIva":200,
+	"impTotal":1350,
+	"codMoneda":"DOL",
+	"cotiMoneda":7.34,
+	"observa":null,
+	"codConcepto":"",
+	"fechaServDesde":"2013/05/31",
+	"fechaServHasta":"2013/05/31",
+	"fechaVctoPago":"2013/05/31",
+	"otrosTributos":[
 		{
-			"id": 1,
-			"desc": "INGRESOS BRUTOS",
-			"imponible": 12,
-			"imp": 34
+			"id":1,
+			"desc":"INGRESOS BRUTOS",
+			"imponible":12,
+			"imp":34
 		}
 	],
-	"detalle":	[
+	"detalle":[
 		{
-			"contenedor": "CAXU2332432",
-			"items":	[
+			"contenedor":"CAXU2332432",
+			"items":[
 				{
-					"id": "CACRI",
-					"cnt": 1,
-					"uniMed": 34,
-					"impUnit": 123.66,
-					"impTot": 123
+					"id":"CACRI",
+					"cnt":1,
+					"uniMed":34,
+					"impUnit":123.66,
+					"impTot":123
 				},
 				{
-					"id": "EXCRI",
-					"cnt": 1.4,
-					"uniMed": 32,
-					"impUnit": 123,
-					"impTot": 123
+					"id":"EXCRI",
+					"cnt":1.4,
+					"uniMed":32,
+					"impUnit":123,
+					"impTot":123
 				}
 			]
 		}

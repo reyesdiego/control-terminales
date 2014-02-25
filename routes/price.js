@@ -10,7 +10,7 @@ module.exports = function (app){
 	function getPrices (req, res){
 		'use strict';
 
-		price.find(function(err, priceList){
+		price.find().limit(10).exec(function(err, priceList){
 			if(!err) {
 				res.send(priceList);
 			} else {

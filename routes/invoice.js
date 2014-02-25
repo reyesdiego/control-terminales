@@ -24,7 +24,7 @@ module.exports = function(app) {
 				console.log(usr);
 				res.send(err);
 			} else {
-				Invoice.find({terminal: usr.terminal},function(err, invoices) {
+				Invoice.find({terminal: usr.terminal}).limit(5).exec(function(err, invoices) {
 					if(!err) {
 						res.send(invoices);
 					} else {

@@ -25,28 +25,45 @@ module.exports = function (app){
 	function addMatchPrice (req, res){
 		'use strict';
 
-		var matchprice = new matchPrice(req.body);
+		var async = require('async');
 
-		price.findOne({_id: matchprice._id}, function(err, item){
-			if(!err) {
-				if (item){
-					matchprice.save(function (err){
-						if(!err) {
-							console.log('matchprice Created');
-							item.match = matchprice._id;
-							item.save(function(){
-								console.log('price Updated');
-								res.send(matchprice);
-							})
-						} else {
-							console.log('ERROR: ' + err);
-						}
-					});
+		var matches = req.body;
+
+		async.forEach(matches, function(match, callback){
+
+			var matchprice = new matchPrice(match);
+
+			price.findOne({_id: match.id}, function(err, item){
+				if(!err && item) {
+					console.log('PriceItem:%s',item._id);
+
+					matchPrice.findOne({_id: match.id}, function(err, matchItem){
+						console.log(matchItem);
+					})
+//					matchprice.save(function (err){
+//						if(!err) {
+//							console.log('matchprice Created');
+//							item.match = match._id;
+//							item.save(function(){
+//								console.log('price Updated');
+//								callback();
+////									res.send(matchprice);
+//							})
+//						} else {
+//							console.log('ERROR: ' + err);
+//						}
+//					});
+//				} else if (!item){
+//
+//				} else {
+//					console.log('ERROR: ' + err);
 				}
-			} else {
-				console.log('ERROR: ' + err);
-			}
-		})
+			});
+
+
+		}, function (err){
+
+		});
 
 	}
 
