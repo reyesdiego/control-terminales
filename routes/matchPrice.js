@@ -29,40 +29,51 @@ module.exports = function (app){
 
 		var matches = req.body;
 
-		async.forEach(matches, function(match, callback){
+		async.forEachSeries( matches, function(match, asyncCallback){
 
-			var matchprice = new matchPrice(match);
+			price.findOne({_id: match._id}, function(err, priceItem){
+				if(!err && priceItem) {
+					console.log('PriceItem:%s, match old:%s, match new:%s',priceItem._id, priceItem.match, match.codes[0].codes);
 
-			price.findOne({_id: match.id}, function(err, item){
-				if(!err && item) {
-					console.log('PriceItem:%s',item._id);
-
-					matchPrice.findOne({_id: match.id}, function(err, matchItem){
-						console.log(matchItem);
-					})
-//					matchprice.save(function (err){
-//						if(!err) {
-//							console.log('matchprice Created');
-//							item.match = match._id;
-//							item.save(function(){
-//								console.log('price Updated');
-//								callback();
-////									res.send(matchprice);
-//							})
-//						} else {
-//							console.log('ERROR: ' + err);
-//						}
-//					});
-//				} else if (!item){
-//
-//				} else {
-//					console.log('ERROR: ' + err);
+					matchPrice.findOne({_id: match._id}, function(err, matchItem){
+						if (matchItem){
+							matchPrice.findOne({_id: match._id, "codes.terminal": match.codes[0].terminal}, function (err, matchTerminal){
+								if (!err && matchTerminal){
+									console.log(matchTerminal);
+									matchTerminal.codes[0].codes = match.codes[0].codes;
+									matchTerminal.save(function(err){
+										if (!err){
+											console.log('Updated:%s', matchTerminal.codes);
+											asyncCallback();
+										}
+									});
+								} else if (!matchTerminal){
+									matchItem.codes.push(match.codes[0]);
+									matchItem.save(function(err){
+										if (!err){
+											asyncCallback();
+										}
+									});
+								}
+							});
+						} else {
+							var matchprice = new matchPrice(match);
+							matchprice.save(function(err){
+								if (!err){
+									priceItem.match = match._id;
+									priceItem.save(function(){
+										console.log('nuevo:%s', matchprice.codes[0].codes);
+										asyncCallback();
+									})
+								}
+							})
+						}
+					});
 				}
 			});
 
-
 		}, function (err){
-
+			console.log("matchPrices update completed");
 		});
 
 	}

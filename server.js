@@ -1,12 +1,12 @@
 /**
  * Created by Diego Reyes on 1/7/14.
  */
-var express = require('express'),
-	http    = require('http'),
-	mongoose= require('mongoose'),
-	passport = require('passport'),
+var express		= require('express'),
+	http		= require('http'),
+	mongoose	= require('mongoose'),
+	passport	= require('passport'),
 	LocalStrategy = require('passport-local').Strategy,
-	path	= require('path');
+	path		= require('path');
 
 var config = require(__dirname + '/config/config.js');
 
@@ -57,7 +57,7 @@ routes = require('./routes/price')(app);
 routes = require('./routes/matchPrice')(app);
 
 var processArgs = process.argv.slice(2);
-var port = processArgs[0];
+var port = processArgs[0] || 8080;
 server.listen(port, function() {
 	console.log("Node server running on http://localhost:%s", port);
 });

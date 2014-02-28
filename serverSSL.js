@@ -1,7 +1,6 @@
 /**
  * Created by Diego Reyes on 2/7/14.
  */
-
 var express		= require('express'),
 	https		= require('https'),
 	mongoose	= require('mongoose'),
@@ -9,9 +8,9 @@ var express		= require('express'),
 	LocalStrategy = require('passport-local').Strategy,
 	path		= require('path');
 
-var fs = require('fs');
-
 var config = require(__dirname + '/config/config.js');
+
+var fs = require('fs');
 
 var options = {
 	key: fs.readFileSync('./certificates/key.pem'),
@@ -77,11 +76,10 @@ mongoose.connect(config.mongo_url, function(err, res) {
 routes = require('./routes/accounts')(app, passport);
 routes = require('./routes/invoice')(app);
 routes = require('./routes/price')(app);
+routes = require('./routes/matchPrice')(app);
 
 var processArgs = process.argv.slice(2);
-var port = processArgs[0];
+var port = processArgs[0] || 8080;
 server.listen(port, function() {
-	console.log("Node server running on http://localhost:%s", port);
+	console.log("Node server running on https://localhost:%s", port);
 });
-
-

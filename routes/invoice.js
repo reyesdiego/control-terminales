@@ -24,16 +24,21 @@ module.exports = function(app) {
 				console.log(usr);
 				res.send(err);
 			} else {
-				Invoice.find({terminal: usr.terminal}).limit(5).exec(function(err, invoices) {
+				Invoice.find({terminal: usr.terminal}).limit(req.params.limit).skip(req.params.skip).exec(function(err, invoices) {
 					if(!err) {
-						res.send(invoices);
+						var result = {
+							totalCount: 1000,
+							pageCount: req.params.limit,
+							page: req.params.skip,
+							data: invoices
+						}
+						res.send(result);
 					} else {
 						console.log('ERROR: ' + err);
 					}
 				});
 			}
 		});
-
 	};
 
 	function addInvoice ( req, res) {
@@ -220,7 +225,7 @@ console.log(invoice);
 		});
 	}
 
-	app.get('/invoices', getInvoices);
+	app.get('/invoices/:skip/:limit', getInvoices);
 	app.post('/invoice', addInvoice);
 	app.delete('/invoices/:_id', removeInvoices);
 
