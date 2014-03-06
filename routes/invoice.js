@@ -24,15 +24,19 @@ module.exports = function(app) {
 				console.log(usr);
 				res.send(err);
 			} else {
-				Invoice.find({terminal: usr.terminal}).limit(req.params.limit).skip(req.params.skip).exec(function(err, invoices) {
+				var invoices = Invoice.find({terminal: usr.terminal}).limit(req.params.limit).skip(req.params.skip);
+				//invoices.select('detalle');
+				invoices.exec(function(err, invoices) {
 					if(!err) {
-						var result = {
-							totalCount: 1000,
-							pageCount: req.params.limit,
-							page: req.params.skip,
-							data: invoices
-						}
-						res.send(result);
+						Invoice.count({}, function (err, cnt){
+							var result = {
+								totalCount: cnt,
+								pageCount: req.params.limit,
+								page: req.params.skip,
+								data: invoices
+							}
+							res.send(result);
+						});
 					} else {
 						console.log('ERROR: ' + err);
 					}
@@ -63,7 +67,6 @@ var err;
 					console.log(err);
 					res.send(err);
 				} else {
-console.log(postData);
 
 					var invoice = {
 					terminal:	"BACTSSA",
