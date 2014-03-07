@@ -25,7 +25,6 @@ module.exports = function(app) {
 				res.send(err);
 			} else {
 				var invoices = Invoice.find({terminal: usr.terminal}).limit(req.params.limit).skip(req.params.skip);
-				//invoices.select('detalle');
 				invoices.exec(function(err, invoices) {
 					if(!err) {
 						Invoice.count({}, function (err, cnt){
@@ -46,19 +45,22 @@ module.exports = function(app) {
 	};
 
 	function addInvoice ( req, res) {
-		console.log(req.method);
-
 		var postData = '';
 		req.setEncoding("utf8");
 
 		req.addListener("data", function(postDataChunk) {
 			postData += postDataChunk;
-//			console.log("Receiving POST data chunk '"+postDataChunk + "'.");
 		});
 		req.addListener("end", function() {
-			console.log("Received POST data ");
+			console.log("Received POST data from:%s:%s",req.socket.remoteAddress,req.socket.remotePort);
 			var incomingToken = req.headers.token;
-			postData = JSON.parse(postData);
+			try {
+				postData = JSON.parse(postData);
+			} catch (err){
+				console.log("error en JSON data")
+				res.send(400);
+				return;
+			}
 //			Account.verifyToken(incomingToken, function(err, usr) {
 
 				var previousInvoice;
@@ -147,62 +149,6 @@ var err;
 //						})
 //					}
 
-console.log(invoice);
-					return;
-					Invoice.find({terminal: usr.terminal, codigoTipoComprobante: codigoTipoComprobante}).sort({numeroComprobante: -1}).limit(1).find({}, function (err, data) {
-
-						if (data.length > 0) previousInvoice = data[0];
-
-						if (1===1 || (previousInvoice !== undefined && previousInvoice.numeroComprobante + 1 === parseInt(header.findtext('numeroComprobante'), 10))
-							|| previousInvoice === undefined) {
-
-							console.log('numeroComprobante Correcto: %s', header.findtext('numeroComprobante'));
-
-							var headerNew = {
-								terminal: usr.terminal,
-								codigoTipoComprobante: header.findtext('codigoTipoComprobante'),
-								numeroComprobante: header.findtext('numeroComprobante'),
-								codigoTipoDocumento: header.findtext('codigoTipoDocumento'),
-								fechaEmision: header.findtext('fechaEmision'),
-								numeroDocumento: header.findtext('numeroDocumento'),
-								importeGravado: header.findtext('importeGravado'),
-								importeNoGravado: header.findtext('importeNoGravado'),
-								importeExento: header.findtext('importeExento'),
-								importeSubtotal: header.findtext('importeSubtotal'),
-								importeOtrosTributos: header.findtext('importeOtrosTributos'),
-								importeTotal: header.findtext('importeTotal'),
-								codigoMoneda: header.findtext('codigoMoneda'),
-								cotizacionMoneda: header.findtext('cotizacionMoneda'),
-								observaciones: header.findtext('observaciones'),
-								codigoConcepto: header.findtext('codigoConcepto'),
-								buque: {
-									codigo: header.findtext('buqueCodigo'),
-									nombre: header.findtext('buqueDescripcion'),
-									viaje: header.findtext('viaje')
-								},
-								details: []
-							}
-
-
-							invoice2add.save(function (err) {
-								if (!err) {
-									console.log('Created with %s Items.', items.length);
-									res.send(invoice2add);
-								} else {
-									console.log('ERROR: ' + err);
-									res.send({"error": 'ERROR: ' + err})
-								}
-							});
-						} else {
-							var nextOne = '';
-							if (previousInvoice !== undefined){
-								nextOne = previousInvoice.numeroComprobante + 1;
-							}
-
-							console.log('numeroComprobante Incorrecto: %s, numero correcto: %s', header.findtext('numeroComprobante'), nextOne);
-							res.send({"error": 'numeroComprobante Incorrecto:' + header.findtext('numeroComprobante') + ', numeroComprobante correcto:' + nextOne})
-						}
-					});
 				}
 			});
 //		});

@@ -36,24 +36,24 @@ var invoiceSchema = new Schema(
 		hasta:				{ type: Date },
 		vctoPago:			{ type: Date }
 	},
-	buque:					{
-								codigo:	{ type: String },
-								nombre:	{ type: String },
-								viaje:	{ type: String }
-							},
 	detalle:[
 		{
-								contenedor:			{type: String},
-								items:[
-									{
-										id:			{type: String, required: true},
-										cnt:		{type: Number, required: true},
-										uniMed:		{type: Number},
-										impUnit:	{type: Number},
-										impIva:		{type: Number},
-										impTot:		{type: Number}
-									}
-								]
+			contenedor:			{type: String},
+			buque:					{
+				codigo:	{ type: String },
+				nombre:	{ type: String },
+				viaje:	{ type: String }
+			},
+			items:[
+				{
+					id:			{type: String, required: true},
+					cnt:		{type: Number, required: true},
+					uniMed:		{type: Number},
+					impUnit:	{type: Number},
+					impIva:		{type: Number},
+					impTot:		{type: Number}
+				}
+			]
 		}
 	],
 	otrosTributos:			[{
