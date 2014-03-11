@@ -44,6 +44,12 @@ module.exports = function(app) {
 		});
 	};
 
+	function getInvoice(req, res){
+		var incomingToken = req.headers.token;
+
+		var invoice = Invoice.find({_id: req.params.id})
+	}
+
 	function addInvoice ( req, res) {
 		var postData = '';
 		req.setEncoding("utf8");
@@ -52,12 +58,14 @@ module.exports = function(app) {
 			postData += postDataChunk;
 		});
 		req.addListener("end", function() {
-			console.log("Received POST data from:%s:%s",req.socket.remoteAddress,req.socket.remotePort);
+			var date = new Date();
+			console.log("Received POST data from:%s:%s at: %s",req.socket.remoteAddress,req.socket.remotePort, date.toString());
 			var incomingToken = req.headers.token;
 			try {
 				postData = JSON.parse(postData);
 			} catch (err){
-				console.log("error en JSON data")
+				var date = new Date();
+				console.log("Error: %s, Parsing JSON: %s", date.toString(), err);
 				res.send(400);
 				return;
 			}
@@ -112,8 +120,14 @@ var err;
 					}
 
 					postData.detalle.forEach(function (container){
+						var buque = {
+							codigo: container.buqueId,
+							nombre: container.buqueDesc,
+							viaje: container.viaje
+						};
 						var cont = {
 							contenedor:		container.contenedor,
+							buque:			buque,
 							items: []
 						};
 						container.items.forEach(function (item){
@@ -134,7 +148,8 @@ var err;
 						if (!err) {
 							res.send(invoice2add);
 						} else {
-							console.log('ERROR: ' + err);
+							var date = new Date();
+							console.log('Error: %s, %s', date, err);
 							res.send({"error": 'ERROR: ' + err})
 						}
 					});
@@ -175,6 +190,7 @@ var err;
 	}
 
 	app.get('/invoices/:skip/:limit', getInvoices);
+	app.get('/invoice', getInvoice);
 	app.post('/invoice', addInvoice);
 	app.delete('/invoices/:_id', removeInvoices);
 

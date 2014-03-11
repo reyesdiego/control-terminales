@@ -48,7 +48,7 @@ var invoiceSchema = new Schema(
 				{
 					id:			{type: String, required: true},
 					cnt:		{type: Number, required: true},
-					uniMed:		{type: Number},
+					uniMed:		{type: String},
 					impUnit:	{type: Number},
 					impIva:		{type: Number},
 					impTot:		{type: Number}
