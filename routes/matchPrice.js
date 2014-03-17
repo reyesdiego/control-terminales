@@ -74,6 +74,7 @@ module.exports = function (app){
 
 		}, function (err){
 			console.log("matchPrices update completed");
+			res.send({data: {matches: matches.length}});
 		});
 
 	}
