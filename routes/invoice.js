@@ -61,88 +61,103 @@ module.exports = function(app) {
 			var date = new Date();
 			console.log("Received POST data from:%s:%s at: %s",req.socket.remoteAddress,req.socket.remotePort, date.toString());
 			var incomingToken = req.headers.token;
-			try {
-				postData = JSON.parse(postData);
-			} catch (err){
-				var date = new Date();
-				console.log("Error: %s, Parsing JSON: %s", date.toString(), err);
-				res.send(400);
-				return;
-			}
-//			Account.verifyToken(incomingToken, function(err, usr) {
+			Account.verifyToken(incomingToken, function(err, usr) {
+				try {
+					postData = JSON.parse(postData);
+				} catch (err){
+					var date = new Date();
+					console.log("Error: %s, Parsing JSON: %s, JSON:%s", date.toString(), err, postData);
+					res.send(400);
+					return;
+				}
 
-				var previousInvoice;
-var err;
+				err=false;
+
 				if (err) {
 					console.log(err);
 					res.send(err);
 				} else {
+					try {
+						var terminal = (usr===undefined)?req.socket.remoteAddress:usr.terminal;
+						var invoice = {
+	//					terminal:		usr.terminal,
+						terminal:		terminal,
+						codTipoComprob:	postData.codTipoComprob,
+						nroPtoVenta:	postData.nroPtoVenta,
+						nroComprob:		postData.nroComprob,
+						codTipoAutoriz:	postData.codTipoAutoriz,
+						codAutoriz:		postData.codAutoriz,
+						fechaVto:		postData.fechaVto,
+						codTipoDoc:		postData.codTipoDoc,
+						nroDoc:			postData.nroDoc,
+						clienteId:		postData.clientId,
+						razon:			postData.razon,
+						importe:		{
+											gravado:		postData.impGrav,
+											noGravado:		postData.impNoGrav,
+											exento:			postData.impExento,
+											subtotal:		postData.impSubtot,
+											iva:			postData.impIva,
+											otrosTributos:	postData.impOtrosTrib,
+											total:			postData.impTotal
+										},
+						codMoneda:		postData.codMoneda,
+						cotiMoneda:		postData.cotiMoneda,
+						observa:	 	postData.observa,
+						codConcepto:	postData.codConcepto,
+						fecha:			{
+											emision:	postData.fechaEmision,
+											vcto:		postData.fechaVcto,
+											desde:		postData.fechaServDesde,
+											hasta:		postData.fechaServHasta,
+											vctoPago:	postData.fechaVctoPago
+										},
+						buque:			{
+											codigo:	postData.codigo,
+											nombre:	postData.nombre,
+											viaje:	postData.viaje
+										},
+						detalle:		[],
+						otrosTributos:	[]
+						};
 
-					var invoice = {
-					terminal:	"BACTSSA",
-					codTipoComprob:	postData.codTipoComprob,
-					nroPtoVenta:	postData.nroPtoVenta,
-					nroComprob:		postData.nroComprob,
-					codTipoAutoriz:	postData.codTipoAutoriz,
-					codAutoriz:		postData.codAutoriz,
-					fechaVto:		postData.fechaVto,
-					codTipoDoc:		postData.codTipoDoc,
-					nroDoc:			postData.nroDoc,
-					clienteId:		postData.clientId,
-					razon:			postData.razon,
-					importe:		{
-										gravado:		postData.impGrav,
-										noGravado:		postData.impNoGrav,
-										exento:			postData.impExento,
-										subtotal:		postData.impSubtot,
-										iva:			postData.impIva,
-										otrosTributos:	postData.impOtrosTrib,
-										total:			postData.impTotal
-									},
-					codMoneda:		postData.codMoneda,
-					cotiMoneda:		postData.cotiMoneda,
-					observa:	 	postData.observa,
-					codConcepto:	postData.codConcepto,
-					fecha:			{
-										emision:	postData.fechaEmision,
-										vcto:		postData.fechaVcto,
-										desde:		postData.fechaServDesde,
-										hasta:		postData.fechaServHasta,
-										vctoPago:	postData.fechaVctoPago
-									},
-					buque:			{
-										codigo:	postData.codigo,
-										nombre:	postData.nombre,
-										viaje:	postData.viaje
-									},
-					detalle:		[],
-					otrosTributos:	[]
+						postData.detalle.forEach(function (container){
+							if (terminal === 'BACTSSA'){
+								var buque = {
+									codigo: container.buqueId,
+									nombre: container.buqueDesc,
+									viaje: container.viaje
+								};
+							} else {
+								var buque = {
+									codigo: postData.buqueId,
+									nombre: postData.buqueDesc,
+									viaje: postData.viaje
+								};
+							}
+							var cont = {
+								contenedor:		container.contenedor,
+								buque:			buque,
+								items: []
+							};
+							container.items.forEach(function (item){
+								cont.items.push(
+								{
+									id:			item.id,
+									cnt:		item.cnt,
+									uniMed:		item.uniMed,
+									impUnit:	item.impUni,
+									impIva:		item.impIva,
+									impTot:		item.impTot
+								});
+							});
+							invoice.detalle.push(cont);
+						});
+
+					} catch (error){
+						res.send(error);
 					}
 
-					postData.detalle.forEach(function (container){
-						var buque = {
-							codigo: container.buqueId,
-							nombre: container.buqueDesc,
-							viaje: container.viaje
-						};
-						var cont = {
-							contenedor:		container.contenedor,
-							buque:			buque,
-							items: []
-						};
-						container.items.forEach(function (item){
-							cont.items.push(
-							{
-								id:			item.id,
-								cnt:		item.cnt,
-								uniMed:		item.uniMed,
-								impUnit:	item.impUni,
-								impIva:		item.impIva,
-								impTot:		item.impTot
-							});
-						});
-						invoice.detalle.push(cont);
-					});
 					var invoice2add = new Invoice(invoice);
 					invoice2add.save(function (err) {
 						if (!err) {
@@ -166,7 +181,7 @@ var err;
 
 				}
 			});
-//		});
+		});
 	};
 
 	function removeInvoices ( req, res){
@@ -206,4 +221,3 @@ var err;
 		});
 	})
 }
-

@@ -23,7 +23,7 @@ var invoiceSchema = new Schema(
 								iva:			{ type: Number },
 								subtotal:		{ type: Number },
 								otrosTributos:	{ type: Number },
-								total:			{ type: Number, required: true }
+								total:			{ type: Number }
 	},
 	codMoneda:				{ type: String, enum: ['PES', 'DOL', 'EUR'] },
 	cotiMoneda:				{ type: Number },
@@ -46,8 +46,8 @@ var invoiceSchema = new Schema(
 			},
 			items:[
 				{
-					id:			{type: String, required: true},
-					cnt:		{type: Number, required: true},
+					id:			{type: String},
+					cnt:		{type: Number},
 					uniMed:		{type: String},
 					impUnit:	{type: Number},
 					impIva:		{type: Number},
