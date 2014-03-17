@@ -20,6 +20,7 @@ var TokenModel = mongoose.model('Token', Token);
 
 var Account = new Schema({
 	email: { type: String, required: true, lowercase:true, index: { unique: true } },
+	password: { type: String},
 	terminal: {type: String, required: true, uppercase:true, enum: ['BACTSSA', 'TRP', 'TERMINAL4']},
 	full_name: {type: String, required: true},//TODO: break out first / last names
 	date_created: {type: Date, default: Date.now},
@@ -33,6 +34,7 @@ Account.plugin(passportLocalMongoose, {usernameField: 'email'});
 Account.statics.encode = function(data) {
     return jwt.encode(data, tokenSecret);
 };
+
 Account.statics.decode = function(data) {
     return jwt.decode(data, tokenSecret);
 };
@@ -76,6 +78,64 @@ Account.statics.verifyToken = function(incomingToken, cb) {
 	}
 }
 
+Account.statics.login = function (username, password, cb) {
+
+	if (username !== undefined && username !== '' && password !== undefined && password !== ''){
+		this.findOne({email: username, password: password}, function(err, user){
+			if (err){
+				cb(err, null);
+			} else if (user) {
+				cb(false, {
+							email: user.email,
+							terminal: user.terminal,
+							token: user.token,
+							date_created: user.date_created,
+							full_name: user.full_name
+						});
+			} else {
+				var errMsg = 'Invalid or missing Login or Password';
+				console.log(errMsg);
+				cb({error: errMsg});
+			}
+		});
+	} else {
+		var errMsg = 'Invalid or missing Login or Password';
+		console.log(errMsg);
+		cb({error: errMsg});
+	}
+
+}
+
+Account.statics.password = function (email, password, newPassword, cb) {
+	if (email !== undefined && email !== '' && password !== undefined && password !== ''){
+		this.update({email: email, password: password},{$set:{password: newPassword}}, null, function (err, user){
+			if (err){
+				cb(err, null);
+			} else {
+				cb(null, {data: "Password changed successfully"});
+			}
+		});
+//		this.findOne({email: email, password: password}, function (err, user){
+//			if (err){
+//				cb(err, null);
+//			} else if (user){
+//				user.password = newPassword;
+//				user.save( function (err){
+//					if (err){
+//						cb(err);
+//					} else {
+//						cb(null, {data: "Password changed successfully"});
+//					}
+//				})
+//			}
+//		});
+	} else {
+		var errMsg = 'Invalid or missing Login or Password';
+		console.log(errMsg);
+		cb({error: errMsg});
+	}
+}
+
 Account.statics.findUser = function(email, token, cb) {
     var self = this;
     this.findOne({email: email}, function(err, usr) {
@@ -99,6 +159,7 @@ Account.statics.findUserByEmailOnly = function(email, cb) {
         }
     });
 };
+
 Account.statics.createUserToken = function(email, cb) {
     var self = this;
     this.findOne({email: email}, function(err, usr) {

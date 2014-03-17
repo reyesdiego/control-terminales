@@ -62,14 +62,36 @@ module.exports = function (app, passport) {
 	 * @param {Object} req the request object
 	 * @param {Object} res the response object
 	 */
-	app.get('/login', function(req, res) {
-		var messages = flash(null, null);
+	app.post('/login', function(req, res) {
+		console.log(req.body);
+		if (req.body.email !== undefined) {
+			Account.login(req.body.email, req.body.password, function(err, usersToken) {
 
-		if (req.param('registered') === '1') {
-			messages = flash('Congratulations, your account was created!', null);
+				if (err) {
+					res.send(err);
+				} else {
+					res.send(usersToken);
+				}
+			});
+		} else {
+			res.send({error: 'AuthError'});
 		}
+	});
 
-		res.render('login', messages);
+	app.put('/password', function (req, res) {
+		console.log(req.body);
+		if (req.body.email !== undefined) {
+			Account.password(req.body.email, req.body.password, req.body.newPassword, function(err, result) {
+
+				if (err) {
+					res.send(err);
+				} else {
+					res.send(result);
+				}
+			});
+		} else {
+			res.send({error: 'AuthError'});
+		}
 	});
 
 	app.post('/token/', passport.authenticate('local', {session: false}), function(req, res) {
@@ -116,7 +138,6 @@ module.exports = function (app, passport) {
 
 	app.get('/logout', function(req, res) {
 		req.logout();
-		res.redirect('/');
 	});
 
 	app.get('/forgot', function(req, res) {
