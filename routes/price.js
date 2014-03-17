@@ -21,14 +21,16 @@ module.exports = function (app){
 
 	function addPrice (req, res){
 		'use strict';
-
+console.log(req.body);
 		var _price = new price({
 			_id:		req.body._id.toUpperCase(),
+			terminal:	req.body.terminal,
 //			code:		req.body.code.toUpperCase(),
 			description:req.body.description,
 			unit:		req.body.unit,
 			currency:	req.body.currency,
-			topPrice:	req.body.topPrice
+			topPrice:	req.body.topPrice,
+			match:		null
 		});
 		_price.save(function (err){
 			if(!err) {

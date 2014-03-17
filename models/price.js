@@ -5,6 +5,7 @@ var mongoose = require('mongoose');
 
 var price = new mongoose.Schema({
 	_id:			{type: String},
+	terminal:		{type: String},
 	code:			{type: String},
 	description:	{type: String},
 	unit:			{type: String},
