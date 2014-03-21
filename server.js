@@ -47,7 +47,7 @@ mongoose.connect(config.mongo_url, function(err, res) {
 	if(err) {
 		console.log('ERROR: connecting to Database. ' + err);
 	} else {
-		console.log('Connected to Database');
+		console.log('Connected to Database. %s', config.mongo_url);
 	}
 });
 
@@ -55,9 +55,12 @@ routes = require('./routes/accounts')(app, passport);
 routes = require('./routes/invoice')(app);
 routes = require('./routes/price')(app);
 routes = require('./routes/matchPrice')(app);
+routes = require('./routes/appointment')(app);
+routes = require('./routes/gate')(app);
 
 var processArgs = process.argv.slice(2);
-var port = processArgs[0] || 8080;
+var port = processArgs[0] || config.server_port;
 server.listen(port, function() {
-	console.log("Node server running on http://localhost:%s", port);
+	console.log("Node server Version:%s, Stated: %s", process.version, new Date().toString());
+	console.log("Running on http://localhost:%s", port);
 });

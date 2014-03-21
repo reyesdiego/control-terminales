@@ -39,6 +39,7 @@ var invoiceSchema = new Schema(
 	detalle:[
 		{
 			contenedor:			{type: String},
+			IMO:				{type: Number},
 			buque:					{
 				codigo:	{ type: String },
 				nombre:	{ type: String },
