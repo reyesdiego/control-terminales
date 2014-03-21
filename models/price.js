@@ -1,5 +1,5 @@
 /**
- * Created by Administrator on 1/10/14.
+ * Created by Diego Reyes on 1/10/14.
  */
 var mongoose = require('mongoose');
 
