@@ -107,7 +107,7 @@ Account.statics.login = function (username, password, cb) {
 }
 
 Account.statics.password = function (email, password, newPassword, cb) {
-	if (email !== undefined && email !== '' && password !== undefined && password !== ''){
+	if (email !== undefined && email !== '' && password !== undefined && password !== '' && newPassword !== undefined){
 		this.update({email: email, password: password},{$set:{password: newPassword}}, null, function (err, user){
 			if (err){
 				cb(err, null);

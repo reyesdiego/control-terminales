@@ -78,10 +78,10 @@ module.exports = function (app, passport) {
 		}
 	});
 
-	app.put('/password', function (req, res) {
+	app.put('/agp/password', function (req, res) {
 		console.log(req.body);
 		if (req.body.email !== undefined) {
-			Account.password(req.body.email, req.body.password, req.body.newPassword, function(err, result) {
+			Account.password(req.body.email, req.body.password, req.body.newPass, function(err, result) {
 
 				if (err) {
 					res.send(err);
