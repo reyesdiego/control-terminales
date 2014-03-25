@@ -3,25 +3,34 @@
  */
 'use strict';
 
+var path = require('path');
+var Account = require(path.join(__dirname, '..', '/models/account'));
+
 module.exports = function (app){
 
 	var price = require('../models/price.js');
 
 	function getPrices (req, res){
 		'use strict';
-
-		price.find().exec(function(err, priceList){
-			if(!err) {
-				res.send(priceList);
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (err){
+				res.send(err);
 			} else {
-				console.log('ERROR: ' + err);
+				price.find({$or:[{terminal:usr.terminal}, {terminal: "AGP"}]} ).exec(function(err, priceList){
+					if(!err) {
+						res.send(priceList);
+					} else {
+						console.log('ERROR: ' + err);
+					}
+				});
 			}
-		})
+		});
 	}
 
 	function addPrice (req, res){
 		'use strict';
-console.log(req.body);
+		console.log(req.body);
 		var _price = new price({
 			_id:		req.body._id.toUpperCase(),
 			terminal:	req.body.terminal,
