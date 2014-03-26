@@ -68,13 +68,13 @@ module.exports = function (app, passport) {
 			Account.login(req.body.email, req.body.password, function(err, usersToken) {
 
 				if (err) {
-					res.send(err);
+					res.send(403, err.error);
 				} else {
 					res.send(usersToken);
 				}
 			});
 		} else {
-			res.send({error: 'AuthError'});
+			res.send(403);
 		}
 	});
 

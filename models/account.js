@@ -40,24 +40,22 @@ Account.statics.decode = function(data) {
 };
 
 Account.statics.verifyToken = function(incomingToken, cb) {
-	var errMsg='';
+	var err;
 
 	if (incomingToken !== undefined){
 		console.log('incomingToken: %s', incomingToken);
 		try {
 			var decoded = jwt.decode(incomingToken, tokenSecret);
 		} catch (e){
-			errMsg = 'Token decoding error.' + e.message;
-			console.log(errMsg);
-			cb({error: errMsg});
+			err = {error: 'Token decoding error.' + e.message};
+			cb(err);
 		}
 		//Now do a lookup on that email in mongodb ... if exists it's a real user
 		if (decoded && decoded.email) {
 			this.findOne({email: decoded.email}, function(err, usr) {
 				if(err || !usr) {
-					errMsg = 'Issue finding user.';
-					console.log(errMsg);
-					cb({error: errMsg});
+					err = {error: 'Issue finding user.'};
+					cb(err);
 				} else if (incomingToken === usr.token.token) {
 					if (cb !== undefined){
 						cb(false, {terminal: usr.terminal, email: usr.email, token: usr.token, date_created: usr.date_created, full_name: usr.full_name});
@@ -67,14 +65,12 @@ Account.statics.verifyToken = function(incomingToken, cb) {
 				}
 			});
 		} else {
-			errMsg = 'Issue decoding incoming token.';
-			console.log(errMsg);
-			cb({error: errMsg});
+			err = {error: 'Issue decoding incoming token.'};
+			cb(err);
 		}
 	} else {
-		var errMsg = 'Invalid or missing Token';
-		console.log(errMsg);
-		cb({error: errMsg});
+		var err = {error: 'Invalid or missing Token'};
+		cb(err);
 	}
 }
 
@@ -115,20 +111,6 @@ Account.statics.password = function (email, password, newPassword, cb) {
 				cb(null, {data: "Password changed successfully"});
 			}
 		});
-//		this.findOne({email: email, password: password}, function (err, user){
-//			if (err){
-//				cb(err, null);
-//			} else if (user){
-//				user.password = newPassword;
-//				user.save( function (err){
-//					if (err){
-//						cb(err);
-//					} else {
-//						cb(null, {data: "Password changed successfully"});
-//					}
-//				})
-//			}
-//		});
 	} else {
 		var errMsg = 'Invalid or missing Login or Password';
 		console.log(errMsg);
