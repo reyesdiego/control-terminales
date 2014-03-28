@@ -63,6 +63,15 @@ module.exports = function (app, passport) {
 	 * @param {Object} res the response object
 	 */
 	app.post('/login', function(req, res) {
+var postData="";
+		req.addListener("data", function(postDataChunk) {
+			postData += postDataChunk;
+		});
+		req.addListener("end", function() {
+			console.log(postData);
+		})
+
+
 		console.log(req.body);
 		if (req.body.email !== undefined) {
 			Account.login(req.body.email, req.body.password, function(err, usersToken) {
@@ -74,7 +83,7 @@ module.exports = function (app, passport) {
 				}
 			});
 		} else {
-			res.send(403);
+//			res.send(403);
 		}
 	});
 

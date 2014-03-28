@@ -13,19 +13,37 @@ var config = require(__dirname + '/config/config.js');
 var app = express();
 var server = http.createServer(app);
 
+var appCORS = function(req, res, next) {
+	res.header("Access-Control-Allow-Origin", "*");
+	res.header("Access-Control-Allow-Headers", 'X-Requested-With, Content-Type, token');
+	res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+	res.header('Access-Control-Request-Method', 'GET');
+	res.header('Access-Control-Request-Headers', 'Content-Type, token');
+
+	if ('OPTIONS' == req.method) {
+		res.send(200);
+	}
+	else {
+		next();
+	}
+//	next();
+}
+
 app.configure(function () {
 	app.use(express.bodyParser());
 	app.use(express.methodOverride());
-	app.use(passport.initialize());
 	app.use(app.router);
+	app.use(passport.initialize());
+
 });
+
 
 app.all('/*', function(req, res, next) {
 	res.header("Access-Control-Allow-Origin", "*");
 	res.header("Access-Control-Allow-Headers", 'X-Requested-With, Content-Type, token');
 	res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
 	res.header('Access-Control-Request-Method', 'GET');
-	res.header('Access-Control-Request-Headers', 'token');
+	res.header('Access-Control-Request-Headers', 'Content-Type, token');
 
 	if ('OPTIONS' == req.method) {
 		res.send(200);
