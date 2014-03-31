@@ -63,28 +63,30 @@ module.exports = function (app, passport) {
 	 * @param {Object} res the response object
 	 */
 	app.post('/login', function(req, res) {
-var postData="";
+
+		var postData="";
 		req.addListener("data", function(postDataChunk) {
 			postData += postDataChunk;
 		});
 		req.addListener("end", function() {
 			console.log(postData);
+			var json = JSON.parse(postData);
+			console.log(json);
+			if (json.email !== undefined) {
+				Account.login(json.email, json.password, function(err, usersToken) {
+
+					if (err) {
+						res.send(403, err.error);
+					} else {
+						res.send(usersToken);
+					}
+				});
+			} else {
+//			res.send(403);
+			}
+
 		})
 
-
-		console.log(req.body);
-		if (req.body.email !== undefined) {
-			Account.login(req.body.email, req.body.password, function(err, usersToken) {
-
-				if (err) {
-					res.send(403, err.error);
-				} else {
-					res.send(usersToken);
-				}
-			});
-		} else {
-//			res.send(403);
-		}
 	});
 
 	app.put('/agp/password', function (req, res) {
