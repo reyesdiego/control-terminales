@@ -105,7 +105,8 @@ module.exports = function (app, passport) {
 		}
 	});
 
-	app.post('/token/', passport.authenticate('local', {session: false}), function(req, res) {
+//	app.post('/token/', passport.authenticate('local', {session: false}), function(req, res) {
+	app.post('/token/', function(req, res) {
 		if (req.user) {
 			Account.createUserToken(req.user.email, function(err, usersToken) {
 				// console.log('token generated: ' +usersToken);
