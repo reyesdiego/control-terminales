@@ -65,27 +65,47 @@ module.exports = function (app, passport) {
 	app.post('/login', function(req, res) {
 
 		var postData="";
-		req.addListener("data", function(postDataChunk) {
-			postData += postDataChunk;
-		});
-		req.addListener("end", function() {
-			console.log(postData);
-			var json = JSON.parse(postData);
-			console.log(json);
-			if (json.email !== undefined) {
-				Account.login(json.email, json.password, function(err, usersToken) {
 
-					if (err) {
-						res.send(403, err.error);
-					} else {
-						res.send(usersToken);
-					}
-				});
-			} else {
+
+		console.log(req.body);
+		var json = req.body;
+		console.log(json);
+		if (json.email !== undefined) {
+			Account.login(json.email, json.password, function(err, usersToken) {
+
+				if (err) {
+					res.send(403, err.error);
+				} else {
+					res.send(usersToken);
+				}
+			});
+		} else {
 //			res.send(403);
-			}
+		}
 
-		})
+
+//		req.addListener("data", function(postDataChunk) {
+//			postData += postDataChunk;
+//		});
+//		req.addListener("end", function() {
+//			console.log(postData);
+//			var json = JSON.parse(postData);
+//			console.log(json);
+//			if (json.email !== undefined) {
+//				Account.login(json.email, json.password, function(err, usersToken) {
+//
+//					if (err) {
+//						res.send(403, err.error);
+//					} else {
+//						res.send(usersToken);
+//					}
+//				});
+//			} else {
+////			res.send(403);
+//			}
+//
+//
+//		})
 
 	});
 
