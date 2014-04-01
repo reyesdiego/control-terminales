@@ -4,6 +4,7 @@
 var mongoose = require('mongoose');
 
 var appointment = new mongoose.Schema({
+		terminal:	{type: String},
 		buque:		{type: String},
 		viaje:		{type: String},
 		contenedor:	{type: String},
