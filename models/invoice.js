@@ -64,6 +64,6 @@ var invoiceSchema = new Schema(
 								imp:			{type: Number}
 							}]
 });
-invoiceSchema.index({numeroComprobante:1, terminal:1},{unique:true});
+invoiceSchema.index({nroComprob:1, terminal:1},{unique:true});
 
 module.exports = mongoose.model('Invoice', invoiceSchema);
