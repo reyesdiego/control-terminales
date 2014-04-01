@@ -8,6 +8,8 @@ var express		= require('express'),
 	LocalStrategy = require('passport-local').Strategy,
 	path		= require('path');
 
+var moment = require('moment');
+
 var config = require(__dirname + '/config/config.js');
 
 var app = express();
@@ -47,9 +49,9 @@ app.get('/', function(req, res) {
 
 mongoose.connect(config.mongo_url, function(err, res) {
 	if(err) {
-		console.log('ERROR: connecting to Database. ' + err);
+		console.log('%s - ERROR: connecting to Database. %s', moment().format('YYYY-MM-DD HH:MM:SS'), err);
 	} else {
-		console.log('Connected to Database. %s', config.mongo_url);
+		console.log('%s - Connected to Database. %s', moment().format('YYYY-MM-DD HH:MM:SS'), config.mongo_url);
 	}
 });
 
@@ -64,6 +66,8 @@ routes = require('./routes/gate')(app);
 var processArgs = process.argv.slice(2);
 var port = processArgs[0] || config.server_port;
 server.listen(port, function() {
-	console.log("Node server Version:%s, Stated: %s", process.version, new Date().toString());
-	console.log("Running on http://localhost:%s", port);
+	console.log("===================================================================");
+	console.log("%s - Node server Version: %s", moment().format('YYYY-MM-DD HH:MM:SS'), process.version);
+	console.log("%s - Running on http://localhost:%s", moment().format('YYYY-MM-DD HH:MM:SS'), port);
+	console.log("===================================================================");
 });

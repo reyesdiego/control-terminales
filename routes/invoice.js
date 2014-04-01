@@ -7,6 +7,8 @@
 var path = require('path');
 var Account = require(path.join(__dirname, '..', '/models/account'));
 
+var moment = require('moment');
+
 /**
  * Created by Diego Reyes on 1/7/14.
  *
@@ -58,30 +60,24 @@ module.exports = function(app) {
 			postData += postDataChunk;
 		});
 		req.addListener("end", function() {
-			var date = new Date();
-			console.log("Received POST data from:%s:%s at: %s",req.socket.remoteAddress,req.socket.remotePort, date.toString());
+
 			var incomingToken = req.headers.token;
 			Account.verifyToken(incomingToken, function(err, usr) {
 				try {
 					postData = JSON.parse(postData);
 				} catch (err){
-					var date = new Date();
-					console.log("Error: %s, Parsing JSON: %s, JSON:%s", date.toString(), err, postData);
+					console.log("%s - Error: Parsing JSON: %s, JSON:%s", moment().format('YYYY-MM-DD HH:MM:SS'), err, postData);
 					res.send(400);
 					return;
 				}
 
-				err=false;
-
 				if (err) {
-					console.log(err);
-					res.send(err);
+					console.log("%s - Error: %s", moment().format('YYYY-MM-DD HH:MM:SS'), err.error);
+					res.send(403);
 				} else {
 					try {
-						var terminal = (usr===undefined)?req.socket.remoteAddress:usr.terminal;
 						var invoice = {
-	//					terminal:		usr.terminal,
-						terminal:		terminal,
+						terminal:		usr.terminal,
 						codTipoComprob:	postData.codTipoComprob,
 						nroPtoVenta:	postData.nroPtoVenta,
 						nroComprob:		postData.nroComprob,
@@ -122,19 +118,11 @@ module.exports = function(app) {
 						};
 
 						postData.detalle.forEach(function (container){
-							if (terminal === 'BACTSSA'){
-								var buque = {
-									codigo: container.buqueId,
-									nombre: container.buqueDesc,
-									viaje: container.viaje
-								};
-							} else {
-								var buque = {
-									codigo: postData.buqueId,
-									nombre: postData.buqueDesc,
-									viaje: postData.viaje
-								};
-							}
+							var buque = {
+								codigo: container.buqueId,
+								nombre: container.buqueDesc,
+								viaje: container.viaje
+							};
 							var cont = {
 								contenedor:		container.contenedor,
 								buque:			buque,
@@ -161,11 +149,12 @@ module.exports = function(app) {
 					var invoice2add = new Invoice(invoice);
 					invoice2add.save(function (err) {
 						if (!err) {
+							console.log("%s, Invoices inserted: %s", moment().format('YYYY-MM-DD HH:MM:SS'), usr.terminal);
 							res.send(invoice2add);
 						} else {
 							var date = new Date();
-							console.log('Error: %s, %s', date, err);
-							res.send({"error": 'ERROR: ' + err})
+							console.log('%s - Error: %s', moment().format('YYYY-MM-DD HH:MM:SS'), err);
+							res.send(400);
 						}
 					});
 
