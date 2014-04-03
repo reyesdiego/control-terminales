@@ -6,10 +6,9 @@ var express		= require('express'),
 	mongoose	= require('mongoose'),
 	passport	= require('passport'),
 	LocalStrategy = require('passport-local').Strategy,
-	path		= require('path'),
-	moment		= require('moment');
+	path		= require('path');
 
-
+var dateTime = require('./include/moment');
 
 var config = require(__dirname + '/config/config.js');
 
@@ -50,9 +49,9 @@ app.get('/', function(req, res) {
 
 mongoose.connect(config.mongo_url, function(err, res) {
 	if(err) {
-		console.log('%s - ERROR: connecting to Database. %s', moment().format('YYYY-MM-DD HH:MM:SS'), err);
+		console.log('%s - ERROR: connecting to Database. %s', dateTime.getDatetime(), err);
 	} else {
-		console.log('%s - Connected to Database. %s', moment().format('YYYY-MM-DD HH:MM:SS'), config.mongo_url);
+		console.log('%s - Connected to Database. %s', dateTime.getDatetime(), config.mongo_url);
 	}
 });
 
@@ -68,7 +67,7 @@ var processArgs = process.argv.slice(2);
 var port = processArgs[0] || config.server_port;
 server.listen(port, function() {
 	console.log("===================================================================");
-	console.log("%s - Node server Version: %s", moment().format('YYYY-MM-DD HH:MM:SS'), process.version);
-	console.log("%s - Running on http://localhost:%s", moment().format('YYYY-MM-DD HH:MM:SS'), port);
+	console.log("%s - Node server Version: %s", dateTime.getDatetime(), process.version);
+	console.log("%s - Running on http://localhost:%s", dateTime.getDatetime(), port);
 	console.log("===================================================================");
 });

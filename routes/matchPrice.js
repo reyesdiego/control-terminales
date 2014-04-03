@@ -12,7 +12,7 @@ module.exports = function (app){
 		'use strict';
 
 		price.find()
-			.populate({path:'match', match:{"codes.terminal":req.params.terminal}},  null, null, {sort:[['terminal', 'asc'],['_id', 'asc']]})
+			.populate({path:'match', match:{"codes.terminal":req.params.terminal}})
 			.exec(function (err, prices) {
 				if(!err) {
 					res.send(prices);

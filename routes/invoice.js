@@ -7,7 +7,7 @@
 var path = require('path');
 var Account = require(path.join(__dirname, '..', '/models/account'));
 
-var moment = require('moment');
+var dateTime = require('../include/moment');
 
 /**
  * Created by Diego Reyes on 1/7/14.
@@ -66,13 +66,13 @@ module.exports = function(app) {
 				try {
 					postData = JSON.parse(postData);
 				} catch (err){
-					console.log("%s - Error: Parsing JSON: %s, JSON:%s", moment().format('YYYY-MM-DD HH:MM:SS'), err, postData);
+					console.log("%s - Error: Parsing JSON: %s, JSON:%s", dateTime.getDatetime(), err, postData);
 					res.send(400);
 					return;
 				}
 
 				if (err) {
-					console.log("%s - Error: %s", moment().format('YYYY-MM-DD HH:MM:SS'), err.error);
+					console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
 					res.send(403);
 				} else {
 					try {
@@ -149,11 +149,11 @@ module.exports = function(app) {
 					var invoice2add = new Invoice(invoice);
 					invoice2add.save(function (err) {
 						if (!err) {
-							console.log("%s, Invoices inserted: %s", moment().format('YYYY-MM-DD HH:MM:SS'), usr.terminal);
+							console.log("%s - Invoice inserted: %s", dateTime.getDatetime(), usr.terminal);
 							res.send(invoice2add);
 						} else {
 							var date = new Date();
-							console.log('%s - Error: %s', moment().format('YYYY-MM-DD HH:MM:SS'), err);
+							console.log('%s - Error: %s', dateTime.getDatetime(), err);
 							res.send(400);
 						}
 					});

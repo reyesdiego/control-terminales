@@ -43,7 +43,6 @@ Account.statics.verifyToken = function(incomingToken, cb) {
 	var err;
 
 	if (incomingToken !== undefined){
-		console.log('incomingToken: %s', incomingToken);
 		try {
 			var decoded = jwt.decode(incomingToken, tokenSecret);
 		} catch (e){
