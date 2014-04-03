@@ -6,9 +6,10 @@ var express		= require('express'),
 	mongoose	= require('mongoose'),
 	passport	= require('passport'),
 	LocalStrategy = require('passport-local').Strategy,
-	path		= require('path');
+	path		= require('path'),
+	moment		= require('moment');
 
-var moment = require('moment');
+
 
 var config = require(__dirname + '/config/config.js');
 
@@ -27,7 +28,7 @@ app.configure(function () {
 app.all('/*', function(req, res, next) {
 	res.header("Access-Control-Allow-Origin", "*");
 	res.header("Access-Control-Allow-Headers", 'X-Requested-With, Content-Type, token');
-//	res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
 //	res.header('Access-Control-Request-Method', 'GET');
 	res.header('Access-Control-Request-Headers', 'Content-Type, token');
 
