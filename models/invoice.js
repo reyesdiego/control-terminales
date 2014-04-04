@@ -16,6 +16,8 @@ var invoiceSchema = new Schema(
 	fechaVcto:				{ type: Date },
 	codTipoDoc:				{ type: Number },
 	nroDoc:					{ type: Number },
+	clientId:				{ type: String },
+	razon:					{ type: String },
 	importe:				{
 								gravado:		{ type: Number },
 								noGravado:		{ type: Number },

@@ -44,7 +44,7 @@ var Account = require(__dirname +'/models/account');
 passport.use(Account.createStrategy());
 
 app.get('/', function(req, res) {
-	res.send("Servicio Rest Terminales Portuarias. A.G.P.");
+	res.send("<h1>Servicio Terminales Portuarias.</h1><p>Administración General de Puertos.</p><br/><b>Versión NodeJs: "+process.version+"</b>");
 });
 
 mongoose.connect(config.mongo_url, function(err, res) {
@@ -70,4 +70,8 @@ server.listen(port, function() {
 	console.log("%s - Node server Version: %s", dateTime.getDatetime(), process.version);
 	console.log("%s - Running on http://localhost:%s", dateTime.getDatetime(), port);
 	console.log("===================================================================");
+});
+
+process.on('uncaughtException', function(err) {
+	console.log('Caught exception: ' + err);
 });

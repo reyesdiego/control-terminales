@@ -4,7 +4,7 @@ var path = require('path');
 var config = require(path.join(__dirname, '..', '/config/config.js'));
 var Account = require(path.join(__dirname, '..', '/models/account'));
 var flash = require(path.join(__dirname, '..', '/include/utils')).flash;
-
+var dateTime = require('../include/moment');
 /**
  * @module Accounts
  */
@@ -64,12 +64,8 @@ module.exports = function (app, passport) {
 	 */
 	app.post('/login', function(req, res) {
 
-		var postData="";
-
-
-		console.log(req.body);
 		var json = req.body;
-		console.log(json);
+		console.log("%s - User has logged in: %s", dateTime.getDatetime(), json.email);
 		if (json.email !== undefined) {
 			Account.login(json.email, json.password, function(err, usersToken) {
 
@@ -80,7 +76,7 @@ module.exports = function (app, passport) {
 				}
 			});
 		} else {
-//			res.send(403);
+			res.send(403, "email is missing");
 		}
 
 
