@@ -6,18 +6,30 @@
 module.exports = function (app) {
 
 	var dateTime = require('../include/moment');
+	var moment = require('moment');
 	var path = require('path');
 	var Account = require(path.join(__dirname, '..', '/models/account'));
-	var gate = require('../models/gate.js');
+	var Gate = require('../models/gate.js');
 
 	function getGates(req, res, next){
 		'use static';
 
-//		req.params.date
-//		gate.find()
+		var param = {};
+		if (req.query.contenedor)
+			param.contenedor = req.query.contenedor;
+		if (req.query.fecha){
+			var fecha = moment(moment(req.query.fecha).format('YYYY-MM-DD'));
+			param.gateTimestamp = {$gt: fecha.toString(),$lt:fecha.add('days',1).toString()};
+		}
 
-
-
+		Gate.find(param).exec( function( err, gates){
+			if (err){
+				console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
+				res.send(400);
+			} else {
+				res.send(gates);
+			}
+		})
 	}
 
 	function addGate(req, res, next){
@@ -32,7 +44,7 @@ module.exports = function (app) {
 				var gate2insert = req.body;
 				gate2insert.terminal = usr.terminal;
 				if (gate2insert) {
-					gate.insert(gate2insert, function (err, data) {
+					Gate.insert(gate2insert, function (err, data) {
 						if (!err){
 							console.log('%s - Gate inserted. - %s', dateTime.getDatetime(), usr.terminal);
 							res.send(data);
@@ -44,6 +56,7 @@ module.exports = function (app) {
 			}
 		});
 	}
+
+	app.get('/gates', getGates);
 	app.post('/gate', addGate);
-	app.get('/gates/:date', getGates);
 }
