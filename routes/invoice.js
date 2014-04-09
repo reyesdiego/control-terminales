@@ -72,7 +72,7 @@ module.exports = function(app) {
 				}
 
 				if (err) {
-					console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
+					console.log("%s - Error: Token: %s", dateTime.getDatetime(), err.error);
 					res.send(403);
 				} else {
 					try {
@@ -152,8 +152,7 @@ module.exports = function(app) {
 							console.log("%s - Invoice inserted: %s", dateTime.getDatetime(), usr.terminal);
 							res.send(invoice2add);
 						} else {
-							var date = new Date();
-							console.log('%s - Error: %s', dateTime.getDatetime(), err);
+							console.log('%s - Error: %s. : %s', dateTime.getDatetime(), err, usr.terminal);
 							res.send(400);
 						}
 					});

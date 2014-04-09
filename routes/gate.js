@@ -14,12 +14,16 @@ module.exports = function (app) {
 	function getGates(req, res, next){
 		'use static';
 
-		var param = {};
+		var param = {gateTimestamp:{}};
 		if (req.query.contenedor)
 			param.contenedor = req.query.contenedor;
-		if (req.query.fecha){
-			var fecha = moment(moment(req.query.fecha).format('YYYY-MM-DD'));
-			param.gateTimestamp = {$gt: fecha.toString(),$lt:fecha.add('days',1).toString()};
+		if (req.query.fechaDesde){
+			var fecha = moment(moment(req.query.fechaDesde).format('YYYY-MM-DD'));
+			param.gateTimestamp['$gt'] = fecha.toString();
+		}
+		if (req.query.fechaHasta){
+			var fecha = moment(moment(req.query.fechaHasta).format('YYYY-MM-DD'));
+			param.gateTimestamp['$lt'] = fecha.toString();
 		}
 
 		Gate.find(param).exec( function( err, gates){
