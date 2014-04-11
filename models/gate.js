@@ -11,6 +11,7 @@ var gate = new mongoose.Schema({
 	mov:			{type: String, enum:['IMPO', 'EXPO']},
 	tipo:			{type: String, enum:['IN', 'OUT']},
 	patenteCamion:	{type: String},
+	tren:			{type: String},
 	gateTimestamp:	{type: Date},
 	turnoInicio:	{type: Date},
 	turnoFin:		{type: Date}
