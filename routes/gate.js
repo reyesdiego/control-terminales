@@ -39,17 +39,17 @@ module.exports = function (app) {
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err) {
 				console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
-				res.send(403);
+				res.send(403, {error: err.error});
 			} else {
 				var gate2insert = req.body;
 				gate2insert.terminal = usr.terminal;
 				if (gate2insert) {
-					Gate.insert(gate2insert, function (err, data) {
-						if (!err){
+					Gate.insert(gate2insert, function (errSave, data) {
+						if (!errSave){
 							console.log('%s - Gate inserted. - %s', dateTime.getDatetime(), usr.terminal);
 							res.send(data);
 						} else {
-							res.send({"error": err});
+							res.send(500, {"error": errSave});
 						}
 					});
 				}

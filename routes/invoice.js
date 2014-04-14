@@ -65,15 +65,15 @@ module.exports = function(app) {
 			Account.verifyToken(incomingToken, function(err, usr) {
 				try {
 					postData = JSON.parse(postData);
-				} catch (err){
-					console.log("%s - Error: Parsing JSON: %s, JSON:%s", dateTime.getDatetime(), err, postData);
-					res.send(400);
+				} catch (errParsing){
+					console.log("%s - Error: Parsing JSON: %s, JSON:%s", dateTime.getDatetime(), errParsing, postData);
+					res.send(500, {error: errParsing.toString()} );
 					return;
 				}
 
 				if (err) {
 					console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
-					res.send(403);
+					res.send(403, {error: err.error});
 				} else {
 					try {
 						var invoice = {
@@ -143,7 +143,7 @@ module.exports = function(app) {
 						});
 
 					} catch (error){
-						res.send(error);
+						res.send(500, error);
 					}
 
 					var invoice2add = new Invoice(invoice);
@@ -154,7 +154,7 @@ module.exports = function(app) {
 						} else {
 							var date = new Date();
 							console.log('%s - Error: %s', dateTime.getDatetime(), err);
-							res.send(400);
+							res.send(500, {error: err.message} );
 						}
 					});
 
