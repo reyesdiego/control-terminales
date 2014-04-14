@@ -143,7 +143,7 @@ module.exports = function(app) {
 						});
 
 					} catch (error){
-						res.send(500, error);
+						res.send(error);
 					}
 
 					var invoice2add = new Invoice(invoice);
@@ -154,7 +154,7 @@ module.exports = function(app) {
 						} else {
 							var date = new Date();
 							console.log('%s - Error: %s', dateTime.getDatetime(), err);
-							res.send(500, {error: err.message} );
+							res.send(400);
 						}
 					});
 

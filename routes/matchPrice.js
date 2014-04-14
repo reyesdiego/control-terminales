@@ -7,6 +7,7 @@ module.exports = function (app){
 
 	var matchPrice = require('../models/matchPrice.js');
 	var price = require('../models/price.js');
+	var dateTime = require('../include/moment');
 
 	function getMatchPrices (req, res){
 		'use strict';
@@ -33,17 +34,14 @@ module.exports = function (app){
 
 			price.findOne({_id: match._id}, function(err, priceItem){
 				if(!err && priceItem) {
-					console.log('PriceItem:%s, match old:%s, match new:%s',priceItem._id, priceItem.match, match.codes[0].codes);
-
 					matchPrice.findOne({_id: match._id}, function(err, matchItem){
 						if (matchItem){
 							matchPrice.findOne({_id: match._id, "codes.terminal": match.codes[0].terminal}, function (err, matchTerminal){
 								if (!err && matchTerminal){
-									console.log(matchTerminal);
 									matchTerminal.codes[0].codes = match.codes[0].codes;
 									matchTerminal.save(function(err){
 										if (!err){
-											console.log('Updated:%s', matchTerminal.codes);
+											console.log('%s - Updated Matchprice: %s.', dateTime.getDatetime(), matchTerminal._id);
 											asyncCallback();
 										}
 									});
@@ -62,7 +60,7 @@ module.exports = function (app){
 								if (!err){
 									priceItem.match = match._id;
 									priceItem.save(function(){
-										console.log('nuevo:%s', matchprice.codes[0].codes);
+										console.log('%s - New MatchPrice: %s', dateTime.getDatetime(), matchprice._id);
 										asyncCallback();
 									})
 								}
@@ -73,7 +71,6 @@ module.exports = function (app){
 			});
 
 		}, function (err){
-			console.log("matchPrices update completed");
 			res.send({data: {matches: matches.length}});
 		});
 
