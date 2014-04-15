@@ -151,7 +151,8 @@ module.exports = function(app) {
 					invoice2add.save(function (errSave) {
 						if (!errSave) {
 							console.log("%s - Invoice inserted: %s", dateTime.getDatetime(), usr.terminal);
-							res.send(200,{"status": "OK", "data": invoice2add});
+//							res.send(200,{"status": "OK", "data": invoice2add});
+							res.send(200,invoice2add);
 						} else {
 							var date = new Date();
 							console.log('%s - Error: %s', dateTime.getDatetime(), errSave);
