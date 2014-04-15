@@ -24,19 +24,20 @@ module.exports = function(app) {
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
 				console.log(usr);
-				res.send(err);
+				res.send({status:'ERROR', data: err});
 			} else {
 				var invoices = Invoice.find({terminal: usr.terminal}).limit(req.params.limit).skip(req.params.skip);
 				invoices.exec(function(err, invoices) {
 					if(!err) {
 						Invoice.count({}, function (err, cnt){
 							var result = {
+								status: 'OK',
 								totalCount: cnt,
 								pageCount: req.params.limit,
 								page: req.params.skip,
 								data: invoices
 							}
-							res.send(result);
+							res.send(200, result);
 						});
 					} else {
 						console.log('ERROR: ' + err);
