@@ -71,7 +71,7 @@ module.exports = function (app){
 			});
 
 		}, function (err){
-			res.send({data: {matches: matches.length}});
+			res.send({status:"OK", data: {matches: matches.length}});
 		});
 
 	}

@@ -33,9 +33,9 @@ module.exports = function (app) {
 		Gate.find(param).exec( function( err, gates){
 			if (err){
 				console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
-				res.send(400);
+				res.send(500 , {status: "ERROR", data: err});
 			} else {
-				res.send(gates);
+				res.send(200, {status:"OK", data: gates});
 			}
 		})
 	}
@@ -47,7 +47,7 @@ module.exports = function (app) {
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err) {
 				console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
-				res.send(403, {error: err.error});
+				res.send(403, {status:"ERROR", data: err.error});
 			} else {
 				var gate2insert = req.body;
 				gate2insert.terminal = usr.terminal;
@@ -55,9 +55,9 @@ module.exports = function (app) {
 					Gate.insert(gate2insert, function (errSave, data) {
 						if (!errSave){
 							console.log('%s - Gate inserted. - %s', dateTime.getDatetime(), usr.terminal);
-							res.send(data);
+							res.send(200, {status: "OK", data: data});
 						} else {
-							res.send(500, {"error": errSave});
+							res.send(500, {status:"ERROR", data: errSave});
 						}
 					});
 				}

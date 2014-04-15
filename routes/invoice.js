@@ -67,13 +67,13 @@ module.exports = function(app) {
 					postData = JSON.parse(postData);
 				} catch (errParsing){
 					console.log("%s - Error: Parsing JSON: %s, JSON:%s", dateTime.getDatetime(), errParsing, postData);
-					res.send(500, {error: errParsing.toString()} );
+					res.send(500, {status:"ERROR", data: errParsing.toString()} );
 					return;
 				}
 
 				if (err) {
 					console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
-					res.send(403, {error: err.error});
+					res.send(403, {status: "ERROR", data: err.error});
 				} else {
 					try {
 						var invoice = {
@@ -143,18 +143,18 @@ module.exports = function(app) {
 						});
 
 					} catch (error){
-						res.send(error);
+						res.send(500, {status:"ERROR", data: error});
 					}
 
 					var invoice2add = new Invoice(invoice);
-					invoice2add.save(function (err) {
-						if (!err) {
+					invoice2add.save(function (errSave) {
+						if (!errSave) {
 							console.log("%s - Invoice inserted: %s", dateTime.getDatetime(), usr.terminal);
-							res.send(invoice2add);
+							res.send(200,{"status": "OK", "data": invoice2add});
 						} else {
 							var date = new Date();
-							console.log('%s - Error: %s', dateTime.getDatetime(), err);
-							res.send(400);
+							console.log('%s - Error: %s', dateTime.getDatetime(), errSave);
+							res.send(500, {"status": "ERROR", "data": errSave});
 						}
 					});
 
