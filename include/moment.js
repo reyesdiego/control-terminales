@@ -4,7 +4,7 @@
 
 function dateTime(){
 	var moment = require('moment');
-	return moment().format('YYYY-MM-DD HH:mm:ss');
+	return moment().format('YY-MM-DD HH:mm');
 }
 
 module.exports.getDatetime = dateTime;

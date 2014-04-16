@@ -65,6 +65,6 @@ module.exports = function (app) {
 		});
 	}
 
-	app.get('/gates', getGates);
+	app.get('/gates/:skip/:limit', getGates);
 	app.post('/gate', addGate);
 }
