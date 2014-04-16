@@ -19,17 +19,17 @@ module.exports = function (app) {
 
 			if (err) {
 				console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
-				res.send(403);
+				res.send(403, {status:'ERROR', data: err.error});
 			} else {
 				var appointment2insert = req.body;
 				appointment2insert.terminal = usr.terminal;
 				if (appointment2insert) {
-					appointment.insert(appointment2insert, function (err, data){
-						if (!err){
+					appointment.insert(appointment2insert, function (errData, data){
+						if (!errData){
 							console.log('%s - Appointment inserted. - %s', dateTime.getDatetime(), usr.terminal);
-							res.send(data);
+							res.send(200, {status: 'OK', data: data});
 						} else {
-							res.send({"error": err});
+							res.send(500, {status:'ERROR', data: errData.toString()});
 						}
 					})
 				}

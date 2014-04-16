@@ -44,7 +44,7 @@ var Account = require(__dirname +'/models/account');
 passport.use(Account.createStrategy());
 
 app.get('/', function(req, res) {
-	res.send("<h1>Servicio Terminales Portuarias.</h1><p>Administración General de Puertos.</p><br/><b>Versión NodeJs: "+process.version+"</b>");
+	res.send("<h1>Servicio Terminales Portuarias.</h1><p>Administración General de Puertos.</p><br/><b>Versión NodeJs: "+process.version+"</b><p>Runtime: "+server.runtime+"</p>");
 });
 
 mongoose.connect(config.mongo_url, function(err, res) {
@@ -66,6 +66,7 @@ routes = require('./routes/gate')(app);
 var processArgs = process.argv.slice(2);
 var port = processArgs[0] || config.server_port;
 server.listen(port, function() {
+	server.runtime = dateTime.getDatetime();
 	console.log("===================================================================");
 	console.log("%s - Node server Version: %s", dateTime.getDatetime(), process.version);
 	console.log("%s - Running on http://localhost:%s", dateTime.getDatetime(), port);
