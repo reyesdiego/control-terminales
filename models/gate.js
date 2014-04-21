@@ -19,9 +19,9 @@ var gate = new mongoose.Schema({
 
 gate.statics.insert = function(gate, cb){
 	if (gate!==undefined){
-		this.create(gate, function(err){
+		this.create(gate, function(err, data){
 			if (!err){
-				cb(false, gate);
+				cb(false, data);
 			} else {
 				cb(err);
 			}
