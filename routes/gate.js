@@ -54,10 +54,7 @@ module.exports = function (app) {
 				if (gate2insert) {
 					Gate.insert(gate2insert, function (errSave, data) {
 						if (!errSave){
-							console.log('%s - Gate inserted - %s. - %s', dateTime.getDatetime(), data._id, usr.terminal);
-							if (usr.terminal === 'BACTSSA')
-								console.log(data);
-
+							console.log('%s - Gate INS: %s - %s', dateTime.getDatetime(), data._id, usr.terminal);
 							res.send(200, {status: "OK", data: data});
 						} else {
 							res.send(500, {status:"ERROR", data: errSave});

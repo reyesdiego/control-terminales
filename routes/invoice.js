@@ -148,11 +148,10 @@ module.exports = function(app) {
 					}
 
 					var invoice2add = new Invoice(invoice);
-					invoice2add.save(function (errSave) {
+					invoice2add.save(function (errSave, data, rowsAffected) {
 						if (!errSave) {
-							console.log("%s - Invoice inserted: %s", dateTime.getDatetime(), usr.terminal);
-//							res.send(200,{"status": "OK", "data": invoice2add});
-							res.send(200,invoice2add);
+							console.log("%s - Invoice INS:%s - %s", dateTime.getDatetime(), data._id, usr.terminal);
+							res.send(200,{"status": "OK", "data": data});
 						} else {
 							var date = new Date();
 							console.log('%s - Error: %s', dateTime.getDatetime(), errSave);
