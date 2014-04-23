@@ -14,18 +14,20 @@ module.exports = function (app) {
 	function getGates(req, res, next){
 		'use static';
 
+		var fecha;
 		var param = {};
+
 		if (req.query.contenedor)
 			param.contenedor = req.query.contenedor;
 
 		if (req.query.fechaDesde || req.query.fechaHasta){
 			param.gateTimestamp={};
 			if (req.query.fechaDesde){
-				var fecha = moment(moment(req.query.fechaDesde).format('YYYY-MM-DD'));
+				fecha = moment(moment(req.query.fechaDesde).format('YYYY-MM-DD HH:mm Z'));
 				param.gateTimestamp['$gt'] = fecha.toString();
 			}
 			if (req.query.fechaHasta){
-				var fecha = moment(moment(req.query.fechaHasta).format('YYYY-MM-DD'));
+				fecha = moment(moment(req.query.fechaHasta).format('YYYY-MM-DD HH:mm Z'));
 				param.gateTimestamp['$lt'] = fecha.add('days',1).toString();
 			}
 		}

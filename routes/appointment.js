@@ -6,9 +6,41 @@
 module.exports = function (app) {
 
 	var dateTime = require('../include/moment.js');
+	var moment = require('moment');
 	var path = require('path');
 	var Account = require(path.join(__dirname, '..', '/models/account'));
-	var appointment = require('../models/appointment.js');
+	var Appointment = require('../models/appointment.js');
+
+	function getAppointments(req, res, next){
+		'use static';
+
+		var fecha;
+		var param = {};
+
+		if (req.query.contenedor)
+			param.contenedor = req.query.contenedor;
+
+		if (req.query.inicio || req.query.fin){
+			param.$or=[];
+			if (req.query.inicio){
+				 fecha = moment(moment(req.query.inicio).format('YYYY-MM-DD HH:mm Z'));
+				param.$or.push({inicio:{$gt: fecha.toString(), $lt:fecha.add('days',1).toString()}});
+			}
+			if (req.query.fin){
+				fecha = moment(moment(req.query.fin).format('YYYY-MM-DD HH:mm Z'));
+				param.$or.push({inicio:{$gt: fecha.toString(), $lt:fecha.add('days',1).toString()}});
+			}
+		}
+
+		Appointment.find(param).exec( function( err, gates){
+			if (err){
+				console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
+				res.send(500 , {status: "ERROR", data: err});
+			} else {
+				res.send(200, {status:"OK", data: gates});
+			}
+		})
+	}
 
 
 	function addAppointment(req, res, next){
@@ -38,5 +70,6 @@ module.exports = function (app) {
 	}
 
 
+	app.get('/appointments', getAppointments);
 	app.post('/appointment', addAppointment);
 }

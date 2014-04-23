@@ -129,22 +129,28 @@ module.exports = function(app) {
 								buque:			buque,
 								items: []
 							};
-							container.items.forEach(function (item){
-								cont.items.push(
-								{
-									id:			item.id,
-									cnt:		item.cnt,
-									uniMed:		item.uniMed,
-									impUnit:	item.impUni,
-									impIva:		item.impIva,
-									impTot:		item.impTot
+							if (container.items){
+								container.items.forEach( function (item){
+									cont.items.push(
+										{
+											id:			item.id,
+											cnt:		item.cnt,
+											uniMed:		item.uniMed,
+											impUnit:	item.impUni,
+											impIva:		item.impIva,
+											impTot:		item.impTot
+										});
 								});
-							});
+							} else {
+								res.send(500, {"status":"ERROR", "data": "El contenedor no posee items."});
+								return;
+							}
 							invoice.detalle.push(cont);
 						});
 
 					} catch (error){
-						res.send(500, {status:"ERROR", data: error});
+						res.send(500, {"status":"ERROR", "data": error.message});
+						return;
 					}
 
 					var invoice2add = new Invoice(invoice);
@@ -168,7 +174,6 @@ module.exports = function(app) {
 //							imp:
 //						})
 //					}
-
 				}
 			});
 		});
