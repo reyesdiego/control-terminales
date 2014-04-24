@@ -40,7 +40,8 @@ module.exports = function(app) {
 							res.send(200, result);
 						});
 					} else {
-						console.log('ERROR: ' + err);
+						console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
+						res.send(500 , {status: "ERROR", data: err});
 					}
 				});
 			}

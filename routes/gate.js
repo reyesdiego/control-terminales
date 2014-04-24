@@ -20,24 +20,34 @@ module.exports = function (app) {
 		if (req.query.contenedor)
 			param.contenedor = req.query.contenedor;
 
-		if (req.query.fechaDesde || req.query.fechaHasta){
+		if (req.query.fechaInicio || req.query.fechaFin){
 			param.gateTimestamp={};
-			if (req.query.fechaDesde){
-				fecha = moment(moment(req.query.fechaDesde).format('YYYY-MM-DD HH:mm Z'));
-				param.gateTimestamp['$gt'] = fecha.toString();
+			if (req.query.fechaInicio){
+				fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+				param.gateTimestamp['$gt'] = fecha;
 			}
-			if (req.query.fechaHasta){
-				fecha = moment(moment(req.query.fechaHasta).format('YYYY-MM-DD HH:mm Z'));
-				param.gateTimestamp['$lt'] = fecha.add('days',1).toString();
+			if (req.query.fechaFin){
+				fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+				param.gateTimestamp['$lt'] = fecha;
 			}
 		}
 
-		Gate.find(param).exec( function( err, gates){
+		var gate = Gate.find(param).limit(req.params.limit).skip(req.params.skip);
+		gate.exec( function( err, gates){
 			if (err){
 				console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
 				res.send(500 , {status: "ERROR", data: err});
 			} else {
-				res.send(200, {status:"OK", data: gates});
+				Gate.count({}, function (err, cnt){
+					var result = {
+						status: 'OK',
+						totalCount: cnt,
+						pageCount: req.params.limit,
+						page: req.params.skip,
+						data: gates
+					}
+					res.send(200, {status:"OK", data: result});
+				});
 			}
 		})
 	}

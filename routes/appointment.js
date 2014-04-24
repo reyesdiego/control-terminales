@@ -20,28 +20,38 @@ module.exports = function (app) {
 		if (req.query.contenedor)
 			param.contenedor = req.query.contenedor;
 
-		if (req.query.inicio || req.query.fin){
+		if (req.query.fechaInicio || req.query.fechaFin){
 			param.$or=[];
-			if (req.query.inicio){
-				 fecha = moment(moment(req.query.inicio).format('YYYY-MM-DD HH:mm Z'));
-				param.$or.push({inicio:{$gt: fecha.toString(), $lt:fecha.add('days',1).toString()}});
+			if (req.query.fechaInicio){
+				 fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+				param.$or.push({inicio:{$lt: fecha}, fin: {$gt:fecha}});
 			}
-			if (req.query.fin){
-				fecha = moment(moment(req.query.fin).format('YYYY-MM-DD HH:mm Z'));
-				param.$or.push({inicio:{$gt: fecha.toString(), $lt:fecha.add('days',1).toString()}});
+			if (req.query.fechaFin){
+				fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+				param.$or.push({inicio:{$lt: fecha}, fin: {$gt:fecha}});
 			}
 		}
 
-		Appointment.find(param).exec( function( err, gates){
+		var appointment = Appointment.find(param).limit(req.params.limit).skip(req.params.skip);
+		appointment.exec( function( err, appointments){
 			if (err){
-				console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
+				console.error("%s - Error: %s", dateTime.getDatetime(), err.error);
 				res.send(500 , {status: "ERROR", data: err});
 			} else {
-				res.send(200, {status:"OK", data: gates});
+				Appointment.count({}, function (err, cnt){
+					var result = {
+						status: 'OK',
+						totalCount: cnt,
+						pageCount: req.params.limit,
+						page: req.params.skip,
+						data: appointments
+					}
+					res.send(200, {status:"OK", data: result});
+				});
+
 			}
 		})
 	}
-
 
 	function addAppointment(req, res, next){
 		'use static';
@@ -56,7 +66,7 @@ module.exports = function (app) {
 				var appointment2insert = req.body;
 				appointment2insert.terminal = usr.terminal;
 				if (appointment2insert) {
-					appointment.insert(appointment2insert, function (errData, data){
+					Appointment.insert(appointment2insert, function (errData, data){
 						if (!errData){
 							console.log('%s - Appointment inserted. - %s', dateTime.getDatetime(), usr.terminal);
 							res.send(200, {status: 'OK', data: data});
@@ -69,7 +79,6 @@ module.exports = function (app) {
 		});
 	}
 
-
-	app.get('/appointments', getAppointments);
+	app.get('/appointments/:skip/:limit', getAppointments);
 	app.post('/appointment', addAppointment);
 }
