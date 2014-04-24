@@ -8,6 +8,8 @@ var express		= require('express'),
 	LocalStrategy = require('passport-local').Strategy,
 	path		= require('path');
 
+var fs = require('fs');
+
 var dateTime = require('./include/moment');
 
 var config = require(__dirname + '/config/config.js');
@@ -47,12 +49,27 @@ app.get('/', function(req, res) {
 	res.send("<h1>Servicio Terminales Portuarias.</h1><p>Administración General de Puertos.</p><br/><b>Versión NodeJs: "+process.version+"</b><p>Runtime: "+server.runtime+"</p>");
 });
 
+app.get('/log', function(req, res) {
+	res.writeHead(200, {'Content-Type': 'text/html'});
+
+	var lazy = require("lazy")
+	new lazy(fs.createReadStream('nohup.out'))
+		.lines
+		.forEach(function(line){
+			res.write(line.toString()+"<br/>");
+		}
+	).on('pipe', function(){
+			res.end();
+	});
+});
+
 mongoose.connect(config.mongo_url, function(err, res) {
 	if(err) {
-		console.log('%s - ERROR: connecting to Database. %s', dateTime.getDatetime(), err);
+		console.error('%s - ERROR: connecting to Database. %s', dateTime.getDatetime(), err);
 	} else {
 		console.log('%s - Connected to Database. %s', dateTime.getDatetime(), config.mongo_url);
 	}
+	console.log("===============================================================================");
 });
 
 //routes = require('./routes/accounts')(app, passport);
@@ -67,12 +84,12 @@ var processArgs = process.argv.slice(2);
 var port = processArgs[0] || config.server_port;
 server.listen(port, function() {
 	server.runtime = dateTime.getDatetime();
-	console.log("===================================================================");
+	console.log("===============================================================================");
 	console.log("%s - Node server Version: %s", dateTime.getDatetime(), process.version);
 	console.log("%s - Running on http://localhost:%s", dateTime.getDatetime(), port);
-	console.log("===================================================================");
+	console.log("===============================================================================");
 });
 
 process.on('uncaughtException', function(err) {
-	console.log('Caught exception: ' + err);
+	console.error('Caught exception: ' + err);
 });
