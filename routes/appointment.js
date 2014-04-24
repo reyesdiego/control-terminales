@@ -38,7 +38,7 @@ module.exports = function (app) {
 				console.error("%s - Error: %s", dateTime.getDatetime(), err.error);
 				res.send(500 , {status: "ERROR", data: err});
 			} else {
-				Appointment.count({}, function (err, cnt){
+				Appointment.count(param, function (err, cnt){
 					var result = {
 						status: 'OK',
 						totalCount: cnt,
@@ -48,7 +48,6 @@ module.exports = function (app) {
 					}
 					res.send(200, {status:"OK", data: result});
 				});
-
 			}
 		})
 	}

@@ -38,7 +38,7 @@ module.exports = function (app) {
 				console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
 				res.send(500 , {status: "ERROR", data: err});
 			} else {
-				Gate.count({}, function (err, cnt){
+				Gate.count(param, function (err, cnt){
 					var result = {
 						status: 'OK',
 						totalCount: cnt,

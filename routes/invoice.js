@@ -26,10 +26,10 @@ module.exports = function(app) {
 				console.log(usr);
 				res.send({status:'ERROR', data: err});
 			} else {
-				var invoices = Invoice.find({terminal: usr.terminal}).limit(req.params.limit).skip(req.params.skip);
+				var invoices = Invoice.find({terminal: usr.terminal}).limit(req.params.limit).skip(req.params.skip).sort({nroComprob:1});
 				invoices.exec(function(err, invoices) {
 					if(!err) {
-						Invoice.count({}, function (err, cnt){
+						Invoice.count({terminal: usr.terminal}, function (err, cnt){
 							var result = {
 								status: 'OK',
 								totalCount: cnt,
