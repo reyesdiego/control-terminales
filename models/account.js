@@ -80,13 +80,20 @@ Account.statics.login = function (username, password, cb) {
 			if (err){
 				cb(err, null);
 			} else if (user) {
+
+				//TODO
+				//Por ahora solo acceso a terminales
+				var rutasAcceso = ['tarifario', 'invoices', 'invoices.result', 'invoices.search', 'matches', 'control', 'cfacturas', 'cfacturas.result', 'gates', 'gates.result', 'gates.result.container', 'gates.result.invoices', 'gates.result.invoices.result'];
+
 				cb(false, {
-							email: user.email,
-							terminal: user.terminal,
-							token: user.token,
-							date_created: user.date_created,
-							full_name: user.full_name
-						});
+					acceso: rutasAcceso,
+					role:'terminal',
+					email: user.email,
+					terminal: user.terminal,
+					token: user.token,
+					date_created: user.date_created,
+					full_name: user.full_name
+				});
 			} else {
 				var errMsg = 'Invalid or missing Login or Password';
 				console.log(errMsg);
