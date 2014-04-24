@@ -8,8 +8,6 @@ var express		= require('express'),
 	LocalStrategy = require('passport-local').Strategy,
 	path		= require('path');
 
-var fs = require('fs');
-
 var dateTime = require('./include/moment');
 
 var config = require(__dirname + '/config/config.js');
@@ -50,16 +48,26 @@ app.get('/', function(req, res) {
 });
 
 app.get('/log', function(req, res) {
+
+	var filename = 'nohup.out';
 	res.writeHead(200, {'Content-Type': 'text/html'});
 
-	var lazy = require("lazy")
-	new lazy(fs.createReadStream('nohup.out'))
-		.lines
-		.forEach(function(line){
-			res.write(line.toString()+"<br/>");
-		}
-	).on('pipe', function(){
+	path.exists(filename, function(exists){
+		if (exists) {
+			// serve file
+			var lazy = require("lazy")
+			new lazy(fs.createReadStream(filename))
+				.lines
+				.forEach(function(line){
+					res.write(line.toString()+"<br/>");
+				}
+			).on('pipe', function(){
+					res.end();
+			});
+		} else {
+			res.write("<h1>No se encuentra Log</h1>");
 			res.end();
+		}
 	});
 });
 
