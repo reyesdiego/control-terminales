@@ -1,12 +1,13 @@
 /**
  * Created by Diego Reyes on 1/7/14.
  */
-var express		= require('express'),
-	http		= require('http'),
-	mongoose	= require('mongoose'),
-	passport	= require('passport'),
-	LocalStrategy = require('passport-local').Strategy,
-	path		= require('path');
+var express		=	require('express'),
+	http		=	require('http'),
+	mongoose	=	require('mongoose'),
+	passport	=	require('passport'),
+	LocalStrategy =	require('passport-local').Strategy,
+	path		=	 require('path'),
+	fs			=	require('fs');
 
 var dateTime = require('./include/moment');
 
