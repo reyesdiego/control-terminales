@@ -8,6 +8,7 @@ var path = require('path');
 var Account = require(path.join(__dirname, '..', '/models/account'));
 
 var dateTime = require('../include/moment');
+var moment = require('moment');
 
 /**
  * Created by Diego Reyes on 1/7/14.
@@ -26,10 +27,29 @@ module.exports = function(app) {
 				console.log(usr);
 				res.send({status:'ERROR', data: err});
 			} else {
-				var invoices = Invoice.find({terminal: usr.terminal}).limit(req.params.limit).skip(req.params.skip).sort({nroComprob:1});
+				var fecha;
+				var param = {};
+
+				if (req.query.fechaInicio || req.query.fechaFin){
+					param["fecha.emision"]={};
+					if (req.query.fechaInicio){
+						fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+						param["fecha.emision"]['$gt'] = fecha;
+					}
+					if (req.query.fechaFin){
+						fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+						param["fecha.emision"]['$lt'] = fecha;
+					}
+				}
+				param.terminal= usr.terminal;
+
+				var invoices = Invoice.find(param);
+
+				invoices.limit(req.params.limit).skip(req.params.skip);
+				invoices.sort({nroComprob:1});
 				invoices.exec(function(err, invoices) {
 					if(!err) {
-						Invoice.count({terminal: usr.terminal}, function (err, cnt){
+						Invoice.count(param, function (err, cnt){
 							var result = {
 								status: 'OK',
 								totalCount: cnt,
@@ -50,8 +70,22 @@ module.exports = function(app) {
 
 	function getInvoice(req, res){
 		var incomingToken = req.headers.token;
-
-		var invoice = Invoice.find({_id: req.params.id})
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (err){
+				console.log(usr);
+				res.send({status:'ERROR', data: err});
+			} else {
+				var invoice = Invoice.find({_id: req.params.id, terminal: usr.terminal});
+				invoice.exec(function(err, invoices){
+					if (err) {
+						console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
+						res.send({status:'ERROR', data: err});
+					} else {
+						res.send(200, {status:"OK", data: invoices[0]})
+					}
+				})
+			}
+		});
 	}
 
 	function addInvoice ( req, res) {
@@ -201,19 +235,9 @@ module.exports = function(app) {
 	}
 
 	app.get('/invoices/:skip/:limit', getInvoices);
-	app.get('/invoice', getInvoice);
+	app.get('/invoice/:id', getInvoice);
+	app.get('/invoices', getInvoices);
 	app.post('/invoice', addInvoice);
 	app.delete('/invoices/:_id', removeInvoices);
 
-	app.get('/test', function(req, res){
-		var incomingToken = req.headers.token;
-		Account.verifyToken(incomingToken, function(err, usr) {
-			if (err) {
-				res.send(err);
-			} else {
-				console.log(usr);
-				res.send({"test": "OK", user: usr});
-			}
-		});
-	})
 }

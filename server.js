@@ -102,3 +102,17 @@ server.listen(port, function() {
 process.on('uncaughtException', function(err) {
 	console.error('Caught exception: ' + err);
 });
+
+
+app.get('/test', function(req, res){
+	var incomingToken = req.headers.token;
+	Account.verifyToken(incomingToken, function(err, usr) {
+		if (err) {
+			res.send(err);
+		} else {
+			console.log(usr);
+			res.send({"test": "OK", user: usr});
+		}
+	});
+})
+
