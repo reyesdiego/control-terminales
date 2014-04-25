@@ -34,13 +34,23 @@ module.exports = function(app) {
 					param["fecha.emision"]={};
 					if (req.query.fechaInicio){
 						fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
-						param["fecha.emision"]['$gt'] = fecha;
+						param["fecha.emision"]['$gte'] = fecha;
 					}
 					if (req.query.fechaFin){
 						fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
 						param["fecha.emision"]['$lt'] = fecha;
 					}
 				}
+				if (req.query.nroComprobante){
+
+				}
+				if (req.query.razonSocial){
+
+				}
+				if (req.query.documentoCliente){
+					param.nroDoc = req.query.documentoCliente;
+				}
+
 				param.terminal= usr.terminal;
 
 				var invoices = Invoice.find(param);
