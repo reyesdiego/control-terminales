@@ -114,7 +114,7 @@ module.exports = function(app) {
 					try {
 						var invoice = {
 						terminal:		usr.terminal,
-						codTipoComprob:	postData.codTipoComprob,
+						codTipoComprob:	postData.codTipoComprob.trim(),
 						nroPtoVenta:	postData.nroPtoVenta,
 						nroComprob:		postData.nroComprob,
 						codTipoAutoriz:	postData.codTipoAutoriz,
@@ -144,11 +144,6 @@ module.exports = function(app) {
 											hasta:		postData.fechaServHasta,
 											vctoPago:	postData.fechaVctoPago
 										},
-						buque:			{
-											codigo:	postData.codigo,
-											nombre:	postData.nombre,
-											viaje:	postData.viaje
-										},
 						detalle:		[],
 						otrosTributos:	[]
 						};
@@ -161,6 +156,7 @@ module.exports = function(app) {
 							};
 							var cont = {
 								contenedor:		container.contenedor,
+								IMO:			container.IMO,
 								buque:			buque,
 								items: []
 							};
