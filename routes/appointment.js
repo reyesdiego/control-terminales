@@ -24,11 +24,11 @@ module.exports = function (app) {
 			param.$or=[];
 			if (req.query.fechaInicio){
 				 fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
-				param.$or.push({inicio:{$lt: fecha}, fin: {$gt:fecha}});
+				param.$or.push({inicio:{$lt: fecha}, fin: {$gte:fecha}});
 			}
 			if (req.query.fechaFin){
 				fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
-				param.$or.push({inicio:{$lt: fecha}, fin: {$gt:fecha}});
+				param.$or.push({inicio:{$lt: fecha}, fin: {$gte:fecha}});
 			}
 		}
 

@@ -24,7 +24,7 @@ module.exports = function (app) {
 			param.gateTimestamp={};
 			if (req.query.fechaInicio){
 				fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
-				param.gateTimestamp['$gt'] = fecha;
+				param.gateTimestamp['$gte'] = fecha;
 			}
 			if (req.query.fechaFin){
 				fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
@@ -32,7 +32,7 @@ module.exports = function (app) {
 			}
 		}
 
-		var gate = Gate.find(param).limit(req.params.limit).skip(req.params.skip);
+		var gate = Gate.find(param).limit(req.params.limit).skip(req.params.skip).sort({gateTimestamp:1});
 		gate.exec( function( err, gates){
 			if (err){
 				console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
