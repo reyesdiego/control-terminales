@@ -25,7 +25,7 @@ module.exports = function(app) {
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
 				console.log(usr);
-				res.send({status:'ERROR', data: err});
+				res.send(500, {status:'ERROR', data: err});
 			} else {
 				var fecha;
 				var param = {};
@@ -240,10 +240,26 @@ module.exports = function(app) {
 		});
 	}
 
+
 	app.get('/invoices/:skip/:limit', getInvoices);
 	app.get('/invoice/:id', getInvoice);
 	app.get('/invoices', getInvoices);
 	app.post('/invoice', addInvoice);
 	app.delete('/invoices/:_id', removeInvoices);
+
+
+	app.get('/aggregate', function (req,res){
+
+		var agg = Invoice.aggregate([
+			{   $group: {
+				_id: {terminal:'$terminal'},
+				invoicesCount: {$sum: 1}
+			}
+			}
+		], function (err, data){
+			console.log(data);
+			res.send(data, {"content-type":"applicacion/json"}, 200);
+		});
+	});
 
 }
