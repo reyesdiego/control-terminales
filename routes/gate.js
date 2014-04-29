@@ -42,11 +42,11 @@ module.exports = function (app) {
 					var result = {
 						status: 'OK',
 						totalCount: cnt,
-						pageCount: req.params.limit,
+						pageCount: (req.params.limit > cnt)?cnt:req.params.limit,
 						page: req.params.skip,
 						data: gates
 					}
-					res.send(200, {status:"OK", data: result});
+					res.send(200, result);
 				});
 			}
 		})

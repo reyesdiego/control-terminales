@@ -15,9 +15,9 @@ var appointment = new mongoose.Schema({
 
 appointment.statics.insert = function(appointment, cb){
 	if (appointment!==undefined){
-		this.create(appointment, function(err){
+		this.create(appointment, function(err, data){
 			if (!err){
-				cb(false, appointment);
+				cb(false, data);
 			} else {
 				cb(err);
 			}

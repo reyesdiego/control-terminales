@@ -42,11 +42,11 @@ module.exports = function (app) {
 					var result = {
 						status: 'OK',
 						totalCount: cnt,
-						pageCount: req.params.limit,
+						pageCount: (req.params.limit > cnt)?cnt:req.params.limit,
 						page: req.params.skip,
 						data: appointments
 					}
-					res.send(200, {status:"OK", data: result});
+					res.send(200, result);
 				});
 			}
 		})
@@ -67,7 +67,7 @@ module.exports = function (app) {
 				if (appointment2insert) {
 					Appointment.insert(appointment2insert, function (errData, data){
 						if (!errData){
-							console.log('%s - Appointment inserted. - %s', dateTime.getDatetime(), usr.terminal);
+							console.log('%s - Appointment INS: %s - %s', dateTime.getDatetime(), data._id, usr.terminal);
 							res.send(200, {status: 'OK', data: data});
 						} else {
 							res.send(500, {status:'ERROR', data: errData.toString()});

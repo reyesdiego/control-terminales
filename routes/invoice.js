@@ -42,10 +42,10 @@ module.exports = function(app) {
 					}
 				}
 				if (req.query.nroComprobante){
-
+					param.nroComprob = req.query.nroComprobante;
 				}
 				if (req.query.razonSocial){
-
+					param.razon = {$regex:req.query.razonSocial}
 				}
 				if (req.query.documentoCliente){
 					param.nroDoc = req.query.documentoCliente;
@@ -63,7 +63,7 @@ module.exports = function(app) {
 							var result = {
 								status: 'OK',
 								totalCount: cnt,
-								pageCount: req.params.limit,
+								pageCount: (req.params.limit > cnt)?cnt:req.params.limit,
 								page: req.params.skip,
 								data: invoices
 							}
