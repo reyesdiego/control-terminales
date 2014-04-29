@@ -83,7 +83,7 @@ Account.statics.login = function (username, password, cb) {
 
 				//TODO
 				//Por ahora solo acceso a terminales
-				var rutasAcceso = ['tarifario', 'invoices', 'invoices.result', 'invoices.search', 'matches', 'control', 'cfacturas', 'cfacturas.result', 'gates', 'gates.result', 'gates.result.container', 'gates.result.invoices', 'gates.result.invoices.result'];
+				var rutasAcceso = ['tarifario', 'invoices', 'invoices.result', 'invoices.search', 'matches', 'control', 'cfacturas', 'cfacturas.result', 'gates', 'gates.result', 'gates.result.container', 'gates.result.invoices', 'gates.result.invoices.result', 'turnos', 'turnos.result'];
 
 				cb(false, {
 					acceso: rutasAcceso,
