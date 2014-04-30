@@ -124,7 +124,7 @@ module.exports = function(app) {
 					try {
 						var invoice = {
 						terminal:		usr.terminal,
-						codTipoComprob:	postData.codTipoComprob.trim(),
+						codTipoComprob:	postData.codTipoComprob.toString().trim(),
 						nroPtoVenta:	postData.nroPtoVenta,
 						nroComprob:		postData.nroComprob,
 						codTipoAutoriz:	postData.codTipoAutoriz,
@@ -252,7 +252,12 @@ module.exports = function(app) {
 
 		var agg = Invoice.aggregate([
 			{   $group: {
-				_id: {terminal:'$terminal'},
+							_id: {terminal:'$terminal'},
+							invoicesCount: {$sum: 1}
+						}
+			},
+			{   $group: {
+				_id: {codTipoComprob:'codTipoComprob'},
 				invoicesCount: {$sum: 1}
 			}
 			}

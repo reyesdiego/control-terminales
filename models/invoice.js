@@ -32,7 +32,7 @@ var invoiceSchema = new Schema(
 	observa:	 			{ type: String },
 	codConcepto:			{ type: Number },
 	fecha:{
-		emision:			{ type: Date },
+		emision:			{ type: Date, required: true },
 		vcto:				{ type: Date },
 		desde:				{ type: Date },
 		hasta:				{ type: Date },
