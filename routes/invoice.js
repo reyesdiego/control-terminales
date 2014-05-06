@@ -261,8 +261,7 @@ module.exports = function(app) {
 				console.error(err);
 				res.send(err, {"content-type":"text/plain"}, 500);
 			} else {
-				console.log(data);
-				res.send(data, {"content-type":"applicacion/json"}, 200);
+				res.send({status:"OK", data: data}, {"content-type":"applicacion/json"}, 200);
 			}
 		});
 	});
