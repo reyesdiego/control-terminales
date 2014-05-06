@@ -15,6 +15,11 @@ module.exports = {
 	 */
 	'ttl': 3600000, //1 hour
 	'resetTokenExpiresMinutes': 20, //20 minutes later
-	'mongo_url': 'mongodb://localhost:27017/terapi', // looks like mongodb://<user>:<pass>@mongo.onmodulus.net:27017/Mikha4ot
+	'mongo_url': 'mongodb://localhost:27017/terapi',
+	'mongo_opts':	{
+						user: 'admin',
+						pass: 'desarrollo',
+						auth:{authdb:"admin"}
+					},
 	'server_port': 8080
 };

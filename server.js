@@ -45,7 +45,14 @@ var Account = require(__dirname +'/models/account');
 passport.use(Account.createStrategy());
 
 app.get('/', function(req, res) {
-	res.send("<h1>Servicio Terminales Portuarias.</h1><p>Administración General de Puertos.</p><br/><b>Versión NodeJs: "+process.version+"</b><p>Runtime: "+server.runtime+"</p>");
+	var db='<p><b>MongoDb: </b>';
+	if (mongoose.connections.length>0)
+		if (mongoose.connections[0]._hasOpened)
+			db+='<span style="color:green">Connected</span></p>';
+		else
+			db+='<span style="color:red">Not connected</span></p>';
+
+	res.send("<h1>Servicio Terminales Portuarias.</h1><p>Administración General de Puertos.</p><br/><b>Versión NodeJs: "+process.version+"</b>"+db+"<p>Runtime: "+server.runtime+"</p>");
 });
 
 app.get('/log', function(req, res) {
@@ -72,15 +79,6 @@ app.get('/log', function(req, res) {
 	});
 });
 
-mongoose.connect(config.mongo_url, function(err, res) {
-	if(err) {
-		console.error('%s - ERROR: connecting to Database. %s', dateTime.getDatetime(), err);
-	} else {
-		console.log('%s - Connected to Database. %s', dateTime.getDatetime(), config.mongo_url);
-	}
-	console.log("===============================================================================");
-});
-
 //routes = require('./routes/accounts')(app, passport);
 routes = require('./routes/accounts')(app);
 routes = require('./routes/invoice')(app);
@@ -99,20 +97,32 @@ server.listen(port, function() {
 	console.log("===============================================================================");
 });
 
-process.on('uncaughtException', function(err) {
-	console.error('Caught exception: ' + err);
+//	Database configuration
+mongoose.connect(config.mongo_url, config.mongo_opts);
+
+mongoose.connection.on('connected', function () {
+	console.log('%s - Connected to Database. %s', dateTime.getDatetime(), config.mongo_url);
+	console.log("===============================================================================");
+});
+mongoose.connection.on('error',function (err) {
+	console.error('%s - ERROR: connecting to Database. %s', dateTime.getDatetime(), err);
+	console.log("===============================================================================");
+});
+mongoose.connection.on('disconnected', function () {
+	console.log('Mongoose default connection disconnected');
+	console.log("===============================================================================");
 });
 
 
-app.get('/test', function(req, res){
-	var incomingToken = req.headers.token;
-	Account.verifyToken(incomingToken, function(err, usr) {
-		if (err) {
-			res.send(err);
-		} else {
-			console.log(usr);
-			res.send({"test": "OK", user: usr});
-		}
+// If the Node process ends, close the Mongoose connection
+process.on('SIGINT', function() {
+	mongoose.connection.close(function () {
+		console.log('Mongoose default connection disconnected through app termination');
+		console.log("===============================================================================");
+		process.exit(0);
 	});
-})
+});
 
+process.on('uncaughtException', function(err) {
+	console.error('Caught exception: ' + err);
+});

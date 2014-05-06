@@ -255,15 +255,15 @@ module.exports = function(app) {
 							_id: {terminal:'$terminal'},
 							invoicesCount: {$sum: 1}
 						}
-			},
-			{   $group: {
-				_id: {codTipoComprob:'codTipoComprob'},
-				invoicesCount: {$sum: 1}
-			}
 			}
 		], function (err, data){
-			console.log(data);
-			res.send(data, {"content-type":"applicacion/json"}, 200);
+			if (err){
+				console.error(err);
+				res.send(err, {"content-type":"text/plain"}, 500);
+			} else {
+				console.log(data);
+				res.send(data, {"content-type":"applicacion/json"}, 200);
+			}
 		});
 	});
 

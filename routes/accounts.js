@@ -209,4 +209,17 @@ module.exports = function (app, passport) {
 			res.render('resetpass', messages);
 		}
 	});
+
+	app.get('/test', function(req, res){
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (err) {
+				res.send(err);
+			} else {
+				console.log(usr);
+				res.send({"test": "OK", user: usr});
+			}
+		});
+	})
+
 };
