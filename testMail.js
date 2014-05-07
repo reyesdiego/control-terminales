@@ -2,37 +2,42 @@
  * Created by diego on 4/30/14.
  */
 
+var https = require('https');
+https.globalAgent.options.secureProtocol = 'SSLv3_method';
+
 var nodemailer = require('nodemailer');
 
+var smtpTransport = nodemailer.createTransport("SMTP", {
+	host: "correo.agp.gob.ar", // hostname
+	secureConnection: true, // use SSL
+	port: 25, // port for secure SMTP
+	debug:true,
+	auth: {
+		user: "dreyes@puertobuenosaires.gob.ar",
+//		user: "reyes-d",
+		pass: "DLR10041973_"
+	}
+});
+
 //var smtpTransport = nodemailer.createTransport("SMTP", {
-//	host: "owa.puertobuenosaires.gob.ar", // hostname
+//	host: "smtp.gmail.com", // hostname
 //	secureConnection: true, // use SSL
 //	port: 465, // port for secure SMTP
 //	auth: {
-//		user: "dreyes@puertobuenosaires.gob.ar",
-//		pass: "DLR10041973_"
+//		user: "reyesdiego3060@gmail.com",
+//		pass: "gcomputer"
 //	}
 //});
 
-var smtpTransport = nodemailer.createTransport("SMTP", {
-	host: "smtp.gmail.com", // hostname
-	secureConnection: true, // use SSL
-	port: 465, // port for secure SMTP
-	auth: {
-		user: "reyesdiego3060@gmail.com",
-		pass: "gcomputer"
-	}
-});
-
-var smtpTransport = nodemailer.createTransport("SMTP", {
-	host: "Hotmail", // hostname
-	secureConnection: true, // use SSL
-	port: 465, // port for secure SMTP
-	auth: {
-		user: "reyesdiego@hotmail.com",
-		pass: "_DLR10041973_"
-	}
-});
+//var smtpTransport = nodemailer.createTransport("SMTP", {
+//	host: "Hotmail", // hostname
+//	secureConnection: true, // use SSL
+//	port: 465, // port for secure SMTP
+//	auth: {
+//		user: "reyesdiego@hotmail.com",
+//		pass: "_DLR10041973_"
+//	}
+//});
 
 //var smtpTransport = nodemailer.createTransport("SMTP",{
 //	service: "AGP",
@@ -54,7 +59,7 @@ var mailOptions = {
 
 smtpTransport.sendMail(mailOptions, function(error, response){
 	if(error){
-		console.log(error);
+		console.log({"error": error, response: response});
 	}else{
 		console.log("Message sent: " + response.message);
 	}
