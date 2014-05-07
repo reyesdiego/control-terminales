@@ -59,6 +59,8 @@ app.get('/log', function(req, res) {
 
 	var filename = 'nohup.out';
 	res.writeHead(200, {'Content-Type': 'text/html'});
+	res.write('<html><body>');
+	res.write('<p><a href="#bottom">Ir a fin de pagina</a></p>');
 
 	path.exists(filename, function(exists){
 		if (exists) {
@@ -70,10 +72,13 @@ app.get('/log', function(req, res) {
 					res.write(line.toString()+"<br/>");
 				}
 			).on('pipe', function(){
+					res.write('<p><a name="bottom">Fin normal del log</a></p>');
+					res.write('</body></html>');
 					res.end();
 			});
 		} else {
 			res.write("<h1>No se encuentra Log</h1>");
+			res.write('</body></html>');
 			res.end();
 		}
 	});
