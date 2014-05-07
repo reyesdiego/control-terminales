@@ -4,18 +4,47 @@
 
 var nodemailer = require('nodemailer');
 
+//var smtpTransport = nodemailer.createTransport("SMTP", {
+//	host: "owa.puertobuenosaires.gob.ar", // hostname
+//	secureConnection: true, // use SSL
+//	port: 465, // port for secure SMTP
+//	auth: {
+//		user: "dreyes@puertobuenosaires.gob.ar",
+//		pass: "DLR10041973_"
+//	}
+//});
 
-var smtpTransport = nodemailer.createTransport("SMTP",{
-	service: "AGP",
+var smtpTransport = nodemailer.createTransport("SMTP", {
+	host: "smtp.gmail.com", // hostname
+	secureConnection: true, // use SSL
+	port: 465, // port for secure SMTP
+	auth: {
+		user: "reyesdiego3060@gmail.com",
+		pass: "gcomputer"
+	}
+});
+
+var smtpTransport = nodemailer.createTransport("SMTP", {
+	host: "Hotmail", // hostname
+	secureConnection: true, // use SSL
+	port: 465, // port for secure SMTP
 	auth: {
 		user: "reyesdiego@hotmail.com",
 		pass: "_DLR10041973_"
 	}
 });
 
+//var smtpTransport = nodemailer.createTransport("SMTP",{
+//	service: "AGP",
+//	auth: {
+//		user: "reyesdiego@hotmail.com",
+//		pass: "_DLR10041973_"
+//	}
+//});
+
 // setup e-mail data with unicode symbols
 var mailOptions = {
-	from: "Diego Reyes ✔ <reyesdiego@reyesdiego.com>", // sender address
+	from: "Diego Reyes ✔ <dreyes@puertobuenosaires.gob.ar>", // sender address
 	to: "reyesdiego@hotmail.com", // list of receivers
 	subject: "Hello ✔", // Subject line
 	text: "Hello world ✔", // plaintext body
