@@ -24,7 +24,7 @@ module.exports = function(app) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.log(usr);
+				console.error(usr);
 				res.send(500, {status:'ERROR', data: err});
 			} else {
 				var fecha;
@@ -70,7 +70,7 @@ module.exports = function(app) {
 							res.send(200, result);
 						});
 					} else {
-						console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
+						console.error("%s - Error: %s", dateTime.getDatetime(), err.error);
 						res.send(500 , {status: "ERROR", data: err});
 					}
 				});
@@ -88,7 +88,7 @@ module.exports = function(app) {
 				var invoice = Invoice.find({_id: req.params.id, terminal: usr.terminal});
 				invoice.exec(function(err, invoices){
 					if (err) {
-						console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
+						console.error("%s - Error: %s", dateTime.getDatetime(), err.error);
 						res.send({status:'ERROR', data: err});
 					} else {
 						res.send(200, {status:"OK", data: invoices[0]})
@@ -112,13 +112,13 @@ module.exports = function(app) {
 				try {
 					postData = JSON.parse(postData);
 				} catch (errParsing){
-					console.log("%s - Error: Parsing JSON: %s, JSON:%s", dateTime.getDatetime(), errParsing, postData);
+					console.error("%s - Error: Parsing JSON: %s, JSON:%s", dateTime.getDatetime(), errParsing, postData);
 					res.send(500, {status:"ERROR", data: errParsing.toString()} );
 					return;
 				}
 
 				if (err) {
-					console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
+					console.error("%s - Error: %s", dateTime.getDatetime(), err.error);
 					res.send(403, {status: "ERROR", data: err.error});
 				} else {
 					try {
@@ -201,7 +201,7 @@ module.exports = function(app) {
 							res.send(200,{"status": "OK", "data": data});
 						} else {
 							var date = new Date();
-							console.log('%s - Error: %s', dateTime.getDatetime(), errSave);
+							console.error('%s - Error: %s', dateTime.getDatetime(), errSave);
 							res.send(500, {"status": "ERROR", "data": errSave});
 						}
 					});

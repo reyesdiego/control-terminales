@@ -12,15 +12,36 @@ module.exports = function (app){
 	function getMatchPrices (req, res){
 		'use strict';
 
-		price.find()
-			.populate({path:'match', match:{"codes.terminal":req.params.terminal}})
-			.exec(function (err, prices) {
-				if(!err) {
-					res.send(prices);
-				} else {
-					console.log('ERROR: ' + err);
-				}
-			});
+		'use strict';
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (err){
+				console.error('%s - Error: %s', dateTime.getDatetime(), err);
+				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
+			} else {
+				price.find({$or:[{terminal:usr.terminal}, {terminal: "AGP"}]} )
+					.sort({terminal:1, _id:1})
+					.exec(function(err, priceList){
+						if(!err) {
+							res.send(200, {status:200, data:priceList});
+						} else {
+							console.error('%s - Error: %s', dateTime.getDatetime(), err);
+							res.send(500, {status:'ERROR', data: err});
+						}
+					});
+			}
+		});
+
+//		price.find()
+//			.populate({path:'match', match:{"codes.terminal":req.params.terminal}})
+//			.exec(function (err, prices) {
+//				if(!err) {
+//					res.send(prices);
+//				} else {
+//					console.log('ERROR: ' + err);
+//				}
+//			});
+
 	}
 
 	function addMatchPrice (req, res){

@@ -6,6 +6,8 @@
 var path = require('path');
 var Account = require(path.join(__dirname, '..', '/models/account'));
 
+var dateTime = require('../include/moment');
+
 module.exports = function (app){
 
 	var price = require('../models/price.js');
@@ -15,14 +17,28 @@ module.exports = function (app){
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.log(err, new Date().toString());
+				console.error('%s - Error: %s', dateTime.getDatetime(), err);
 				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
 			} else {
-				price.find({$or:[{terminal:usr.terminal}, {terminal: "AGP"}]} ).exec(function(err, priceList){
+				var param = {
+					$or : [
+						{terminal:	"AGP"},
+						{terminal:	usr.terminal}
+					]
+				};
+
+				if (req.query.code){
+					param._id = req.query.code;
+				}
+
+				price.find(param)
+					.sort({terminal:1, _id:1})
+					.exec(function(err, priceList){
 					if(!err) {
-						res.send(priceList);
+						res.send(200, {status:200, data:priceList});
 					} else {
-						console.log('ERROR: ' + err);
+						console.error('%s - Error: %s', dateTime.getDatetime(), err);
+						res.send(500, {status:'ERROR', data: err});
 					}
 				});
 			}

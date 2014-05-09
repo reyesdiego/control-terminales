@@ -35,9 +35,10 @@ price.virtual('unitCurrency').get(function(){
 
 	return cur + '/' + unit;
 });
+
 price.set('toJSON', {virtuals: true,
 	transform: function(doc, ret, options) {
-		delete ret._id;
+		delete ret.id;
 		delete ret.unit;
 		delete ret.currency;
 		delete ret.__v;
