@@ -16,7 +16,7 @@ module.exports = function (app){
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
 				console.log(err, new Date().toString());
-				res.send(401, "Invalid or missing Token.");
+				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
 			} else {
 				price.find({$or:[{terminal:usr.terminal}, {terminal: "AGP"}]} ).exec(function(err, priceList){
 					if(!err) {

@@ -11,7 +11,12 @@ var price = new mongoose.Schema({
 	unit:			{type: String},
 	currency:		{type: String},
 	topPrice:		{type: Number},
-	match:			{type: String, ref:'matchprices'}
+	match:			[
+						{
+							terminal: {type: String},
+							codes: [{type:String}]
+						}
+					]
 });
 
 price.virtual('unitCurrency').get(function(){
