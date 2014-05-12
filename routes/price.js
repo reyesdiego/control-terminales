@@ -30,12 +30,15 @@ module.exports = function (app){
 				if (req.query.code){
 					param._id = req.query.code;
 				}
+				if (req.query.matchCode){
+					param['match.codes']= req.query.matchCode;
+				}
 
 				price.find(param)
 					.sort({terminal:1, _id:1})
 					.exec(function(err, priceList){
 					if(!err) {
-						res.send(200, {status:200, data:priceList});
+						res.send(200, {status:'OK', data:priceList});
 					} else {
 						console.error('%s - Error: %s', dateTime.getDatetime(), err);
 						res.send(500, {status:'ERROR', data: err});

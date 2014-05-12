@@ -10,7 +10,6 @@ module.exports = function (app){
 	var dateTime = require('../include/moment');
 
 	function getMatchPrices (req, res){
-		'use strict';
 
 		'use strict';
 		var incomingToken = req.headers.token;
@@ -23,7 +22,7 @@ module.exports = function (app){
 					.sort({terminal:1, _id:1})
 					.exec(function(err, priceList){
 						if(!err) {
-							res.send(200, {status:200, data:priceList});
+							res.send(200, {status:'OK', data:priceList});
 						} else {
 							console.error('%s - Error: %s', dateTime.getDatetime(), err);
 							res.send(500, {status:'ERROR', data: err});
@@ -31,17 +30,6 @@ module.exports = function (app){
 					});
 			}
 		});
-
-//		price.find()
-//			.populate({path:'match', match:{"codes.terminal":req.params.terminal}})
-//			.exec(function (err, prices) {
-//				if(!err) {
-//					res.send(prices);
-//				} else {
-//					console.log('ERROR: ' + err);
-//				}
-//			});
-
 	}
 
 	function addMatchPrice (req, res){

@@ -51,6 +51,10 @@ module.exports = function(app) {
 					param.nroDoc = req.query.documentoCliente;
 				}
 
+				if (req.query.contenedor)
+					param['detalle.contenedor'] = req.query.contenedor;
+
+
 				param.terminal= usr.terminal;
 
 				var invoices = Invoice.find(param);
