@@ -28,14 +28,11 @@ module.exports = function (app){
 				};
 
 				if (req.query.code){
-					param._id = req.query.code;
-				}
-				if (req.query.matchCode){
-					param['match.codes']= req.query.matchCode;
+					param.code = req.query.code;
 				}
 
 				price.find(param)
-					.sort({terminal:1, _id:1})
+					.sort({terminal:1, code:1})
 					.exec(function(err, priceList){
 					if(!err) {
 						res.send(200, {status:'OK', data:priceList});

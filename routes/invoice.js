@@ -181,7 +181,7 @@ module.exports = function(app) {
 											id:			item.id,
 											cnt:		item.cnt,
 											uniMed:		item.uniMed,
-											impUnit:	item.impUni,
+											impUnit:	item.impUnit,
 											impIva:		item.impIva,
 											impTot:		item.impTot
 										});
