@@ -4,19 +4,13 @@
 var mongoose = require('mongoose');
 
 var price = new mongoose.Schema({
-	_id:			{type: String},
 	terminal:		{type: String},
 	code:			{type: String},
 	description:	{type: String},
 	unit:			{type: String},
 	currency:		{type: String},
 	topPrice:		{type: Number},
-	match:			[
-						{
-							terminal: {type: String},
-							codes: [{type:String}]
-						}
-					]
+	matches :		 [{ type: mongoose.Schema.ObjectId, ref: 'matchprices' }]
 });
 
 price.virtual('unitCurrency').get(function(){
@@ -36,14 +30,14 @@ price.virtual('unitCurrency').get(function(){
 	return cur + '/' + unit;
 });
 
-price.set('toJSON', {virtuals: true,
-	transform: function(doc, ret, options) {
-		delete ret.id;
-		delete ret.unit;
-		delete ret.currency;
-		delete ret.__v;
-		return ret;
-	}
-});
+//price.set('toJSON', {virtuals: true,
+//	transform: function(doc, ret, options) {
+//		delete ret.id;
+//		delete ret.unit;
+//		delete ret.currency;
+//		delete ret.__v;
+//		return ret;
+//	}
+//});
 
 module.exports = mongoose.model('prices', price);

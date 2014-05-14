@@ -5,9 +5,13 @@
 
 module.exports = function (app){
 
+	var MatchPrice = require('../models/matchPrice.js');
 	var matchPrice = require('../models/matchPrice.js');
 	var price = require('../models/price.js');
 	var dateTime = require('../include/moment');
+
+	var path = require('path');
+	var Account = require(path.join(__dirname, '..', '/models/account'));
 
 	function getMatchPrices (req, res){
 
@@ -18,16 +22,36 @@ module.exports = function (app){
 				console.error('%s - Error: %s', dateTime.getDatetime(), err);
 				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
 			} else {
-				price.find({$or:[{terminal:usr.terminal}, {terminal: "AGP"}]} )
-					.sort({terminal:1, _id:1})
-					.exec(function(err, priceList){
+
+//				MatchPrice.find({$or:[{terminal:usr.terminal}, {terminal: "AGP"}]} )
+//					.sort({terminal:1, code:1})
+//					.exec(function(err, priceList){
+//						if(!err) {
+//							res.send(200, {status:'OK', data:priceList});
+//						} else {
+//							console.error('%s - Error: %s', dateTime.getDatetime(), err);
+//							res.send(500, {status:'ERROR', data: err});
+//						}
+//					});
+				var param = {};
+
+				if (req.query.code){
+					param.code = req.query.code;
+				}
+
+				price.find(param)
+//					.populate('matches')
+					.populate({path:'matches', match:{"terminal":req.params.terminal}})
+					.sort({terminal:1,code:1})
+					.exec(function (err, prices) {
 						if(!err) {
-							res.send(200, {status:'OK', data:priceList});
+							res.send(200, {status:'OK', data:prices});
 						} else {
-							console.error('%s - Error: %s', dateTime.getDatetime(), err);
-							res.send(500, {status:'ERROR', data: err});
+							console.log('ERROR: ' + err);
 						}
 					});
+
+
 			}
 		});
 	}
