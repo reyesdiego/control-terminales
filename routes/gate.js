@@ -14,42 +14,52 @@ module.exports = function (app) {
 	function getGates(req, res, next){
 		'use static';
 
-		var fecha;
-		var param = {};
-
-		if (req.query.contenedor)
-			param.contenedor = req.query.contenedor;
-
-		if (req.query.fechaInicio || req.query.fechaFin){
-			param.gateTimestamp={};
-			if (req.query.fechaInicio){
-				fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
-				param.gateTimestamp['$gte'] = fecha;
-			}
-			if (req.query.fechaFin){
-				fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
-				param.gateTimestamp['$lt'] = fecha;
-			}
-		}
-
-		var gate = Gate.find(param).limit(req.params.limit).skip(req.params.skip).sort({gateTimestamp:1});
-		gate.exec( function( err, gates){
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
-				res.send(500 , {status: "ERROR", data: err});
+				console.error(usr);
+				res.send(500, {status:'ERROR', data: err});
 			} else {
-				Gate.count(param, function (err, cnt){
-					var result = {
-						status: 'OK',
-						totalCount: cnt,
-						pageCount: (req.params.limit > cnt)?cnt:req.params.limit,
-						page: req.params.skip,
-						data: gates
+				var fecha;
+				var param = {};
+
+				if (req.query.contenedor)
+					param.contenedor = req.query.contenedor;
+
+				if (req.query.fechaInicio || req.query.fechaFin){
+					param.gateTimestamp={};
+					if (req.query.fechaInicio){
+						fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+						param.gateTimestamp['$gte'] = fecha;
 					}
-					res.send(200, result);
-				});
+					if (req.query.fechaFin){
+						fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+						param.gateTimestamp['$lt'] = fecha;
+					}
+				}
+				param.terminal= usr.terminal;
+
+				var gate = Gate.find(param).limit(req.params.limit).skip(req.params.skip).sort({gateTimestamp:1});
+				gate.exec( function( err, gates){
+					if (err){
+						console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
+						res.send(500 , {status: "ERROR", data: err});
+					} else {
+						Gate.count(param, function (err, cnt){
+							var result = {
+								status: 'OK',
+								totalCount: cnt,
+								pageCount: (req.params.limit > cnt)?cnt:req.params.limit,
+								page: req.params.skip,
+								data: gates
+							}
+							res.send(200, result);
+						});
+					}
+				})
 			}
-		})
+		});
+
 	}
 
 	function addGate(req, res, next){

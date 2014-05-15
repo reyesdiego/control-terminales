@@ -14,42 +14,52 @@ module.exports = function (app) {
 	function getAppointments(req, res, next){
 		'use static';
 
-		var fecha;
-		var param = {};
-
-		if (req.query.contenedor)
-			param.contenedor = req.query.contenedor;
-
-		if (req.query.fechaInicio || req.query.fechaFin){
-			param.$or=[];
-			if (req.query.fechaInicio){
-				 fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
-				param.$or.push({inicio:{$lt: fecha}, fin: {$gte:fecha}});
-			}
-			if (req.query.fechaFin){
-				fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
-				param.$or.push({inicio:{$lt: fecha}, fin: {$gte:fecha}});
-			}
-		}
-
-		var appointment = Appointment.find(param).limit(req.params.limit).skip(req.params.skip);
-		appointment.exec( function( err, appointments){
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.error("%s - Error: %s", dateTime.getDatetime(), err.error);
-				res.send(500 , {status: "ERROR", data: err});
+				console.error(usr);
+				res.send(500, {status:'ERROR', data: err});
 			} else {
-				Appointment.count(param, function (err, cnt){
-					var result = {
-						status: 'OK',
-						totalCount: cnt,
-						pageCount: (req.params.limit > cnt)?cnt:req.params.limit,
-						page: req.params.skip,
-						data: appointments
+				var fecha;
+				var param = {};
+
+				if (req.query.contenedor)
+					param.contenedor = req.query.contenedor;
+
+				if (req.query.fechaInicio || req.query.fechaFin){
+					param.$or=[];
+					if (req.query.fechaInicio){
+						fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+						param.$or.push({inicio:{$lt: fecha}, fin: {$gte:fecha}});
 					}
-					res.send(200, result);
+					if (req.query.fechaFin){
+						fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+						param.$or.push({inicio:{$lt: fecha}, fin: {$gte:fecha}});
+					}
+				}
+				param.terminal= usr.terminal;
+
+				var appointment = Appointment.find(param).limit(req.params.limit).skip(req.params.skip);
+				appointment.exec( function( err, appointments){
+					if (err){
+						console.error("%s - Error: %s", dateTime.getDatetime(), err.error);
+						res.send(500 , {status: "ERROR", data: err});
+					} else {
+						Appointment.count(param, function (err, cnt){
+							var result = {
+								status: 'OK',
+								totalCount: cnt,
+								pageCount: (req.params.limit > cnt)?cnt:req.params.limit,
+								page: req.params.skip,
+								data: appointments
+							}
+							res.send(200, result);
+						});
+					}
 				});
 			}
-		})
+
+		});
 	}
 
 	function addAppointment(req, res, next){

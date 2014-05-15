@@ -23,31 +23,26 @@ module.exports = function (app){
 				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
 			} else {
 
-//				MatchPrice.find({$or:[{terminal:usr.terminal}, {terminal: "AGP"}]} )
-//					.sort({terminal:1, code:1})
-//					.exec(function(err, priceList){
-//						if(!err) {
-//							res.send(200, {status:'OK', data:priceList});
-//						} else {
-//							console.error('%s - Error: %s', dateTime.getDatetime(), err);
-//							res.send(500, {status:'ERROR', data: err});
-//						}
-//					});
-				var param = {};
+				var param = {
+					$or : [
+						{terminal:	"AGP"},
+						{terminal:	usr.terminal}
+					]
+				};
 
 				if (req.query.code){
 					param.code = req.query.code;
 				}
 
 				price.find(param)
-//					.populate('matches')
 					.populate({path:'matches', match:{"terminal":req.params.terminal}})
 					.sort({terminal:1,code:1})
 					.exec(function (err, prices) {
 						if(!err) {
 							res.send(200, {status:'OK', data:prices});
 						} else {
-							console.log('ERROR: ' + err);
+							console.error('%s - Error: %s', dateTime.getDatetime(), err);
+							res.send(500, {status:'ERROR', data: err});
 						}
 					});
 
@@ -65,8 +60,34 @@ module.exports = function (app){
 
 		async.forEachSeries( matches, function(match, asyncCallback){
 
-			price.findOne({_id: match._id}, function(err, priceItem){
+			price.findOne({_id: match._idPrice}, function(err, priceItem){
 				if(!err && priceItem) {
+					if (match._id !== undefined && match._id != null){
+						MatchPrice.findOne({_id: match._id}, function(err, matchItem){
+							matchItem.match = match.match;
+							matchItem.save(function (err) {
+								asyncCallback();
+							})
+						});
+					} else {
+						var _matchPrice2Add = {
+							terminal: match.terminal,
+							code: match.code,
+							match: match.match
+						};
+						_matchPrice2Add = new MatchPrice(_matchPrice2Add);
+						_matchPrice2Add.save(function (err, data){
+							if (priceItem.matches == null){
+								priceItem.matches = [];
+							}
+							priceItem.matches.push(data._id);
+							priceItem.save();
+							asyncCallback();
+						});
+
+					}
+
+/*
 					matchPrice.findOne({_id: match._id}, function(err, matchItem){
 						if (matchItem){
 							matchPrice.findOne({_id: match._id, "codes.terminal": match.codes[0].terminal}, function (err, matchTerminal){
@@ -100,6 +121,7 @@ module.exports = function (app){
 							})
 						}
 					});
+					*/
 				}
 			});
 
