@@ -21,6 +21,9 @@ module.exports = function(app) {
 
 	//GET - Return all invoice in the DB
 	function getInvoices (req, res) {
+		var ojt = {status:'OK'};
+		io.sockets.emit('message', ojt);
+
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){

@@ -9,6 +9,8 @@ var express		=	require('express'),
 	path		=	 require('path'),
 	fs			=	require('fs');
 
+var socketio = require('socket.io');
+
 var dateTime = require('./include/moment');
 
 var config = require(__dirname + '/config/config.js');
@@ -53,6 +55,8 @@ app.get('/', function(req, res) {
 			db+='<span style="color:red">Not connected</span></p>';
 
 	res.send("<h1>Servicio Terminales Portuarias.</h1><p>Administración General de Puertos.</p><br/><b>Versión NodeJs: "+process.version+"</b>"+db+"<p>Runtime: "+server.runtime+"</p>");
+
+	io.sockets.emit('message', {message:"ACA ESTOY"})
 });
 
 app.get('/log', function(req, res) {
@@ -100,6 +104,16 @@ server.listen(port, function() {
 	console.log("%s - Node server Version: %s", dateTime.getDatetime(), process.version);
 	console.log("%s - Running on http://localhost:%s", dateTime.getDatetime(), port);
 	console.log("===============================================================================");
+});
+
+io = socketio.listen(server);
+io.set('log level', 1);
+io.on('connection', function (socket){
+	console.log('%s - Sockect client connected.', dateTime.getDatetime());
+	socket.emit('message', { message: 'Te conectaste.. osea que estas pelotudiando !' });
+	socket.on('send', function (data) {
+		io.sockets.emit('message', data);
+	});
 });
 
 //	Database configuration
