@@ -15,14 +15,12 @@ var moment = require('moment');
  *
  * @module Routes
  */
-module.exports = function(app) {
+module.exports = function(app, io) {
 
 	var Invoice = require('../models/invoice.js');
 
 	//GET - Return all invoice in the DB
 	function getInvoices (req, res) {
-		var ojt = {status:'OK'};
-		io.sockets.emit('message', ojt);
 
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
@@ -205,6 +203,8 @@ module.exports = function(app) {
 					invoice2add.save(function (errSave, data, rowsAffected) {
 						if (!errSave) {
 							console.log("%s - Invoice INS:%s - %s", dateTime.getDatetime(), data._id, usr.terminal);
+							var socketMsg = {status:'OK', datetime: dateTime.getDatetime(), terminal: usr.terminal};
+							io.sockets.emit('invoice', socketMsg);
 							res.send(200,{"status": "OK", "data": data});
 						} else {
 							var date = new Date();
@@ -247,28 +247,38 @@ module.exports = function(app) {
 		});
 	}
 
-
 	app.get('/invoices/:skip/:limit', getInvoices);
 	app.get('/invoice/:id', getInvoice);
 	app.get('/invoices', getInvoices);
 	app.post('/invoice', addInvoice);
 	app.delete('/invoices/:_id', removeInvoices);
 
-
 	app.get('/aggregate', function (req,res){
+		var mongoose = require('mongoose');
 
-		var agg = Invoice.aggregate([
-			{   $group: {
-							_id: {terminal:'$terminal'},
-							invoicesCount: {$sum: 1}
-						}
-			}
-		], function (err, data){
-			if (err){
+		var jsonParam = [];
+
+		if (req.query.fecha){
+			var objIdToday = dateTime.getObjectId0000(req.query.fecha);
+			var objIdTomorrow = dateTime.getObjectId0000(moment(req.query.fecha).add('days',1));
+
+			jsonParam.push({$match: {_id: {
+											$gte: mongoose.Types.ObjectId(objIdToday),
+											$lt: mongoose.Types.ObjectId(objIdTomorrow)
+											}
+									}});
+		}
+		jsonParam.push({ $group: {
+									_id: {terminal:'$terminal'},
+									invoicesCount: {$sum: 1}
+						}});
+
+		var agg = Invoice.aggregate(jsonParam, function (err, data){
+			if (!err){
+				res.send({status:"OK", data: data}, {"content-type":"applicacion/json"}, 200);
+			} else {
 				console.error(err);
 				res.send(err, {"content-type":"text/plain"}, 500);
-			} else {
-				res.send({status:"OK", data: data}, {"content-type":"applicacion/json"}, 200);
 			}
 		});
 	});

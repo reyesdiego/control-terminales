@@ -48,6 +48,7 @@ passport.use(Account.createStrategy());
 
 app.get('/', function(req, res) {
 	var db='<p><b>MongoDb: </b>';
+
 	if (mongoose.connections.length>0)
 		if (mongoose.connections[0]._hasOpened)
 			db+='<span style="color:green">Connected</span></p>';
@@ -56,7 +57,7 @@ app.get('/', function(req, res) {
 
 	res.send("<h1>Servicio Terminales Portuarias.</h1><p>Administración General de Puertos.</p><br/><b>Versión NodeJs: "+process.version+"</b>"+db+"<p>Runtime: "+server.runtime+"</p>");
 
-	io.sockets.emit('message', {message:"ACA ESTOY"})
+	io.sockets.emit('invoice', {status:"OK"})
 });
 
 app.get('/log', function(req, res) {
@@ -88,14 +89,6 @@ app.get('/log', function(req, res) {
 	});
 });
 
-//routes = require('./routes/accounts')(app, passport);
-routes = require('./routes/accounts')(app);
-routes = require('./routes/invoice')(app);
-routes = require('./routes/price')(app);
-routes = require('./routes/matchPrice')(app);
-routes = require('./routes/appointment')(app);
-routes = require('./routes/gate')(app);
-
 var processArgs = process.argv.slice(2);
 var port = processArgs[0] || config.server_port;
 server.listen(port, function() {
@@ -110,11 +103,19 @@ io = socketio.listen(server);
 io.set('log level', 1);
 io.on('connection', function (socket){
 	console.log('%s - Sockect client connected.', dateTime.getDatetime());
-	socket.emit('message', { message: 'Te conectaste.. osea que estas pelotudiando !' });
 	socket.on('send', function (data) {
 		io.sockets.emit('message', data);
 	});
 });
+
+//routes = require('./routes/accounts')(app, passport);
+routes = require('./routes/accounts')(app);
+routes = require('./routes/invoice')(app, io);
+routes = require('./routes/price')(app);
+routes = require('./routes/matchPrice')(app);
+routes = require('./routes/appointment')(app, io);
+routes = require('./routes/gate')(app, io);
+
 
 //	Database configuration
 mongoose.connect(config.mongo_url, config.mongo_opts);

@@ -3,7 +3,7 @@
  */
 
 
-module.exports = function (app) {
+module.exports = function (app, io) {
 
 	var dateTime = require('../include/moment');
 	var moment = require('moment');
@@ -77,6 +77,8 @@ module.exports = function (app) {
 					Gate.insert(gate2insert, function (errSave, data) {
 						if (!errSave){
 							console.log('%s - Gate INS: %s - %s', dateTime.getDatetime(), data._id, usr.terminal);
+							var socketMsg = {status:'OK', datetime: dateTime.getDatetime(), terminal: usr.terminal};
+							io.sockets.emit('gate', socketMsg);
 							res.send(200, {status: "OK", data: data});
 						} else {
 							res.send(500, {status:"ERROR", data: errSave});

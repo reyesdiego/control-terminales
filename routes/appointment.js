@@ -3,7 +3,7 @@
  */
 
 
-module.exports = function (app) {
+module.exports = function (app, io) {
 
 	var dateTime = require('../include/moment.js');
 	var moment = require('moment');
@@ -78,6 +78,8 @@ module.exports = function (app) {
 					Appointment.insert(appointment2insert, function (errData, data){
 						if (!errData){
 							console.log('%s - Appointment INS: %s - %s', dateTime.getDatetime(), data._id, usr.terminal);
+							var socketMsg = {status:'OK', datetime: dateTime.getDatetime(), terminal: usr.terminal};
+							io.sockets.emit('appointment', socketMsg);
 							res.send(200, {status: 'OK', data: data});
 						} else {
 							res.send(500, {status:'ERROR', data: errData.toString()});
