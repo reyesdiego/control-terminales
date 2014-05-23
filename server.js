@@ -99,10 +99,10 @@ server.listen(port, function() {
 	console.log("===============================================================================");
 });
 
-io = socketio.listen(server);
+var io = socketio.listen(server);
 io.set('log level', 1);
 io.on('connection', function (socket){
-	console.log('%s - Sockect client connected.', dateTime.getDatetime());
+	console.log('%s - Socket Client Connected.', dateTime.getDatetime());
 	socket.on('send', function (data) {
 		io.sockets.emit('message', data);
 	});
