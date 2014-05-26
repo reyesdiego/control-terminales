@@ -62,7 +62,7 @@ app.get('/', function(req, res) {
 
 app.get('/log', function(req, res) {
 
-	var filename = 'nohup.out';
+	var filename = 'log/nohup.out';
 	res.writeHead(200, {'Content-Type': 'text/html'});
 	res.write('<html><body>');
 	res.write('<p><a href="#bottom">Ir a fin de pagina</a></p>');
@@ -74,7 +74,12 @@ app.get('/log', function(req, res) {
 			new lazy(fs.createReadStream(filename))
 				.lines
 				.forEach(function(line){
-					res.write(line.toString()+"<br/>");
+					var n = line.indexOf("error");
+					if (n > 0)
+						res.write("<div style='color:red'>"+ line.toString()+"</div><br/>");
+					else
+						res.write(line.toString()+"<br/>");
+
 				}
 			).on('pipe', function(){
 					res.write('<p><a name="bottom">Fin normal del log</a></p>');
