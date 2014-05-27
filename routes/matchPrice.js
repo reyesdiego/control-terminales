@@ -73,7 +73,8 @@ module.exports = function (app){
 						var _matchPrice2Add = {
 							terminal: match.terminal,
 							code: match.code,
-							match: match.match
+							match: match.match,
+							price: match._idPrice
 						};
 						_matchPrice2Add = new MatchPrice(_matchPrice2Add);
 						_matchPrice2Add.save(function (err, data){

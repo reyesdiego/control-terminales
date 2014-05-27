@@ -53,22 +53,28 @@ module.exports = function (app){
 				console.log(err, new Date().toString());
 				res.send(401, "Invalid or missing Token.");
 			} else {
-				var _price = new price({
-					_id:		req.body._id.toUpperCase(),
-					terminal:	req.body.terminal,
-		//			code:		req.body.code.toUpperCase(),
-					description:req.body.description,
-					unit:		req.body.unit,
-					currency:	req.body.currency,
-					topPrice:	req.body.topPrice,
-					match:		null
-				});
-				_price.save(function (err){
+				var _price;
+				try {
+					_price = new price({
+						terminal:	req.body.terminal,
+						code:		req.body.code.toUpperCase(),
+						description:req.body.description,
+						unit:		req.body.unit,
+						currency:	req.body.currency,
+						topPrice:	req.body.topPrice,
+						matches:	null
+					});
+				} catch (error){
+					res.send(500, {"status":"ERROR", "data": error.message});
+					return;
+				}
+				_price.save(function (errSave, data){
 					if(!err) {
-						console.log('Created');
-						res.send(_price);
+						console.log("%s - Price INS:%s - %s", dateTime.getDatetime(), data._id, usr.terminal);
+						res.send(200,{"status": "OK", "data": _price});
 					} else {
-						console.log('ERROR: ' + err);
+						console.error('%s - Error: %s', dateTime.getDatetime(), errSave);
+						res.send(500, {"status":"ERROR", "data": errSave});
 					}
 				});
 			}
