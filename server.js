@@ -65,7 +65,7 @@ app.get('/log', function(req, res) {
 	var filename = 'log/nohup.out';
 	res.writeHead(200, {'Content-Type': 'text/html'});
 	res.write('<html><body>');
-	res.write('<p><a href="#bottom">Ir a fin de pagina</a></p>');
+	res.write('<br/><center><p><a name="top" style="font-size: 22px" href="#bottom">Ir a fin de pagina</a></p></center>');
 
 	path.exists(filename, function(exists){
 		if (exists) {
@@ -74,15 +74,15 @@ app.get('/log', function(req, res) {
 			new lazy(fs.createReadStream(filename))
 				.lines
 				.forEach(function(line){
-					var n = line.indexOf("error");
+					var n = line.toString().toUpperCase().indexOf("ERROR");
 					if (n > 0)
-						res.write("<div style='color:red'>"+ line.toString()+"</div><br/>");
+						res.write("<div style='color:red'>"+ line.toString()+"</div>");
 					else
 						res.write(line.toString()+"<br/>");
 
 				}
 			).on('pipe', function(){
-					res.write('<p><a name="bottom">Fin normal del log</a></p>');
+					res.write('<center><p><a name="bottom" style="font-size: 22px" href="#top">Ir a inicio de pagina</a></p></center>');
 					res.write('</body></html>');
 					res.end();
 			});

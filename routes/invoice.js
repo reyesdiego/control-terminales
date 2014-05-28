@@ -18,6 +18,7 @@ var moment = require('moment');
 module.exports = function(app, io) {
 
 	var Invoice = require('../models/invoice.js');
+	var Price = require('../models/price.js');
 
 	//GET - Return all invoice in the DB
 	function getInvoices (req, res) {
@@ -247,13 +248,7 @@ module.exports = function(app, io) {
 		});
 	}
 
-	app.get('/invoices/:skip/:limit', getInvoices);
-	app.get('/invoice/:id', getInvoice);
-	app.get('/invoices', getInvoices);
-	app.post('/invoice', addInvoice);
-	app.delete('/invoices/:_id', removeInvoices);
-
-	app.get('/aggregate', function (req,res){
+	function getCounts (req, res){
 		var mongoose = require('mongoose');
 
 		var jsonParam = [];
@@ -263,17 +258,17 @@ module.exports = function(app, io) {
 			var objIdTomorrow = dateTime.getObjectId0000(moment(req.query.fecha).add('days',1));
 
 			jsonParam.push({$match: {_id: {
-											$gte: mongoose.Types.ObjectId(objIdToday),
-											$lt: mongoose.Types.ObjectId(objIdTomorrow)
-											}
-									}});
+				$gte: mongoose.Types.ObjectId(objIdToday),
+				$lt: mongoose.Types.ObjectId(objIdTomorrow)
+			}
+			}});
 		}
 		jsonParam.push({ $group: {
-									_id: {terminal:'$terminal'},
-									invoicesCount: {$sum: 1}
-						}});
+			_id: {terminal:'$terminal'},
+			invoicesCount: {$sum: 1}
+		}});
 
-		var agg = Invoice.aggregate(jsonParam, function (err, data){
+		Invoice.aggregate(jsonParam, function (err, data){
 			if (!err){
 				res.send({status:"OK", data: data}, {"content-type":"applicacion/json"}, 200);
 			} else {
@@ -281,6 +276,49 @@ module.exports = function(app, io) {
 				res.send(err, {"content-type":"text/plain"}, 500);
 			}
 		});
-	});
+	}
+
+	function getNoRates (req, res){
+		var terminal = req.params.terminal;
+		console.log(terminal);
+
+		var rates = Price.find({rate:{$exists:1}});
+		rates.populate({path:'matches', match:{"terminal":terminal}});
+		rates.exec(function(err, rates){
+			var result=[];
+			rates.forEach(function(item){
+				if (item.matches !== undefined && item.matches != null && item.matches.length>0){
+					if (item.matches[0].match != null && item.matches[0].match.length>0){
+						item.matches[0].match.forEach(function(_rate){
+							result.push(_rate);
+						});
+					}
+				}
+			});
+			if (result.length>0){
+				var param = {
+					terminal : terminal,
+					'detalle.items.id': {$nin: result}
+				}
+				var invoices = Invoice.find(param);
+				invoices.limit(req.params.limit).skip(req.params.skip);
+				invoices.sort({nroComprob:1});
+				invoices.exec(function(err, invoices){
+						res.send(200, invoices);
+				});
+			}
+
+		});
+
+
+	}
+
+	app.get('/invoices/:skip/:limit', getInvoices);
+	app.get('/invoice/:id', getInvoice);
+	app.get('/invoices', getInvoices);
+	app.get('/counts', getCounts);
+	app.get('/noRates/:terminal/:skip/:limit', getNoRates)
+	app.post('/invoice', addInvoice);
+	app.delete('/invoices/:_id', removeInvoices);
 
 }
