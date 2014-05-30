@@ -165,50 +165,41 @@ module.exports = function(app, io) {
 						};
 
 						if (usr.terminal === 'BACTSSA'){
-							if (postData.codTipoComprob.toString().trim() === 'A'){
-								invoice.codTipoComprob = 1;
-							}
-							else if (postData.codTipoComprob.toString().trim() === 'B'){
-								invoice.codTipoComprob=	6;
-							}
-							else {
-									res.send(500, {"status":"ERROR", "data": "El código de comprobante es inválido."});
-									return;
-								}
+							invoice.codTipoComprob = postData.codTipoDoc;
 						} else {
-							invoice.codTipoComprob=	parseInt(postData.codTipoComprob.toString().trim(), 10);
+							invoice.codTipoComprob = parseInt(postData.codTipoComprob.toString().trim(), 10);
 						}
 
-							postData.detalle.forEach(function (container){
-							var buque = {
-								codigo: container.buqueId,
-								nombre: container.buqueDesc,
-								viaje: container.viaje
-							};
-							var cont = {
-								contenedor:		container.contenedor,
-								IMO:			container.IMO,
-								buque:			buque,
-								items: []
-							};
-							if (container.items){
-								container.items.forEach( function (item){
-									cont.items.push(
-										{
-											id:			item.id,
-											cnt:		item.cnt,
-											uniMed:		item.uniMed,
-											impUnit:	item.impUnit,
-											impIva:		item.impIva,
-											impTot:		item.impTot
-										});
-								});
-							} else {
-								res.send(500, {"status":"ERROR", "data": "El contenedor no posee items."});
-								return;
-							}
-							invoice.detalle.push(cont);
-						});
+						postData.detalle.forEach(function (container){
+						var buque = {
+							codigo: container.buqueId,
+							nombre: container.buqueDesc,
+							viaje: container.viaje
+						};
+						var cont = {
+							contenedor:		container.contenedor,
+							IMO:			container.IMO,
+							buque:			buque,
+							items: []
+						};
+						if (container.items){
+							container.items.forEach( function (item){
+								cont.items.push(
+									{
+										id:			item.id,
+										cnt:		item.cnt,
+										uniMed:		item.uniMed,
+										impUnit:	item.impUnit,
+										impIva:		item.impIva,
+										impTot:		item.impTot
+									});
+							});
+						} else {
+							res.send(500, {"status":"ERROR", "data": "El contenedor no posee items."});
+							return;
+						}
+						invoice.detalle.push(cont);
+					});
 
 					} catch (error){
 						res.send(500, {"status":"ERROR", "data": error.message});
