@@ -265,7 +265,7 @@ module.exports = function(app, io) {
 		}
 		jsonParam.push({ $group: {
 			_id: {terminal:'$terminal'},
-			invoicesCount: {$sum: 1}
+			cnt: {$sum: 1}
 		}});
 
 		Invoice.aggregate(jsonParam, function (err, data){
@@ -280,7 +280,6 @@ module.exports = function(app, io) {
 
 	function getNoRates (req, res){
 		var terminal = req.params.terminal;
-		console.log(terminal);
 
 		var rates = Price.find({rate:{$exists:1}});
 		rates.populate({path:'matches', match:{"terminal":terminal}});
@@ -304,10 +303,44 @@ module.exports = function(app, io) {
 				invoices.limit(req.params.limit).skip(req.params.skip);
 				invoices.sort({nroComprob:1});
 				invoices.exec(function(err, invoices){
-						res.send(200, invoices);
+					Invoice.count(param, function (err, cnt){
+						var result = {
+							status: 'OK',
+							totalCount: cnt,
+							pageCount: (req.params.limit > cnt)?cnt:req.params.limit,
+							page: req.params.skip,
+							data: invoices
+						}
+						res.send(200, result);
+					});
 				});
 			}
+		});
+	}
 
+	function getCountByDate (req, res) {
+		var moment = require('moment');
+
+		var date5Ago = moment(moment().format('YYYY-MM-DD')).add('days',-5).toDate();
+
+		var jsonParam = [
+			{$match: { 'fecha.emision': {$gt: date5Ago} }},
+			{ $project: {'accessDate':'$fecha.emision', terminal: '$terminal'} },
+			{ $group : {
+				_id : { terminal: '$terminal',
+					year: { $year : "$accessDate" },
+					month: { $month : "$accessDate" },
+					day: { $dayOfMonth : "$accessDate" },
+					date: '$accessDate'
+				},
+				cnt : { $sum : 1 }
+			}
+			},
+			{ $sort: {'_id.date': -1, '_id.terminal': 1 }}
+		];
+
+		Invoice.aggregate(jsonParam, function (err, data){
+			res.send(200, data);
 		});
 
 
@@ -317,7 +350,8 @@ module.exports = function(app, io) {
 	app.get('/invoice/:id', getInvoice);
 	app.get('/invoices', getInvoices);
 	app.get('/counts', getCounts);
-	app.get('/noRates/:terminal/:skip/:limit', getNoRates)
+	app.get('/noRates/:terminal/:skip/:limit', getNoRates);
+	app.get('/countsByDate', getCountByDate);
 	app.post('/invoice', addInvoice);
 	app.delete('/invoices/:_id', removeInvoices);
 
