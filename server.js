@@ -114,12 +114,13 @@ io.on('connection', function (socket){
 });
 
 //routes = require('./routes/accounts')(app, passport);
-routes = require('./routes/accounts')(app);
-routes = require('./routes/invoice')(app, io);
-routes = require('./routes/price')(app);
-routes = require('./routes/matchPrice')(app);
-routes = require('./routes/appointment')(app, io);
-routes = require('./routes/gate')(app, io);
+require('./routes/accounts')(app);
+require('./routes/invoice')(app, io);
+require('./routes/price')(app);
+require('./routes/matchPrice')(app);
+require('./routes/appointment')(app, io);
+require('./routes/gate')(app, io);
+require('./routes/voucherType')(app);
 
 
 //	Database configuration

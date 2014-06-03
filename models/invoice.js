@@ -7,7 +7,7 @@ var mongoose = require('mongoose'),
 var invoiceSchema = new Schema(
 	{
 	terminal:				{ type: String, required: true },
-	codTipoComprob:			{ type: String },
+	codTipoComprob:			{ type: Number },
 	nroPtoVenta:			{ type: Number },
 	nroComprob:				{ type: Number, required: true },
 	fechaEmision:			{ type: Date },

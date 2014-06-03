@@ -130,7 +130,7 @@ module.exports = function(app, io) {
 					try {
 						var invoice = {
 						terminal:		usr.terminal,
-						codTipoComprob:	postData.codTipoComprob.toString().trim(),
+
 						nroPtoVenta:	postData.nroPtoVenta,
 						nroComprob:		postData.nroComprob,
 						codTipoAutoriz:	postData.codTipoAutoriz,
@@ -164,7 +164,22 @@ module.exports = function(app, io) {
 						otrosTributos:	[]
 						};
 
-						postData.detalle.forEach(function (container){
+						if (usr.terminal === 'BACTSSA'){
+							if (postData.codTipoComprob.toString().trim() === 'A'){
+								invoice.codTipoComprob = 1;
+							}
+							else if (postData.codTipoComprob.toString().trim() === 'B'){
+								invoice.codTipoComprob=	6;
+							}
+							else {
+									res.send(500, {"status":"ERROR", "data": "El código de comprobante es inválido."});
+									return;
+								}
+						} else {
+							invoice.codTipoComprob=	parseInt(postData.codTipoComprob.toString().trim(), 10);
+						}
+
+							postData.detalle.forEach(function (container){
 							var buque = {
 								codigo: container.buqueId,
 								nombre: container.buqueDesc,
@@ -203,7 +218,7 @@ module.exports = function(app, io) {
 					var invoice2add = new Invoice(invoice);
 					invoice2add.save(function (errSave, data, rowsAffected) {
 						if (!errSave) {
-							console.log("%s - Invoice INS:%s - %s", dateTime.getDatetime(), data._id, usr.terminal);
+							console.log("%s - Invoice INS:%s - %s - Tipo: %s", dateTime.getDatetime(), data._id, usr.terminal, postData.codTipoComprob);
 							var socketMsg = {status:'OK', datetime: dateTime.getDatetime(), terminal: usr.terminal};
 							io.sockets.emit('invoice', socketMsg);
 							res.send(200,{"status": "OK", "data": data});
@@ -278,6 +293,34 @@ module.exports = function(app, io) {
 		});
 	}
 
+	function getCountByDate (req, res) {
+		var moment = require('moment');
+
+		var date5Ago = moment(moment().format('YYYY-MM-DD')).add('days',-5).toDate();
+
+		var jsonParam = [
+			{$match: { 'fecha.emision': {$gt: date5Ago} }},
+			{ $project: {'accessDate':'$fecha.emision', terminal: '$terminal'} },
+			{ $group : {
+				_id : { terminal: '$terminal',
+					year: { $year : "$accessDate" },
+					month: { $month : "$accessDate" },
+					day: { $dayOfMonth : "$accessDate" },
+					date: '$accessDate'
+				},
+				cnt : { $sum : 1 }
+			}
+			},
+			{ $sort: {'_id.date': -1, '_id.terminal': 1 }}
+		];
+
+		Invoice.aggregate(jsonParam, function (err, data){
+			res.send(200, data);
+		});
+
+
+	}
+
 	function getNoRates (req, res){
 		var terminal = req.params.terminal;
 
@@ -318,40 +361,12 @@ module.exports = function(app, io) {
 		});
 	}
 
-	function getCountByDate (req, res) {
-		var moment = require('moment');
-
-		var date5Ago = moment(moment().format('YYYY-MM-DD')).add('days',-5).toDate();
-
-		var jsonParam = [
-			{$match: { 'fecha.emision': {$gt: date5Ago} }},
-			{ $project: {'accessDate':'$fecha.emision', terminal: '$terminal'} },
-			{ $group : {
-				_id : { terminal: '$terminal',
-					year: { $year : "$accessDate" },
-					month: { $month : "$accessDate" },
-					day: { $dayOfMonth : "$accessDate" },
-					date: '$accessDate'
-				},
-				cnt : { $sum : 1 }
-			}
-			},
-			{ $sort: {'_id.date': -1, '_id.terminal': 1 }}
-		];
-
-		Invoice.aggregate(jsonParam, function (err, data){
-			res.send(200, data);
-		});
-
-
-	}
-
 	app.get('/invoices/:skip/:limit', getInvoices);
 	app.get('/invoice/:id', getInvoice);
 	app.get('/invoices', getInvoices);
 	app.get('/counts', getCounts);
-	app.get('/noRates/:terminal/:skip/:limit', getNoRates);
 	app.get('/countsByDate', getCountByDate);
+	app.get('/noRates/:terminal/:skip/:limit', getNoRates);
 	app.post('/invoice', addInvoice);
 	app.delete('/invoices/:_id', removeInvoices);
 
