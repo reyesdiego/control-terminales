@@ -297,6 +297,10 @@ module.exports = function(app, io) {
 		var moment = require('moment');
 
 		var date5Ago = moment(moment().format('YYYY-MM-DD')).add('days',-5).toDate();
+		if (req.query.fecha !== undefined){
+			date5Ago = moment(req.query.fecha).add('days',-5).toDate();
+		}
+
 
 		var jsonParam = [
 			{$match: { 'fecha.emision': {$gt: date5Ago} }},
