@@ -292,7 +292,6 @@ module.exports = function(app, io) {
 			date5Ago = moment(req.query.fecha).add('days',-5).toDate();
 		}
 
-
 		var jsonParam = [
 			{$match: { 'fecha.emision': {$gt: date5Ago} }},
 			{ $project: {'accessDate':'$fecha.emision', terminal: '$terminal'} },
@@ -306,13 +305,43 @@ module.exports = function(app, io) {
 				cnt : { $sum : 1 }
 			}
 			},
-			{ $sort: {'_id.date': -1, '_id.terminal': 1 }}
+			{ $sort: {'_id.date': 1, '_id.terminal': 1 }}
 		];
 
 		Invoice.aggregate(jsonParam, function (err, data){
 			res.send(200, data);
 		});
 
+
+	}
+
+	function getCountByMonth (req, res) {
+		var moment = require('moment');
+		//TODO armar que la fecha sea del primer dia del mes para origen por las dudas
+		var month5Ago = moment(moment().format('YYYY-MM-DD')).add('months',-5).toDate();
+		var nextMonth = moment(moment().format('YYYY-MM-DD')).add('months',1).toDate();
+		if (req.query.fecha !== undefined){
+			month5Ago = moment(req.query.fecha).add('months',-5).toDate();
+			nextMonth = moment(req.query.fecha).add('months',1).toDate();
+		}
+
+		var jsonParam = [
+			{$match: { 'fecha.emision': {$gt: month5Ago, $lt: nextMonth} }},
+			{ $project: {'accessDate':'$fecha.emision', terminal: '$terminal'} },
+			{ $group : {
+				_id : { terminal: '$terminal',
+					year: { $year : "$accessDate" },
+					month: { $month : "$accessDate" }
+				},
+				cnt : { $sum : 1 }
+			}
+			},
+			{ $sort: {'_id.month': 1, '_id.terminal': 1 }}
+		];
+
+		Invoice.aggregate(jsonParam, function (err, data){
+			res.send(200, data);
+		});
 
 	}
 
@@ -356,12 +385,50 @@ module.exports = function(app, io) {
 		});
 	}
 
+	function getRatesValues (req, res) {
+
+		var moment = require('moment');
+
+		var today = moment(moment().format('YYYY-MM-DD')).toDate();
+		var tomorrow = moment(moment().format('YYYY-MM-DD')).add('days',1).toDate();
+		if (req.query.fecha !== undefined){
+			today = moment(moment(req.query.fecha).format('YYYY-MM-DD')).toDate();
+			tomorrow = moment(moment(req.query.fecha).format('YYYY-MM-DD')).add('days',1).toDate();
+		}
+
+		var jsonParam = [
+			{	$unwind : '$detalle'	},
+			{	$unwind : '$detalle.items'	},
+			{	$match : {
+							'detalle.items.id' : {$in: ['TASAI', 'TASAE', '4', 'NAGPI', 'NAGPE']},
+							'fecha.emision': {$gt: today, $lt: tomorrow} }
+			},
+			{
+				$project : {_id: 0, terminal:1, 'detalle.items':1}
+			},
+			{
+				$group  : {
+					_id: { terminal: '$terminal'},
+					cnt: { $sum: 1},
+					total: { $sum : '$detalle.items.impTot'}
+				}
+			}
+		];
+
+		Invoice.aggregate(jsonParam, function (err, data){
+			res.send(200, data);
+		});
+
+	}
+
 	app.get('/invoices/:skip/:limit', getInvoices);
 	app.get('/invoice/:id', getInvoice);
 	app.get('/invoices', getInvoices);
-	app.get('/counts', getCounts);
-	app.get('/countsByDate', getCountByDate);
-	app.get('/noRates/:terminal/:skip/:limit', getNoRates);
+	app.get('/invoices/counts', getCounts);
+	app.get('/invoices/countsByDate', getCountByDate);
+	app.get('/invoices/countsByMonth', getCountByMonth);
+	app.get('/invoices/noRates/:terminal/:skip/:limit', getNoRates);
+	app.get('/invoices/ratesTotal', getRatesValues);
 	app.post('/invoice', addInvoice);
 	app.delete('/invoices/:_id', removeInvoices);
 
