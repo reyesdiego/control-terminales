@@ -287,13 +287,15 @@ module.exports = function(app, io) {
 	function getCountByDate (req, res) {
 		var moment = require('moment');
 
-		var date5Ago = moment(moment().format('YYYY-MM-DD')).add('days',-5).toDate();
+		var date = moment(moment().format('YYYY-MM-DD'));
 		if (req.query.fecha !== undefined){
-			date5Ago = moment(req.query.fecha).add('days',-5).toDate();
+			date = moment(moment(req.query.fecha).format('YYYY-MM-DD'));
 		}
+		var date5Ago = moment(date).subtract('days', 5).toDate();
+		var tomorrow = moment(date).add('days', 1).toDate();
 
 		var jsonParam = [
-			{$match: { 'fecha.emision': {$gt: date5Ago} }},
+			{$match: { 'fecha.emision': {$gt: date5Ago, $lt: tomorrow} }},
 			{ $project: {'accessDate':'$fecha.emision', terminal: '$terminal'} },
 			{ $group : {
 				_id : { terminal: '$terminal',
@@ -316,31 +318,33 @@ module.exports = function(app, io) {
 	}
 
 	function getCountByMonth (req, res) {
-		var moment = require('moment');
-		//TODO armar que la fecha sea del primer dia del mes para origen por las dudas
-		var month5Ago = moment(moment().format('YYYY-MM-DD')).add('months',-5).toDate();
-		var nextMonth = moment(moment().format('YYYY-MM-DD')).add('months',1).toDate();
+		var date = moment(moment().format('YYYY-MM-DD')).subtract('days', moment().date()-1);
 		if (req.query.fecha !== undefined){
-			month5Ago = moment(req.query.fecha).add('months',-5).toDate();
-			nextMonth = moment(req.query.fecha).add('months',1).toDate();
+			date = moment(req.query.fecha, 'YYYY-MM-DD').subtract('days', moment(req.query.fecha).date()-1);
 		}
+		var month5Ago = moment(date).subtract('months',5).toDate();
+		var nextMonth = moment(date).add('months',1).toDate();
 
 		var jsonParam = [
 			{$match: { 'fecha.emision': {$gt: month5Ago, $lt: nextMonth} }},
 			{ $project: {'accessDate':'$fecha.emision', terminal: '$terminal'} },
 			{ $group : {
-				_id : { terminal: '$terminal',
-					year: { $year : "$accessDate" },
-					month: { $month : "$accessDate" }
-				},
-				cnt : { $sum : 1 }
-			}
+							_id : { terminal: '$terminal',
+								year: { $year : "$accessDate" },
+								month: { $month : "$accessDate" }
+							},
+							cnt : { $sum : 1 }
+						}
 			},
 			{ $sort: {'_id.month': 1, '_id.terminal': 1 }}
 		];
 
 		Invoice.aggregate(jsonParam, function (err, data){
-			res.send(200, data);
+			if (err){
+				res.send(500, err);
+			} else {
+				res.send(200, data);
+			}
 		});
 
 	}
