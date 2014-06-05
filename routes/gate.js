@@ -73,6 +73,7 @@ module.exports = function (app, io) {
 			} else {
 				var gate2insert = req.body;
 				gate2insert.terminal = usr.terminal;
+				console.log(gate2insert);
 				if (gate2insert) {
 					Gate.insert(gate2insert, function (errSave, data) {
 						if (!errSave){
