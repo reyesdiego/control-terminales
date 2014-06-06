@@ -2,7 +2,11 @@ var mongoose = require('mongoose'),
 	Schema = mongoose.Schema,
 	ObjectId = Schema.ObjectId;
 
-mongoose.connect('mongodb://localhost/test');
+mongoose.connect('mongodb://localhost/terapi', {
+	user: 'admin',
+	pass: 'desarrollo',
+	auth:{authdb:"admin"}
+});
 
 var UserSchema = new Schema({
 	name: String
@@ -40,7 +44,19 @@ var Tag = mongoose.model('Tag', TagSchema),
 //});
 
 
-Movie.find({"title" : "Dracula"}).populate('tags').exec(function(err, movie) {
-	console.log(movie[0]);
+//Movie.find({"title" : "Dracula"}).populate('tags').exec(function(err, movie) {
+//	console.log(movie);
+//});
+
+var Price = require('./models/price.js');
+
+var param = {terminal:'AGP',
+	rate:{'$exists' : 1},
+	'matches': {'$exists' : 1}
+};
+
+Price.find(param, function (err, prices){
+	console.log(prices);
 });
+
 

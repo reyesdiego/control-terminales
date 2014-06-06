@@ -290,11 +290,11 @@ module.exports = function(app, io) {
 		if (req.query.fecha !== undefined){
 			date = moment(moment(req.query.fecha).format('YYYY-MM-DD'));
 		}
-		var date5Ago = moment(date).subtract('days', 5).toDate();
+		var date5Ago = moment(date).subtract('days', 4).toDate();
 		var tomorrow = moment(date).add('days', 1).toDate();
 
 		var jsonParam = [
-			{$match: { 'fecha.emision': {$gt: date5Ago, $lt: tomorrow} }},
+			{$match: { 'fecha.emision': {$gte: date5Ago, $lt: tomorrow} }},
 			{ $project: {'accessDate':'$fecha.emision', terminal: '$terminal'} },
 			{ $group : {
 				_id : { terminal: '$terminal',
@@ -321,11 +321,11 @@ module.exports = function(app, io) {
 		if (req.query.fecha !== undefined){
 			date = moment(req.query.fecha, 'YYYY-MM-DD').subtract('days', moment(req.query.fecha).date()-1);
 		}
-		var month5Ago = moment(date).subtract('months',5).toDate();
+		var month5Ago = moment(date).subtract('months',4).toDate();
 		var nextMonth = moment(date).add('months',1).toDate();
 
 		var jsonParam = [
-			{$match: { 'fecha.emision': {$gt: month5Ago, $lt: nextMonth} }},
+			{$match: { 'fecha.emision': {$gte: month5Ago, $lt: nextMonth} }},
 			{ $project: {'accessDate':'$fecha.emision', terminal: '$terminal'} },
 			{ $group : {
 							_id : { terminal: '$terminal',
@@ -404,7 +404,7 @@ module.exports = function(app, io) {
 			{	$unwind : '$detalle.items'	},
 			{	$match : {
 							'detalle.items.id' : {$in: ['TASAI', 'TASAE', '4', 'NAGPI', 'NAGPE']},
-							'fecha.emision': {$gt: today, $lt: tomorrow} }
+							'fecha.emision': {$gte: today, $lt: tomorrow} }
 			},
 			{
 				$project : {_id: 0, terminal:1, 'detalle.items':1}

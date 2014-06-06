@@ -85,7 +85,7 @@ module.exports = function (app, io) {
 				param.terminal= usr.terminal;
 
 				var jsonParam = [
-					{$match: { 'inicio': {$gt: date, $lt: tomorrow} }},
+					{$match: { 'inicio': {$gte: date, $lt: tomorrow} }},
 					{ $project: {'accessDate':'$inicio', terminal: '$terminal'} },
 					{ $group : {
 						_id : { terminal: '$terminal',
@@ -117,7 +117,7 @@ module.exports = function (app, io) {
 		if (req.query.fecha !== undefined){
 			date = moment(req.query.fecha, 'YYYY-MM-DD').subtract('days', moment(req.query.fecha).date()-1);
 		}
-		var month5Ago = moment(date).subtract('months',5).toDate();
+		var month5Ago = moment(date).subtract('months',4).toDate();
 		var nextMonth = moment(date).add('months',1).toDate();
 
 		var incomingToken = req.headers.token;
@@ -130,7 +130,7 @@ module.exports = function (app, io) {
 //				param.terminal= usr.terminal;
 
 				var jsonParam = [
-					{$match: { 'inicio': {$gt: month5Ago, $lt: nextMonth} }},
+					{$match: { 'inicio': {$gte: month5Ago, $lt: nextMonth} }},
 					{ $project: {'accessDate':'$inicio', terminal: '$terminal'} },
 					{ $group : {
 						_id : { terminal: '$terminal',
