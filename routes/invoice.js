@@ -82,7 +82,7 @@ module.exports = function(app, io) {
 				});
 			}
 		});
-	};
+	}
 
 	function getInvoice(req, res){
 		var incomingToken = req.headers.token;
@@ -135,7 +135,6 @@ module.exports = function(app, io) {
 						nroComprob:		postData.nroComprob,
 						codTipoAutoriz:	postData.codTipoAutoriz,
 						codAutoriz:		postData.codAutoriz,
-						fechaVto:		postData.fechaVto,
 						codTipoDoc:		postData.codTipoDoc,
 						nroDoc:			postData.nroDoc,
 						clienteId:		postData.clientId,
@@ -154,11 +153,11 @@ module.exports = function(app, io) {
 						observa:	 	postData.observa,
 						codConcepto:	postData.codConcepto,
 						fecha:			{
-											emision:	postData.fechaEmision,
-											vcto:		postData.fechaVcto,
-											desde:		postData.fechaServDesde,
-											hasta:		postData.fechaServHasta,
-											vctoPago:	postData.fechaVctoPago
+											emision:	moment(postData.fechaEmision),
+											vcto:		moment(postData.fechaVcto),
+											desde:		moment(postData.fechaServDesde),
+											hasta:		moment(postData.fechaServHasta),
+											vctoPago:	moment(postData.fechaVctoPago)
 										},
 						detalle:		[],
 						otrosTributos:	[]
@@ -209,7 +208,7 @@ module.exports = function(app, io) {
 					var invoice2add = new Invoice(invoice);
 					invoice2add.save(function (errSave, data, rowsAffected) {
 						if (!errSave) {
-							console.log("%s - Invoice INS:%s - %s - Tipo: %s", dateTime.getDatetime(), data._id, usr.terminal, postData.codTipoComprob);
+							console.log("%s - Invoice INS:%s - %s - Tipo: %s - %s", dateTime.getDatetime(), data._id, usr.terminal, postData.codTipoComprob, postData.fechaEmision);
 							var socketMsg = {status:'OK', datetime: dateTime.getDatetime(), terminal: usr.terminal};
 							io.sockets.emit('invoice', socketMsg);
 							res.send(200,{"status": "OK", "data": data});
@@ -232,7 +231,7 @@ module.exports = function(app, io) {
 				}
 			});
 		});
-	};
+	}
 
 	function removeInvoices ( req, res){
 		var incomingToken = req.headers.token;
@@ -389,7 +388,7 @@ module.exports = function(app, io) {
 		});
 	}
 
-	function getRatesValues (req, res) {
+	function getRatesTotal (req, res) {
 
 		var moment = require('moment');
 
@@ -432,8 +431,8 @@ module.exports = function(app, io) {
 	app.get('/invoices/countsByDate', getCountByDate);
 	app.get('/invoices/countsByMonth', getCountByMonth);
 	app.get('/invoices/noRates/:terminal/:skip/:limit', getNoRates);
-	app.get('/invoices/ratesTotal', getRatesValues);
+	app.get('/invoices/ratesTotal', getRatesTotal);
 	app.post('/invoice', addInvoice);
 	app.delete('/invoices/:_id', removeInvoices);
 
-}
+};
