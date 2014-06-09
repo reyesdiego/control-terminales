@@ -2,7 +2,7 @@ var mongoose = require('mongoose'),
 	Schema = mongoose.Schema,
 	ObjectId = Schema.ObjectId;
 
-mongoose.connect('mongodb://localhost/terapi', {
+mongoose.connect('mongodb://localhost/test', {
 	user: 'admin',
 	pass: 'desarrollo',
 	auth:{authdb:"admin"}
@@ -43,20 +43,24 @@ var Tag = mongoose.model('Tag', TagSchema),
 //	});
 //});
 
+var param = {"title" : "Superman"};
 
-//Movie.find({"title" : "Dracula"}).populate('tags').exec(function(err, movie) {
-//	console.log(movie);
-//});
-
-var Price = require('./models/price.js');
-
-var param = {terminal:'AGP',
-	rate:{'$exists' : 1},
-	'matches': {'$exists' : 1}
-};
-
-Price.find(param, function (err, prices){
-	console.log(prices);
+var puto = Movie.find(param);
+puto.exists('tags', true);
+puto.populate('tags').exec(function(err, movie) {
+	console.log(movie);
 });
+
+//var xPrice = require('./models/price_copy.js');
+//
+//var param = {terminal:'AGP',
+//	//socios: {'$exists' : 1}//,
+//	rate:{'$exists' : 1}
+//};
+//
+//
+//xPrice.find(param, function (err, pricesx){
+//	console.log(pricesx);
+//});
 
 
