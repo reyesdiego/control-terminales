@@ -132,6 +132,7 @@ module.exports = function(app, io) {
 						terminal:		usr.terminal,
 
 						nroPtoVenta:	postData.nroPtoVenta,
+						codTipoComprob: parseInt(postData.codTipoComprob.toString().trim(), 10),
 						nroComprob:		postData.nroComprob,
 						codTipoAutoriz:	postData.codTipoAutoriz,
 						codAutoriz:		postData.codAutoriz,
@@ -162,12 +163,6 @@ module.exports = function(app, io) {
 						detalle:		[],
 						otrosTributos:	[]
 						};
-
-						if (usr.terminal === 'BACTSSA'){
-							invoice.codTipoComprob = postData.codTipoDoc;
-						} else {
-							invoice.codTipoComprob = parseInt(postData.codTipoComprob.toString().trim(), 10);
-						}
 
 						postData.detalle.forEach(function (container){
 						var buque = {
@@ -358,7 +353,6 @@ module.exports = function(app, io) {
 		rates.exec(function(err, rates){
 			var result=[];
 			rates.forEach(function(item){
-//				if (item.matches !== undefined && item.matches != null && item.matches.length>0){
 				if (item.matches.length>0){
 					if (item.matches[0].match != null && item.matches[0].match.length>0){
 						item.matches[0].match.forEach(function(_rate){
