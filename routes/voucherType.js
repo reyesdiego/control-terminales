@@ -15,7 +15,7 @@ module.exports = function (app){
 				data.forEach(function (item){
 					vou[item._id] = item.description;
 				});
-				res.send(200, {status:'OK', data: data});
+				res.send(200, {status:'OK', data: vou});
 			}
 		});
 	}
