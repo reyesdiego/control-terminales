@@ -9,6 +9,7 @@ var express		=	require('express'),
 	path		=	 require('path'),
 	fs			=	require('fs');
 
+var mail = require("./include/emailjs");
 var socketio = require('socket.io');
 
 var dateTime = require('./include/moment');
@@ -122,7 +123,6 @@ require('./routes/appointment')(app, io);
 require('./routes/gate')(app, io);
 require('./routes/voucherType')(app);
 
-
 //	Database configuration
 mongoose.connect(config.mongo_url, config.mongo_opts);
 
@@ -139,13 +139,15 @@ mongoose.connection.on('disconnected', function () {
 	console.log("===============================================================================");
 });
 
-
 // If the Node process ends, close the Mongoose connection
 process.on('SIGINT', function() {
 	mongoose.connection.close(function () {
 		console.log('Mongoose default connection disconnected through app termination');
 		console.log("===============================================================================");
-		process.exit(0);
+		var mailer = new mail.mail();
+		mailer.send('dreyes@puertobuenosaires.gob.ar', 'terapi - error', 'Mongoose default connection disconnected', function(){
+			process.exit(0);
+		});
 	});
 });
 
