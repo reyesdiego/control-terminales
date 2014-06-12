@@ -361,7 +361,6 @@ module.exports = function(app, io) {
 					}
 				}
 			});
-
 			if (result.length>0){
 				var param = {
 					terminal : terminal,
@@ -439,5 +438,14 @@ module.exports = function(app, io) {
 	app.get('/invoices/ratesTotal', getRatesTotal);
 	app.post('/invoice', addInvoice);
 	app.delete('/invoices/:_id', removeInvoices);
+
+
+	app.get('/precio', function (req, res){
+		var p = require('../include/price.js');
+		var p = new p.price();
+		p.rates(function (err, data){
+			res.send(data);
+		});
+	})
 
 };

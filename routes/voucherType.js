@@ -11,11 +11,14 @@ module.exports = function (app){
 			if (err){
 
 			} else {
-				var vou={};
-				data.forEach(function (item){
-					vou[item._id] = item.description;
-				});
-				res.send(200, {status:'OK', data: vou});
+				var result = data;
+				if (req.query.type === 'array'){
+					result={};
+					data.forEach(function (item){
+						result[item._id] = item.description;
+					});
+				}
+				res.send(200, {status:'OK', data: result});
 			}
 		});
 	}

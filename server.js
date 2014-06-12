@@ -27,7 +27,6 @@ app.configure(function () {
 
 });
 
-
 app.all('/*', function(req, res, next) {
 	res.header("Access-Control-Allow-Origin", "*");
 	res.header("Access-Control-Allow-Headers", 'X-Requested-With, Content-Type, token');
@@ -144,10 +143,14 @@ process.on('SIGINT', function() {
 	mongoose.connection.close(function () {
 		console.log('Mongoose default connection disconnected through app termination');
 		console.log("===============================================================================");
-		var mailer = new mail.mail();
-		mailer.send('dreyes@puertobuenosaires.gob.ar', 'terapi - error', 'Mongoose default connection disconnected', function(){
+		if (process.env.NODE_ENV === 'production'){
+			var mailer = new mail.mail();
+			mailer.send('dreyes@puertobuenosaires.gob.ar', 'terapi - error', 'Mongoose default connection disconnected', function(){
+				process.exit(0);
+			});
+		} else {
 			process.exit(0);
-		});
+		}
 	});
 });
 
