@@ -403,27 +403,30 @@ module.exports = function(app, io) {
 			tomorrow = moment(moment(req.query.fecha).format('YYYY-MM-DD')).add('days',1).toDate();
 		}
 
-		var jsonParam = [
-			{	$unwind : '$detalle'	},
-			{	$unwind : '$detalle.items'	},
-			{	$match : {
-							'detalle.items.id' : {$in: ['TASAI', 'TASAE', '4', 'NAGPI', 'NAGPE']},
-							'fecha.emision': {$gte: today, $lt: tomorrow} }
-			},
-			{
-				$project : {_id: 0, terminal:1, 'detalle.items':1}
-			},
-			{
-				$group  : {
-					_id: { terminal: '$terminal'},
-					cnt: { $sum: 1},
-					total: { $sum : '$detalle.items.impTot'}
+		var _price = require('../include/price.js');
+		var _rates = new _price.price();
+		_rates.rates(function (err, rates){
+			var jsonParam = [
+				{	$unwind : '$detalle'	},
+				{	$unwind : '$detalle.items'	},
+				{	$match : {
+					'detalle.items.id' : {$in: rates},
+					'fecha.emision': {$gte: today, $lt: tomorrow} }
+				},
+				{
+					$project : {_id: 0, terminal:1, 'detalle.items':1}
+				},
+				{
+					$group  : {
+						_id: { terminal: '$terminal'},
+						cnt: { $sum: 1},
+						total: { $sum : '$detalle.items.impTot'}
+					}
 				}
-			}
-		];
-
-		Invoice.aggregate(jsonParam, function (err, data){
-			res.send(200, data);
+			];
+			Invoice.aggregate(jsonParam, function (err, data){
+				res.send(200, data);
+			});
 		});
 
 	}
