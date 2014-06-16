@@ -346,25 +346,13 @@ module.exports = function(app, io) {
 	function getNoRates (req, res){
 		var terminal = req.params.terminal;
 
-		var rates = Price.find();
-		rates.exists('rate', true);
-		rates.exists('matches', true);
-		rates.populate({path:'matches', match:{"terminal":terminal}});
-		rates.exec(function(err, rates){
-			var result=[];
-			rates.forEach(function(item){
-				if (item.matches.length>0){
-					if (item.matches[0].match != null && item.matches[0].match.length>0){
-						item.matches[0].match.forEach(function(_rate){
-							result.push(_rate);
-						});
-					}
-				}
-			});
-			if (result.length>0){
+		var _price = require('../include/price.js');
+		var _rates = new _price.price();
+		_rates.rates(function (err, rates){
+			if (rates.length>0){
 				var param = {
 					terminal : terminal,
-					'detalle.items.id': {$nin: result}
+					'detalle.items.id': {$nin: rates}
 				}
 				var invoices = Invoice.find(param);
 				invoices.limit(req.params.limit).skip(req.params.skip);
@@ -388,8 +376,52 @@ module.exports = function(app, io) {
 				}
 				res.send(500, errorResult);
 			}
-
 		});
+
+//		var rates = Price.find();
+//		rates.exists('rate', true);
+//		rates.exists('matches', true);
+//		rates.populate({path:'matches', match:{"terminal":terminal}});
+//		rates.exec(function(err, rates){
+//			var result=[];
+//			rates.forEach(function(item){
+//				if (item.matches.length>0){
+//					if (item.matches[0].match != null && item.matches[0].match.length>0){
+//						item.matches[0].match.forEach(function(_rate){
+//							result.push(_rate);
+//						});
+//					}
+//				}
+//			});
+//			if (result.length>0){
+//				var param = {
+//					terminal : terminal,
+//					'detalle.items.id': {$nin: result}
+//				}
+//				var invoices = Invoice.find(param);
+//				invoices.limit(req.params.limit).skip(req.params.skip);
+//				invoices.sort({nroComprob:1});
+//				invoices.exec(function(err, invoices){
+//					Invoice.count(param, function (err, cnt){
+//						var dataResult = {
+//							status: 'OK',
+//							totalCount: cnt,
+//							pageCount: (req.params.limit > cnt)?cnt:req.params.limit,
+//							page: req.params.skip,
+//							data: invoices
+//						}
+//						res.send(200, dataResult);
+//					});
+//				});
+//			} else {
+//				var errorResult = {
+//					status: 'ERROR',
+//					data: 'La terminal no tiene Tasa a las Cargas Asociadas.'
+//				}
+//				res.send(500, errorResult);
+//			}
+//
+//		});
 	}
 
 	function getRatesTotal (req, res) {
