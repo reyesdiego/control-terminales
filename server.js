@@ -67,7 +67,7 @@ app.get('/log', function(req, res) {
 	res.write('<html><body>');
 	res.write('<br/><center><p><a name="top" style="font-size: 22px" href="#bottom">Ir a fin de pagina</a></p></center>');
 
-	path.exists(filename, function(exists){
+	fs.exists(filename, function(exists){
 		if (exists) {
 			// serve file
 			var lazy = require("lazy")
