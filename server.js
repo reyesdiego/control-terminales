@@ -47,7 +47,7 @@ var Account = require(__dirname +'/models/account');
 passport.use(Account.createStrategy());
 
 app.get('/', function(req, res) {
-	var db='<p><b>MongoDb: </b>';
+	var db='<p><b>Versión Mongoose: '+mongoose.version+'</b></p><p><b>MongoDb: </b>';
 
 	if (mongoose.connections.length>0)
 		if (mongoose.connections[0]._hasOpened)
@@ -99,7 +99,7 @@ var port = processArgs[0] || config.server_port;
 server.listen(port, function() {
 	server.runtime = dateTime.getDatetime();
 	console.log("===============================================================================");
-	console.log("%s - Node server Version: %s", dateTime.getDatetime(), process.version);
+	console.log("%s - Nodejs server Version: %s", dateTime.getDatetime(), process.version);
 	console.log("%s - Running on http://localhost:%s", dateTime.getDatetime(), port);
 	console.log("===============================================================================");
 });
@@ -126,6 +126,7 @@ require('./routes/voucherType')(app);
 mongoose.connect(config.mongo_url, config.mongo_opts);
 
 mongoose.connection.on('connected', function () {
+	console.log("%s - Mongoose version: %s", dateTime.getDatetime(), mongoose.version);
 	console.log('%s - Connected to Database. %s', dateTime.getDatetime(), config.mongo_url);
 	console.log("===============================================================================");
 });
