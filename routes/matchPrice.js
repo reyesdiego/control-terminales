@@ -63,7 +63,7 @@ module.exports = function (app){
 
 				var param = [
 					{
-						$match: {terminal:	usr.terminal }
+						$match: {terminal:	req.params.terminal }
 					},
 					{	$unwind: '$match' }
 				];
@@ -72,7 +72,7 @@ module.exports = function (app){
 				s.exec(function (err, matches) {
 					if(!err) {
 
-						price.find({$or: [{terminal:"AGP"}, {terminal: usr.terminal}]})
+						price.find({$or: [{terminal:"AGP"}, {terminal: req.params.terminal }]})
 							.exec(function (err, prices) {
 								if(!err) {
 									var result = {};
@@ -83,7 +83,7 @@ module.exports = function (app){
 											return match;
 										}).toArray();
 									response.forEach(function (item){
-										result[item.code] = item.description;
+										result[item.match] = item.description;
 									});
 
 									res.send(200, {status:'OK', data: result});
