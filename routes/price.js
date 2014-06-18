@@ -45,6 +45,33 @@ module.exports = function (app){
 		});
 	}
 
+	function getRates (req, res){
+		'use strict';
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (err){
+				console.error('%s - Error: %s', dateTime.getDatetime(), err);
+				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
+			} else {
+				var param = {
+						terminal:	"AGP",
+						rate:		{$ne: null}
+				};
+
+				price.find(param)
+					.sort({rate:1, code:1})
+					.exec(function(err, priceList){
+						if(!err) {
+							res.send(200, {status:'OK', data:priceList});
+						} else {
+							console.error('%s - Error: %s', dateTime.getDatetime(), err);
+							res.send(500, {status:'ERROR', data: err});
+						}
+					});
+			}
+		});
+	}
+
 	function addPrice (req, res){
 		'use strict';
 		var incomingToken = req.headers.token;
@@ -82,6 +109,7 @@ module.exports = function (app){
 	}
 
 	app.get('/agp/prices', getPrices);
+	app.get('/agp/rates', getRates);
 	app.post('/agp/price', addPrice);
 
 };
