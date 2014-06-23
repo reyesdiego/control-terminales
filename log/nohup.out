@@ -1,0 +1,198 @@
+14-05-28 08:20 - Gate INS: 5385c661648f8dca20002824 - TRP
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 131983, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c78f648f8dca20002844 - TERMINAL4
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 140171, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002882 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002888 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c793648f8dca20002890 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c794648f8dca200028ac - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028b3 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028c0 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c7c4648f8dca200028c8 - TRP
+14-05-28 08:35 - Invoice INS:5385ca1e648f8dca200028cf - TRP
+14-05-28 08:35 - Invoice INS:5385ca1f648f8dca200028d8 - TRP
+14-05-28 08:36 - Invoice INS:5385ca20648f8dca200028dd - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e6 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e7 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e8 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e9 - TRP
+14-05-28 08:20 - Gate INS: 5385c661648f8dca20002824 - TRP
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 131983, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c78f648f8dca20002844 - TERMINAL4
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 140171, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002882 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002888 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c793648f8dca20002890 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c794648f8dca200028ac - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028b3 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028c0 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c7c4648f8dca200028c8 - TRP
+14-05-28 08:35 - Invoice INS:5385ca1e648f8dca200028cf - TRP
+14-05-28 08:35 - Invoice INS:5385ca1f648f8dca200028d8 - TRP
+14-05-28 08:36 - Invoice INS:5385ca20648f8dca200028dd - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e6 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e7 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e8 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e9 - TRP
+14-05-28 08:20 - Gate INS: 5385c661648f8dca20002824 - TRP
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 131983, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c78f648f8dca20002844 - TERMINAL4
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 140171, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002882 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002888 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c793648f8dca20002890 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c794648f8dca200028ac - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028b3 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028c0 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c7c4648f8dca200028c8 - TRP
+14-05-28 08:35 - Invoice INS:5385ca1e648f8dca200028cf - TRP
+14-05-28 08:35 - Invoice INS:5385ca1f648f8dca200028d8 - TRP
+14-05-28 08:36 - Invoice INS:5385ca20648f8dca200028dd - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e6 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e7 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e8 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e9 - TRP
+14-05-28 08:20 - Gate INS: 5385c661648f8dca20002824 - TRP
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 131983, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c78f648f8dca20002844 - TERMINAL4
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 140171, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002882 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002888 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c793648f8dca20002890 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c794648f8dca200028ac - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028b3 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028c0 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c7c4648f8dca200028c8 - TRP
+14-05-28 08:35 - Invoice INS:5385ca1e648f8dca200028cf - TRP
+14-05-28 08:35 - Invoice INS:5385ca1f648f8dca200028d8 - TRP
+14-05-28 08:36 - Invoice INS:5385ca20648f8dca200028dd - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e6 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e7 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e8 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e9 - TRP
+14-05-28 08:20 - Gate INS: 5385c661648f8dca20002824 - TRP
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 131983, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c78f648f8dca20002844 - TERMINAL4
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 140171, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002882 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002888 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c793648f8dca20002890 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c794648f8dca200028ac - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028b3 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028c0 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c7c4648f8dca200028c8 - TRP
+14-05-28 08:35 - Invoice INS:5385ca1e648f8dca200028cf - TRP
+14-05-28 08:35 - Invoice INS:5385ca1f648f8dca200028d8 - TRP
+14-05-28 08:36 - Invoice INS:5385ca20648f8dca200028dd - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e6 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e7 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e8 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e9 - TRP
+14-05-28 08:20 - Gate INS: 5385c661648f8dca20002824 - TRP
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 131983, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c78f648f8dca20002844 - TERMINAL4
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 140171, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002882 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002888 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c793648f8dca20002890 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c794648f8dca200028ac - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028b3 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028c0 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c7c4648f8dca200028c8 - TRP
+14-05-28 08:35 - Invoice INS:5385ca1e648f8dca200028cf - TRP
+14-05-28 08:35 - Invoice INS:5385ca1f648f8dca200028d8 - TRP
+14-05-28 08:36 - Invoice INS:5385ca20648f8dca200028dd - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e6 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e7 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e8 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e9 - TRP
+14-05-28 08:20 - Gate INS: 5385c661648f8dca20002824 - TRP
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 131983, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c78f648f8dca20002844 - TERMINAL4
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 140171, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002882 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002888 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c793648f8dca20002890 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c794648f8dca200028ac - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028b3 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028c0 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c7c4648f8dca200028c8 - TRP
+14-05-28 08:35 - Invoice INS:5385ca1e648f8dca200028cf - TRP
+14-05-28 08:35 - Invoice INS:5385ca1f648f8dca200028d8 - TRP
+14-05-28 08:36 - Invoice INS:5385ca20648f8dca200028dd - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e6 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e7 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e8 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e9 - TRP
+14-05-28 08:20 - Gate INS: 5385c661648f8dca20002824 - TRP
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 131983, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c78f648f8dca20002844 - TERMINAL4
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 140171, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002882 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002888 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c793648f8dca20002890 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c794648f8dca200028ac - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028b3 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028c0 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c7c4648f8dca200028c8 - TRP
+14-05-28 08:35 - Invoice INS:5385ca1e648f8dca200028cf - TRP
+14-05-28 08:35 - Invoice INS:5385ca1f648f8dca200028d8 - TRP
+14-05-28 08:36 - Invoice INS:5385ca20648f8dca200028dd - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e6 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e7 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e8 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e9 - TRP
+14-05-28 08:20 - Gate INS: 5385c661648f8dca20002824 - TRP
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 131983, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c78f648f8dca20002844 - TERMINAL4
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 140171, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002882 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002888 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c793648f8dca20002890 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c794648f8dca200028ac - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028b3 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028c0 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c7c4648f8dca200028c8 - TRP
+14-05-28 08:35 - Invoice INS:5385ca1e648f8dca200028cf - TRP
+14-05-28 08:35 - Invoice INS:5385ca1f648f8dca200028d8 - TRP
+14-05-28 08:36 - Invoice INS:5385ca20648f8dca200028dd - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e6 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e7 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e8 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e9 - TRP
+14-05-28 08:20 - Gate INS: 5385c661648f8dca20002824 - TRP
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 131983, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c78f648f8dca20002844 - TERMINAL4
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 140171, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002882 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002888 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c793648f8dca20002890 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c794648f8dca200028ac - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028b3 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028c0 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c7c4648f8dca200028c8 - TRP
+14-05-28 08:35 - Invoice INS:5385ca1e648f8dca200028cf - TRP
+14-05-28 08:35 - Invoice INS:5385ca1f648f8dca200028d8 - TRP
+14-05-28 08:36 - Invoice INS:5385ca20648f8dca200028dd - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e6 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e7 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e8 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e9 - TRP
+14-05-28 08:20 - Gate INS: 5385c661648f8dca20002824 - TRP
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 131983, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c78f648f8dca20002844 - TERMINAL4
+14-05-28 08:25 - Error: MongoError: insertDocument :: caused by :: 11000 E11000 duplicate key error index: terapi.invoices.$nroPtoVenta_codTipoComprob_nroComprob_1_terminal_1  dup key: { : 5, : "1", : 140171, : "TERMINAL4" }
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002882 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c792648f8dca20002888 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c793648f8dca20002890 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c794648f8dca200028ac - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028b3 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c795648f8dca200028c0 - TERMINAL4
+14-05-28 08:25 - Invoice INS:5385c7c4648f8dca200028c8 - TRP
+14-05-28 08:35 - Invoice INS:5385ca1e648f8dca200028cf - TRP
+14-05-28 08:35 - Invoice INS:5385ca1f648f8dca200028d8 - TRP
+14-05-28 08:36 - Invoice INS:5385ca20648f8dca200028dd - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e6 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e7 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e8 - TRP
+14-05-28 08:40 - Gate INS: 5385cb12648f8dca200028e9 - TRP
