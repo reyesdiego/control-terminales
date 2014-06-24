@@ -18,7 +18,7 @@ module.exports = function (app){
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
 				console.error('%s - Error: %s', dateTime.getDatetime(), err);
-				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
+				res.send(403, {status:"ERROR", data: err.error});
 			} else {
 				var param = {
 					$or : [
@@ -51,7 +51,7 @@ module.exports = function (app){
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
 				console.error('%s - Error: %s', dateTime.getDatetime(), err);
-				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
+				res.send(403, {status:"ERROR", data: err.error});
 			} else {
 				var param = {
 						terminal:	"AGP",
@@ -78,7 +78,7 @@ module.exports = function (app){
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
 				console.log(err, new Date().toString());
-				res.send(401, "Invalid or missing Token.");
+				res.send(403, {status:'ERROR', data: err});
 			} else {
 				var _price;
 				try {

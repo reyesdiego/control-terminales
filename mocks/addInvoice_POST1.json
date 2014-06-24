@@ -1,10 +1,10 @@
 {
 "codTipoComprob":"        01",
-"nroPtoVenta":"0031",
-"nroComprob":"00000637",
+"nroPtoVenta": "0031",
+"nroComprob": 1,
 "fechaEmision":"2014/03/10",
 "codTipoAutoriz": "k",
-"codAutoriz":64105928828924,
+"codAutoriz": 64105928828924,
 "fechaVcto":"2014/04/09",
 "codTipoDoc":"080",
 "nroDoc":30678191805,
@@ -42,7 +42,7 @@
 "detalle":
 [
 {
-"contenedor":"null",
+"contenedor":"ISCU1234567",
 "buqueId":"23",
 "buqueDesc":"TITANIC",
 "viaje":"23",
@@ -53,35 +53,35 @@
 "cnt":1,
 "uniMed":5,
 "impUnit":0.28152,
-"impTotal":28.151999999999997
+"impTot":28.151999999999997
 },
 {
 "id":"EXST0",
 "cnt":1,
 "uniMed":5,
 "impUnit":0.04116,
-"impTotal":4.1160000000000005
+"impTot":4.1160000000000005
 },
 {
 "id":"T1F20",
 "cnt":1,
 "uniMed":5,
 "impUnit":0.114,
-"impTotal":11.4
+"impTot":11.4
 },
 {
 "id":"LAVDI",
 "cnt":1,
 "uniMed":5,
 "impUnit":0.0294,
-"impTotal":2.94
+"impTot":2.94
 },
 {
 "id":"BARRI",
 "cnt":1,
 "uniMed":5,
 "impUnit":0.02352,
-"impTotal":2.352
+"impTot":2.352
 }
 ]
 }

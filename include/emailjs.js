@@ -16,13 +16,18 @@ var mail = function (){
 };
 mail.prototype = {
 	send : function (to, subject, text, callback){
-		this.server.send({
-			text:    text,
-			from:    "Diego Reyes <dreyes@puertobuenosaires.gov.ar>",
-			to:      to,
-			//cc:      "else <else@gmail.com>",
-			subject: subject
-		}, function(err, message) { console.log(err || message); callback()});
+		this.server.send(
+			{
+				text:		text,
+				from:		"Diego Reyes <dreyes@puertobuenosaires.gov.ar>",
+				to:			to,
+				bcc:		"else <dreyes@puertobuenosaires.gob.ar>",
+				subject:	subject
+		}, function(err, message) {
+			console.log(err || message);
+			if (callback !== undefined && callback != null)
+				callback();
+		});
 	}
 };
 

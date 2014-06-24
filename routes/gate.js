@@ -18,7 +18,7 @@ module.exports = function (app, io) {
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
 				console.error(usr);
-				res.send(500, {status:'ERROR', data: err});
+				res.send(403, {status:'ERROR', data: err});
 			} else {
 				var fecha;
 				var param = {};
@@ -76,7 +76,7 @@ module.exports = function (app, io) {
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
 				console.error(usr);
-				res.send(500, {status:'ERROR', data: err});
+				res.send(403, {status:'ERROR', data: err});
 			} else {
 
 //				param.terminal= usr.terminal;
@@ -119,7 +119,7 @@ module.exports = function (app, io) {
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
 				console.error(usr);
-				res.send(500, {status:'ERROR', data: err});
+				res.send(403, {status:'ERROR', data: err});
 			} else {
 
 //				param.terminal= usr.terminal;

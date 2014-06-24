@@ -6,6 +6,9 @@
 
 var path = require('path');
 var Account = require(path.join(__dirname, '..', '/models/account'));
+var util = require('util');
+
+var mail = require("../include/emailjs");
 
 var dateTime = require('../include/moment');
 var moment = require('moment');
@@ -89,7 +92,7 @@ module.exports = function(app, io) {
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
 				console.log(usr);
-				res.send({status:'ERROR', data: err});
+				res.send(403, {status:'ERROR', data: err});
 			} else {
 				var invoice = Invoice.find({_id: req.params.id, terminal: usr.terminal});
 				invoice.exec(function(err, invoices){
@@ -118,7 +121,11 @@ module.exports = function(app, io) {
 				try {
 					postData = JSON.parse(postData);
 				} catch (errParsing){
-					console.error("%s - Error: Parsing JSON: %s, JSON:%s", dateTime.getDatetime(), errParsing, postData);
+					var strBody = util.format("%s - Error: Parsing JSON: [%s], JSON:%s", dateTime.getDatetime(), errParsing, postData);
+					var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
+					console.error(strBody);
+					var mailer = new mail.mail();
+					mailer.send(usr.email, strSubject, strBody);
 					res.send(500, {status:"ERROR", data: errParsing.toString()} );
 					return;
 				}
@@ -196,6 +203,9 @@ module.exports = function(app, io) {
 					});
 
 					} catch (error){
+						var mailer = new mail.mail();
+						mailer.send('dreyes@puertobuenosaires.gob.ar', 'AGP - terapi - error', 'Error al insertar comprobante. ' + error.message, function(){
+						});
 						res.send(500, {"status":"ERROR", "data": error.message});
 						return;
 					}
