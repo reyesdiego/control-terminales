@@ -14,6 +14,8 @@ var mail = function (){
 		ssl:     false
 	});
 };
+//TODO cambiar cuenta por noreply y recibir parametro para ver si manda o no de acuerdo
+//a la configuracion (mandar mail de error o no por mail)
 mail.prototype = {
 	send : function (to, subject, text, callback){
 		this.server.send(

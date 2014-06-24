@@ -124,6 +124,7 @@ module.exports = function(app, io) {
 					var strBody = util.format("%s - Error: Parsing JSON: [%s], JSON:%s", dateTime.getDatetime(), errParsing, postData);
 					var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
 					console.error(strBody);
+					//TODO mandar parametro para ver si manda o no de mail por configuracion
 					var mailer = new mail.mail();
 					mailer.send(usr.email, strSubject, strBody);
 					res.send(500, {status:"ERROR", data: errParsing.toString()} );
@@ -203,6 +204,7 @@ module.exports = function(app, io) {
 					});
 
 					} catch (error){
+						//TODO mandar parametro para ver si manda o no de mail por configuracion
 						var mailer = new mail.mail();
 						mailer.send('dreyes@puertobuenosaires.gob.ar', 'AGP - terapi - error', 'Error al insertar comprobante. ' + error.message, function(){
 						});
