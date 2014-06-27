@@ -96,6 +96,7 @@ app.get('/log', function(req, res) {
 
 var processArgs = process.argv.slice(2);
 var port = processArgs[0] || config.server_port;
+
 server.listen(port, function() {
 	server.runtime = dateTime.getDatetime();
 	console.log("===============================================================================");

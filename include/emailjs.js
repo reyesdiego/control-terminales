@@ -6,8 +6,8 @@ var email 	= require("emailjs");
 var mail = function (){
 
 	this.server = email.server.connect({
-		user:    "reyes-d",
-		password:"DLR10041973_",
+		user:    "noreply",
+		password:"desarrollo",
 		host:    "10.10.0.170",
 		port: "25",
 		domain: "puertobuenosaires.gov.ar",
@@ -21,9 +21,9 @@ mail.prototype = {
 		this.server.send(
 			{
 				text:		text,
-				from:		"Diego Reyes <dreyes@puertobuenosaires.gov.ar>",
+				from:		"AGP <noreply@puertobuenosaires.gob.ar>",
 				to:			to,
-				bcc:		"else <dreyes@puertobuenosaires.gob.ar>",
+				bcc:		"AGP <noreply@puertobuenosaires.gob.ar>",
 				subject:	subject
 		}, function(err, message) {
 			console.log(err || message);

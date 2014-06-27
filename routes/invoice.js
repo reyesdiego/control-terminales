@@ -205,8 +205,9 @@ module.exports = function(app, io) {
 
 					} catch (error){
 						//TODO mandar parametro para ver si manda o no de mail por configuracion
+						var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
 						var mailer = new mail.mail();
-						mailer.send('dreyes@puertobuenosaires.gob.ar', 'AGP - terapi - error', 'Error al insertar comprobante. ' + error.message, function(){
+						mailer.send(usr.email, strSubject, 'Error al insertar comprobante. ' + error.message, function(){
 						});
 						res.send(500, {"status":"ERROR", "data": error.message});
 						return;
@@ -220,9 +221,13 @@ module.exports = function(app, io) {
 							io.sockets.emit('invoice', socketMsg);
 							res.send(200,{"status": "OK", "data": data});
 						} else {
-							var date = new Date();
-							console.error('%s - Error: %s', dateTime.getDatetime(), errSave);
-							res.send(500, {"status": "ERROR", "data": errSave});
+							var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
+							var strError = util.format('%s - Error: %s', dateTime.getDatetime(), errSave);
+							console.error(strError);
+							var mailer = new mail.mail();
+							mailer.send(usr.email, strSubject, strError, function(){
+							});
+							res.send(500, {"status": "ERROR", "data": strError});
 						}
 					});
 
