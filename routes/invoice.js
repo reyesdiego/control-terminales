@@ -13,6 +13,8 @@ var mail = require("../include/emailjs");
 var dateTime = require('../include/moment');
 var moment = require('moment');
 
+var config = require('../config/config.js');
+
 /**
  * Created by Diego Reyes on 1/7/14.
  *
@@ -124,8 +126,7 @@ module.exports = function(app, io) {
 					var strBody = util.format("%s - Error: Parsing JSON: [%s], JSON:%s", dateTime.getDatetime(), errParsing, postData);
 					var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
 					console.error(strBody);
-					//TODO mandar parametro para ver si manda o no de mail por configuracion
-					var mailer = new mail.mail();
+					var mailer = new mail.mail(config.email);
 					mailer.send(usr.email, strSubject, strBody);
 					res.send(500, {status:"ERROR", data: errParsing.toString()} );
 					return;
@@ -204,9 +205,8 @@ module.exports = function(app, io) {
 					});
 
 					} catch (error){
-						//TODO mandar parametro para ver si manda o no de mail por configuracion
 						var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
-						var mailer = new mail.mail();
+						var mailer = new mail.mail(config.email);
 						mailer.send(usr.email, strSubject, 'Error al insertar comprobante. ' + error.message, function(){
 						});
 						res.send(500, {"status":"ERROR", "data": error.message});
@@ -224,7 +224,7 @@ module.exports = function(app, io) {
 							var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
 							var strError = util.format('%s - Error: %s', dateTime.getDatetime(), errSave);
 							console.error(strError);
-							var mailer = new mail.mail();
+							var mailer = new mail.mail(config.email);
 							mailer.send(usr.email, strSubject, strError, function(){
 							});
 							res.send(500, {"status": "ERROR", "data": strError});

@@ -14,7 +14,7 @@ var socketio = require('socket.io');
 
 var dateTime = require('./include/moment');
 
-var config = require(__dirname + '/config/config.js');
+var config = require('./config/config.js');
 
 var app = express();
 var server = http.createServer(app);
@@ -23,7 +23,7 @@ app.configure(function () {
 	app.use(express.bodyParser());
 	app.use(express.methodOverride());
 	app.use(app.router);
-	app.use(passport.initialize());
+//	app.use(passport.initialize());
 
 });
 
@@ -145,8 +145,9 @@ process.on('SIGINT', function() {
 	mongoose.connection.close(function () {
 		console.log('Mongoose default connection disconnected through app termination');
 		console.log("===============================================================================");
+		console.log("process.env.NODE_ENV %s", process.env.NODE_ENV)
 		if (process.env.NODE_ENV === 'production'){
-			var mailer = new mail.mail();
+			var mailer = new mail.mail(config.email);
 			mailer.send('noreply@puertobuenosaires.gob.ar', 'AGP-TERAPI - ERROR', 'Mongoose default connection disconnected', function() {
 				process.exit(0);
 			});
