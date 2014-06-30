@@ -15,6 +15,7 @@ module.exports = {
 	 */
 	'ttl': 3600000, //1 hour
 	'resetTokenExpiresMinutes': 20, //20 minutes later
+	'email': true,
 	'mongo_url': 'mongodb://localhost:27017/terapi',
 	'mongo_opts':	{
 						user: 'admin',

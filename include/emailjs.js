@@ -3,8 +3,9 @@
  */
 var email 	= require("emailjs");
 
-var mail = function (){
+var mail = function (status){
 
+	this.status = status || true;
 	this.server = email.server.connect({
 		user:    "noreply",
 		password:"desarrollo",
@@ -14,22 +15,24 @@ var mail = function (){
 		ssl:     false
 	});
 };
-//TODO cambiar cuenta por noreply y recibir parametro para ver si manda o no de acuerdo
-//a la configuracion (mandar mail de error o no por mail)
+
 mail.prototype = {
 	send : function (to, subject, text, callback){
-		this.server.send(
-			{
-				text:		text,
-				from:		"AGP <noreply@puertobuenosaires.gob.ar>",
-				to:			to,
-				bcc:		"AGP <noreply@puertobuenosaires.gob.ar>",
-				subject:	subject
-		}, function(err, message) {
-			console.log(err || message);
-			if (callback !== undefined && callback != null)
-				callback();
-		});
+
+		if (this.status === true){
+			this.server.send(
+				{
+					text:		text,
+					from:		"AGP <noreply@puertobuenosaires.gob.ar>",
+					to:			to,
+					bcc:		"AGP <noreply@puertobuenosaires.gob.ar>",
+					subject:	subject
+				}, function(err, message) {
+					console.log(err || message);
+					if (callback !== undefined && callback != null)
+						callback();
+				});
+		}
 	}
 };
 

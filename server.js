@@ -146,9 +146,8 @@ process.on('SIGINT', function() {
 		console.log('Mongoose default connection disconnected through app termination');
 		console.log("===============================================================================");
 		if (process.env.NODE_ENV === 'production'){
-			//TODO mandar parametro para ver si manda o no de mail por configuracion
 			var mailer = new mail.mail();
-			mailer.send('dreyes@puertobuenosaires.gob.ar', 'terapi - error', 'Mongoose default connection disconnected', function(){
+			mailer.send('noreply@puertobuenosaires.gob.ar', 'AGP-TERAPI - ERROR', 'Mongoose default connection disconnected', function() {
 				process.exit(0);
 			});
 		} else {
