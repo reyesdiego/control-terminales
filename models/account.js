@@ -22,6 +22,7 @@ var Account = new Schema({
 	email: { type: String, required: true, lowercase:true, index: { unique: true } },
 	password: { type: String},
 	terminal: {type: String, required: true, uppercase:true, enum: ['BACTSSA', 'TRP', 'TERMINAL4']},
+	role: {type: String},
 	full_name: {type: String, required: true},//TODO: break out first / last names
 	date_created: {type: Date, default: Date.now},
 	token: {type: Object},
@@ -87,7 +88,7 @@ Account.statics.login = function (username, password, cb) {
 
 				cb(false, {
 					acceso: rutasAcceso,
-					role:'terminal',
+					role: user.role,
 					email: user.email,
 					terminal: user.terminal,
 					token: user.token,
