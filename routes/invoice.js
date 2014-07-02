@@ -123,12 +123,12 @@ module.exports = function(app, io) {
 				try {
 					postData = JSON.parse(postData);
 				} catch (errParsing){
-					var strBody = util.format("%s - Error: Parsing JSON: [%s], JSON:%s", dateTime.getDatetime(), errParsing, postData);
+					var strBody = util.format("%s - Error: Parsing JSON: [%s], JSON:%s", dateTime.getDatetime(), errParsing.toString(), postData);
 					var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
 					console.error(strBody);
 					var mailer = new mail.mail(config.email);
 					mailer.send(usr.email, strSubject, strBody);
-					res.send(500, {status:"ERROR", data: errParsing.toString()} );
+					res.send(500, {status:"ERROR", data: strBody} );
 					return;
 				}
 
@@ -206,10 +206,15 @@ module.exports = function(app, io) {
 
 					} catch (error){
 						var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
+						var body = util.format('Error al insertar comprobante. %s. \n%s',  error.message, JSON.stringify(postData));
+
+						var strError = util.format('%s - %s', dateTime.getDatetime(), body);
+						console.error(strError);
+
 						var mailer = new mail.mail(config.email);
-						mailer.send(usr.email, strSubject, 'Error al insertar comprobante. ' + error.message, function(){
+						mailer.send(usr.email, strSubject, body, function(){
 						});
-						res.send(500, {"status":"ERROR", "data": error.message});
+						res.send(500, {"status":"ERROR", "data": body});
 						return;
 					}
 
