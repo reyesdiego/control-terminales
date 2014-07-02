@@ -102,6 +102,7 @@ server.listen(port, function() {
 	console.log("===============================================================================");
 	console.log("%s - Nodejs server Version: %s", dateTime.getDatetime(), process.version);
 	console.log("%s - Running on http://localhost:%s", dateTime.getDatetime(), port);
+	console.log("%s - Process Id (pid): %s", dateTime.getDatetime(), process.pid);
 	console.log("===============================================================================");
 });
 
