@@ -20,10 +20,11 @@ module.exports = function (app){
 				console.error('%s - Error: %s', dateTime.getDatetime(), err);
 				res.send(403, {status:"ERROR", data: err.error});
 			} else {
+				var ter = (usr.role === 'AGP')?req.params.terminal:usr.terminal;
 				var param = {
 					$or : [
 						{terminal:	"AGP"},
-						{terminal:	usr.terminal}
+						{terminal:	ter}
 					]
 				};
 
@@ -108,8 +109,8 @@ module.exports = function (app){
 		});
 	}
 
-	app.get('/agp/prices', getPrices);
-	app.get('/agp/rates', getRates);
-	app.post('/agp/price', addPrice);
+	app.get('/prices/:terminal', getPrices);
+	app.get('/rates', getRates);
+	app.post('/price', addPrice);
 
 };

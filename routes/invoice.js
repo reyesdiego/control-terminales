@@ -61,8 +61,10 @@ module.exports = function(app, io) {
 				if (req.query.contenedor)
 					param['detalle.contenedor'] = req.query.contenedor;
 
-
-				param.terminal= usr.terminal;
+				if (usr.role === 'agp')
+					param.terminal = req.params.terminal;
+				else
+					param.terminal = usr.terminal;
 
 				var invoices = Invoice.find(param);
 
@@ -440,7 +442,7 @@ module.exports = function(app, io) {
 
 	}
 
-	app.get('/invoices/:skip/:limit', getInvoices);
+	app.get('/invoices/:terminal/:skip/:limit', getInvoices);
 	app.get('/invoice/:id', getInvoice);
 	app.get('/invoices', getInvoices);
 	app.get('/invoices/counts', getCounts);

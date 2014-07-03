@@ -15,7 +15,6 @@ module.exports = function (app){
 
 	function getMatchPrices (req, res){
 
-		'use strict';
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
@@ -23,10 +22,11 @@ module.exports = function (app){
 				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
 			} else {
 
+				var ter = (usr.role === 'AGP')?req.params.terminal:usr.terminal;
 				var param = {
 					$or : [
 						{terminal:	"AGP"},
-						{terminal:	usr.terminal}
+						{terminal:	ter}
 					]
 				};
 
@@ -45,7 +45,6 @@ module.exports = function (app){
 							res.send(500, {status:'ERROR', data: err});
 						}
 					});
-
 
 			}
 		});
@@ -143,41 +142,6 @@ module.exports = function (app){
 
 					}
 
-/*
-					matchPrice.findOne({_id: match._id}, function(err, matchItem){
-						if (matchItem){
-							matchPrice.findOne({_id: match._id, "codes.terminal": match.codes[0].terminal}, function (err, matchTerminal){
-								if (!err && matchTerminal){
-									matchTerminal.codes[0].codes = match.codes[0].codes;
-									matchTerminal.save(function(err){
-										if (!err){
-											console.log('%s - Updated Matchprice: %s.', dateTime.getDatetime(), matchTerminal._id);
-											asyncCallback();
-										}
-									});
-								} else if (!matchTerminal){
-									matchItem.codes.push(match.codes[0]);
-									matchItem.save(function(err){
-										if (!err){
-											asyncCallback();
-										}
-									});
-								}
-							});
-						} else {
-							var matchprice = new matchPrice(match);
-							matchprice.save(function(err){
-								if (!err){
-									priceItem.match = match._id;
-									priceItem.save(function(){
-										console.log('%s - New MatchPrice: %s', dateTime.getDatetime(), matchprice._id);
-										asyncCallback();
-									})
-								}
-							})
-						}
-					});
-					*/
 				}
 			});
 
@@ -187,9 +151,9 @@ module.exports = function (app){
 
 	}
 
-	app.get('/agp/matchprices/:terminal', getMatchPrices);
-	app.get('/agp/matches/:terminal', getMatches);
-	app.post('/agp/matchprice', addMatchPrice);
-	app.put('/agp/matchprice', addMatchPrice);
+	app.get('/matchprices/:terminal', getMatchPrices);
+	app.get('/matches/:terminal', getMatches);
+	app.post('/matchprice', addMatchPrice);
+	app.put('/matchprice', addMatchPrice);
 
 };
