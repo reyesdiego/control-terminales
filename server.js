@@ -3,6 +3,7 @@
  */
 var express		=	require('express'),
 	http		=	require('http'),
+	https		=	require('https'),
 	mongoose	=	require('mongoose'),
 	passport	=	require('passport'),
 	LocalStrategy =	require('passport-local').Strategy,
@@ -16,8 +17,24 @@ var dateTime = require('./include/moment');
 
 var config = require('./config/config.js');
 
+var server;
 var app = express();
-var server = http.createServer(app);
+
+if (process.env.HTTP === 'http'){
+	server = http.createServer(app);
+} else {
+	var options = {
+		key: fs.readFileSync('./certificates/puertobuenosaires.gob.ar.key'),
+		cert: fs.readFileSync('./certificates/14452602.crt'),
+		ca: [fs.readFileSync('./certificates/14452602.ca-bundle.crt')],
+		// Ask for the client's cert
+		requestCert: false,
+		// Don't automatically reject
+		rejectUnauthorized: false
+	};
+	server = https.createServer(options, app);
+}
+
 
 app.configure(function () {
 	app.use(express.bodyParser());
@@ -98,10 +115,11 @@ var processArgs = process.argv.slice(2);
 var port = processArgs[0] || config.server_port;
 
 server.listen(port, function() {
+	var http = (process.env.HTTP==='http')?'http':'https';
 	server.runtime = dateTime.getDatetime();
 	console.log("===============================================================================");
 	console.log("%s - Nodejs server Version: %s", dateTime.getDatetime(), process.version);
-	console.log("%s - Running on http://localhost:%s", dateTime.getDatetime(), port);
+	console.log("%s - Running on %s://localhost:%s", dateTime.getDatetime(), http, port);
 	console.log("%s - Process Id (pid): %s", dateTime.getDatetime(), process.pid);
 	console.log("===============================================================================");
 });

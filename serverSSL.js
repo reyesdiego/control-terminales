@@ -13,8 +13,9 @@ var config = require(__dirname + '/config/config.js');
 var fs = require('fs');
 
 var options = {
-	key: fs.readFileSync('./certificates/key.pem'),
-	cert: fs.readFileSync('./certificates/cert.pem'),
+	key: fs.readFileSync('./certificates/puertobuenosaires.gob.ar.key'),
+	cert: fs.readFileSync('./certificates/14452602.crt'),
+	//ca: fs.readFileSync('./certificates/14452602.ca-bundle.crt'),
 	// Ask for the client's cert
 	requestCert: false,
 	// Don't automatically reject
@@ -54,7 +55,23 @@ app.get('/', function(req, res) {
 //	res.send("Servicio Rest Terminales Portuarias. A.G.P.");
 		if (req.client.authorized) {
 		res.writeHead(200, {"Content-Type":"application/json"});
+
+		var subject = req.connection.getPeerCertificate().subject;
+
+		// Render the authorized template, providing
+		// the user information found on the certificate
+		res.render('authorized',
+			{ title:        'Authorized!',
+				user:         subject.CN,
+				email:        subject.emailAddress,
+				organization: subject.O,
+				unit:         subject.OU,
+				location:     subject.L,
+				state:        subject.ST,
+				country:      subject.C
+			});
 		res.end('{"status":"approved"}');
+
 		// console.log(req.client);
 		console.log("Approved Client ", req.client.socket.remoteAddress);
 	} else {
@@ -79,7 +96,7 @@ routes = require('./routes/price')(app);
 routes = require('./routes/matchPrice')(app);
 
 var processArgs = process.argv.slice(2);
-var port = processArgs[0] || config.server_port;
+var port = processArgs[0] || config.server_ssl_port;
 server.listen(port, function() {
 	console.log("Node server Version:%s, Stated: %s", process.version, new Date().toString());
 	console.log("Running on http://localhost:%s", port);
