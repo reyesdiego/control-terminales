@@ -20,9 +20,7 @@ var config = require('./config/config.js');
 var server;
 var app = express();
 
-if (process.env.HTTP === 'http'){
-	server = http.createServer(app);
-} else {
+if (process.env.HTTP !== 'http'){
 	var options = {
 		key: fs.readFileSync('./certificates/puertobuenosaires.gob.ar.key'),
 		cert: fs.readFileSync('./certificates/14452602.crt'),
@@ -33,6 +31,8 @@ if (process.env.HTTP === 'http'){
 		rejectUnauthorized: false
 	};
 	server = https.createServer(options, app);
+} else {
+	server = http.createServer(app);
 }
 
 
@@ -112,10 +112,18 @@ app.get('/log', function(req, res) {
 });
 
 var processArgs = process.argv.slice(2);
-var port = processArgs[0] || config.server_port;
+
+var port, http;
+if (process.env.HTTP==='http'){
+	port = config.server_port;
+	http = 'http';
+} else {
+	port = config.server_ssl_port;
+	http = 'https';
+}
+port = processArgs[0] || port;
 
 server.listen(port, function() {
-	var http = (process.env.HTTP==='http')?'http':'https';
 	server.runtime = dateTime.getDatetime();
 	console.log("===============================================================================");
 	console.log("%s - Nodejs server Version: %s", dateTime.getDatetime(), process.version);
