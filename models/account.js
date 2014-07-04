@@ -58,7 +58,14 @@ Account.statics.verifyToken = function(incomingToken, cb) {
 					cb(err);
 				} else if (incomingToken === usr.token.token) {
 					if (cb !== undefined){
-						cb(false, {terminal: usr.terminal, email: usr.email, token: usr.token, date_created: usr.date_created, full_name: usr.full_name});
+						cb(false, {
+							terminal: usr.terminal,
+							email: usr.email,
+							token: usr.token,
+							date_created: usr.date_created,
+							full_name: usr.full_name,
+							role: usr.role
+						});
 					}
 				} else {
 //					cb(new Error('Token does not match.'), null);
