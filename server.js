@@ -2,8 +2,6 @@
  * Created by Diego Reyes on 1/7/14.
  */
 var express		=	require('express'),
-	http		=	require('http'),
-	https		=	require('https'),
 	mongoose	=	require('mongoose'),
 	passport	=	require('passport'),
 	LocalStrategy =	require('passport-local').Strategy,
@@ -17,10 +15,17 @@ var dateTime = require('./include/moment');
 
 var config = require('./config/config.js');
 
-var server;
+var server, port, protocol;
 var app = express();
 
-if (process.env.HTTP !== 'http'){
+var processArgs = process.argv.slice(2);
+
+if (process.env.HTTP === 'https'){
+	var https = require('https');
+
+	port = config.server_ssl_port;
+	protocol = 'https';
+
 	var options = {
 		key: fs.readFileSync('./certificates/puertobuenosaires.gob.ar.key'),
 		cert: fs.readFileSync('./certificates/14452602.crt'),
@@ -32,9 +37,14 @@ if (process.env.HTTP !== 'http'){
 	};
 	server = https.createServer(options, app);
 } else {
+	var http = require('http');
+
+	port = config.server_port;
+	protocol = 'http';
+
 	server = http.createServer(app);
 }
-
+port = processArgs[0] || port;
 
 app.configure(function () {
 	app.use(express.bodyParser());
@@ -111,23 +121,11 @@ app.get('/log', function(req, res) {
 	});
 });
 
-var processArgs = process.argv.slice(2);
-
-var port, http;
-if (process.env.HTTP==='http'){
-	port = config.server_port;
-	http = 'http';
-} else {
-	port = config.server_ssl_port;
-	http = 'https';
-}
-port = processArgs[0] || port;
-
 server.listen(port, function() {
 	server.runtime = dateTime.getDatetime();
 	console.log("===============================================================================");
 	console.log("%s - Nodejs server Version: %s", dateTime.getDatetime(), process.version);
-	console.log("%s - Running on %s://localhost:%s", dateTime.getDatetime(), http, port);
+	console.log("%s - Running on %s://localhost:%s", dateTime.getDatetime(), protocol, port);
 	console.log("%s - Process Id (pid): %s", dateTime.getDatetime(), process.pid);
 	console.log("===============================================================================");
 });
