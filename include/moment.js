@@ -29,7 +29,12 @@ function objectId0000(fecha) {
 	return obj;
 }
 
+function dateTimeFromObjectId (guid) {
+	return new Date(parseInt(guid.toString().slice(0,8), 16)*1000);
+}
+
 
 module.exports.getDatetime = dateTime;
 module.exports.getObjectIdNow = objectIdNow;
 module.exports.getObjectId0000 = objectId0000;
+module.exports.getDateTimeFromObjectId = dateTimeFromObjectId;

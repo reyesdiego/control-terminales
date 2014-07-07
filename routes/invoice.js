@@ -135,8 +135,9 @@ module.exports = function(app, io) {
 				}
 
 				if (err) {
-					console.error("%s - Error: %s", dateTime.getDatetime(), err.error);
-					res.send(403, {status: "ERROR", data: err.error});
+					var errMsg = util.format("%s - Error: %s", dateTime.getDatetime(), err.error);
+					console.error(errMsg);
+					res.send(403, {status: "ERROR", data: errMsg});
 				} else {
 					try {
 						var invoice = {
@@ -200,7 +201,8 @@ module.exports = function(app, io) {
 									});
 							});
 						} else {
-							res.send(500, {"status":"ERROR", "data": "El contenedor no posee items."});
+							var errMsg = util.format("%s - Error: %s", dateTime.getDatetime(), "El contenedor no posee items.");
+							res.send(500, {status:"ERROR", data: errMsg});
 							return;
 						}
 						invoice.detalle.push(cont);
@@ -226,15 +228,36 @@ module.exports = function(app, io) {
 							console.log("%s - Invoice INS:%s - %s - Tipo: %s - %s", dateTime.getDatetime(), data._id, usr.terminal, postData.codTipoComprob, postData.fechaEmision);
 							var socketMsg = {status:'OK', datetime: dateTime.getDatetime(), terminal: usr.terminal};
 							io.sockets.emit('invoice', socketMsg);
-							res.send(200,{"status": "OK", "data": data});
+							res.send(200,{status: "OK", data: data});
 						} else {
-							var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
-							var strError = util.format('%s - Error: %s', dateTime.getDatetime(), errSave);
-							console.error(strError);
-							var mailer = new mail.mail(config.email);
-							mailer.send(usr.email, strSubject, strError, function(){
-							});
-							res.send(500, {"status": "ERROR", "data": strError});
+							//TODO crear objecto para tratar los errores, en este caso trato el tema de duplicados.
+							if (errSave.code === 11000){
+								Invoice.find({
+									terminal:		usr.terminal,
+									codTipoComprob:	invoice.codTipoComprob,
+									nroComprob:		invoice.nroComprob,
+									nroPtoVenta:	invoice.nroPtoVenta
+								}, function (err, invoice){
+									var errMsg = util.format('%s - Error INS: El tipo de comprobante: %s, número: %s, fue transferido el %s:\n %s\n\n%s - ERROR:%s\n\n%s', dateTime.getDatetime(), invoice[0].codTipoComprob, invoice[0].nroComprob, dateTime.getDateTimeFromObjectId(invoice[0]._id), invoice[0], moment(), errSave, JSON.stringify(postData));
+
+									var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
+									console.error(errMsg);
+									var mailer = new mail.mail(config.email);
+									mailer.send(usr.email, strSubject, errMsg, function(){
+									});
+
+									res.send(500, {status: "ERROR", data: errMsg});
+								})
+							} else {
+								var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
+								var strError = util.format('%s - Error INS: %s', dateTime.getDatetime(), errSave);
+								console.error(strError);
+								var mailer = new mail.mail(config.email);
+								mailer.send(usr.email, strSubject, strError, function(){
+								});
+
+								res.send(500, {status: "ERROR", data: strError});
+							}
 						}
 					});
 
