@@ -20,7 +20,7 @@ module.exports = function (app){
 				console.error('%s - Error: %s', dateTime.getDatetime(), err);
 				res.send(403, {status:"ERROR", data: err.error});
 			} else {
-				var ter = (usr.role === 'AGP')?req.params.terminal:usr.terminal;
+				var ter = (usr.role === 'agp')?req.params.terminal:usr.terminal;
 				var param = {
 					$or : [
 						{terminal:	"AGP"},
