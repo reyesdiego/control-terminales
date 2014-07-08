@@ -37,7 +37,11 @@ module.exports = function (app, io) {
 						param.$or.push({inicio:{$lt: fecha}, fin: {$gte:fecha}});
 					}
 				}
-				param.terminal= usr.terminal;
+
+				if (usr.role === 'agp')
+					param.terminal= req.params.terminal;
+				else
+					param.terminal= usr.terminal;
 
 				var appointment = Appointment.find(param).limit(req.params.limit).skip(req.params.skip);
 				appointment.exec( function( err, appointments){
@@ -184,6 +188,6 @@ module.exports = function (app, io) {
 
 	app.get('/appointmentsByHour', getAppointmentsByHour);
 	app.get('/appointmentsByMonth', getAppointmentsByMonth);
-	app.get('/appointments/:skip/:limit', getAppointments);
+	app.get('/appointments/:terminal/:skip/:limit', getAppointments);
 	app.post('/appointment', addAppointment);
 };

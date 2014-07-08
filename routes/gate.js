@@ -37,7 +37,10 @@ module.exports = function (app, io) {
 						param.gateTimestamp['$lt'] = fecha;
 					}
 				}
-				param.terminal= usr.terminal;
+				if (usr.role === 'agp')
+					param.terminal= req.params.terminal;
+				else
+					param.terminal= usr.terminal;
 
 				var gate = Gate.find(param).limit(req.params.limit).skip(req.params.skip).sort({gateTimestamp:1});
 				gate.exec( function( err, gates){
@@ -179,6 +182,6 @@ module.exports = function (app, io) {
 
 	app.get('/gatesByHour', getGatesByHour);
 	app.get('/gatesByMonth', getGatesByMonth);
-	app.get('/gates/:skip/:limit', getGates);
+	app.get('/gates/:terminal/:skip/:limit', getGates);
 	app.post('/gate', addGate);
 };
