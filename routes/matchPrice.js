@@ -22,7 +22,7 @@ module.exports = function (app){
 				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
 			} else {
 
-				var ter = (usr.role === 'AGP')?req.params.terminal:usr.terminal;
+				var ter = (usr.role === 'agp')?req.params.terminal:usr.terminal;
 				var param = {
 					$or : [
 						{terminal:	"AGP"},

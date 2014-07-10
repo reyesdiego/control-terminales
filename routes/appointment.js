@@ -30,11 +30,11 @@ module.exports = function (app, io) {
 					param.$or=[];
 					if (req.query.fechaInicio){
 						fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
-						param.$or.push({inicio:{$lt: fecha}, fin: {$gte:fecha}});
+						param.$or.push({inicio:{$lte: fecha}, fin: {$gte:fecha}});
 					}
 					if (req.query.fechaFin){
 						fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
-						param.$or.push({inicio:{$lt: fecha}, fin: {$gte:fecha}});
+						param.$or.push({inicio:{$lte: fecha}, fin: {$gte:fecha}});
 					}
 				}
 
@@ -173,14 +173,15 @@ module.exports = function (app, io) {
 				if (appointment2insert) {
 					Appointment.insert(appointment2insert, function (errData, data){
 						if (!errData){
-							console.log('%s - Appointment INS: %s - %s', dateTime.getDatetime(), data._id, usr.terminal);
+							console.log('%s - Appointment INS: %s - %s - Inicio: %s, Fin: %s', dateTime.getDatetime(), data._id, usr.terminal, data.inicio, data.fin);
 							var socketMsg = {status:'OK', datetime: dateTime.getDatetime(), terminal: usr.terminal};
 							io.sockets.emit('appointment', socketMsg);
 							res.send(200, {status: 'OK', data: data});
 						} else {
+							console.error('%s - ERROR: %s', dateTime.getDatetime(), errData.toString());
 							res.send(500, {status:'ERROR', data: errData.toString()});
 						}
-					})
+					});
 				}
 			}
 		});
