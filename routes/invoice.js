@@ -337,7 +337,7 @@ module.exports = function(app, io) {
 
 		var jsonParam = [
 			{$match: { 'fecha.emision': {$gte: date5Ago, $lt: tomorrow} }},
-			{ $project: {'accessDate':'$fecha.emision', terminal: '$terminal'} },
+			{ $project: {'accessDate':'$fecha.emision', terminal: '$terminal', total: '$importe.total'} },
 			{ $group : {
 				_id : { terminal: '$terminal',
 					year: { $year : "$accessDate" },
@@ -345,7 +345,8 @@ module.exports = function(app, io) {
 					day: { $dayOfMonth : "$accessDate" },
 					date: '$accessDate'
 				},
-				cnt : { $sum : 1 }
+				cnt : { $sum : 1 },
+				total: { $sum : '$total'}
 			}
 			},
 			{ $sort: {'_id.date': 1, '_id.terminal': 1 }}
@@ -367,13 +368,14 @@ module.exports = function(app, io) {
 
 		var jsonParam = [
 			{$match: { 'fecha.emision': {$gte: month5Ago, $lt: nextMonth} }},
-			{ $project: {'accessDate':'$fecha.emision', terminal: '$terminal'} },
+			{ $project: {'accessDate':'$fecha.emision', terminal: '$terminal', total: '$importe.total'} },
 			{ $group : {
 							_id : { terminal: '$terminal',
 								year: { $year : "$accessDate" },
 								month: { $month : "$accessDate" }
 							},
-							cnt : { $sum : 1 }
+							cnt : { $sum : 1 },
+							total: { $sum : '$total'}
 						}
 			},
 			{ $sort: {'_id.month': 1, '_id.terminal': 1 }}
