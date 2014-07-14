@@ -21,8 +21,9 @@ var TokenModel = mongoose.model('Token', Token);
 var Account = new Schema({
 	email: { type: String, required: true, lowercase:true, index: { unique: true } },
 	password: { type: String},
-	terminal: {type: String, required: true, uppercase:true, enum: ['BACTSSA', 'TRP', 'TERMINAL4']},
+	terminal: {type: String, required: true, uppercase:true, enum: ['BACTSSA', 'TRP', 'TERMINAL4', 'AGP']},
 	role: {type: String},
+	user: {type: String},
 	full_name: {type: String, required: true},//TODO: break out first / last names
 	date_created: {type: Date, default: Date.now},
 	token: {type: Object},
@@ -61,6 +62,7 @@ Account.statics.verifyToken = function(incomingToken, cb) {
 						cb(false, {
 							terminal: usr.terminal,
 							email: usr.email,
+							user: usr.user,
 							token: usr.token,
 							date_created: usr.date_created,
 							full_name: usr.full_name,
@@ -84,7 +86,10 @@ Account.statics.verifyToken = function(incomingToken, cb) {
 Account.statics.login = function (username, password, cb) {
 
 	if (username !== undefined && username !== '' && password !== undefined && password !== ''){
-		this.findOne({email: username, password: password}, function(err, user){
+		this.findOne({
+				$or: [{email: username}, {user:username}],
+				password: password
+			}, function(err, user){
 			if (err){
 				cb(err, null);
 			} else if (user) {
@@ -97,6 +102,7 @@ Account.statics.login = function (username, password, cb) {
 					acceso: rutasAcceso,
 					role: user.role,
 					email: user.email,
+					user: user.user,
 					terminal: user.terminal,
 					token: user.token,
 					date_created: user.date_created,
@@ -104,13 +110,11 @@ Account.statics.login = function (username, password, cb) {
 				});
 			} else {
 				var errMsg = 'Invalid or missing Login or Password';
-				console.log(errMsg);
 				cb({error: errMsg});
 			}
 		});
 	} else {
 		var errMsg = 'Invalid or missing Login or Password';
-		console.log(errMsg);
 		cb({error: errMsg});
 	}
 
@@ -118,7 +122,13 @@ Account.statics.login = function (username, password, cb) {
 
 Account.statics.password = function (email, password, newPassword, cb) {
 	if (email !== undefined && email !== '' && password !== undefined && password !== '' && newPassword !== undefined){
-		this.update({email: email, password: password},{$set:{password: newPassword}}, null, function (err, user){
+		this.update({
+						$or: [{email: email}, {user: email}],
+						password: password
+					},
+					{
+						$set: { password: newPassword }
+					}, null, function (err, user){
 			if (err){
 				cb(err, null);
 			} else {
@@ -134,11 +144,11 @@ Account.statics.password = function (email, password, newPassword, cb) {
 
 Account.statics.findUser = function(email, token, cb) {
     var self = this;
-    this.findOne({email: email}, function(err, usr) {
+    this.findOne({$or: [{email: email}, {user: email}]}, function(err, usr) {
         if(err || !usr) {
             cb(err, null);
         } else if (token === usr.token.token) {
-            cb(false, {email: usr.email, token: usr.token, date_created: usr.date_created, full_name: usr.full_name});
+            cb(false, {email: usr.email, user: usr.user, token: usr.token, date_created: usr.date_created, full_name: usr.full_name});
         } else {
             cb(new Error('Token does not match.'), null);
         }

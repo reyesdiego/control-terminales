@@ -65,18 +65,19 @@ module.exports = function (app, passport) {
 	app.post('/login', function(req, res) {
 
 		var json = req.body;
-		console.log("%s - User has logged in: %s", dateTime.getDatetime(), json.email);
 		if (json.email !== undefined) {
 			Account.login(json.email, json.password, function(err, usersToken) {
 
 				if (err) {
+					console.log("%s - ERROR: %s", dateTime.getDatetime(), err.error);
 					res.send(403, err.error);
 				} else {
+					console.log("%s - User has logged in: %s", dateTime.getDatetime(), json.email);
 					res.send(usersToken);
 				}
 			});
 		} else {
-			res.send(403, "email is missing");
+			res.send(403, "user or email is missing");
 		}
 
 
@@ -105,7 +106,7 @@ module.exports = function (app, passport) {
 
 	});
 
-	app.put('/agp/password', function (req, res) {
+	app.post('/agp/password', function (req, res) {
 		console.log(req.body);
 		if (req.body.email !== undefined) {
 			Account.password(req.body.email, req.body.password, req.body.newPass, function(err, result) {
