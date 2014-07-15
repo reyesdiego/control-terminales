@@ -5,6 +5,8 @@ var config = require(path.join(__dirname, '..', '/config/config.js'));
 var Account = require(path.join(__dirname, '..', '/models/account'));
 var flash = require(path.join(__dirname, '..', '/include/utils')).flash;
 var dateTime = require('../include/moment');
+var util = require('util');
+
 /**
  * @module Accounts
  */
@@ -69,8 +71,35 @@ module.exports = function (app, passport) {
 			Account.login(json.email, json.password, function(err, usersToken) {
 
 				if (err) {
-					console.log("%s - ERROR: %s", dateTime.getDatetime(), err.error);
-					res.send(403, err.error);
+					if (req.socket.remoteAddress !== '127.0.0.1' && req.socket.remoteAddress !== 'localhost'){
+						var ActiveDirectory = require('activedirectory');
+						var ad = new ActiveDirectory(	{	url: 'ldap://10.0.0.56:389',
+															baseDN: 'dc=ptobaires,dc=gov,dc=ar'
+														});
+						ad.authenticate(json.email, json.password, function(err, auth) {
+							if (err) {
+								var errMsg = util.format("%s - ERROR: %s", dateTime.getDatetime(), JSON.stringify(err));
+								console.error(errMsg);
+								res.send(403, errMsg);
+								return;
+							}
+
+							if (auth) {
+								this.find({user:"agp"}, function (err, userAgp){
+									console.log("%s - User has logged in: %s", dateTime.getDatetime(), json.email);
+									userAgp.user = json.email;
+									res.send(200, usersToken);
+								});
+							}
+							else {
+								console.log("%s - ERROR: %s", dateTime.getDatetime(), 'Authentication Failed');
+								res.send(403, err.error);
+							}
+						});
+					} else {
+						console.log("%s - ERROR: %s", dateTime.getDatetime(), err.error);
+						res.send(403, err.error);
+					}
 				} else {
 					console.log("%s - User has logged in: %s", dateTime.getDatetime(), json.email);
 					res.send(usersToken);
@@ -79,31 +108,6 @@ module.exports = function (app, passport) {
 		} else {
 			res.send(403, "user or email is missing");
 		}
-
-
-//		req.addListener("data", function(postDataChunk) {
-//			postData += postDataChunk;
-//		});
-//		req.addListener("end", function() {
-//			console.log(postData);
-//			var json = JSON.parse(postData);
-//			console.log(json);
-//			if (json.email !== undefined) {
-//				Account.login(json.email, json.password, function(err, usersToken) {
-//
-//					if (err) {
-//						res.send(403, err.error);
-//					} else {
-//						res.send(usersToken);
-//					}
-//				});
-//			} else {
-////			res.send(403);
-//			}
-//
-//
-//		})
-
 	});
 
 	app.post('/agp/password', function (req, res) {
