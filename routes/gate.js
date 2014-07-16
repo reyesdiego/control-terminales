@@ -10,6 +10,9 @@ module.exports = function (app, io) {
 	var path = require('path');
 	var Account = require(path.join(__dirname, '..', '/models/account'));
 	var Gate = require('../models/gate.js');
+	var util = require('util');
+	var mail = require("../include/emailjs");
+	var config = require('../config/config.js');
 
 	function getGates(req, res){
 		'use static';
@@ -171,8 +174,17 @@ module.exports = function (app, io) {
 							io.sockets.emit('gate', socketMsg);
 							res.send(200, {status: "OK", data: data});
 						} else {
-							console.log("%s - Error: %s. - %s", dateTime.getDatetime(), errSave, usr.terminal);
-							res.send(500, {status:"ERROR", data: errSave});
+
+							var errMsg = util.format('%s - ERROR: %s.-%s- \n%s', dateTime.getDatetime(), errSave.toString(), usr.terminal, JSON.stringify(req.body));
+							console.error(errMsg);
+
+							var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
+							var mailer = new mail.mail(config.email);
+							mailer.send("dreyes@puertobuenosaires.gob.ar", strSubject, errMsg, function(){
+//							mailer.send(usr.email, strSubject, errMsg, function(){
+							});
+
+							res.send(500, {status:"ERROR", data: errMsg});
 						}
 					});
 				}

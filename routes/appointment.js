@@ -10,6 +10,9 @@ module.exports = function (app, io) {
 	var path = require('path');
 	var Account = require(path.join(__dirname, '..', '/models/account'));
 	var Appointment = require('../models/appointment.js');
+	var util = require('util');
+	var mail = require("../include/emailjs");
+	var config = require('../config/config.js');
 
 	function getAppointments(req, res, next){
 		'use static';
@@ -178,8 +181,15 @@ module.exports = function (app, io) {
 							io.sockets.emit('appointment', socketMsg);
 							res.send(200, {status: 'OK', data: data});
 						} else {
-							console.error('%s - ERROR: %s', dateTime.getDatetime(), errData.toString());
-							res.send(500, {status:'ERROR', data: errData.toString()});
+							var errMsg = util.format('%s - ERROR: %s.-%s- \n%s', dateTime.getDatetime(), errData.toString(), usr.terminal, JSON.stringify(req.body));
+							console.error(errMsg);
+
+							var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
+							var mailer = new mail.mail(config.email);
+							mailer.send(usr.email, strSubject, errMsg, function(){
+							});
+
+							res.send(500, {status:'ERROR', data: errMsg});
 						}
 					});
 				}
