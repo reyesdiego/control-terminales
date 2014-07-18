@@ -5,6 +5,7 @@
 
 var path = require('path');
 var Account = require(path.join(__dirname, '..', '/models/account'));
+var util = require('util');
 
 var dateTime = require('../include/moment');
 
@@ -20,28 +21,37 @@ module.exports = function (app){
 				console.error('%s - Error: %s', dateTime.getDatetime(), err);
 				res.send(403, {status:"ERROR", data: err.error});
 			} else {
-				var ter = (usr.role === 'agp')?req.params.terminal:usr.terminal;
-				var param = {
-					$or : [
-						{terminal:	"AGP"},
-						{terminal:	ter}
-					]
-				};
 
-				if (req.query.code){
-					param.code = req.query.code;
-				}
+				var paramTerminal = req.params.terminal;
 
-				price.find(param)
-					.sort({terminal:1, code:1})
-					.exec(function(err, priceList){
-					if(!err) {
-						res.send(200, {status:'OK', data:priceList});
-					} else {
-						console.error('%s - Error: %s', dateTime.getDatetime(), err);
-						res.send(500, {status:'ERROR', data: err});
+				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal){
+					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
+					console.error(errMsg);
+					res.send(500, {status:"ERROR", data: errMsg});
+				} else {
+					var ter = (usr.role === 'agp')?req.params.terminal:usr.terminal;
+					var param = {
+						$or : [
+							{terminal:	"AGP"},
+							{terminal:	ter}
+						]
+					};
+
+					if (req.query.code){
+						param.code = req.query.code;
 					}
-				});
+
+					price.find(param)
+						.sort({terminal:1, code:1})
+						.exec(function(err, priceList){
+						if(!err) {
+							res.send(200, {status:'OK', data:priceList});
+						} else {
+							console.error('%s - Error: %s', dateTime.getDatetime(), err);
+							res.send(500, {status:'ERROR', data: err});
+						}
+					});
+				}
 			}
 		});
 	}
