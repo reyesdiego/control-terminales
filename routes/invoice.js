@@ -24,6 +24,7 @@ module.exports = function(app, io) {
 
 	var Invoice = require('../models/invoice.js');
 	var Price = require('../models/price.js');
+	var MatchPrice = require('../models/matchPrice.js');
 
 	//GET - Return all invoice in the DB
 	function getInvoices (req, res) {
@@ -48,6 +49,9 @@ module.exports = function(app, io) {
 						param["fecha.emision"]['$lt'] = fecha;
 					}
 				}
+				if (req.query.codTipoComprob){
+					param.codTipoComprob = req.query.codTipoComprob;
+				}
 				if (req.query.nroComprobante){
 					param.nroComprob = req.query.nroComprobante;
 				}
@@ -69,7 +73,7 @@ module.exports = function(app, io) {
 				var invoices = Invoice.find(param);
 
 				invoices.limit(req.params.limit).skip(req.params.skip);
-				invoices.sort({nroComprob:1});
+				invoices.sort({codTipoComprob:1, nroComprob:1});
 				invoices.exec(function(err, invoices) {
 					if(!err) {
 						Invoice.count(param, function (err, cnt){
@@ -467,6 +471,73 @@ module.exports = function(app, io) {
 
 	}
 
+	function getNoMatches (req, res) {
+		'use strict';
+
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (err){
+				console.error('%s - Error: %s', dateTime.getDatetime(), err);
+				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
+			} else {
+
+				var paramTerminal = req.params.terminal;
+
+				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal){
+					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
+					console.error(errMsg);
+					res.send(500, {status:"ERROR", data: errMsg});
+				} else {
+					var param = [
+						{
+							$match: {terminal:	paramTerminal }
+						},
+						{	$unwind: '$match' },
+						{ $project: {match: '$match', _id:0}}
+					];
+
+					var s = MatchPrice.aggregate(param);
+					s.exec(function (err, noMatches){
+						if(!err) {
+							var arrResult = [];
+							noMatches.forEach(function (item){
+								arrResult.push(item.match);
+							});
+
+							var inv = Invoice.aggregate([
+								{ $match : {"terminal": req.params.terminal} },
+								{ $unwind : '$detalle' },
+								{ $unwind : '$detalle.items' },
+								{ $match : {'detalle.items.id' : { $nin: arrResult }}},
+								{ $group : { _id: {
+									'_id':'$_id',
+									'nroPtoVenta' : '$nroPtoVenta',
+									'nroComprob' : '$nroComprob',
+									'razon' : '$razon',
+									'fecha' : '$fecha.emision',
+									'impTot' : '$importe.total'
+								}
+								}
+								},
+								{ $limit : parseInt(req.params.limit, 10) },
+								{ $skip: parseInt(req.params.skip, 10) }
+							]);
+							inv.exec(function (err, data){
+								res.send(200, {status:'OK', data: data});
+							});
+
+						} else {
+							console.error('%s - Error: %s', dateTime.getDatetime(), err);
+							res.send(500, {status:'ERROR', data: err});
+						}
+					});
+				}
+
+			}
+		});
+	}
+
+
 	app.get('/invoices/:terminal/:skip/:limit', getInvoices);
 	app.get('/invoice/:id', getInvoice);
 	app.get('/invoices', getInvoices);
@@ -475,6 +546,7 @@ module.exports = function(app, io) {
 	app.get('/invoices/countsByMonth', getCountByMonth);
 	app.get('/invoices/noRates/:terminal/:skip/:limit', getNoRates);
 	app.get('/invoices/ratesTotal', getRatesTotal);
+	app.get('/invoices/noMatches/:terminal/:skip/:limit', getNoMatches);
 	app.post('/invoice', addInvoice);
 	app.delete('/invoices/:_id', removeInvoices);
 
