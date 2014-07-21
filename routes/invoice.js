@@ -254,7 +254,7 @@ module.exports = function(app, io) {
 								})
 							} else {
 								var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
-								var strError = util.format('%s - Error INS: %s', dateTime.getDatetime(), errSave);
+								var strError = util.format('%s - Error INS: %s -\n%s', dateTime.getDatetime(), errSave, JSON.stringify(postData));
 								console.error(strError);
 								var mailer = new mail.mail(config.email);
 								mailer.send(usr.email, strSubject, strError, function(){
