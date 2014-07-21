@@ -6,6 +6,7 @@
 module.exports = function (app){
 
 	var MatchPrice = require('../models/matchPrice.js');
+	var Invoice = require('../models/invoice.js');
 	var util = require('util');
 	var price = require('../models/price.js');
 	var dateTime = require('../include/moment');
@@ -116,6 +117,51 @@ module.exports = function (app){
 		});
 	}
 
+	function getNoMatches (req, res) {
+		'use strict';
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (err){
+				console.error('%s - Error: %s', dateTime.getDatetime(), err);
+				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
+			} else {
+				var paramTerminal = req.params.terminal;
+
+				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal){
+					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
+					console.error(errMsg);
+					res.send(500, {status:"ERROR", data: errMsg});
+				} else {
+
+					var param = [
+						{
+							$match: {terminal:	paramTerminal }
+						},
+						{	$unwind: '$match' },
+						{ $project: {match: '$match', _id:0}}
+					];
+
+					var s = MatchPrice.aggregate(param);
+					s.exec(function (err, noMatches){
+						if(!err) {
+							var arrResult = [];
+							noMatches.forEach(function (item){
+								arrResult.push(item.match);
+							});
+							Invoice.distinct('detalle.items.id', {
+								terminal: usr.terminal,
+								'detalle.items.id': {$nin: arrResult}
+							}, function (err, data){
+								res.send(200, {status:'OK', data: data});
+							})
+						}
+					});
+
+				}
+			}
+		});
+	}
+
 	function addMatchPrice (req, res){
 		'use strict';
 
@@ -164,6 +210,7 @@ module.exports = function (app){
 
 	app.get('/matchprices/:terminal', getMatchPrices);
 	app.get('/matches/:terminal', getMatches);
+	app.get('/noMatches/:terminal', getNoMatches);
 	app.post('/matchprice', addMatchPrice);
 	app.put('/matchprice', addMatchPrice);
 
