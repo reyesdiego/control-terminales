@@ -65,6 +65,9 @@ module.exports = function(app, io) {
 				if (req.query.contenedor)
 					param['detalle.contenedor'] = req.query.contenedor;
 
+				if (req.query.code)
+					param['detalle.items.id'] = req.query.code;
+
 				if (usr.role === 'agp')
 					param.terminal = req.params.terminal;
 				else
@@ -102,13 +105,19 @@ module.exports = function(app, io) {
 				console.log(usr);
 				res.send(403, {status:'ERROR', data: err});
 			} else {
-				var invoice = Invoice.find({_id: req.params.id, terminal: usr.terminal});
+				var param = {
+					_id: req.params.id
+				};
+				if (usr.role !== 'agp')
+					param.terminal = usr.terminal;
+
+				var invoice = Invoice.find(param);
 				invoice.exec(function(err, invoices){
 					if (err) {
 						console.error("%s - Error: %s", dateTime.getDatetime(), err.error);
 						res.send({status:'ERROR', data: err});
 					} else {
-						res.send(200, {status:"OK", data: invoices[0]})
+						res.send(200, {status:"OK", data: invoices[0]||null})
 					}
 				})
 			}
@@ -200,7 +209,6 @@ module.exports = function(app, io) {
 										cnt:		item.cnt,
 										uniMed:		item.uniMed,
 										impUnit:	item.impUnit,
-										impIva:		item.impIva,
 										impTot:		item.impTot
 									});
 							});
