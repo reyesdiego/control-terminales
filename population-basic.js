@@ -28,12 +28,19 @@ var gameSchema = Schema({
 })
 var Game = mongoose.model('Game', gameSchema);
 
+var T4Sch = Schema({
+	MATCH : {type: String},
+	CODE : {type: String}
+})
+
+var Tcuatro = mongoose.model('Tcuatros', T4Sch);
+
 /**
  * Connect to the console database on localhost with
  * the default port (27017)
  */
 
-mongoose.connect('mongodb://localhost/console', function (err) {
+mongoose.connect('mongodb://localhost/terapi', function (err) {
   // if we failed to connect, abort
   if (err) throw err;
 
@@ -46,6 +53,10 @@ mongoose.connect('mongodb://localhost/console', function (err) {
  */
 
 function createData () {
+	Tcuatro.find({}, function (err, data){
+		console.log(data);
+	});
+
   Console.create({
 	  _id:"NIN",
       name: 'Nintendo 64'
