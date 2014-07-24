@@ -38,7 +38,7 @@ Account.statics.encode = function(data) {
 };
 
 Account.statics.decode = function(data) {
-    return jwt.decode(data, tokenSecret);
+	return jwt.decode(data, tokenSecret);
 };
 
 Account.statics.verifyToken = function(incomingToken, cb) {
