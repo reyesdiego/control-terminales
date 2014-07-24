@@ -149,7 +149,7 @@ module.exports = function (app){
 								arrResult.push(item.match);
 							});
 							Invoice.distinct('detalle.items.id', {
-								terminal: usr.terminal,
+								terminal: paramTerminal,
 								'detalle.items.id': {$nin: arrResult}
 							}, function (err, data){
 								res.send(200, {status:'OK', data: data});
@@ -178,7 +178,7 @@ module.exports = function (app){
 							matchItem.match = match.match;
 							matchItem.save(function (err) {
 								asyncCallback();
-							})
+							});
 						});
 					} else {
 						var _matchPrice2Add = {
@@ -196,7 +196,6 @@ module.exports = function (app){
 							priceItem.save();
 							asyncCallback();
 						});
-
 					}
 
 				}
