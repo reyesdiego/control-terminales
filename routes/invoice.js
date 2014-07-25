@@ -512,11 +512,26 @@ module.exports = function(app, io) {
 								arrResult.push(item.match);
 							});
 
+							var fecha;
+							var match = {};
+							if (req.query.fechaInicio || req.query.fechaFin){
+								match["fecha.emision"]={};
+								if (req.query.fechaInicio){
+									fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+									match["fecha.emision"]['$gte'] = fecha;
+								}
+								if (req.query.fechaFin){
+									fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+									match["fecha.emision"]['$lt'] = fecha;
+								}
+							}
+							match['detalle.items.id'] = { $nin: arrResult };
+
 							var inv = Invoice.aggregate([
 								{ $match : {"terminal": req.params.terminal} },
 								{ $unwind : '$detalle' },
 								{ $unwind : '$detalle.items' },
-								{ $match : {'detalle.items.id' : { $nin: arrResult }}},
+								{ $match : match },
 								{ $group : { _id: {
 									'_id':'$_id',
 									'nroPtoVenta' : '$nroPtoVenta',
