@@ -21,11 +21,16 @@ console.log('Running mongoose version %s', mongoose.version);
  */
 
 //mongoose.connect('mongodb://localhost/terapi', function (err) {
-//
-//	if (err) throw err;
-//
-//	getData();
-//})
+mongoose.connect('mongodb://10.1.0.51/terapi', {
+	user: 'admin',
+	pass: 'Pt trend 54',
+	auth:{authdb:"admin"}
+}, function (err) {
+
+	if (err) throw err;
+	console.log("Connected");
+	getData();
+})
 
 
 function getData() {
