@@ -46,7 +46,7 @@ module.exports = function(app, io) {
 					}
 					if (req.query.fechaFin){
 						fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
-						param["fecha.emision"]['$lt'] = fecha;
+						param["fecha.emision"]['$lte'] = fecha;
 					}
 				}
 				if (req.query.codTipoComprob){
@@ -517,11 +517,11 @@ module.exports = function(app, io) {
 							if (req.query.fechaInicio || req.query.fechaFin){
 								match["fecha.emision"]={};
 								if (req.query.fechaInicio){
-									fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+									fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z')).toDate();
 									match["fecha.emision"]['$gte'] = fecha;
 								}
 								if (req.query.fechaFin){
-									fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+									fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z')).toDate();
 									match["fecha.emision"]['$lt'] = fecha;
 								}
 							}
