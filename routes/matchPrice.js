@@ -10,6 +10,7 @@ module.exports = function (app){
 	var util = require('util');
 	var price = require('../models/price.js');
 	var dateTime = require('../include/moment');
+	var moment = require('moment');
 
 	var path = require('path');
 	var Account = require(path.join(__dirname, '..', '/models/account'));
@@ -144,14 +145,27 @@ module.exports = function (app){
 					var s = MatchPrice.aggregate(param);
 					s.exec(function (err, noMatches){
 						if(!err) {
-							var arrResult = [];
+							var arrNoMatches = [];
 							noMatches.forEach(function (item){
-								arrResult.push(item.match);
+								arrNoMatches.push(item.match);
 							});
-							Invoice.distinct('detalle.items.id', {
-								terminal: paramTerminal,
-								'detalle.items.id': {$nin: arrResult}
-							}, function (err, data){
+							var fecha;
+							var param = {};
+							if (req.query.fechaInicio || req.query.fechaFin){
+								param["fecha.emision"]={};
+								if (req.query.fechaInicio){
+									fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z')).toDate();
+									param["fecha.emision"]['$gte'] = fecha;
+								}
+								if (req.query.fechaFin){
+									fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z')).toDate();
+									param["fecha.emision"]['$lte'] = fecha;
+								}
+							}
+							param.terminal = paramTerminal;
+							param['detalle.items.id'] = {$nin: arrNoMatches};
+
+							Invoice.distinct('detalle.items.id', param, function (err, data){
 								res.send(200, {status:'OK', data: data});
 							})
 						}

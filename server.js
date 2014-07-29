@@ -157,7 +157,7 @@ mongoose.connection.on('connected', function () {
 	console.log("===============================================================================");
 });
 mongoose.connection.on('error',function (err) {
-	console.error('%s - ERROR: connecting to Database. %s', dateTime.getDatetime(), err);
+	console.error('%s - ERROR: Database or Mongoose error. %s', dateTime.getDatetime(), err);
 	console.log("===============================================================================");
 });
 mongoose.connection.on('disconnected', function () {
