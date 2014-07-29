@@ -546,7 +546,15 @@ module.exports = function(app, io) {
 								{ $skip: parseInt(req.params.skip, 10) }
 							]);
 							inv.exec(function (err, data){
-								res.send(200, {status:'OK', data: data});
+								var cnt = data.length;
+								var result = {
+									status: 'OK',
+									totalCount: cnt,
+									pageCount: (req.params.limit > cnt)?cnt:req.params.limit,
+									page: req.params.skip,
+									data: data
+								}
+								res.send(200, {status:'OK', data: result});
 							});
 
 						} else {
