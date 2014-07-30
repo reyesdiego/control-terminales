@@ -532,29 +532,32 @@ module.exports = function(app, io) {
 								{ $unwind : '$detalle' },
 								{ $unwind : '$detalle.items' },
 								{ $match : match },
-								{ $group : { _id: {
-									'_id':'$_id',
-									'nroPtoVenta' : '$nroPtoVenta',
-									'nroComprob' : '$nroComprob',
-									'razon' : '$razon',
-									'fecha' : '$fecha.emision',
-									'impTot' : '$importe.total'
-								}
-								}
+								{ $group : { _id:	{
+														'_id':'$_id',
+														'nroPtoVenta' : '$nroPtoVenta',
+														'nroComprob' : '$nroComprob',
+														'razon' : '$razon',
+														'fecha' : '$fecha.emision',
+														'impTot' : '$importe.total'
+													}
+											}
 								},
 								{ $limit : parseInt(req.params.limit, 10) },
 								{ $skip: parseInt(req.params.skip, 10) }
 							]);
+
 							inv.exec(function (err, data){
-								var cnt = data.length;
-								var result = {
-									status: 'OK',
-									totalCount: cnt,
-									pageCount: (req.params.limit > cnt)?cnt:req.params.limit,
-									page: req.params.skip,
-									data: data
-								}
-								res.send(200, {status:'OK', data: result});
+								var cnt = 11;
+//								inv.count(function (errCnt, cnt){
+									var result = {
+										status: 'OK',
+										totalCount: cnt,
+										pageCount: parseInt( ((req.params.limit > cnt)?cnt:req.params.limit) , 10),
+										page: parseInt(req.params.skip, 10),
+										data: data
+									}
+									res.send(200, {status:'OK', data: result});
+//								})
 							});
 
 						} else {
