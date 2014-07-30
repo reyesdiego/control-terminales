@@ -527,28 +527,26 @@ module.exports = function(app, io) {
 							}
 							match['detalle.items.id'] = { $nin: arrResult };
 
-							var inv = Invoice.aggregate([
-								{ $match : {"terminal": req.params.terminal} },
-								{ $unwind : '$detalle' },
-								{ $unwind : '$detalle.items' },
-								{ $match : match },
-								{ $group : { _id:	{
-														'_id':'$_id',
-														'nroPtoVenta' : '$nroPtoVenta',
-														'nroComprob' : '$nroComprob',
-														'razon' : '$razon',
-														'fecha' : '$fecha.emision',
-														'impTot' : '$importe.total'
-													}
-											}
-								},
-								{ $limit : parseInt(req.params.limit, 10) },
-								{ $skip: parseInt(req.params.skip, 10) }
-							]);
+							var inv = Invoice.aggregate();
+							inv.match({"terminal": req.params.terminal});
+							inv.unwind('detalle','detalle.items');
+							inv.match(match);
+							inv.group({ _id:	{
+								'_id':'$_id',
+								'nroPtoVenta' : '$nroPtoVenta',
+								'nroComprob' : '$nroComprob',
+								'razon' : '$razon',
+								'fecha' : '$fecha.emision',
+								'impTot' : '$importe.total'
+							}
+							});
+							inv.limit(10);
 
 							inv.exec(function (err, data){
-								var cnt = 11;
-//								inv.count(function (errCnt, cnt){
+								inv._pipeline.splice(5,1);
+								inv.group({_id: null,cnt:{$sum:1}});
+								inv.exec(function (err,data2){
+									var cnt = data2[0].cnt;
 									var result = {
 										status: 'OK',
 										totalCount: cnt,
@@ -557,7 +555,7 @@ module.exports = function(app, io) {
 										data: data
 									}
 									res.send(200, {status:'OK', data: result});
-//								})
+								});
 							});
 
 						} else {
