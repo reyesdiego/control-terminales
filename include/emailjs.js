@@ -5,7 +5,7 @@ var email 	= require("emailjs");
 
 var mail = function (status){
 
-	this.status = status || true;
+	this.status = status;
 	this.server = email.server.connect({
 		user:    "noreply",
 		password:"desarrollo",
