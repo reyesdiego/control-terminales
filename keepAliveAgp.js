@@ -5,7 +5,7 @@
 var http = require('http');
 var mail = require('./include/emailjs');
 
-var interval = 2 * 1000;
+var interval = 5 * 60 * 1000; // 5 minutos
 var errorCount = 0;
 var emailSent = 0;
 var allowSending = true;
@@ -48,12 +48,12 @@ function request(){
 
 	reqGet.on('error', function(e) {
 
-		if (errorCount++ === 3){
+		if (errorCount++ === 2){
 			console.error(e);
 			errorCount=0;
 
 			var mailer = new mail.mail(allowSending);
-			mailer.send("dreyes@puertobuenosaires.gob.ar", "AGP Service is down", optionsget, function(){
+			mailer.send("dreyes@puertobuenosaires.gob.ar", "AGP Service is down", JSON.stringify(optionsget), function(){
 				emailSent++;
 				console.log('emailSent: %s', emailSent);
 				if (emailSent === 2){
