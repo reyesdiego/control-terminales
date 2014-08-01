@@ -522,7 +522,7 @@ module.exports = function(app, io) {
 								}
 								if (req.query.fechaFin){
 									fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z')).toDate();
-									match["fecha.emision"]['$lt'] = fecha;
+									match["fecha.emision"]['$lte'] = fecha;
 								}
 							}
 							match['detalle.items.id'] = { $nin: arrResult };
