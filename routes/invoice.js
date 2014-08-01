@@ -540,22 +540,30 @@ module.exports = function(app, io) {
 								'impTot' : '$importe.total'
 							}
 							});
-							inv.limit(10);
+							inv.limit(parseInt(req.params.limit, 10));
 
 							inv.exec(function (err, data){
-								inv._pipeline.splice(5,1);
-								inv.group({_id: null,cnt:{$sum:1}});
-								inv.exec(function (err,data2){
-									var cnt = data2[0].cnt;
-									var result = {
-										status: 'OK',
-										totalCount: cnt,
-										pageCount: parseInt( ((req.params.limit > cnt)?cnt:req.params.limit) , 10),
-										page: parseInt(req.params.skip, 10),
-										data: data
+
+								if (!err){
+									if (data.length > 0){
+										inv._pipeline.splice(5,1);
+										inv.group({_id: null,cnt:{$sum:1}});
+										inv.exec(function (err, data2) {
+											var cnt = data2[0].cnt;
+											var result = {
+												status: 'OK',
+												totalCount: cnt,
+												pageCount: parseInt( ((req.params.limit > cnt)?cnt:req.params.limit) , 10),
+												page: parseInt(req.params.skip, 10),
+												data: data
+											}
+											res.send(200, {status:'OK', data: result});
+										});
+									} else {
+										res.send(200, { status:'OK', data: null });
 									}
-									res.send(200, {status:'OK', data: result});
-								});
+								}
+
 							});
 
 						} else {
