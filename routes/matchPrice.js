@@ -163,11 +163,26 @@ module.exports = function (app){
 								}
 							}
 							param.terminal = paramTerminal;
-							param['detalle.items.id'] = {$nin: arrNoMatches};
 
-							Invoice.distinct('detalle.items.id', param, function (err, data){
-								res.send(200, {status:'OK', data: data});
-							})
+							Invoice.aggregate([
+								{ $match: param},
+								{ $unwind: '$detalle'},
+								{ $unwind: '$detalle.items'},
+								{ $match: {'detalle.items.id' : {$nin: arrNoMatches } } },
+								{ $group: {_id: {
+													code : '$detalle.items.id'
+												}
+										}
+								}
+							], function (err, data){
+								var result = [];
+								data.forEach(function (item){
+									result.push(item._id.code);
+								});
+
+								res.send(200, {status:'OK', data: result});
+							});
+
 						}
 					});
 
