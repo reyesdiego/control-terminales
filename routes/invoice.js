@@ -383,8 +383,8 @@ module.exports = function(app, io) {
 			{ $project: {'accessDate':'$fecha.emision', terminal: '$terminal', total: '$importe.total'} },
 			{ $group : {
 							_id : { terminal: '$terminal',
-								year: { $year : "$accessDate" },
-								month: { $month : "$accessDate" }
+									year: { $year : "$accessDate" },
+									month: { $month : "$accessDate" }
 							},
 							cnt : { $sum : 1 },
 							total: { $sum : '$total'}
@@ -531,14 +531,16 @@ module.exports = function(app, io) {
 							inv.match({"terminal": req.params.terminal});
 							inv.unwind('detalle','detalle.items');
 							inv.match(match);
-							inv.group({ _id:	{
-								'_id':'$_id',
-								'nroPtoVenta' : '$nroPtoVenta',
-								'nroComprob' : '$nroComprob',
-								'razon' : '$razon',
-								'fecha' : '$fecha.emision',
-								'impTot' : '$importe.total'
-							}
+							inv.group({ _id:{
+												'_id':'$_id',
+												'nroPtoVenta' : '$nroPtoVenta',
+												'nroComprob' : '$nroComprob',
+												'razon' : '$razon',
+												'codMoneda': '$codMoneda',
+												'cotiMoneda': '$cotiMoneda',
+												'fecha' : '$fecha.emision',
+												'impTot' : '$importe.total'
+											}
 							});
 							inv.skip(parseInt(req.params.skip, 10));
 							inv.limit(parseInt(req.params.limit, 10));
@@ -564,7 +566,6 @@ module.exports = function(app, io) {
 										res.send(200, { status:'OK', data: [] });
 									}
 								}
-
 							});
 
 						} else {
