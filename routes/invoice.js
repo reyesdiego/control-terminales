@@ -83,8 +83,8 @@ module.exports = function(app, io) {
 							var result = {
 								status: 'OK',
 								totalCount: cnt,
-								pageCount: (req.params.limit > cnt)?cnt:req.params.limit,
-								page: req.params.skip,
+								pageCount: parseInt( ((req.params.limit > cnt)?cnt:req.params.limit ), 10),
+								page: parseInt(req.params.skip, 10),
 								data: invoices
 							}
 							res.send(200, result);
@@ -454,6 +454,23 @@ module.exports = function(app, io) {
 		var _price = require('../include/price.js');
 		var _rates = new _price.price();
 		_rates.rates(function (err, rates){
+
+			var sum = {};
+			if (req.params.currency === 'PES')
+				sum = { $cond: [
+								{$eq:['$codMoneda', 'PES' ]},
+								'$detalle.items.impTot',
+								{$multiply:['$detalle.items.impTot','$cotiMoneda'] }
+								]
+						};
+			else if (req.params.currency === 'DOL')
+				sum = { $cond: [
+							{$eq:['$codMoneda', 'DOL' ]},
+							'$detalle.items.impTot',
+							{$divide:['$detalle.items.impTot','$cotiMoneda'] }
+							]
+						};
+
 			var jsonParam = [
 				{	$unwind : '$detalle'	},
 				{	$unwind : '$detalle.items'	},
@@ -461,19 +478,21 @@ module.exports = function(app, io) {
 					'detalle.items.id' : {$in: rates},
 					'fecha.emision': {$gte: today, $lt: tomorrow} }
 				},
-				{
-					$project : {_id: 0, terminal:1, 'detalle.items':1}
+				{	$project : {terminal: 1, 'detalle.items': 1, "total" : sum }
 				},
 				{
 					$group  : {
 						_id: { terminal: '$terminal'},
 						cnt: { $sum: 1},
-						total: { $sum : '$detalle.items.impTot'}
+						total: {$sum: '$total'}
 					}
 				}
 			];
 			Invoice.aggregate(jsonParam, function (err, data){
-				res.send(200, data);
+				if (err)
+					res.send(500, {status:'ERROR', data: err });
+				else
+					res.send(200, {status:'OK', data: data });
 			});
 		});
 
@@ -587,7 +606,7 @@ module.exports = function(app, io) {
 	app.get('/invoices/countsByDate', getCountByDate);
 	app.get('/invoices/countsByMonth', getCountByMonth);
 	app.get('/invoices/noRates/:terminal/:skip/:limit', getNoRates);
-	app.get('/invoices/ratesTotal', getRatesTotal);
+	app.get('/invoices/ratesTotal/:currency', getRatesTotal);
 	app.get('/invoices/noMatches/:terminal/:skip/:limit', getNoMatches);
 	app.post('/invoice', addInvoice);
 	app.delete('/invoices/:_id', removeInvoices);
