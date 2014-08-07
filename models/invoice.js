@@ -25,7 +25,7 @@ var invoiceSchema = new Schema({
 							total:			{ type: Number, required: true }
 	},
 	codMoneda:			{ type: String, required: true, enum: ['PES', 'DOL', 'EUR'] },
-	cotiMoneda:			{ type: Number, required: true },
+	cotiMoneda:			{ type: Number, required: true, min: 1 },
 	observa:	 		{ type: String },
 	codConcepto:		{ type: Number },
 	fecha:				{
