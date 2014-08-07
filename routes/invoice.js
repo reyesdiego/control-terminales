@@ -347,9 +347,25 @@ module.exports = function(app, io) {
 		var date5Ago = moment(date).subtract('days', 4).toDate();
 		var tomorrow = moment(date).add('days', 1).toDate();
 
+		var sum = {};
+		if (req.params.currency === 'PES')
+			sum = { $cond: [
+				{$eq:['$codMoneda', 'PES' ]},
+				'$importe.total',
+				{$multiply:['$importe.total','$cotiMoneda'] }
+			]
+			};
+		else if (req.params.currency === 'DOL')
+			sum = { $cond: [
+				{$eq:['$codMoneda', 'DOL' ]},
+				'$importe.total',
+				{$divide:['$importe.total','$cotiMoneda'] }
+			]
+			};
+
 		var jsonParam = [
 			{$match: { 'fecha.emision': {$gte: date5Ago, $lt: tomorrow} }},
-			{ $project: {'accessDate':'$fecha.emision', terminal: '$terminal', total: '$importe.total'} },
+			{ $project: {'accessDate':'$fecha.emision', terminal: '$terminal', total: sum} },
 			{ $group : {
 				_id : { terminal: '$terminal',
 					year: { $year : "$accessDate" },
@@ -378,9 +394,25 @@ module.exports = function(app, io) {
 		var month5Ago = moment(date).subtract('months',4).toDate();
 		var nextMonth = moment(date).add('months',1).toDate();
 
+		var sum = {};
+		if (req.params.currency === 'PES')
+			sum = { $cond: [
+				{$eq:['$codMoneda', 'PES' ]},
+				'$importe.total',
+				{$multiply:['$importe.total','$cotiMoneda'] }
+			]
+			};
+		else if (req.params.currency === 'DOL')
+			sum = { $cond: [
+				{$eq:['$codMoneda', 'DOL' ]},
+				'$importe.total',
+				{$divide:['$importe.total','$cotiMoneda'] }
+			]
+			};
+
 		var jsonParam = [
 			{$match: { 'fecha.emision': {$gte: month5Ago, $lt: nextMonth} }},
-			{ $project: {'accessDate':'$fecha.emision', terminal: '$terminal', total: '$importe.total'} },
+			{ $project: {'accessDate':'$fecha.emision', terminal: '$terminal', total: sum} },
 			{ $group : {
 							_id : { terminal: '$terminal',
 									year: { $year : "$accessDate" },
@@ -603,8 +635,8 @@ module.exports = function(app, io) {
 	app.get('/invoice/:id', getInvoice);
 	app.get('/invoices', getInvoices);
 	app.get('/invoices/counts', getCounts);
-	app.get('/invoices/countsByDate', getCountByDate);
-	app.get('/invoices/countsByMonth', getCountByMonth);
+	app.get('/invoices/countsByDate/:currency', getCountByDate);
+	app.get('/invoices/countsByMonth/:currency', getCountByMonth);
 	app.get('/invoices/noRates/:terminal/:skip/:limit', getNoRates);
 	app.get('/invoices/ratesTotal/:currency', getRatesTotal);
 	app.get('/invoices/noMatches/:terminal/:skip/:limit', getNoMatches);
