@@ -173,7 +173,8 @@ module.exports = function (app){
 													code : '$detalle.items.id'
 												}
 										}
-								}
+								},
+								{$sort:{'_id.code':1}}
 							], function (err, data){
 								var result = [];
 								data.forEach(function (item){
@@ -182,7 +183,6 @@ module.exports = function (app){
 
 								res.send(200, {status:'OK', data: result});
 							});
-
 						}
 					});
 
