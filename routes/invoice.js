@@ -98,7 +98,7 @@ module.exports = function(app, io) {
 		});
 	}
 
-	function getInvoice(req, res){
+	function getInvoice(req, res) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
@@ -435,7 +435,7 @@ module.exports = function(app, io) {
 
 	}
 
-	function getNoRates (req, res){
+	function getNoRates (req, res) {
 		var terminal = req.params.terminal;
 
 		var _price = require('../include/price.js');
@@ -446,6 +446,15 @@ module.exports = function(app, io) {
 					terminal : terminal,
 					'detalle.items.id': {$nin: rates}
 				}
+
+				if (req.query.contenedor){
+					param['detalle.contenedor'] = req.query.contenedor;
+				}
+
+				if (req.query.razonSocial){
+					param.razon = {$regex:req.query.razonSocial}
+				}
+
 				var invoices = Invoice.find(param);
 				invoices.limit(req.params.limit).skip(req.params.skip);
 				invoices.sort({nroComprob:1});
@@ -593,6 +602,7 @@ module.exports = function(app, io) {
 												'impTot' : '$importe.total'
 											}
 							});
+							inv.sort({'_id.fecha':-1});
 							inv.skip(parseInt(req.params.skip, 10));
 							inv.limit(parseInt(req.params.limit, 10));
 
@@ -600,7 +610,7 @@ module.exports = function(app, io) {
 
 								if (!err){
 									if (data.length > 0){
-										inv._pipeline.splice(5,2);
+										inv._pipeline.splice(6,2);
 										inv.group({_id: null,cnt:{$sum:1}});
 										inv.exec(function (err, data2) {
 											var cnt = data2[0].cnt;
