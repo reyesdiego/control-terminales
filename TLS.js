@@ -11,8 +11,7 @@ var options = {
 	// This is necessary only if the client uses the self-signed certificate.
 	ca: [ fs.readFileSync('certificates/ca.crt') ]
 };
-
-
+//Branch1
 var server = tls.createServer(options, function(cleartextStream) {
 	console.log('server connected',
 		cleartextStream.authorized ? 'authorized' : 'unauthorized');
