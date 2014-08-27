@@ -82,7 +82,7 @@ app.get('/', function(req, res) {
 		else
 			db+='<span style="color:red">Not connected</span></p>';
 
-	res.send("<h1>Servicio Terminales Portuarias.</h1><p>Administración General de Puertos.</p><br/><b>Versión NodeJs: "+process.version+"</b>"+db+"<p>Runtime: "+server.runtime+"</p>");
+	res.send("<h1>Servicio Terminales Portuarias.</h1><p>Administración General de Puertos.</p><br/><p><b>Servidor: </b>"+process.env.NODE_ENV+"</p><b>Versión NodeJs: "+process.version+"</b>"+db+"<p>Runtime: "+server.runtime+"</p>");
 
 	io.sockets.emit('invoice', {status:"OK"})
 });
