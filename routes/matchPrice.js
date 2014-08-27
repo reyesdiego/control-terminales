@@ -93,7 +93,14 @@ module.exports = function (app){
 										var Enumerable = require('linq');
 										var response = Enumerable.from(matches)
 											.join(Enumerable.from(prices), '$.price.id', '$._id.id', function (match, price){
-												match.description = price.description;
+												if (req.query.type){
+													match.description = {
+														'currency': price.currency,
+														'price': price.topPrice
+													};
+												} else {
+													match.description = price.description;
+												}
 												return match;
 											}).toArray();
 										response.forEach(function (item){
