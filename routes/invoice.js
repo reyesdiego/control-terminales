@@ -49,6 +49,9 @@ module.exports = function(app, io) {
 						param["fecha.emision"]['$lte'] = fecha;
 					}
 				}
+				if (req.query.nroPtoVenta){
+					param.nroPtoVenta = req.query.nroPtoVenta;
+				}
 				if (req.query.codTipoComprob){
 					param.codTipoComprob = req.query.codTipoComprob;
 				}
@@ -338,6 +341,7 @@ module.exports = function(app, io) {
 	}
 
 	function getCountByDate (req, res) {
+		var moment = require('moment');
 
 		var date = moment(moment().format('YYYY-MM-DD'));
 		if (req.query.fecha !== undefined){
@@ -639,53 +643,82 @@ module.exports = function(app, io) {
 		});
 	}
 
-	function getInvoicesByRates (req, res) {
+	function getCorrelative (req, res) {
 
-		var date = moment(moment("2014-05-28").format('YYYY-MM-DD')).toDate();
-
-		var param = [
-			{
-				$match : { 'fecha.emision': { $gte: date }  }
-			},
-			{
-				$unwind : '$detalle'
-			},
-			{
-				$unwind : '$detalle.items'
-			},
-			{
-				$match : {
-					'detalle.items.id' : {$in: ['TASAI', 'TASAE', '4', 'NAGPI', 'NAGPE']}
-				}
-			},
-			{
-				$group  : {
-					_id: { terminal: '$terminal', code: '$detalle.items.id'},
-					total: { $sum : '$detalle.items.impTot'}
-				}
-			},
-			{
-				$project : { _id:0, terminal: '$_id.terminal', code: '$_id.code', total:1}
-			}
-		];
-
-		var rates = Invoice.aggregate(param);
-		rates.exec( function (err, data){
-
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.log(err);
-			}
-			else {
+				console.error(usr);
+				res.send(500, {status:'ERROR', data: err});
+			} else {
+				var fecha;
+				var param = {};
 
-				var Enumerable = require('linq');
-				var response = Enumerable.from(data).toArray();
+				if (req.query.fechaInicio || req.query.fechaFin){
+					param["fecha.emision"]={};
+					if (req.query.fechaInicio){
+						fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+						param["fecha.emision"]['$gte'] = fecha;
+					}
+					if (req.query.fechaFin){
+						fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+						param["fecha.emision"]['$lte'] = fecha;
+					}
+				}
+				if (req.query.nroPtoVenta){
+					param.nroPtoVenta = req.query.nroPtoVenta;
+				}
+				if (req.query.codTipoComprob){
+					param.codTipoComprob = req.query.codTipoComprob;
+				}
 
+				if (usr.role === 'agp')
+					param.terminal = req.params.terminal;
+				else
+					param.terminal = usr.terminal;
 
-				res.send(200, {status:'OK', data: response});
+				var invoices = Invoice.find(param);
+
+				invoices.sort({codTipoComprob:1, nroComprob:1});
+				invoices.exec(function(err, invoices) {
+					if(!err) {
+						var faltantes = [];
+						var control = 0;
+						var contadorFaltantes = 0;
+						var i;
+						invoices.forEach(function(invoice){
+							if (control == 0){
+								control = invoice.nroComprob
+							} else {
+								control += 1;
+								if (control != invoice.nroComprob){
+									if (invoice.nroComprob - control > 3){
+										faltantes.push('Del ' + control + ' al ' + (invoice.nroComprob - 1));
+									} else {
+										for (i=control;i<invoice.nroComprob;i++){
+											faltantes.push(i);
+											contadorFaltantes++;
+										}
+									}
+									control = invoice.nroComprob;
+								}
+							}
+						});
+						var result = {
+							status: 'OK',
+							totalCount: contadorFaltantes,
+							data: faltantes
+						};
+						res.send(200, result);
+					} else {
+						console.error("%s - Error: %s", dateTime.getDatetime(), err.error);
+						res.send(500 , {status: "ERROR", data: err});
+					}
+				});
 			}
 		});
-
 	}
+
 
 	app.get('/invoices/:terminal/:skip/:limit', getInvoices);
 	app.get('/invoice/:id', getInvoice);
@@ -696,9 +729,16 @@ module.exports = function(app, io) {
 	app.get('/invoices/noRates/:terminal/:skip/:limit', getNoRates);
 	app.get('/invoices/ratesTotal/:currency', getRatesTotal);
 	app.get('/invoices/noMatches/:terminal/:skip/:limit', getNoMatches);
+	app.get('/invoices/correlative/:terminal', getCorrelative);
 	app.post('/invoice', addInvoice);
 	app.delete('/invoices/:_id', removeInvoices);
 
-	app.get('/invoices/byRates', getInvoicesByRates);
+	app.get('/precio', function (req, res){
+		var p = require('../include/price.js');
+		var p = new p.price();
+		p.rates(function (err, data){
+			res.send(data);
+		});
+	})
 
 };
