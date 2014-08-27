@@ -121,6 +121,34 @@ app.get('/log', function(req, res) {
 	});
 });
 
+app.get('/log2', function(req, res) {
+
+	var filename = 'log/nohup.out';
+	//res.writeHead(200, {'Content-Type': 'application/json'});
+
+	fs.exists(filename, function(exists){
+		if (exists) {
+			var fileStream='[';
+			// serve file
+			var lazy = require("lazy")
+			new lazy(fs.createReadStream(filename))
+				.lines
+				.forEach(function(line){
+					fileStream+=line.toString();
+				}
+			).on('pipe', function(){
+					fileStream+= ']';
+//					res.send(JSON.stringify( [{"hi":"nj"}, {"hi":"nj"}] ));
+					res.send(JSON.parse(fileStream));
+
+					res.end();
+				});
+		} else {
+			res.end();
+		}
+	});
+});
+
 server.listen(port, function() {
 	server.runtime = dateTime.getDatetime();
 	console.log("===============================================================================");

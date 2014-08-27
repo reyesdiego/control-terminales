@@ -86,6 +86,7 @@ module.exports = function (app){
 	function addPrice (req, res){
 		'use strict';
 		var incomingToken = req.headers.token;
+
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
 				console.log(err, new Date().toString());
@@ -93,15 +94,19 @@ module.exports = function (app){
 			} else {
 				var _price;
 				try {
-					_price = new price({
-						terminal:	req.body.terminal,
-						code:		req.body.code.toUpperCase(),
-						description:req.body.description,
-						unit:		req.body.unit,
-						currency:	req.body.currency,
-						topPrice:	req.body.topPrice,
-						matches:	null
-					});
+					if (req.method === 'POST'){
+						_price = new price({
+							terminal:	req.body.terminal,
+							code:		req.body.code.toUpperCase(),
+							description:req.body.description,
+							unit:		req.body.unit,
+							currency:	req.body.currency,
+							topPrice:	req.body.topPrice,
+							matches:	null
+						});
+					} else {
+
+					}
 				} catch (error){
 					res.send(500, {"status":"ERROR", "data": error.message});
 					return;
@@ -122,5 +127,6 @@ module.exports = function (app){
 	app.get('/prices/:terminal', getPrices);
 	app.get('/rates', getRates);
 	app.post('/price', addPrice);
+	app.put('/price', addPrice);
 
 };

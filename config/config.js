@@ -22,6 +22,12 @@ module.exports = {
 						pass: 'desarrollo',
 						auth:{authdb:"admin"}
 					},
+	'mongo_url_log': 'mongodb://localhost:27017/logging',
+	'mongo_opts_log':	{
+		user: 'admin',
+		pass: 'desarrollo',
+		auth:{authdb:"admin"}
+	},
 	'server_port': 8080,
 	'server_ssl_port': 443
 };
