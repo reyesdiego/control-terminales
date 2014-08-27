@@ -12,6 +12,7 @@ var options = {
 	ca: [ fs.readFileSync('certificates/ca.crt') ]
 };
 
+
 var server = tls.createServer(options, function(cleartextStream) {
 	console.log('server connected',
 		cleartextStream.authorized ? 'authorized' : 'unauthorized');
@@ -19,6 +20,8 @@ var server = tls.createServer(options, function(cleartextStream) {
 	cleartextStream.setEncoding('utf8');
 	cleartextStream.pipe(cleartextStream);
 });
+
+
 server.listen(8000, function() {
 	console.log('server bound');
 });
