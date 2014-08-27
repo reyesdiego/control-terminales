@@ -69,6 +69,7 @@ module.exports = function (app){
 				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
 			} else {
 				var paramTerminal = req.params.terminal;
+				var paramType = req.params.type;
 
 				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal){
 					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
@@ -93,7 +94,14 @@ module.exports = function (app){
 										var Enumerable = require('linq');
 										var response = Enumerable.from(matches)
 											.join(Enumerable.from(prices), '$.price.id', '$._id.id', function (match, price){
-												match.description = price.description;
+												if (req.query.type){
+													match.description = {
+														'currency': price.currency,
+														'price': price.topPrice
+													};
+												} else {
+													match.description = price.description;
+												}
 												return match;
 											}).toArray();
 										response.forEach(function (item){
