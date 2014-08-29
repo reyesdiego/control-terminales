@@ -143,17 +143,29 @@ Account.statics.password = function (email, password, newPassword, cb) {
 }
 
 Account.statics.findUser = function(email, token, cb) {
-    var self = this;
-    this.findOne({$or: [{email: email}, {user: email}]}, function(err, usr) {
-        if(err || !usr) {
-            cb(err, null);
-        } else if (token === usr.token.token) {
-            cb(false, {email: usr.email, user: usr.user, token: usr.token, date_created: usr.date_created, full_name: usr.full_name});
-        } else {
-            cb(new Error('Token does not match.'), null);
-        }
-    });
+	var self = this;
+	self.findOne({$or: [{email: email}, {user: email}]}, function(err, usr) {
+		if(err || !usr) {
+			cb(err, null);
+		} else if (token === usr.token.token) {
+			cb(false, {email: usr.email, user: usr.user, token: usr.token, date_created: usr.date_created, full_name: usr.full_name});
+		} else {
+			cb(new Error('Token does not match.'), null);
+		}
+	});
 };
+
+Account.statics.findAll = function (param, cb) {
+	var self = this;
+	var r = this.find(param);
+	r.exec(function(err, data){
+		if (!err){
+			if (cb !== undefined){
+				cb(err, data);
+			}
+		}
+	});
+}
 
 Account.statics.findUserByEmailOnly = function(email, cb) {
     var self = this;
