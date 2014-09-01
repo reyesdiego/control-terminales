@@ -643,6 +643,54 @@ module.exports = function(app, io) {
 		});
 	}
 
+	function getInvoicesByRates (req, res) {
+
+		var date = moment(moment("2014-05-28").format('YYYY-MM-DD')).toDate();
+
+		var param = [
+			{
+				$match : { 'fecha.emision': { $gte: date }  }
+			},
+			{
+				$unwind : '$detalle'
+			},
+			{
+				$unwind : '$detalle.items'
+			},
+			{
+				$match : {
+					'detalle.items.id' : {$in: ['TASAI', 'TASAE', '4', 'NAGPI', 'NAGPE']}
+				}
+			},
+			{
+				$group  : {
+					_id: { terminal: '$terminal', code: '$detalle.items.id'},
+					total: { $sum : '$detalle.items.impTot'}
+				}
+			},
+			{
+				$project : { _id:0, terminal: '$_id.terminal', code: '$_id.code', total:1}
+			}
+		];
+
+		var rates = Invoice.aggregate(param);
+		rates.exec( function (err, data){
+
+			if (err){
+				console.log(err);
+			}
+			else {
+
+				var Enumerable = require('linq');
+				var response = Enumerable.from(data).toArray();
+
+
+				res.send(200, {status:'OK', data: response});
+			}
+		});
+
+	}
+
 	function getCorrelative (req, res) {
 
 		var incomingToken = req.headers.token;
@@ -766,12 +814,6 @@ module.exports = function(app, io) {
 	app.post('/invoice', addInvoice);
 	app.delete('/invoices/:_id', removeInvoices);
 
-	app.get('/precio', function (req, res){
-		var p = require('../include/price.js');
-		var p = new p.price();
-		p.rates(function (err, data){
-			res.send(data);
-		});
-	})
+	app.get('/invoices/byRates', getInvoicesByRates);
 
 };
