@@ -719,6 +719,38 @@ module.exports = function(app, io) {
 		});
 	}
 
+	function getSellPoints (req, res){
+		'use strict';
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (err){
+				console.error('%s - Error: %s', dateTime.getDatetime(), err);
+				res.send(403, {status:"ERROR", data: err.error});
+			} else {
+
+				var paramTerminal = req.params.terminal;
+
+				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal){
+					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
+					console.error(errMsg);
+					res.send(500, {status:"ERROR", data: errMsg});
+				} else {
+					var param = {
+						'terminal': paramTerminal
+					};
+
+					Invoice.distinct('nroPtoVenta', param, function(err, result){
+						if(!err) {
+							res.send(200, {status:'OK', data:result});
+						} else {
+							console.error('%s - Error: %s', dateTime.getDatetime(), err);
+							res.send(500, {status:'ERROR', data: err});
+						}
+					});
+				}
+			}
+		});
+	}
 
 	app.get('/invoices/:terminal/:skip/:limit', getInvoices);
 	app.get('/invoice/:id', getInvoice);
@@ -730,6 +762,7 @@ module.exports = function(app, io) {
 	app.get('/invoices/ratesTotal/:currency', getRatesTotal);
 	app.get('/invoices/noMatches/:terminal/:skip/:limit', getNoMatches);
 	app.get('/invoices/correlative/:terminal', getCorrelative);
+	app.get('/invoices/sellPoints/:terminal', getSellPoints);
 	app.post('/invoice', addInvoice);
 	app.delete('/invoices/:_id', removeInvoices);
 
