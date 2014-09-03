@@ -36,50 +36,68 @@ module.exports = function(app, io) {
 				res.send(500, {status:'ERROR', data: err});
 			} else {
 				var fecha;
-				var param = {};
 
-				if (req.query.fechaInicio || req.query.fechaFin){
-					param["fecha.emision"]={};
-					if (req.query.fechaInicio){
-						fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
-						param["fecha.emision"]['$gte'] = fecha;
+				var paramTerminal = req.params.terminal;
+
+				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
+					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
+					console.error(errMsg);
+					res.send(500, {status:"ERROR", data: errMsg});
+				} else {
+
+					var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
+					var param = {
+						$or : [
+							{terminal:	"AGP"},
+							{terminal:	ter}
+						]
+					};
+
+					if (req.query.fechaInicio || req.query.fechaFin){
+						param["fecha.emision"]={};
+						if (req.query.fechaInicio){
+							fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+							param["fecha.emision"]['$gte'] = fecha;
+						}
+						if (req.query.fechaFin){
+							fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+							param["fecha.emision"]['$lte'] = fecha;
+						}
 					}
-					if (req.query.fechaFin){
-						fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
-						param["fecha.emision"]['$lte'] = fecha;
+					if (req.query.nroPtoVenta){
+						param.nroPtoVenta = req.query.nroPtoVenta;
 					}
-				}
-				if (req.query.nroPtoVenta){
-					param.nroPtoVenta = req.query.nroPtoVenta;
-				}
-				if (req.query.codTipoComprob){
-					param.codTipoComprob = req.query.codTipoComprob;
-				}
-				if (req.query.nroComprobante){
-					param.nroComprob = req.query.nroComprobante;
-				}
-				if (req.query.razonSocial){
-					param.razon = {$regex:req.query.razonSocial}
-				}
-				if (req.query.documentoCliente){
-					param.nroDoc = req.query.documentoCliente;
-				}
+					if (req.query.codTipoComprob){
+						param.codTipoComprob = req.query.codTipoComprob;
+					}
+					if (req.query.nroComprobante){
+						param.nroComprob = req.query.nroComprobante;
+					}
+					if (req.query.razonSocial){
+						param.razon = {$regex:req.query.razonSocial}
+					}
+					if (req.query.documentoCliente){
+						param.nroDoc = req.query.documentoCliente;
+					}
 
-				if (req.query.contenedor)
-					param['detalle.contenedor'] = req.query.contenedor;
+					if (req.query.contenedor)
+						param['detalle.contenedor'] = req.query.contenedor;
 
-				if (req.query.code)
-					param['detalle.items.id'] = req.query.code;
+					if (req.query.code)
+						param['detalle.items.id'] = req.query.code;
 
-				if (usr.role === 'agp')
-					param.terminal = req.params.terminal;
-				else
-					param.terminal = usr.terminal;
+				}
 
 				var invoices = Invoice.find(param);
 
 				invoices.limit(req.params.limit).skip(req.params.skip);
-				invoices.sort({codTipoComprob:1, nroComprob:1});
+				if (req.query.order){
+					var order = JSON.parse(req.query.order);
+					invoices.sort(order[0]);
+				} else {
+					invoices.sort({codTipoComprob:1, nroComprob:1});
+				}
+
 				invoices.exec(function(err, invoices) {
 					if(!err) {
 						Invoice.count(param, function (err, cnt){
@@ -157,71 +175,71 @@ module.exports = function(app, io) {
 				} else {
 					try {
 						var invoice = {
-						terminal:		usr.terminal,
+							terminal:		usr.terminal,
 
-						nroPtoVenta:	postData.nroPtoVenta,
-						codTipoComprob: parseInt(postData.codTipoComprob.toString().trim(), 10),
-						nroComprob:		postData.nroComprob,
-						codTipoAutoriz:	postData.codTipoAutoriz,
-						codAutoriz:		postData.codAutoriz,
-						codTipoDoc:		postData.codTipoDoc,
-						nroDoc:			postData.nroDoc,
-						clienteId:		postData.clientId,
-						razon:			postData.razon,
-						importe:		{
-											gravado:		postData.impGrav,
-											noGravado:		postData.impNoGrav,
-											exento:			postData.impExento,
-											subtotal:		postData.impSubtot,
-											iva:			postData.impIva,
-											otrosTributos:	postData.impOtrosTrib,
-											total:			postData.impTotal
-										},
-						codMoneda:		postData.codMoneda,
-						cotiMoneda:		postData.cotiMoneda,
-						observa:	 	postData.observa,
-						codConcepto:	postData.codConcepto,
-						fecha:			{
-											emision:	moment(postData.fechaEmision),
-											vcto:		moment(postData.fechaVcto),
-											desde:		moment(postData.fechaServDesde),
-											hasta:		moment(postData.fechaServHasta),
-											vctoPago:	moment(postData.fechaVctoPago)
-										},
-						detalle:		[],
-						otrosTributos:	[]
+							nroPtoVenta:	postData.nroPtoVenta,
+							codTipoComprob: parseInt(postData.codTipoComprob.toString().trim(), 10),
+							nroComprob:		postData.nroComprob,
+							codTipoAutoriz:	postData.codTipoAutoriz,
+							codAutoriz:		postData.codAutoriz,
+							codTipoDoc:		postData.codTipoDoc,
+							nroDoc:			postData.nroDoc,
+							clienteId:		postData.clientId,
+							razon:			postData.razon,
+							importe:		{
+								gravado:		postData.impGrav,
+								noGravado:		postData.impNoGrav,
+								exento:			postData.impExento,
+								subtotal:		postData.impSubtot,
+								iva:			postData.impIva,
+								otrosTributos:	postData.impOtrosTrib,
+								total:			postData.impTotal
+							},
+							codMoneda:		postData.codMoneda,
+							cotiMoneda:		postData.cotiMoneda,
+							observa:	 	postData.observa,
+							codConcepto:	postData.codConcepto,
+							fecha:			{
+								emision:	moment(postData.fechaEmision),
+								vcto:		moment(postData.fechaVcto),
+								desde:		moment(postData.fechaServDesde),
+								hasta:		moment(postData.fechaServHasta),
+								vctoPago:	moment(postData.fechaVctoPago)
+							},
+							detalle:		[],
+							otrosTributos:	[]
 						};
 
 						postData.detalle.forEach(function (container){
-						var buque = {
-							codigo: container.buqueId,
-							nombre: container.buqueDesc,
-							viaje: container.viaje
-						};
-						var cont = {
-							contenedor:		container.contenedor,
-							IMO:			container.IMO,
-							buque:			buque,
-							items: []
-						};
-						if (container.items){
-							container.items.forEach( function (item){
-								cont.items.push(
-									{
-										id:			item.id,
-										cnt:		item.cnt,
-										uniMed:		item.uniMed,
-										impUnit:	item.impUnit,
-										impTot:		item.impTot
-									});
-							});
-						} else {
-							var errMsg = util.format("%s - Error: %s", dateTime.getDatetime(), "El contenedor no posee items.");
-							res.send(500, {status:"ERROR", data: errMsg});
-							return;
-						}
-						invoice.detalle.push(cont);
-					});
+							var buque = {
+								codigo: container.buqueId,
+								nombre: container.buqueDesc,
+								viaje: container.viaje
+							};
+							var cont = {
+								contenedor:		container.contenedor,
+								IMO:			container.IMO,
+								buque:			buque,
+								items: []
+							};
+							if (container.items){
+								container.items.forEach( function (item){
+									cont.items.push(
+										{
+											id:			item.id,
+											cnt:		item.cnt,
+											uniMed:		item.uniMed,
+											impUnit:	item.impUnit,
+											impTot:		item.impTot
+										});
+								});
+							} else {
+								var errMsg = util.format("%s - Error: %s", dateTime.getDatetime(), "El contenedor no posee items.");
+								res.send(500, {status:"ERROR", data: errMsg});
+								return;
+							}
+							invoice.detalle.push(cont);
+						});
 
 					} catch (error){
 						var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
@@ -287,6 +305,39 @@ module.exports = function(app, io) {
 //					}
 				}
 			});
+		});
+	}
+
+	function updateInvoice (req, res) {
+
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (err){
+				console.log(usr);
+				res.send(403, {status:'ERROR', data: err});
+			} else {
+
+				var paramTerminal = req.params.terminal;
+
+				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
+					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
+					console.error(errMsg);
+					res.send(500, {status:"ERROR", data: errMsg});
+				} else {
+
+					var param = {_id: req.params._id, terminal: paramTerminal};
+
+					Invoice.findOneAndUpdate(param, { $set: req.body}, null, function (err, data) {
+						if  (err) {
+							var errMsg = util.format("%s - Error: %s", dateTime.getDatetime(), err.error);
+							console.error(errMsg);
+							res.send(500, {status: "ERROR", data: errMsg});
+						} else {
+							res.send(200, {"status": "OK", "data": data})
+						}
+					});
+				}
+			}
 		});
 	}
 
@@ -416,13 +467,13 @@ module.exports = function(app, io) {
 			{$match: { 'fecha.emision': {$gte: month5Ago, $lt: nextMonth} }},
 			{ $project: {'accessDate':'$fecha.emision', terminal: '$terminal', total: sum} },
 			{ $group : {
-							_id : { terminal: '$terminal',
-									year: { $year : "$accessDate" },
-									month: { $month : "$accessDate" }
-							},
-							cnt : { $sum : 1 },
-							total: { $sum : '$total'}
-						}
+				_id : { terminal: '$terminal',
+					year: { $year : "$accessDate" },
+					month: { $month : "$accessDate" }
+				},
+				cnt : { $sum : 1 },
+				total: { $sum : '$total'}
+			}
 			},
 			{ $sort: {'_id.month': 1, '_id.terminal': 1 }}
 		];
@@ -459,7 +510,14 @@ module.exports = function(app, io) {
 
 				var invoices = Invoice.find(param);
 				invoices.limit(req.params.limit).skip(req.params.skip);
-				invoices.sort({nroComprob:1});
+
+				if (req.query.order){
+					var order = JSON.parse(req.query.order);
+					invoices.sort(order[0]);
+				} else {
+					invoices.sort({codTipoComprob:1, nroComprob:1});
+				}
+
 				invoices.exec(function(err, invoices){
 					Invoice.count(param, function (err, cnt){
 						var dataResult = {
@@ -501,18 +559,18 @@ module.exports = function(app, io) {
 			var sum = {};
 			if (req.params.currency === 'PES')
 				sum = { $cond: [
-								{$eq:['$codMoneda', 'PES' ]},
-								'$detalle.items.impTot',
-								{$multiply:['$detalle.items.impTot','$cotiMoneda'] }
-								]
-						};
+					{$eq:['$codMoneda', 'PES' ]},
+					'$detalle.items.impTot',
+					{$multiply:['$detalle.items.impTot','$cotiMoneda'] }
+				]
+				};
 			else if (req.params.currency === 'DOL')
 				sum = { $cond: [
-							{$eq:['$codMoneda', 'DOL' ]},
-							'$detalle.items.impTot',
-							{$divide:['$detalle.items.impTot','$cotiMoneda'] }
-							]
-						};
+					{$eq:['$codMoneda', 'DOL' ]},
+					'$detalle.items.impTot',
+					{$divide:['$detalle.items.impTot','$cotiMoneda'] }
+				]
+				};
 
 			var jsonParam = [
 				{	$unwind : '$detalle'	},
@@ -594,15 +652,15 @@ module.exports = function(app, io) {
 							inv.unwind('detalle','detalle.items');
 							inv.match(match);
 							inv.group({ _id:{
-												'_id':'$_id',
-												'nroPtoVenta' : '$nroPtoVenta',
-												'nroComprob' : '$nroComprob',
-												'razon' : '$razon',
-												'codMoneda': '$codMoneda',
-												'cotiMoneda': '$cotiMoneda',
-												'fecha' : '$fecha.emision',
-												'impTot' : '$importe.total'
-											}
+								'_id':'$_id',
+								'nroPtoVenta' : '$nroPtoVenta',
+								'nroComprob' : '$nroComprob',
+								'razon' : '$razon',
+								'codMoneda': '$codMoneda',
+								'cotiMoneda': '$cotiMoneda',
+								'fecha' : '$fecha.emision',
+								'impTot' : '$importe.total'
+							}
 							});
 							inv.sort({'_id.fecha':-1});
 							inv.skip(parseInt(req.params.skip, 10));
@@ -726,7 +784,13 @@ module.exports = function(app, io) {
 
 				var invoices = Invoice.find(param);
 
-				invoices.sort({codTipoComprob:1, nroComprob:1});
+				if (req.query.order){
+					var order = JSON.parse(req.query.order);
+					invoices.sort(order[0]);
+				} else {
+					invoices.sort({codTipoComprob:1, nroComprob:1});
+				}
+
 				invoices.exec(function(err, invoices) {
 					if(!err) {
 						var faltantes = [];
@@ -766,6 +830,77 @@ module.exports = function(app, io) {
 		});
 	}
 
+	function getCashbox (req, res){
+
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (err){
+				console.error(usr);
+				res.send(500, {status:'ERROR', data: err});
+			} else {
+				var fecha;
+
+				var paramTerminal = req.params.terminal;
+
+				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
+					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
+					console.error(errMsg);
+					res.send(500, {status:"ERROR", data: errMsg});
+				} else {
+
+					var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
+					var param = {
+						$or : [
+							{terminal:	"AGP"},
+							{terminal:	ter}
+						]
+					};
+
+					if (req.query.fechaInicio || req.query.fechaFin){
+						param["fecha.emision"]={};
+						if (req.query.fechaInicio){
+							fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+							param["fecha.emision"]['$gte'] = fecha;
+						}
+						if (req.query.fechaFin){
+							fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+							param["fecha.emision"]['$lte'] = fecha;
+						}
+					}
+					if (req.query.nroPtoVenta){
+						param.nroPtoVenta = req.query.nroPtoVenta;
+					}
+					if (req.query.codTipoComprob){
+						param.codTipoComprob = req.query.codTipoComprob;
+					}
+					if (req.query.nroComprobante){
+						param.nroComprob = req.query.nroComprobante;
+					}
+					if (req.query.razonSocial){
+						param.razon = {$regex:req.query.razonSocial}
+					}
+					if (req.query.documentoCliente){
+						param.nroDoc = req.query.documentoCliente;
+					}
+
+					if (req.query.contenedor)
+						param['detalle.contenedor'] = req.query.contenedor;
+
+					if (req.query.code)
+						param['detalle.items.id'] = req.query.code;
+
+				}
+				var invoice = Invoice.distinct('nroPtoVenta', param, function (err, data){
+					if (err){
+
+					} else {
+						res.send(200, {status: 'OK', data: data});
+					}
+				})
+			}
+		})
+	}
+
 	app.get('/invoices/:terminal/:skip/:limit', getInvoices);
 	app.get('/invoice/:id', getInvoice);
 	app.get('/invoices', getInvoices);
@@ -776,7 +911,9 @@ module.exports = function(app, io) {
 	app.get('/invoices/ratesTotal/:currency', getRatesTotal);
 	app.get('/invoices/noMatches/:terminal/:skip/:limit', getNoMatches);
 	app.get('/invoices/correlative/:terminal', getCorrelative);
+	app.get('/invoices/cashbox/:terminal', getCashbox);
 	app.post('/invoice', addInvoice);
+	app.put('/invoice/:_id', updateInvoice);
 	app.delete('/invoices/:_id', removeInvoices);
 
 	app.get('/invoices/byRates', getInvoicesByRates);
