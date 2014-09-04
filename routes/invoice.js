@@ -913,7 +913,7 @@ module.exports = function(app, io) {
 	app.get('/invoices/correlative/:terminal', getCorrelative);
 	app.get('/invoices/cashbox/:terminal', getCashbox);
 	app.post('/invoice', addInvoice);
-	app.put('/invoice/:_id', updateInvoice);
+	app.put('/invoice/:terminal/:_id', updateInvoice);
 	app.delete('/invoices/:_id', removeInvoices);
 
 	app.get('/invoices/byRates', getInvoicesByRates);
