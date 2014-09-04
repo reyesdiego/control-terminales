@@ -10,14 +10,14 @@ var config = require('./config/config.js');
 var async = require("async");
 var moment = require('moment');
 
-//mongoose.connect(config.mongo_url, config.mongo_opts);
-mongoose.connect(config.mongo_url);
+mongoose.connect(config.mongo_url, config.mongo_opts);
+//mongoose.connect(config.mongo_url);
 
 var date = moment().format('DD-MM-YYYY');
 
 var asyncParallel = [];
-var terminals = ['bactssa', 't4', 'trp'];
-var terminals = ['BACTSSA', 'TERMINAL4', 'TRP'];
+//var terminals = ['BACTSSA', 'TERMINAL4', 'TRP'];
+var terminals = ['TRP'];
 
 terminals.forEach(function (item){
 
@@ -28,8 +28,8 @@ terminals.forEach(function (item){
 				console.error(err);
 			else {
 				if (data.length>0){
-
 					var user = data[0];
+
 					var optionsget = {
 						host : 'www.puertobuenosaires.gob.ar', // here only the domain name (no http/https !)
 						port : 8080,
@@ -49,16 +49,16 @@ terminals.forEach(function (item){
 									var mailer = new mail.mail(true);
 
 									console.log("ya esta %s", item);
-									callback();
-//								mailer.send(user.email,
-//										result.data.length.toString() + " CÓDIGOS SIN ASOCIAR AL " + date,
-//										user.terminal + '\n\n' + result.data,
-//									function(){
-//										callback();
-//										//process.exit(code=0);
-//									}
-//								);
+//									callback();
 
+								mailer.send(user.email,
+										result.data.length.toString() + " CÓDIGOS SIN ASOCIAR AL " + date,
+										user.terminal + '\n\n' + result.data,
+									function(){
+										callback();
+										//process.exit(code=0);
+									}
+								);
 
 								}
 							}
