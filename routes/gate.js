@@ -15,7 +15,7 @@ module.exports = function (app, io) {
 	var config = require('../config/config.js');
 
 	function getGates(req, res){
-		'use static';
+		'use strict';
 
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
@@ -69,7 +69,7 @@ module.exports = function (app, io) {
 	}
 
 	function getGatesByHour(req, res){
-		'use static';
+		'use strict';
 
 		var moment = require('moment');
 		var date = moment(moment().format('YYYY-MM-DD')).toDate();
@@ -111,7 +111,7 @@ module.exports = function (app, io) {
 	}
 
 	function getGatesByMonth (req, res) {
-		'use static';
+		'use strict';
 		var moment = require('moment');
 
 		var date = moment(moment().format('YYYY-MM-DD')).subtract('days', moment().date()-1);
@@ -151,12 +151,12 @@ module.exports = function (app, io) {
 	}
 
 	function addGate(req, res, next){
-		'use static';
+		'use strict';
 
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err) {
-				console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
+				console.error("%s - Error Gate INS: %s", dateTime.getDatetime(), err.error);
 				res.send(403, {status:"ERROR", data: err.error});
 			} else {
 				var gate2insert = req.body;
