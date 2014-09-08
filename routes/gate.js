@@ -192,8 +192,89 @@ module.exports = function (app, io) {
 		});
 	}
 
+	function getReportGates(req, res) {
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function (err, usr) {
+			if (err) {
+				console.error(usr);
+				res.send(500, {status: 'ERROR', data: err});
+			} else {
+				var fecha;
+				var param = {};
+
+				if (req.query.fechaInicio || req.query.fechaFin) {
+					param["turnoInicio"] = {};
+					if (req.query.fechaInicio) {
+						fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+						param["turnoInicio"]['$gte'] = fecha;
+					}
+					if (req.query.fechaFin) {
+						fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+						param["turnoFin"]['$lte'] = fecha;
+					}
+				}
+
+				if (usr.role === 'agp')
+					param.terminal = req.params.terminal;
+				else
+					param.terminal = usr.terminal;
+
+				var totalGates = Gate.count(param);
+
+				totalGates.exec(function (errTotal, total) {
+					if (!errTotal) {
+						var gatesLates = Gate.count(param);
+
+						gatesLates.$where("this.gateTimestamp > this.turnoFin");
+						gatesLates.exec(function(errLates, lates) {
+							if (!errLates) {
+								var gatesEarly = Gate.count(param);
+
+								gatesEarly.$where("this.gateTimestamp < this.turnoInicio");
+								gatesLates.exec(function (errEarly, early) {
+									if (!errEarly) {
+										var gatesOk = Gate.count(param);
+
+										gatesOk.$where("this.gateTimestamp >= this.turnoInicio && this.gateTimestamp <= this.turnoFin");
+										gatesOk.exec(function (errOk, okGates) {
+											if (!errOk) {
+												var result = {
+													status: 'OK',
+													data: {
+														gatesTotal: total,
+														gatesLate: lates,
+														gatesEarly: early,
+														gatesOk: okGates
+													}
+												}
+												res.send(200, result);
+											} else {
+												console.error("%s - Error: %s", dateTime.getDatetime(), err.error);
+												res.send(500, {status: "ERROR", data: err});
+											}
+										});
+									} else {
+										console.error("%s - Error: %s", dateTime.getDatetime(), err.error);
+										res.send(500, {status: "ERROR", data: err});
+									}
+								});
+							} else {
+								console.error("%s - Error: %s", dateTime.getDatetime(), err.error);
+								res.send(500, {status: "ERROR", data: err});
+							}
+						});
+					} else {
+						console.error("%s - Error: %s", dateTime.getDatetime(), err.error);
+						res.send(500, {status: "ERROR", data: err});
+					}
+				})
+			}
+		});
+	}
+
 	app.get('/gatesByHour', getGatesByHour);
 	app.get('/gatesByMonth', getGatesByMonth);
 	app.get('/gates/:terminal/:skip/:limit', getGates);
+	app.get('/gates/:terminal/report', getReportGates);
 	app.post('/gate', addGate);
 };
