@@ -61,6 +61,11 @@ app.all('/*', function(req, res, next) {
 //	res.header('Access-Control-Request-Method', 'GET');
 	res.header('Access-Control-Request-Headers', 'Content-Type, token');
 
+	res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+	res.header('Expires', '-1');
+	res.header('Pragma', 'no-cache');
+
+
 	if ('OPTIONS' == req.method) {
 		res.send(200);
 	}
