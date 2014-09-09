@@ -86,6 +86,10 @@ module.exports = function(app, io) {
 					if (req.query.code)
 						param['detalle.items.id'] = req.query.code;
 
+					if (req.query.estado){
+						param.estado = req.query.estado;
+					}
+
 				}
 
 				var invoices = Invoice.find(param);
