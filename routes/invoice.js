@@ -894,15 +894,28 @@ module.exports = function(app, io) {
 						param['detalle.items.id'] = req.query.code;
 
 				}
-				var invoice = Invoice.distinct('nroPtoVenta', param, function (err, data){
+				Invoice.distinct('nroPtoVenta', param, function (err, data){
 					if (err){
+						res.send(500, {status: 'ERROR', data: err});
 
 					} else {
-						res.send(200, {status: 'OK', data: data});
+						res.send(200, {status: 'OK', data: data.sort()});
 					}
-				})
+				});
 			}
 		})
+	}
+
+	function getShips( req, res) {
+
+		Invoice.distinct('detalle.buque.nombre', {}, function (err, data){
+			if (err){
+				res.send(500, {status: 'ERROR', data: err});
+			} else {
+				res.send(200, {status: 'OK', data: data.sort()});
+			}
+		});
+
 	}
 
 	app.get('/invoices/:terminal/:skip/:limit', getInvoices);
@@ -919,6 +932,7 @@ module.exports = function(app, io) {
 	app.post('/invoice', addInvoice);
 	app.put('/invoice/:terminal/:_id', updateInvoice);
 	app.delete('/invoices/:_id', removeInvoices);
+	app.get('/ships', getShips);
 
 	app.get('/invoices/byRates', getInvoicesByRates);
 
