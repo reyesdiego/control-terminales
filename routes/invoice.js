@@ -83,6 +83,9 @@ module.exports = function(app, io) {
 					if (req.query.contenedor)
 						param['detalle.contenedor'] = req.query.contenedor;
 
+					if (req.query.buqueNombre)
+						param['detalle.buque.nombre'] = req.query.buqueNombre;
+
 					if (req.query.code)
 						param['detalle.items.id'] = req.query.code;
 
