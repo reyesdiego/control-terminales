@@ -216,12 +216,12 @@ module.exports = function(app, io) {
 
 						postData.detalle.forEach(function (container){
 							var buque = {
-								codigo: container.buqueId,
-								nombre: container.buqueDesc,
-								viaje: container.viaje
+								codigo: container.buqueId.trim(),
+								nombre: container.buqueDesc.trim(),
+								viaje: container.viaje.trim()
 							};
 							var cont = {
-								contenedor:		container.contenedor,
+								contenedor:		container.contenedor.trim(),
 								IMO:			container.IMO,
 								buque:			buque,
 								items: []
