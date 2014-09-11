@@ -192,7 +192,7 @@ module.exports = function(app, io) {
 							codTipoDoc:		postData.codTipoDoc,
 							nroDoc:			postData.nroDoc,
 							clienteId:		postData.clientId,
-							razon:			postData.razon,
+							razon:			postData.razon.trim(),
 							importe:		{
 								gravado:		postData.impGrav,
 								noGravado:		postData.impNoGrav,
@@ -909,9 +909,19 @@ module.exports = function(app, io) {
 		})
 	}
 
-	function getShips( req, res) {
+	function getDistincts( req, res) {
 
-		Invoice.distinct('detalle.buque.nombre', {}, function (err, data){
+		var distinct = '';
+		if (req.route.path === '/ships')
+			distinct = 'detalle.buque.nombre';
+
+		if (req.route.path === '/containers')
+			distinct = 'detalle.contenedor';
+
+		if (req.route.path === '/clients')
+			distinct = 'razon';
+
+		Invoice.distinct(distinct, {}, function (err, data){
 			if (err){
 				res.send(500, {status: 'ERROR', data: err});
 			} else {
@@ -935,7 +945,9 @@ module.exports = function(app, io) {
 	app.post('/invoice', addInvoice);
 	app.put('/invoice/:terminal/:_id', updateInvoice);
 	app.delete('/invoices/:_id', removeInvoices);
-	app.get('/ships', getShips);
+	app.get('/ships', getDistincts);
+	app.get('/containers', getDistincts);
+	app.get('/clients', getDistincts);
 
 	app.get('/invoices/byRates', getInvoicesByRates);
 
