@@ -217,14 +217,30 @@ module.exports = function(app, io) {
 							otrosTributos:	[]
 						};
 
+						postData.otrosTributos.forEach(function (item){
+							var otId = item.id;
+							var otDesc = item.desc;
+							invoice.otrosTributos.push(
+								{
+									id:			(otId) ? otId.trim() : "",
+									desc	:	(otDesc) ? otDesc.trim() : "",
+									imponible:	item.imponible,
+									imp:		item.imp
+								})
+						});
+
 						postData.detalle.forEach(function (container){
+							var buqueId = container.buqueId;
+							var buqueDesc = container.buqueDesc;
+							var viaje = container.viaje;
 							var buque = {
-								codigo: container.buqueId.trim(),
-								nombre: container.buqueDesc.trim(),
-								viaje: container.viaje.trim()
+								codigo: (buqueId) ? buqueId.trim() : "",
+								nombre: (buqueDesc) ? buqueDesc.trim() : "",
+								viaje: (viaje) ? viaje.trim() : ""
 							};
+							var contenedor = container.contenedor;
 							var cont = {
-								contenedor:		container.contenedor.trim(),
+								contenedor:		(contenedor) ? container.contenedor.trim() : "",
 								IMO:			container.IMO,
 								buque:			buque,
 								items: []
@@ -301,15 +317,6 @@ module.exports = function(app, io) {
 						}
 					});
 
-//					for () {
-//						invoice.otrosTributos.push(
-//						{
-//							id:			,
-//							desc	:	,
-//							imponible:	,
-//							imp:
-//						})
-//					}
 				}
 			});
 		});

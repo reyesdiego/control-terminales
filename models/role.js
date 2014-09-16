@@ -10,4 +10,19 @@ var role = new mongoose.Schema({
 	tasks:  [String]
 });
 
+
+//role.post('init', function (doc) {
+//	console.log('%s has been initialized from the db', doc._id);
+//});
+
+role.pre('save', function (next, done){
+	if (this.level){
+		if (this.level === 2) {
+			return next(new Error('Level can`t be 2'));
+		}
+	}
+	console.log('save pre ', this);
+	next();
+});
+
 module.exports = mongoose.model('roles', role);
