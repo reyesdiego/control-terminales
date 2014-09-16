@@ -45,7 +45,14 @@ module.exports = function (app, io) {
 				else
 					param.terminal= usr.terminal;
 
-				var gate = Gate.find(param).limit(req.params.limit).skip(req.params.skip).sort({gateTimestamp:1});
+				var gates = Gate.find(param).limit(req.params.limit).skip(req.params.skip);
+				if (req.query.order){
+					var order = JSON.parse(req.query.order);
+					gates.sort(order[0]);
+				} else {
+					gates.sort({gateTimestamp:-1});
+				}
+
 				gate.exec( function( err, gates){
 					if (err){
 						console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
@@ -150,6 +157,25 @@ module.exports = function (app, io) {
 		});
 	}
 
+	function getDistincts( req, res) {
+
+		var distinct = '';
+		if (req.route.path === '/gates/ships')
+			distinct = 'buque';
+
+		if (req.route.path === '/gates/containers')
+			distinct = 'contenedor';
+
+		Gate.distinct(distinct, {}, function (err, data){
+			if (err){
+				res.send(500, {status: 'ERROR', data: err});
+			} else {
+				res.send(200, {status: 'OK', data: data.sort()});
+			}
+		});
+
+	}
+
 	function addGate(req, res, next){
 		'use strict';
 
@@ -195,5 +221,7 @@ module.exports = function (app, io) {
 	app.get('/gatesByHour', getGatesByHour);
 	app.get('/gatesByMonth', getGatesByMonth);
 	app.get('/gates/:terminal/:skip/:limit', getGates);
+	app.get('/gates/ships', getDistincts);
+	app.get('/gates/containers', getDistincts);
 	app.post('/gate', addGate);
 };
