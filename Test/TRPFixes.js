@@ -6,7 +6,7 @@ var schema = mongoose.Schema;
 
 var async = require('async');
 
-var Invoice = require('./models/invoice.js');
+var Invoice = require('./../models/invoice.js');
 
 console.log('Running mongoose version %s', mongoose.version);
 
@@ -30,7 +30,7 @@ mongoose.connect('mongodb://10.1.0.51/terapi', {
 
 function getData() {
 
-	var invoice = Invoice.find({terminal: 'TRP', cotiMoneda: {$gt: 1}, codMoneda:'PES'}).limit(500);
+//	var invoice = Invoice.find({terminal: 'TRP', cotiMoneda: {$gt: 1}, codMoneda:'PES'}).limit(500);
 //	var invoice = Invoice.find({_id : "53bb09dd4966cbc275000735"});
 	invoice.exec( function (err, invoices){
 		if (!err){
