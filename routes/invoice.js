@@ -500,7 +500,7 @@ module.exports = function(app, io) {
 				var param = {
 					terminal : terminal,
 					'detalle.items.id': {$nin: rates}
-				}
+				};
 
 				if (req.query.contenedor){
 					param['detalle.contenedor'] = req.query.contenedor;
