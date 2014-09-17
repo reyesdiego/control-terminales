@@ -40,6 +40,11 @@ module.exports = function (app, io) {
 						param.gateTimestamp['$lt'] = fecha;
 					}
 				}
+
+				if (req.query.buqueNombre)
+					param.buque = req.query.buqueNombre;
+
+
 				if (usr.role === 'agp')
 					param.terminal= req.params.terminal;
 				else
