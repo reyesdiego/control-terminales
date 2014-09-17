@@ -903,6 +903,10 @@ module.exports = function(app, io) {
 					if (req.query.code)
 						param['detalle.items.id'] = req.query.code;
 
+					if (req.query.estado){
+						param.estado = req.query.estado;
+					}
+
 				}
 				Invoice.distinct('nroPtoVenta', param, function (err, data){
 					if (err){
