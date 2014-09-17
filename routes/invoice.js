@@ -716,48 +716,70 @@ module.exports = function(app, io) {
 
 	function getInvoicesByRates (req, res) {
 
-		var date = moment(moment("2014-05-28").format('YYYY-MM-DD')).toDate();
+		var Enumerable = require('linq');
+
+		var date = moment(moment("2014-07-01").format('YYYY-MM-DD')).toDate();
 
 		var param = [
-			{
-				$match : { 'fecha.emision': { $gte: date }  }
-			},
-			{
-				$unwind : '$detalle'
-			},
-			{
-				$unwind : '$detalle.items'
-			},
-			{
-				$match : {
-					'detalle.items.id' : {$in: ['TASAI', 'TASAE', '4', 'NAGPI', 'NAGPE']}
-				}
-			},
-			{
-				$group  : {
-					_id: { terminal: '$terminal', code: '$detalle.items.id'},
-					total: { $sum : '$detalle.items.impTot'}
-				}
-			},
-			{
-				$project : { _id:0, terminal: '$_id.terminal', code: '$_id.code', total:1}
-			}
+			{ $match: { code: {$in:['T1B', 'T1C'] } } },
+			{ $unwind: '$match'},
+			{ $project : {code: '$code',  match: '$match', _id: false}}
 		];
+		MatchPrice.aggregate(param, function (err, matchprices) {
+			var ids =[];
+			matchprices.forEach(function (item){
+				ids.push(item.match);
+			});
 
-		var rates = Invoice.aggregate(param);
-		rates.exec( function (err, data){
+			param = [
+				{
+					$match : { 'fecha.emision': { $gte: date }  }
+				},
+				{
+					$unwind : '$detalle'
+				},
+				{
+					$unwind : '$detalle.items'
+				},
+				{
+					$match : {
+						'detalle.items.id' : {$in: ids }
+					}
+				},
+				{
+					$group  : {
+						_id: { terminal: '$terminal', code: '$detalle.items.id'},
+						total: { $sum : '$detalle.items.impTot'}
+					}
+				},
+				{
+					$project : { _id:0, terminal: '$_id.terminal', code: '$_id.code', total:1}
+				}
+			];
 
-			if (err){
-				console.log(err);
-			}
-			else {
+			var rates = Invoice.aggregate(param);
+			rates.exec( function (err, ratesData){
+				if (err){
+					console.log(err);
+				}
+				else {
+					var response = Enumerable.from(ratesData)
+							.join(Enumerable.from(matchprices), '$.code', '$.match', function (rate, matchprice){
+							rate.code = matchprice.code;
+							return rate;
+							}).toArray();
+					var result = Enumerable.from(response).groupBy("{code: $.code, terminal: $.terminal}", null,
+						function (key, g) {
+							var result = {
+								terminal: key.terminal
+							};
+							result[key.code] = g.sum("$.total");
+							return result;
+						}).toArray();
 
-				var Enumerable = require('linq');
-				var response = Enumerable.from(data).toArray();
-
-
-				res.send(200, {status:'OK', data: response});
-			}
+					res.send(200, {status:'OK', data: result});
+				}
+			});
 		});
 
 	}
@@ -961,5 +983,10 @@ module.exports = function(app, io) {
 	app.get('/clients', getDistincts);
 
 	app.get('/invoices/byRates', getInvoicesByRates);
+
+
+
+
+
 
 };
