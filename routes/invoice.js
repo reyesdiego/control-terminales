@@ -84,8 +84,15 @@ module.exports = function(app, io) {
 					if (req.query.contenedor)
 						param['detalle.contenedor'] = req.query.contenedor;
 
+					if (req.query.buqueNombre)
+						param['detalle.buque.nombre'] = req.query.buqueNombre;
+
 					if (req.query.code)
 						param['detalle.items.id'] = req.query.code;
+
+					if (req.query.estado){
+						param.estado = req.query.estado;
+					}
 
 				}
 
@@ -186,7 +193,7 @@ module.exports = function(app, io) {
 							codTipoDoc:		postData.codTipoDoc,
 							nroDoc:			postData.nroDoc,
 							clienteId:		postData.clientId,
-							razon:			postData.razon,
+							razon:			postData.razon.trim(),
 							importe:		{
 								gravado:		postData.impGrav,
 								noGravado:		postData.impNoGrav,
@@ -211,14 +218,30 @@ module.exports = function(app, io) {
 							otrosTributos:	[]
 						};
 
+						postData.otrosTributos.forEach(function (item){
+							var otId = item.id;
+							var otDesc = item.desc;
+							invoice.otrosTributos.push(
+								{
+									id:			(otId) ? otId.trim() : "",
+									desc	:	(otDesc) ? otDesc.trim() : "",
+									imponible:	item.imponible,
+									imp:		item.imp
+								})
+						});
+
 						postData.detalle.forEach(function (container){
+							var buqueId = container.buqueId;
+							var buqueDesc = container.buqueDesc;
+							var viaje = container.viaje;
 							var buque = {
-								codigo: container.buqueId,
-								nombre: container.buqueDesc,
-								viaje: container.viaje
+								codigo: (buqueId) ? buqueId.trim() : "",
+								nombre: (buqueDesc) ? buqueDesc.trim() : "",
+								viaje: (viaje) ? viaje.trim() : ""
 							};
+							var contenedor = container.contenedor;
 							var cont = {
-								contenedor:		container.contenedor,
+								contenedor:		(contenedor) ? container.contenedor.trim() : "",
 								IMO:			container.IMO,
 								buque:			buque,
 								items: []
@@ -295,15 +318,6 @@ module.exports = function(app, io) {
 						}
 					});
 
-//					for () {
-//						invoice.otrosTributos.push(
-//						{
-//							id:			,
-//							desc	:	,
-//							imponible:	,
-//							imp:
-//						})
-//					}
 				}
 			});
 		});
@@ -891,16 +905,43 @@ module.exports = function(app, io) {
 					if (req.query.code)
 						param['detalle.items.id'] = req.query.code;
 
+					if (req.query.estado){
+						param.estado = req.query.estado;
+					}
+
 				}
-				var invoice = Invoice.distinct('nroPtoVenta', param, function (err, data){
+				Invoice.distinct('nroPtoVenta', param, function (err, data){
 					if (err){
+						res.send(500, {status: 'ERROR', data: err});
 
 					} else {
-						res.send(200, {status: 'OK', data: data});
+						res.send(200, {status: 'OK', data: data.sort()});
 					}
-				})
+				});
 			}
 		})
+	}
+
+	function getDistincts( req, res) {
+
+		var distinct = '';
+		if (req.route.path === '/ships')
+			distinct = 'detalle.buque.nombre';
+
+		if (req.route.path === '/containers')
+			distinct = 'detalle.contenedor';
+
+		if (req.route.path === '/clients')
+			distinct = 'razon';
+
+		Invoice.distinct(distinct, {}, function (err, data){
+			if (err){
+				res.send(500, {status: 'ERROR', data: err});
+			} else {
+				res.send(200, {status: 'OK', data: data.sort()});
+			}
+		});
+
 	}
 
 	app.get('/invoices/:terminal/:skip/:limit', getInvoices);
@@ -917,6 +958,9 @@ module.exports = function(app, io) {
 	app.post('/invoice', addInvoice);
 	app.put('/invoice/:terminal/:_id', updateInvoice);
 	app.delete('/invoices/:_id', removeInvoices);
+	app.get('/ships', getDistincts);
+	app.get('/containers', getDistincts);
+	app.get('/clients', getDistincts);
 
 	app.get('/invoices/byRates', getInvoicesByRates);
 

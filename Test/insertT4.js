@@ -3,8 +3,8 @@ var schema = mongoose.Schema;
 
 var async = require('async');
 
-var price = require('./models/price.js');
-var matchprice = require('./models/matchPrice.js');
+var price = require('./../models/price.js');
+var matchprice = require('./../models/matchPrice.js');
 
 var T4Sch = schema({
 	MATCH : {type: String},
