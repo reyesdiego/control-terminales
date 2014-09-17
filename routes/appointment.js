@@ -15,7 +15,7 @@ module.exports = function (app, io) {
 	var config = require('../config/config.js');
 
 	function getAppointments(req, res, next){
-		'use static';
+		'use strict';
 
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
@@ -70,7 +70,7 @@ module.exports = function (app, io) {
 	}
 
 	function getAppointmentsByHour(req, res){
-		'use static';
+		'use strict';
 
 		var moment = require('moment');
 		var date = moment(moment().format('YYYY-MM-DD')).toDate();
@@ -116,7 +116,7 @@ module.exports = function (app, io) {
 	}
 
 	function getAppointmentsByMonth(req, res){
-		'use static';
+		'use strict';
 
 		var moment = require('moment');
 
@@ -159,7 +159,7 @@ module.exports = function (app, io) {
 	}
 
 	function addAppointment(req, res){
-		'use static';
+		'use strict';
 
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {

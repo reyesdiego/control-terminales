@@ -60,7 +60,9 @@ var invoiceSchema = new Schema({
 					desc	:		{type: String},
 					imponible:		{type: Number},
 					imp:			{type: Number}
-				}]
+				}],
+	estado	: {type: String, default: 'R', enum: ['R', 'Y', 'G']},
+	comment	: [{ type: mongoose.Schema.ObjectId, ref: 'comments' }]
 });
 
 invoiceSchema.index({nroPtoVenta:1, codTipoComprob:1, nroComprob:1, terminal:1}, {unique:true});
