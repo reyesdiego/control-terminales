@@ -53,7 +53,7 @@ module.exports = function (app, io) {
 					gates.sort({gateTimestamp:-1});
 				}
 
-				gate.exec( function( err, gates){
+				gates.exec( function( err, gates){
 					if (err){
 						console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
 						res.send(500 , {status: "ERROR", data: err});
