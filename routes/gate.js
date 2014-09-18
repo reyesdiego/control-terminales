@@ -228,8 +228,15 @@ module.exports = function (app, io) {
 				var fecha;
 				var param = {};
 
+				if (req.query.contenedor)
+					param.contenedor = req.query.contenedor;
+
+				if (req.query.buqueNombre)
+					param.buque = req.query.buqueNombre;
+
 				if (req.query.fechaInicio || req.query.fechaFin) {
 					param["turnoInicio"] = {};
+					param["turnoFin"] = {};
 					if (req.query.fechaInicio) {
 						fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
 						param["turnoInicio"]['$gte'] = fecha;
@@ -257,7 +264,7 @@ module.exports = function (app, io) {
 								var gatesEarly = Gate.count(param);
 
 								gatesEarly.$where("this.gateTimestamp < this.turnoInicio");
-								gatesLates.exec(function (errEarly, early) {
+								gatesEarly.exec(function (errEarly, early) {
 									if (!errEarly) {
 										var gatesOk = Gate.count(param);
 
@@ -272,7 +279,7 @@ module.exports = function (app, io) {
 														gatesEarly: early,
 														gatesOk: okGates
 													}
-												}
+												};
 												res.send(200, result);
 											} else {
 												console.error("%s - Error: %s", dateTime.getDatetime(), err.error);
