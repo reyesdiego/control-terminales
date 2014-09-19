@@ -26,6 +26,7 @@ module.exports = function (app) {
 				};
 
 				var comment = Comment.find(param);
+				comment.sort({_id: -1})
 				comment.exec(function(err, comments){
 					if (err) {
 						console.error("%s - Error: %s", dateTime.getDatetime(), err.error);
