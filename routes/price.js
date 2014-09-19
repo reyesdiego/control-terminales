@@ -14,7 +14,7 @@ module.exports = function (app){
 	var price = require('../models/price.js');
 
 	function getPrices (req, res){
-		'use strict';
+
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
@@ -41,6 +41,11 @@ module.exports = function (app){
 						param.code = req.query.code;
 					}
 
+					if (req.query.onlyRates){
+						if (req.query.onlyRates !== false)
+							param.rate = {$exists:true};
+					}
+
 					price.find(param)
 						.sort({terminal:1, code:1})
 						.exec(function(err, priceList){
@@ -57,7 +62,7 @@ module.exports = function (app){
 	}
 
 	function getRates (req, res){
-		'use strict';
+
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
@@ -84,7 +89,7 @@ module.exports = function (app){
 	}
 
 	function addPrice (req, res){
-		'use strict';
+
 		var incomingToken = req.headers.token;
 
 		Account.verifyToken(incomingToken, function(err, usr) {
