@@ -725,8 +725,6 @@ module.exports = function(app, io) {
 
 			var dateIni = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD')).toDate();
 			var dateFin = moment(moment(req.query.fechaFin).format('YYYY-MM-DD')).toDate();
-			var dateIni = moment(moment("2014-09-01").format('YYYY-MM-DD')).toDate();
-			var dateFin = moment(moment("2014-09-17").format('YYYY-MM-DD')).toDate();
 
 			var param = [
 				{ $match: { code: {$in: ratesParam } } },
