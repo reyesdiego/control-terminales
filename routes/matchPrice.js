@@ -42,6 +42,11 @@ module.exports = function (app){
 						param.code = req.query.code;
 					}
 
+					if (req.query.onlyRates){
+						if (req.query.onlyRates !== false)
+							param.rate = {$exists:true};
+					}
+
 					price.find(param)
 						.populate({path:'matches', match:{"terminal":req.params.terminal}})
 						.sort({terminal:1,code:1})
