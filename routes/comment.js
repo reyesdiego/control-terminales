@@ -49,7 +49,8 @@ module.exports = function (app) {
 				res.send(403, {status:"ERROR", data: err.error});
 			} else {
 				req.body.user = usr.user;
-				Comment.create(req.body, function (err, commentInserted, rowAffected) {
+				req.body.group = usr.group;
+				Comment.create(req.body, function (err, commentInserted) {
 					if (err){
 						console.log("%s - Error Comment INS: %s", dateTime.getDatetime(), err.error);
 						res.send(403, {status:"ERROR", data: err.errors});

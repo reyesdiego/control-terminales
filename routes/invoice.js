@@ -355,6 +355,36 @@ module.exports = function(app, io) {
 		});
 	}
 
+	function setState (req, res) {
+
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (err){
+				console.log(err);
+				res.send(403, {status:'ERROR', data: err});
+			} else {
+				var invoice = Invoice.update({_id: req.params._id, 'estado.grupo': usr.group},
+					{$set: {'estado.$.estado' : req.body.estado}},
+					function (err, rowAffected){
+						if (rowAffected === 0){
+							Invoice.findByIdAndUpdate( req.params._id,
+								{ $push: { estado: { estado: req.body.estado, grupo: usr.group } } },
+								{safe: true, upsert: true},
+							function (err, rowAffected ){
+								if (err) {
+									console.log("Error insertando" , err);
+								} else {
+									console.log("inserto nuevo estado");
+								}
+							});
+						} else {
+							console.log("actualizo nuevo estado");
+						}
+					});
+			}
+		});
+	}
+
 	function removeInvoices ( req, res){
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
@@ -996,6 +1026,7 @@ module.exports = function(app, io) {
 	app.get('/invoices/cashbox/:terminal', getCashbox);
 	app.post('/invoice', addInvoice);
 	app.put('/invoice/:terminal/:_id', updateInvoice);
+	app.put('/invoice/setState/:terminal/:_id', setState);
 	app.delete('/invoices/:_id', removeInvoices);
 	app.get('/ships', getDistincts);
 	app.get('/containers', getDistincts);

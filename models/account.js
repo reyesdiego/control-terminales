@@ -24,6 +24,7 @@ var Account = new Schema({
 	terminal: {type: String, required: true, uppercase:true, enum: ['BACTSSA', 'TRP', 'TERMINAL4', 'AGP']},
 	role: {type: String},
 	user: {type: String},
+	group: {type: String},
 	full_name: {type: String, required: true},//TODO: break out first / last names
 	date_created: {type: Date, default: Date.now},
 	token: {type: Object},
@@ -31,6 +32,7 @@ var Account = new Schema({
 	reset_token: {type: String},
 	reset_token_expires_millis: {type: Number}
 });
+
 Account.plugin(passportLocalMongoose, {usernameField: 'email'});
 
 Account.statics.encode = function(data) {
@@ -63,6 +65,7 @@ Account.statics.verifyToken = function(incomingToken, cb) {
 							terminal: usr.terminal,
 							email: usr.email,
 							user: usr.user,
+							group: usr.group,
 							token: usr.token,
 							date_created: usr.date_created,
 							full_name: usr.full_name,
@@ -103,6 +106,7 @@ Account.statics.login = function (username, password, cb) {
 					role: user.role,
 					email: user.email,
 					user: user.user,
+					group: user.group,
 					terminal: user.terminal,
 					token: user.token,
 					date_created: user.date_created,

@@ -64,7 +64,12 @@ var invoiceSchema = new Schema({
 					imponible:		{type: Number},
 					imp:			{type: Number}
 				}],
-	estado	: {type: String, default: 'Y', enum: ['R', 'Y', 'G']},
+	estado	:[
+				{
+					estado : {type: String, default: 'Y', enum: ['R', 'Y', 'G'] },
+					grupo : { type: String }
+				}
+	],
 	comment	: [{ type: mongoose.Schema.ObjectId, ref: 'comments' }]
 });
 

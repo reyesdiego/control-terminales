@@ -10,6 +10,7 @@ var commentSchema = new schema({
 	title	: {type: String, required: true},
 	comment	: {type: String},
 	user	: {type: String, required: true},
+	group	: {type: String, required: true},
 	state	: {type: String, required: true, enum: ['R', 'Y', 'G']},
 	invoice	: {type: mongoose.Schema.ObjectId, ref:'invoices'}
 });
