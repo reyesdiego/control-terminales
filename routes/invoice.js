@@ -365,20 +365,29 @@ module.exports = function(app, io) {
 			} else {
 				var invoice = Invoice.update({_id: req.params._id, 'estado.grupo': usr.group},
 					{$set: {'estado.$.estado' : req.body.estado}},
-					function (err, rowAffected){
-						if (rowAffected === 0){
-							Invoice.findByIdAndUpdate( req.params._id,
-								{ $push: { estado: { estado: req.body.estado, grupo: usr.group } } },
-								{safe: true, upsert: true},
-							function (err, rowAffected ){
-								if (err) {
-									console.log("Error insertando" , err);
-								} else {
-									console.log("inserto nuevo estado");
-								}
-							});
-						} else {
-							console.log("actualizo nuevo estado");
+					function (err, rowAffected, data, data2){
+						if (err) {
+							var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'Error in invoice set state.');
+							console.error(errMsg);
+							res.send(500, {status:'ERROR', data: errMsg});
+						} else  {
+
+							if (rowAffected === 0){
+								Invoice.findByIdAndUpdate( req.params._id,
+									{ $push: { estado: { estado: req.body.estado, grupo: usr.group } } },
+									{safe: true, upsert: true},
+									function (err, data ){
+										if (err) {
+											var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'Error in invoice set state.');
+											console.error(errMsg);
+											res.send(500, {status:'ERROR', data: errMsg});
+										} else {
+											res.send(200, {status:'OK', data: data});
+										}
+									});
+							} else {
+								res.send(200, {status:'OK', data: data});
+							}
 						}
 					});
 			}
