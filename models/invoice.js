@@ -67,7 +67,8 @@ var invoiceSchema = new Schema({
 	estado	:[
 				{
 					estado : {type: String, default: 'Y', enum: ['R', 'Y', 'G'] },
-					grupo : { type: String }
+					grupo : { type: String },
+					user : { type: String}
 				}
 	],
 	comment	: [{ type: mongoose.Schema.ObjectId, ref: 'comments' }]

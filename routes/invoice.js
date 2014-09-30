@@ -90,7 +90,8 @@ module.exports = function(app, io) {
 						param['detalle.items.id'] = req.query.code;
 
 					if (req.query.estado){
-						param.estado = req.query.estado;
+						param['estado.estado'] = req.query.estado;
+						param['estado.grupo'] = usr.group;
 					}
 
 				}
@@ -214,20 +215,22 @@ module.exports = function(app, io) {
 								vctoPago:	moment(postData.fechaVctoPago)
 							},
 							detalle:		[],
-							otrosTributos:	[]
+							otrosTributos:	[],
+							estado: 		[]
 						};
 
-						postData.otrosTributos.forEach(function (item){
-							var otId = item.id;
-							var otDesc = item.desc;
-							invoice.otrosTributos.push(
-								{
-									id:			(otId) ? otId.trim() : "",
-									desc	:	(otDesc) ? otDesc.trim() : "",
-									imponible:	item.imponible,
-									imp:		item.imp
-								})
-						});
+						if (postData.otrosTributos)
+							postData.otrosTributos.forEach(function (item){
+								var otId = item.id;
+								var otDesc = item.desc;
+								invoice.otrosTributos.push(
+									{
+										id:			(otId) ? otId.trim() : "",
+										desc	:	(otDesc) ? otDesc.trim() : "",
+										imponible:	item.imponible,
+										imp:		item.imp
+									})
+							});
 
 						postData.detalle.forEach(function (container){
 							var buqueId = container.buqueId;
@@ -374,7 +377,7 @@ module.exports = function(app, io) {
 
 							if (rowAffected === 0){
 								Invoice.findByIdAndUpdate( req.params._id,
-									{ $push: { estado: { estado: req.body.estado, grupo: usr.group } } },
+									{ $push: { estado: { estado: req.body.estado, grupo: usr.group, user: usr.user } } },
 									{safe: true, upsert: true},
 									function (err, data ){
 										if (err) {
