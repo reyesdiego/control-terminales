@@ -1,7 +1,7 @@
 {
 	"codTipoComprob":1,
 	"nroPtoVenta":31,
-	"nroComprob":1234567890,
+	"nroComprob":1234567891,
 	"fechaEmision":"2014/03/10",
 	"codTipoAutoriz":"k",
 	"codAutoriz":64105928828924,
@@ -28,13 +28,13 @@
 		[
 			{
 				"id":"IIBB6",
-				"desc":"PERC BS AS RI                 ",
+				"desc":"PERC BS AS RI                   ",
 				"imponible":0.06,
 				"imp":327.17
 			},
 			{
 				"id":"IVA21",
-				"desc":"IVA 21%                       ",
+				"desc":"IVA 21%",
 				"imponible":0.21,
 				"imp":1229.11
 			}

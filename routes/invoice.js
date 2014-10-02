@@ -25,6 +25,7 @@ module.exports = function(app, io) {
 	var Invoice = require('../models/invoice.js');
 	var Price = require('../models/price.js');
 	var MatchPrice = require('../models/matchPrice.js');
+	var Comment = require('../models/comment.js');
 
 	//GET - Return all invoice in the DB
 	function getInvoices (req, res) {
@@ -90,8 +91,16 @@ module.exports = function(app, io) {
 						param['detalle.items.id'] = req.query.code;
 
 					if (req.query.estado){
-						param['estado.estado'] = req.query.estado;
-						param['estado.grupo'] = usr.group;
+						param['$or'] = [
+								{
+									estado: { $elemMatch: {grupo:'ALL', estado: req.query.estado} },
+									$where: 'this.estado.length<2'
+								} ,
+								{
+									estado: { $elemMatch: {grupo: usr.group, estado: req.query.estado} },
+									$where: 'this.estado.length>1'
+								} ]
+
 					}
 
 				}
@@ -216,7 +225,14 @@ module.exports = function(app, io) {
 							},
 							detalle:		[],
 							otrosTributos:	[],
-							estado: 		[]
+							estado: 		[
+								{
+									estado	:	"Y",
+									grupo	:	"ALL",
+									user	:	usr.user
+								}
+							],
+							comment: []
 						};
 
 						if (postData.otrosTributos)
@@ -282,12 +298,29 @@ module.exports = function(app, io) {
 					}
 
 					var invoice2add = new Invoice(invoice);
-					invoice2add.save(function (errSave, data, rowsAffected) {
+					invoice2add.save(function (errSave, data) {
 						if (!errSave) {
 							console.log("%s - Invoice INS:%s - %s - Tipo: %s - %s", dateTime.getDatetime(), data._id, usr.terminal, postData.codTipoComprob, postData.fechaEmision);
+
 							var socketMsg = {status:'OK', datetime: dateTime.getDatetime(), terminal: usr.terminal};
 							io.sockets.emit('invoice', socketMsg);
-							res.send(200,{status: "OK", data: data});
+
+							Comment.create({
+								invoice: data._id,
+								title: 'Transferencia comprobante.',
+								comment: 'Comprobante transferido correntamente.',
+								state: 'Y',
+								user: usr.user,
+								group: "ALL"
+							}, function (err, commentAdded){
+								if (err){
+
+								} else {
+									data.comment.push(commentAdded._id);
+									res.send(200,{status: "OK", data: data});
+								}
+							});
+
 						} else {
 							//TODO crear objecto para tratar los errores, en este caso trato el tema de duplicados.
 							if (errSave.code === 11000){
@@ -317,6 +350,7 @@ module.exports = function(app, io) {
 
 								res.send(500, {status: "ERROR", data: strError});
 							}
+
 						}
 					});
 
@@ -1045,10 +1079,5 @@ module.exports = function(app, io) {
 	app.get('/clients', getDistincts);
 
 	app.post('/invoices/byRates', getInvoicesByRates);
-
-
-
-
-
 
 };
