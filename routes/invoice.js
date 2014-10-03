@@ -100,7 +100,6 @@ module.exports = function(app, io) {
 									estado: { $elemMatch: {grupo: usr.group, estado: req.query.estado} },
 									$where: 'this.estado.length>1'
 								} ]
-
 					}
 
 				}
@@ -1021,14 +1020,21 @@ module.exports = function(app, io) {
 						param['detalle.items.id'] = req.query.code;
 
 					if (req.query.estado){
-						param.estado = req.query.estado;
+						param['$or'] = [
+							{
+								estado: { $elemMatch: {grupo:'ALL', estado: req.query.estado} },
+								$where: 'this.estado.length<2'
+							} ,
+							{
+								estado: { $elemMatch: {grupo: usr.group, estado: req.query.estado} },
+								$where: 'this.estado.length>1'
+							} ]
 					}
-
 				}
+
 				Invoice.distinct('nroPtoVenta', param, function (err, data){
 					if (err){
 						res.send(500, {status: 'ERROR', data: err});
-
 					} else {
 						res.send(200, {status: 'OK', data: data.sort()});
 					}
