@@ -48,10 +48,7 @@ module.exports = function(app, io) {
 
 					var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
 					var param = {
-						$or : [
-							{terminal:	"AGP"},
-							{terminal:	ter}
-						]
+						terminal:	ter
 					};
 
 					if (req.query.fechaInicio || req.query.fechaFin){
@@ -101,12 +98,14 @@ module.exports = function(app, io) {
 									$where: 'this.estado.length>1'
 								} ]
 					}
-
 				}
 
 				var invoices = Invoice.find(param);
 
-				invoices.limit(req.params.limit).skip(req.params.skip);
+				var limit = parseInt(req.params.limit, 10);
+				var skip = parseInt(req.params.skip, 10);
+
+				invoices.limit(limit).skip(skip);
 				if (req.query.order){
 					var order = JSON.parse(req.query.order);
 					invoices.sort(order[0]);
@@ -120,14 +119,14 @@ module.exports = function(app, io) {
 							var result = {
 								status: 'OK',
 								totalCount: cnt,
-								pageCount: parseInt( ((req.params.limit > cnt)?cnt:req.params.limit ), 10),
-								page: parseInt(req.params.skip, 10),
+								pageCount: (req.params.limit > cnt)?cnt:req.params.limit,
+								page: skip,
 								data: invoices
 							}
 							res.send(200, result);
 						});
 					} else {
-						console.error("%s - Error: %s", dateTime.getDatetime(), err.error);
+						console.error("%s - Error: %s", dateTime.getDatetime(), err);
 						res.send(500 , {status: "ERROR", data: err});
 					}
 				});
@@ -582,8 +581,14 @@ module.exports = function(app, io) {
 
 		var _price = require('../include/price.js');
 		var _rates = new _price.price();
+
 		_rates.rates(function (err, rates){
+
 			if (rates.length>0){
+
+				var skip = parseInt(req.params.skip, 10);
+				var limit = parseInt(req.params.limit, 10);
+
 				var param = {
 					terminal : terminal,
 					'detalle.items.id': {$nin: rates}
@@ -598,7 +603,7 @@ module.exports = function(app, io) {
 				}
 
 				var invoices = Invoice.find(param);
-				invoices.limit(req.params.limit).skip(req.params.skip);
+				invoices.limit(limit).skip(skip);
 
 				if (req.query.order){
 					var order = JSON.parse(req.query.order);
@@ -612,8 +617,8 @@ module.exports = function(app, io) {
 						var dataResult = {
 							status: 'OK',
 							totalCount: cnt,
-							pageCount: (req.params.limit > cnt)?cnt:req.params.limit,
-							page: req.params.skip,
+							pageCount: (req.params.limit > cnt) ? cnt : req.params.limit,
+							page: skip,
 							data: invoices
 						}
 						res.send(200, dataResult);
@@ -688,6 +693,92 @@ module.exports = function(app, io) {
 
 	}
 
+	function getRatesByContainer (req, res){
+		var moment = require('moment');
+
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (err){
+				console.error(usr);
+				res.send(500, {status:'ERROR', data: err});
+			} else {
+
+				var today = moment(moment().format('YYYY-MM-DD')).toDate();
+				var tomorrow = moment(moment().format('YYYY-MM-DD')).add('days',1).toDate();
+				if (req.query.fecha !== undefined){
+					today = moment(moment(req.query.fecha).format('YYYY-MM-DD')).toDate();
+					tomorrow = moment(moment(req.query.fecha).format('YYYY-MM-DD')).add('days',1).toDate();
+				}
+
+				var paramTerminal = req.params.terminal;
+
+				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
+					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
+					console.error(errMsg);
+					res.send(500, {status:"ERROR", data: errMsg});
+				} else {
+
+					var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
+
+					var _price = require('../include/price.js');
+					var _rates = new _price.price();
+					_rates.rates(function (err, rates){
+
+						var sum = {};
+						if (req.params.currency === 'PES')
+							sum = { $cond: [
+								{$eq:['$codMoneda', 'PES' ]},
+								'$detalle.items.impTot',
+								{$multiply:['$detalle.items.impTot','$cotiMoneda'] }
+							]
+							};
+						else if (req.params.currency === 'DOL')
+							sum = { $cond: [
+								{$eq:['$codMoneda', 'DOL' ]},
+								'$detalle.items.impTot',
+								{$divide:['$detalle.items.impTot','$cotiMoneda'] }
+							]
+							};
+
+						var param = {
+							$or : [
+								{terminal:	"AGP"},
+								{terminal:	ter}
+							]
+						};
+
+						var jsonParam = [
+							{	$match: { terminal:	ter } },
+							{	$unwind : '$detalle'	},
+							{	$unwind : '$detalle.items'	},
+							{	$match : {
+								'detalle.items.id' : {$in: rates},
+								'detalle.contenedor' : req.params.container
+							}
+							},
+							{	$project : {terminal: 1, 'detalle.items': 1, "total" : sum }
+							},
+							{
+								$group  : {
+									_id: { terminal: '$terminal'},
+									cnt: { $sum: 1},
+									total: {$sum: '$total'}
+								}
+							}
+						];
+						Invoice.aggregate(jsonParam, function (err, data){
+							if (err)
+								res.send(500, {status:'ERROR', data: err });
+							else
+								res.send(200, {status:'OK', data: data });
+						});
+					});
+					}
+			}
+		});
+
+	}
+
 	function getNoMatches (req, res) {
 		'use strict';
 
@@ -697,6 +788,9 @@ module.exports = function(app, io) {
 				console.error('%s - Error: %s', dateTime.getDatetime(), err);
 				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
 			} else {
+
+				var skip = parseInt(req.params.skip, 10);
+				var limit = parseInt(req.params.limit, 10);
 
 				var paramTerminal = req.params.terminal;
 
@@ -752,8 +846,8 @@ module.exports = function(app, io) {
 							}
 							});
 							inv.sort({'_id.fecha':-1});
-							inv.skip(parseInt(req.params.skip, 10));
-							inv.limit(parseInt(req.params.limit, 10));
+							inv.skip(skip);
+							inv.limit(limit);
 
 							inv.exec(function (err, data){
 
@@ -766,8 +860,8 @@ module.exports = function(app, io) {
 											var result = {
 												status: 'OK',
 												totalCount: cnt,
-												pageCount: parseInt( ((req.params.limit > cnt)?cnt:req.params.limit) , 10),
-												page: parseInt(req.params.skip, 10),
+												pageCount: (req.params.limit > cnt)? cnt : req.params.limit,
+												page: skip,
 												data: data
 											}
 											res.send(200, result);
@@ -979,12 +1073,7 @@ module.exports = function(app, io) {
 				} else {
 
 					var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
-					var param = {
-						$or : [
-							{terminal:	"AGP"},
-							{terminal:	ter}
-						]
-					};
+					var param = {terminal:	ter};
 
 					if (req.query.fechaInicio || req.query.fechaFin){
 						param["fecha.emision"]={};
@@ -1073,6 +1162,7 @@ module.exports = function(app, io) {
 	app.get('/invoices/countsByMonth/:currency', getCountByMonth);
 	app.get('/invoices/noRates/:terminal/:skip/:limit', getNoRates);
 	app.get('/invoices/ratesTotal/:currency', getRatesTotal);
+	app.get('/invoices/rates/:terminal/:container/:currency', getRatesByContainer);
 	app.get('/invoices/noMatches/:terminal/:skip/:limit', getNoMatches);
 	app.get('/invoices/correlative/:terminal', getCorrelative);
 	app.get('/invoices/cashbox/:terminal', getCashbox);
