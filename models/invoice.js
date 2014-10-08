@@ -12,7 +12,8 @@ var detalleSchema = new Schema(
 		buque:		{
 			codigo:	{ type: String },
 			nombre:	{ type: String },
-			viaje:	{ type: String }
+			viaje:	{ type: String },
+			fecha:	{ type: Date}
 		},
 		items:[
 			{
