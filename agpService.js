@@ -16,8 +16,9 @@ mongoose.connect(config.mongo_url, config.mongo_opts);
 var date = moment().format('DD-MM-YYYY');
 
 var asyncParallel = [];
-//var terminals = ['BACTSSA', 'TERMINAL4', 'TRP'];
-var terminals = ['TRP'];
+var terminals = ['BACTSSA', 'TERMINAL4', 'TRP'];
+//var terminals = ['BACTSSA'];
+var sendMail = false;
 
 terminals.forEach(function (item){
 
@@ -46,10 +47,12 @@ terminals.forEach(function (item){
 
 							if (result.status === 'OK'){
 								if (result.data.length>0){
-									var mailer = new mail.mail(true);
+									var mailer = new mail.mail(sendMail);
 
 									console.log("ya esta %s", item);
-//									callback();
+									console.log(result.data);
+
+									callback();
 
 								mailer.send(user.email,
 										result.data.length.toString() + " CÓDIGOS SIN ASOCIAR AL " + date,
@@ -65,6 +68,8 @@ terminals.forEach(function (item){
 						});
 					});
 					reqGet.end();
+				} else {
+					callback();
 				}
 			}
 
@@ -76,5 +81,6 @@ terminals.forEach(function (item){
 
 async.parallel(asyncParallel, function(data){
 	console.log(data);
+	process.exit(code=0);
 });
 
