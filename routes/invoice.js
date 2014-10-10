@@ -760,7 +760,10 @@ module.exports = function(app, io) {
 							},
 							{
 								$group  : {
-									_id: { terminal: '$terminal'},
+									_id: {
+											terminal: '$terminal',
+											id: '$detalle.items.id'
+									},
 									cnt: { $sum: 1},
 									total: {$sum: '$total'}
 								}
