@@ -89,8 +89,8 @@ module.exports = function(app, io) {
 
 					if (req.query.estado){
 						param['$or'] = [
-							{ estado: { $size: 1, $elemMatch:{estado: req.query.estado, grupo:'ALL'}} },
-							{ estado: { $size: {$gt:1}}, estado:{$elemMatch:{ estado: req.query.estado, grupo: usr.group }} }
+							{ estado:{$size: 1, $elemMatch: {estado: req.query.estado, grupo:'ALL'} } },
+							{ 'estado.1': { $exists: true } , estado: {$elemMatch: {estado: req.query.estado, grupo: usr.group} } }
 						]
 					}
 				}
@@ -1108,20 +1108,15 @@ module.exports = function(app, io) {
 
 					if (req.query.estado){
 						param['$or'] = [
-							{
-								estado: { $elemMatch: {grupo:'ALL', estado: req.query.estado} },
-								$where: 'this.estado.length<2'
-							} ,
-							{
-								estado: { $elemMatch: {grupo: usr.group, estado: req.query.estado} },
-								$where: 'this.estado.length>1'
-							} ]
+							{ estado:{$size: 1, $elemMatch: {estado: req.query.estado, grupo:'ALL'} } },
+							{ 'estado.1': { $exists: true } , estado: {$elemMatch: {estado: req.query.estado, grupo: usr.group} } }
+						]
 					}
 				}
 
 				Invoice.distinct('nroPtoVenta', param, function (err, data){
 					if (err){
-						res.send(500, {status: 'ERROR', data: err});
+						res.send(500, {status: 'ERROR', data: err.message});
 					} else {
 						res.send(200, {status: 'OK', data: data.sort()});
 					}
