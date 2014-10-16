@@ -89,14 +89,9 @@ module.exports = function(app, io) {
 
 					if (req.query.estado){
 						param['$or'] = [
-								{
-									estado: { $elemMatch: {grupo:'ALL', estado: req.query.estado} },
-									$where: 'this.estado.length<2'
-								} ,
-								{
-									estado: { $elemMatch: {grupo: usr.group, estado: req.query.estado} },
-									$where: 'this.estado.length>1'
-								} ]
+							{ estado: { $size: 1, $elemMatch:{estado: req.query.estado, grupo:'ALL'}} },
+							{ estado: { $size: {$gt:1}}, estado:{$elemMatch:{ estado: req.query.estado, grupo: usr.group }} }
+						]
 					}
 				}
 
