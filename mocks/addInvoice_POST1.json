@@ -1,7 +1,7 @@
 {
 	"codTipoComprob":1,
 	"nroPtoVenta":31,
-	"nroComprob":1234567891,
+	"nroComprob":55552,
 	"fechaEmision":"2014/03/10",
 	"codTipoAutoriz":"k",
 	"codAutoriz":64105928828924,
@@ -43,6 +43,7 @@
 		[
 			{
 				"contenedor":"ISCU1234567",
+				"fecha":"2014/03/10",
 				"buqueDesc":"TITANIC",
 				"viaje":"23",
 				"items":
@@ -59,6 +60,7 @@
 			{
 				"contenedor":"MAXI1234567",
 				"buqueId":"758",
+				"fecha":"2014/03/10",
 				"buqueDesc":"TITANIC",
 				"viaje":"23",
 				"items":

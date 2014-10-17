@@ -245,10 +245,12 @@ module.exports = function(app, io) {
 							var buqueId = container.buqueId;
 							var buqueDesc = container.buqueDesc;
 							var viaje = container.viaje;
+							var fecha = (container.fecha !== undefined) ? moment(container.fecha) : null;
 							var buque = {
 								codigo: (buqueId) ? buqueId.trim() : "",
 								nombre: (buqueDesc) ? buqueDesc.trim() : "",
-								viaje: (viaje) ? viaje.trim() : ""
+								viaje: (viaje) ? viaje.trim() : "",
+								fecha: fecha
 							};
 							var contenedor = container.contenedor;
 							var cont = {
