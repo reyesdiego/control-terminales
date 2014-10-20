@@ -312,7 +312,9 @@ module.exports = function(app, io) {
 
 								} else {
 									data.comment.push(commentAdded._id);
-									res.send(200,{status: "OK", data: data});
+									data.save(function (){
+										res.send(200,{status: "OK", data: data});
+									});
 								}
 							});
 
@@ -586,9 +588,23 @@ module.exports = function(app, io) {
 				var skip = parseInt(req.params.skip, 10);
 				var limit = parseInt(req.params.limit, 10);
 
+				var fecha;
+
 				var param = {
 					terminal : terminal,
 					'detalle.items.id': {$nin: rates}
+				}
+
+				if (req.query.fechaInicio || req.query.fechaFin){
+					param["fecha.emision"]={};
+					if (req.query.fechaInicio){
+						fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+						param["fecha.emision"]['$gte'] = fecha;
+					}
+					if (req.query.fechaFin){
+						fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+						param["fecha.emision"]['$lte'] = fecha;
+					}
 				}
 
 				if (req.query.contenedor){
