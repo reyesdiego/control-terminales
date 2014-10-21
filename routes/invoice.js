@@ -37,6 +37,7 @@ module.exports = function(app, io) {
 				res.send(500, {status:'ERROR', data: err});
 			} else {
 				var fecha;
+				var param = {};
 
 				var paramTerminal = req.params.terminal;
 
@@ -479,6 +480,7 @@ module.exports = function(app, io) {
 	}
 
 	function getCountByDate (req, res) {
+		var moment = require('moment');
 
 		var date = moment(moment().format('YYYY-MM-DD'));
 		if (req.query.fecha !== undefined){
@@ -593,7 +595,7 @@ module.exports = function(app, io) {
 				var param = {
 					terminal : terminal,
 					'detalle.items.id': {$nin: rates}
-				}
+				};
 
 				if (req.query.fechaInicio || req.query.fechaFin){
 					param["fecha.emision"]={};

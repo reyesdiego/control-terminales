@@ -74,6 +74,7 @@ module.exports = function (app){
 				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
 			} else {
 				var paramTerminal = req.params.terminal;
+				var paramType = req.params.type;
 
 				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal){
 					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
