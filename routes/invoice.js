@@ -230,7 +230,7 @@ module.exports = function(app, io, log) {
 
 						if (postData.otrosTributos)
 							postData.otrosTributos.forEach(function (item){
-								var otId = item.id;
+								var otId = item.id.toString();
 								var otDesc = item.desc;
 								invoice.otrosTributos.push(
 									{
@@ -242,7 +242,7 @@ module.exports = function(app, io, log) {
 							});
 
 						postData.detalle.forEach(function (container){
-							var buqueId = container.buqueId;
+							var buqueId = container.buqueId.toString();
 							var buqueDesc = container.buqueDesc;
 							var viaje = container.viaje;
 							var fecha = (container.fecha !== undefined) ? moment(container.fecha) : null;
