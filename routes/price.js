@@ -9,7 +9,7 @@ var util = require('util');
 
 var dateTime = require('../include/moment');
 
-module.exports = function (app){
+module.exports = function (app, log){
 
 	var price = require('../models/price.js');
 
@@ -18,7 +18,7 @@ module.exports = function (app){
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.error('%s - Error: %s', dateTime.getDatetime(), err);
+				log.logger.error('Error: %s', err);
 				res.send(403, {status:"ERROR", data: err.error});
 			} else {
 
@@ -26,7 +26,7 @@ module.exports = function (app){
 
 				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal){
 					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-					console.error(errMsg);
+					log.logger.error(errMsg);
 					res.send(500, {status:"ERROR", data: errMsg});
 				} else {
 					var ter = (usr.role === 'agp')?req.params.terminal:usr.terminal;
@@ -52,7 +52,7 @@ module.exports = function (app){
 						if(!err) {
 							res.send(200, {status:'OK', data:priceList});
 						} else {
-							console.error('%s - Error: %s', dateTime.getDatetime(), err);
+							log.logger.error('Error: %s', err);
 							res.send(500, {status:'ERROR', data: err});
 						}
 					});
@@ -66,7 +66,7 @@ module.exports = function (app){
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.error('%s - Error: %s', dateTime.getDatetime(), err);
+				log.logger.error('Error: %s', err);
 				res.send(403, {status:"ERROR", data: err.error});
 			} else {
 				var param = {
@@ -80,7 +80,7 @@ module.exports = function (app){
 						if(!err) {
 							res.send(200, {status:'OK', data:priceList});
 						} else {
-							console.error('%s - Error: %s', dateTime.getDatetime(), err);
+							log.logger.error('Error: %s', err);
 							res.send(500, {status:'ERROR', data: err});
 						}
 					});
@@ -94,7 +94,7 @@ module.exports = function (app){
 
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.log(err, new Date().toString());
+				log.logger.error(err);
 				res.send(403, {status:'ERROR', data: err});
 			} else {
 				var _price;
@@ -118,10 +118,10 @@ module.exports = function (app){
 				}
 				_price.save(function (errSave, data){
 					if(!err) {
-						console.log("%s - Price INS:%s - %s", dateTime.getDatetime(), data._id, usr.terminal);
+						log.logger.insert("Price INS:%s - %s", data._id, usr.terminal);
 						res.send(200,{"status": "OK", "data": _price});
 					} else {
-						console.error('%s - Error: %s', dateTime.getDatetime(), errSave);
+						log.logger.error('Error: %s', errSave);
 						res.send(500, {"status":"ERROR", "data": errSave});
 					}
 				});

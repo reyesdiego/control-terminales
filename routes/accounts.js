@@ -11,7 +11,7 @@ var util = require('util');
  * @module Accounts
  */
 
-module.exports = function (app, passport) {
+module.exports = function (app, passport, log) {
 
 	/**
 	 * Default route for app, currently displays signup form.
@@ -117,14 +117,13 @@ module.exports = function (app, passport) {
 //						console.error(errMsg);
 //						res.send(403, errMsg);
 //					}
-					var errMsg = util.format("%s - ERROR: Authentication Failed - %s. From: %s", dateTime.getDatetime(), err.error, req.socket.remoteAddress);
-					console.error(errMsg);
+					var errMsg = util.format("ERROR: Authentication Failed - %s. From: %s", err.error, req.socket.remoteAddress);
+					log.logger.info(errMsg);
 					res.send(403, errMsg);
 
 				} else {
-					var msg = util.format("%s - User '%s' has logged in From: %s", dateTime.getDatetime(), json.email, req.socket.remoteAddress);
-					console.log(msg);
-					res.send(usersToken);
+					log.logger.info("User '%s' has logged in From: %s", json.email, req.socket.remoteAddress);
+					res.send(200, usersToken);
 				}
 			});
 		} else {
@@ -133,7 +132,6 @@ module.exports = function (app, passport) {
 	});
 
 	app.post('/agp/password', function (req, res) {
-		console.log(req.body);
 		if (req.body.email !== undefined) {
 			Account.password(req.body.email, req.body.password, req.body.newPass, function(err, result) {
 
@@ -243,7 +241,6 @@ module.exports = function (app, passport) {
 			if (err) {
 				res.send(err);
 			} else {
-				console.log(usr);
 				res.send({"test": "OK", user: usr});
 			}
 		});

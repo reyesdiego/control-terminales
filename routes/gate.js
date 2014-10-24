@@ -3,7 +3,7 @@
  */
 
 
-module.exports = function (app, io) {
+module.exports = function (app, io, log) {
 
 	var dateTime = require('../include/moment');
 	var moment = require('moment');
@@ -20,7 +20,7 @@ module.exports = function (app, io) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.error(usr);
+				log.logger.error(usr);
 				res.send(403, {status:'ERROR', data: err});
 			} else {
 				var fecha;
@@ -60,7 +60,7 @@ module.exports = function (app, io) {
 
 				gates.exec( function( err, gates){
 					if (err){
-						console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
+						log.logger.error("Error: %s", err.error);
 						res.send(500 , {status: "ERROR", data: err});
 					} else {
 						Gate.count(param, function (err, cnt){
@@ -93,7 +93,7 @@ module.exports = function (app, io) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.error(usr);
+				log.logger.error(usr);
 				res.send(403, {status:'ERROR', data: err});
 			} else {
 
@@ -136,7 +136,7 @@ module.exports = function (app, io) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.error(usr);
+				log.logger.error(usr);
 				res.send(403, {status:'ERROR', data: err});
 			} else {
 
@@ -187,7 +187,7 @@ module.exports = function (app, io) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err) {
-				console.error("%s - Error Gate INS: %s", dateTime.getDatetime(), err.error);
+				log.logger.error("Error Gate INS: %s", err.error);
 				res.send(403, {status:"ERROR", data: err.error});
 			} else {
 				var gate2insert = req.body;
@@ -200,14 +200,14 @@ module.exports = function (app, io) {
 				if (gate2insert) {
 					Gate.insert(gate2insert, function (errSave, data) {
 						if (!errSave){
-							console.log('%s - Gate INS: %s - %s - %s', dateTime.getDatetime(), data._id, usr.terminal, gate2insert.gateTimestamp);
+							log.logger.insert('Gate INS: %s - %s - %s', data._id, usr.terminal, gate2insert.gateTimestamp);
 							var socketMsg = {status:'OK', datetime: dateTime.getDatetime(), terminal: usr.terminal};
 							io.sockets.emit('gate', socketMsg);
 							res.send(200, {status: "OK", data: data});
 						} else {
 
 							var errMsg = util.format('%s - ERROR: %s.-%s- \n%s', dateTime.getDatetime(), errSave.toString(), usr.terminal, JSON.stringify(req.body));
-							console.error(errMsg);
+							log.logger.error(errMsg);
 
 							var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
 							var mailer = new mail.mail(config.email);

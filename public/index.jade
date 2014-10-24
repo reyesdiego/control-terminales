@@ -1,0 +1,20 @@
+doctype html
+html(lang='fr')
+	head
+		title Servicio Terminales
+	body
+		h1 Servicio Terminales Portuarias
+		p Administración General de Puertos
+		p Servidor: #{server}
+		p(style="font-weight:bolder") NodeJs version:
+			= node.version
+		p(style="font-weight:bolder") Mongoose version:
+			= mongoose.version
+		span
+			- if (mongoose.connected)
+				span(style="color:green")  Connected
+			- else
+				span(style="color:red")  Not connected
+		br
+		p Process Id: #{pid}
+		p Runtime: #{node.runtime}

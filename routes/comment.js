@@ -2,7 +2,7 @@
  * Created by diego on 9/5/14.
  */
 
-module.exports = function (app) {
+module.exports = function (app, log) {
 
 	var util = require('util');
 	var dateTime = require('../include/moment');
@@ -18,7 +18,7 @@ module.exports = function (app) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.log(usr);
+				log.logger.error(usr);
 				res.send(403, {status:'ERROR', data: err});
 			} else {
 				var param = {
@@ -29,7 +29,7 @@ module.exports = function (app) {
 				comment.sort({_id: -1})
 				comment.exec(function(err, comments){
 					if (err) {
-						console.error("%s - Error: %s", dateTime.getDatetime(), err.error);
+						log.logger.error("Error: %s", err.error);
 						res.send({status:'ERROR', data: err});
 					} else {
 						res.send(200, {status:"OK", data: comments||null})
@@ -45,14 +45,14 @@ module.exports = function (app) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err) {
-				console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
+				log.logger.error("Error: %s", err.error);
 				res.send(403, {status:"ERROR", data: err.error});
 			} else {
 				req.body.user = usr.user;
 				req.body.group = usr.group;
 				Comment.create(req.body, function (err, commentInserted) {
 					if (err){
-						console.log("%s - Error Comment INS: %s", dateTime.getDatetime(), err.error);
+						log.logger.error("Error Comment INS: %s", err.error);
 						res.send(403, {status:"ERROR", data: err.errors});
 					} else {
 

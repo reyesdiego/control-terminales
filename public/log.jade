@@ -1,0 +1,33 @@
+doctype html
+html(lang='fr')
+	head
+		title Log Servicio Terminales
+	body(style="font-family:arial; font-size:12px;")
+		h1 Welcome on My Own Bookmarks
+			p This application will help you manage your bookmarks!
+			form(action="log2", method="get")
+				label Log:
+				select(name="filename")
+					- for(bookmark in files) {
+						option(value=files[bookmark].url)= files[bookmark].title
+					- }
+				input(type="submit", value="Seleccionar Log File")
+
+		table(style="width:80%;border:1px solid grey; border-collapse:collapse")
+			thead
+				tr
+					th(width="10%", align="left", style="border:1px solid grey; border-collapse:collapse; padding:2px") Fecha
+					th(width="80px", align="left", style="border:1px solid grey; border-collapse:collapse; padding:2px") Nivel
+					th(width="*", align="left", style="border:1px solid grey; border-collapse:collapse; padding:2px") Mensaje
+			tbody
+				- for(line in json) {
+				tr
+					td(style="border:1px solid grey; border-collapse:collapse; padding:2px")=moment(json[line].timestamp).format('YY-MM-DD HH:mm:ss:SSS')
+					- if (json[line].level === 'info')
+						td(style="color:green;border:1px solid grey; border-collapse:collapse; padding:2px")=json[line].level
+					- else if (json[line].level === 'error')
+						td(style="color:red;border:1px solid grey; border-collapse:collapse; padding:2px")=json[line].level
+					- else
+						td(style="border:1px solid grey; border-collapse:collapse; padding:2px")=json[line].level
+					td(style="border:1px solid grey; border-collapse:collapse; padding:2px")=json[line].message
+				- }

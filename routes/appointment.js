@@ -3,7 +3,7 @@
  */
 
 
-module.exports = function (app, io) {
+module.exports = function (app, io, log) {
 
 	var dateTime = require('../include/moment.js');
 	var moment = require('moment');
@@ -20,7 +20,7 @@ module.exports = function (app, io) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.error(usr);
+				log.logger.error(usr);
 				res.send(500, {status:'ERROR', data: err});
 			} else {
 				var fecha;
@@ -49,7 +49,7 @@ module.exports = function (app, io) {
 				var appointment = Appointment.find(param).limit(req.params.limit).skip(req.params.skip);
 				appointment.exec( function( err, appointments){
 					if (err){
-						console.error("%s - Error: %s", dateTime.getDatetime(), err.error);
+						log.logger.error("Error: %s", err.error);
 						res.send(500 , {status: "ERROR", data: err});
 					} else {
 						Appointment.count(param, function (err, cnt){
@@ -82,7 +82,7 @@ module.exports = function (app, io) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.error(usr);
+				log.logger.error(usr);
 				res.send(500, {status:'ERROR', data: err});
 			} else {
 				var fecha;
@@ -130,7 +130,7 @@ module.exports = function (app, io) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.error(usr);
+				log.logger.error(usr);
 				res.send(500, {status:'ERROR', data: err});
 			} else {
 
@@ -165,7 +165,7 @@ module.exports = function (app, io) {
 		Account.verifyToken(incomingToken, function(err, usr) {
 
 			if (err) {
-				console.log("%s - Error: %s", dateTime.getDatetime(), err.error);
+				log.logger.error("Error: %s", err.error);
 				res.send(403, {status:'ERROR', data: err.error});
 			} else {
 				var appointment2insert = req.body;
@@ -176,13 +176,13 @@ module.exports = function (app, io) {
 				if (appointment2insert) {
 					Appointment.insert(appointment2insert, function (errData, data){
 						if (!errData){
-							console.log('%s - Appointment INS: %s - %s - Inicio: %s, Fin: %s', dateTime.getDatetime(), data._id, usr.terminal, data.inicio, data.fin);
+							log.logger.insert('Appointment INS: %s - %s - Inicio: %s, Fin: %s', data._id, usr.terminal, data.inicio, data.fin);
 							var socketMsg = {status:'OK', datetime: dateTime.getDatetime(), terminal: usr.terminal};
 							io.sockets.emit('appointment', socketMsg);
 							res.send(200, {status: 'OK', data: data});
 						} else {
 							var errMsg = util.format('%s - ERROR: %s.-%s- \n%s', dateTime.getDatetime(), errData.toString(), usr.terminal, JSON.stringify(req.body));
-							console.error(errMsg);
+							log.logger.error(errMsg);
 
 							var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
 							var mailer = new mail.mail(config.email);

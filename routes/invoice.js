@@ -20,7 +20,7 @@ var config = require('../config/config.js');
  *
  * @module Routes
  */
-module.exports = function(app, io) {
+module.exports = function(app, io, log) {
 
 	var Invoice = require('../models/invoice.js');
 	var Price = require('../models/price.js');
@@ -33,7 +33,7 @@ module.exports = function(app, io) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.error(usr);
+				log.logger.error(usr);
 				res.send(500, {status:'ERROR', data: err});
 			} else {
 				var fecha;
@@ -42,7 +42,7 @@ module.exports = function(app, io) {
 
 				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
 					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-					console.error(errMsg);
+					log.logger.error(errMsg);
 					res.send(500, {status:"ERROR", data: errMsg});
 				} else {
 
@@ -121,7 +121,7 @@ module.exports = function(app, io) {
 							res.send(200, result);
 						});
 					} else {
-						console.error("%s - Error: %s", dateTime.getDatetime(), err);
+						log.logger.error("Error: %s", err);
 						res.send(500 , {status: "ERROR", data: err});
 					}
 				});
@@ -133,7 +133,7 @@ module.exports = function(app, io) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.log(usr);
+				log.logger.error(usr);
 				res.send(403, {status:'ERROR', data: err});
 			} else {
 				var param = {
@@ -145,7 +145,7 @@ module.exports = function(app, io) {
 				var invoice = Invoice.find(param);
 				invoice.exec(function(err, invoices){
 					if (err) {
-						console.error("%s - Error: %s", dateTime.getDatetime(), err.error);
+						log.logger.error("Error: %s", err.error);
 						res.send({status:'ERROR', data: err});
 					} else {
 						res.send(200, {status:"OK", data: invoices[0]||null})
@@ -171,7 +171,7 @@ module.exports = function(app, io) {
 				} catch (errParsing){
 					var strBody = util.format("%s - Error: Parsing JSON: [%s], JSON:%s", dateTime.getDatetime(), errParsing.toString(), postData);
 					var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
-					console.error(strBody);
+					log.logger.error(strBody);
 					var mailer = new mail.mail(config.email);
 					mailer.send(usr.email, strSubject, strBody);
 					res.send(500, {status:"ERROR", data: strBody} );
@@ -180,7 +180,7 @@ module.exports = function(app, io) {
 
 				if (err) {
 					var errMsg = util.format("%s - Error: %s", dateTime.getDatetime(), err.error);
-					console.error(errMsg);
+					log.logger.error(errMsg);
 					res.send(403, {status: "ERROR", data: errMsg});
 				} else {
 					try {
@@ -234,7 +234,7 @@ module.exports = function(app, io) {
 								var otDesc = item.desc;
 								invoice.otrosTributos.push(
 									{
-										id:			(otId) ? otId.trim() : "",
+										id:			(otId) ? otId : "",
 										desc	:	(otDesc) ? otDesc.trim() : "",
 										imponible:	item.imponible,
 										imp:		item.imp
@@ -247,7 +247,7 @@ module.exports = function(app, io) {
 							var viaje = container.viaje;
 							var fecha = (container.fecha !== undefined) ? moment(container.fecha) : null;
 							var buque = {
-								codigo: (buqueId) ? buqueId.trim() : "",
+								codigo: (buqueId) ? buqueId : "",
 								nombre: (buqueDesc) ? buqueDesc.trim() : "",
 								viaje: (viaje) ? viaje.trim() : "",
 								fecha: fecha
@@ -272,6 +272,7 @@ module.exports = function(app, io) {
 								});
 							} else {
 								var errMsg = util.format("%s - Error: %s", dateTime.getDatetime(), "El contenedor no posee items.");
+								log.logger.error(errMsg);
 								res.send(500, {status:"ERROR", data: errMsg});
 								return;
 							}
@@ -282,8 +283,7 @@ module.exports = function(app, io) {
 						var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
 						var body = util.format('Error al insertar comprobante. %s. \n%s',  error.message, JSON.stringify(postData));
 
-						var strError = util.format('%s - %s', dateTime.getDatetime(), body);
-						console.error(strError);
+						log.logger.error(body);
 
 						var mailer = new mail.mail(config.email);
 						mailer.send(usr.email, strSubject, body, function(){
@@ -295,7 +295,7 @@ module.exports = function(app, io) {
 					var invoice2add = new Invoice(invoice);
 					invoice2add.save(function (errSave, data) {
 						if (!errSave) {
-							console.log("%s - Invoice INS:%s - %s - Tipo: %s - %s", dateTime.getDatetime(), data._id, usr.terminal, postData.codTipoComprob, postData.fechaEmision);
+							log.logger.insert("%s - Invoice INS:%s - %s - Tipo: %s - %s", dateTime.getDatetime(), data._id, usr.terminal, postData.codTipoComprob, postData.fechaEmision);
 
 							var socketMsg = {status:'OK', datetime: dateTime.getDatetime(), terminal: usr.terminal};
 							io.sockets.emit('invoice', socketMsg);
@@ -327,10 +327,13 @@ module.exports = function(app, io) {
 									nroComprob:		invoice.nroComprob,
 									nroPtoVenta:	invoice.nroPtoVenta
 								}, function (err, invoice){
-									var errMsg = util.format('%s - Error INS: El tipo de comprobante: %s, número: %s, fue transferido el %s:\n %s\n\n%s - ERROR:%s\n\n%s', dateTime.getDatetime(), invoice[0].codTipoComprob, invoice[0].nroComprob, dateTime.getDateTimeFromObjectId(invoice[0]._id), invoice[0], moment(), errSave, JSON.stringify(postData));
+//									var errMsg = util.format('%s - Error INS: El tipo de comprobante: %s, número: %s, fue transferido el %s:\n %s\n\n%s - ERROR:%s\n\n%s', dateTime.getDatetime(), invoice[0].codTipoComprob, invoice[0].nroComprob, dateTime.getDateTimeFromObjectId(invoice[0]._id), invoice[0], moment(), errSave, JSON.stringify(postData));
+									var errMsg = util.format('%s - Error INS: El tipo de comprobante: %s, número: %s, fue transferido el %s:\n %s\n\n%s - ERROR:%s', dateTime.getDatetime(), invoice[0].codTipoComprob, invoice[0].nroComprob, dateTime.getDateTimeFromObjectId(invoice[0]._id), invoice[0], moment(), errSave);
 
 									var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
-									console.error(errMsg);
+									//console.error(errMsg);
+									log.logger.error('error', errMsg, { data: postData});
+
 									var mailer = new mail.mail(config.email);
 									mailer.send(usr.email, strSubject, errMsg, function(){
 									});
@@ -340,7 +343,8 @@ module.exports = function(app, io) {
 							} else {
 								var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
 								var strError = util.format('%s - Error INS: %s -\n%s', dateTime.getDatetime(), errSave, JSON.stringify(postData));
-								console.error(strError);
+								log.logger.error(strError);
+
 								var mailer = new mail.mail(config.email);
 								mailer.send(usr.email, strSubject, strError, function(){
 								});
@@ -361,7 +365,7 @@ module.exports = function(app, io) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.log(usr);
+				log.logger.error(usr);
 				res.send(403, {status:'ERROR', data: err});
 			} else {
 
@@ -369,7 +373,7 @@ module.exports = function(app, io) {
 
 				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
 					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-					console.error(errMsg);
+					log.logger.error(errMsg);
 					res.send(500, {status:"ERROR", data: errMsg});
 				} else {
 
@@ -378,7 +382,7 @@ module.exports = function(app, io) {
 					Invoice.findOneAndUpdate(param, { $set: req.body}, null, function (err, data) {
 						if  (err) {
 							var errMsg = util.format("%s - Error: %s", dateTime.getDatetime(), err.error);
-							console.error(errMsg);
+							log.logger.error(errMsg);
 							res.send(500, {status: "ERROR", data: errMsg});
 						} else {
 							res.send(200, {"status": "OK", "data": data})
@@ -394,7 +398,7 @@ module.exports = function(app, io) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.log(err);
+				log.logger.error(err);
 				res.send(403, {status:'ERROR', data: err});
 			} else {
 				var invoice = Invoice.update({_id: req.params._id, 'estado.grupo': usr.group},
@@ -402,7 +406,7 @@ module.exports = function(app, io) {
 					function (err, rowAffected, data, data2){
 						if (err) {
 							var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'Error in invoice set state.');
-							console.error(errMsg);
+							log.logger.error(errMsg);
 							res.send(500, {status:'ERROR', data: errMsg});
 						} else  {
 
@@ -413,7 +417,7 @@ module.exports = function(app, io) {
 									function (err, data ){
 										if (err) {
 											var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'Error in invoice set state.');
-											console.error(errMsg);
+											log.logger.error(errMsg);
 											res.send(500, {status:'ERROR', data: errMsg});
 										} else {
 											res.send(200, {status:'OK', data: data});
@@ -435,7 +439,7 @@ module.exports = function(app, io) {
 				console.log(usr);
 				Invoice.remove({_id: req.params._id}, function (err){
 					if (!err){
-						console.log('Eliminado');
+						log.logger.info('Invoice Removed %s', req.params._id);
 						res.send({"response": "OK"});
 					} else {
 						res.send({"error": "Error al intentar eliminar"});
@@ -443,6 +447,7 @@ module.exports = function(app, io) {
 				});
 			}
 			else {
+				log.logger.error(err);
 				res.send(err);
 			}
 		});
@@ -472,7 +477,7 @@ module.exports = function(app, io) {
 			if (!err){
 				res.send({status:"OK", data: data}, {"content-type":"applicacion/json"}, 200);
 			} else {
-				console.error(err);
+				log.logger.error(err);
 				res.send(err, {"content-type":"text/plain"}, 500);
 			}
 		});
@@ -712,7 +717,7 @@ module.exports = function(app, io) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.error(usr);
+				log.logger.error(usr);
 				res.send(500, {status:'ERROR', data: err});
 			} else {
 
@@ -801,7 +806,7 @@ module.exports = function(app, io) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.error('%s - Error: %s', dateTime.getDatetime(), err);
+				log.logger.error('Error: %s', err);
 				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
 			} else {
 
@@ -812,7 +817,7 @@ module.exports = function(app, io) {
 
 				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal){
 					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-					console.error(errMsg);
+					log.logger.error(errMsg);
 					res.send(500, {status:"ERROR", data: errMsg});
 				} else {
 					var param = [
@@ -889,7 +894,7 @@ module.exports = function(app, io) {
 							});
 
 						} else {
-							console.error('%s - Error: %s', dateTime.getDatetime(), err);
+							log.logger.error('Error: %s', err);
 							res.send(500, {status:'ERROR', data: err});
 						}
 					});
@@ -951,7 +956,7 @@ module.exports = function(app, io) {
 				var rates = Invoice.aggregate(param);
 				rates.exec( function (err, ratesData){
 					if (err){
-						console.log(err);
+						log.logger.error(err);
 					}
 					else {
 						var response = Enumerable.from(ratesData)
@@ -993,7 +998,7 @@ module.exports = function(app, io) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.error(usr);
+				log.logger.error(usr);
 				res.send(500, {status:'ERROR', data: err});
 			} else {
 				var fecha;
@@ -1044,7 +1049,7 @@ module.exports = function(app, io) {
 								control += 1;
 								if (control != invoice.nroComprob){
 									if (invoice.nroComprob - control > 3){
-										faltantes.push('Del ' + control + ' al ' + (invoice.nroComprob - 1));
+										faltantes.push('Del ' + control + ' al ' + (invoice.nroComprob - 1) + ' (' + (invoice.nroComprob - 1) - control + ')');
 									} else {
 										for (i=control;i<invoice.nroComprob;i++){
 											faltantes.push(i);
@@ -1062,7 +1067,7 @@ module.exports = function(app, io) {
 						};
 						res.send(200, result);
 					} else {
-						console.error("%s - Error: %s", dateTime.getDatetime(), err.error);
+						log.logger.error("Error: %s", err.error);
 						res.send(500 , {status: "ERROR", data: err});
 					}
 				});
@@ -1075,7 +1080,7 @@ module.exports = function(app, io) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.error(usr);
+				log.logger.error(usr);
 				res.send(500, {status:'ERROR', data: err});
 			} else {
 				var fecha;
@@ -1084,7 +1089,7 @@ module.exports = function(app, io) {
 
 				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
 					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-					console.error(errMsg);
+					log.logger.error(errMsg);
 					res.send(500, {status:"ERROR", data: errMsg});
 				} else {
 

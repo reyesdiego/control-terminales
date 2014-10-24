@@ -3,7 +3,7 @@
  */
 'use strict';
 
-module.exports = function (app){
+module.exports = function (app, log){
 
 	var MatchPrice = require('../models/matchPrice.js');
 	var Invoice = require('../models/invoice.js');
@@ -20,14 +20,14 @@ module.exports = function (app){
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.error('%s - Error: %s', dateTime.getDatetime(), err);
+				log.logger.error('Error: %s', err);
 				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
 			} else {
 				var paramTerminal = req.params.terminal;
 
 				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
 					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-					console.error(errMsg);
+					log.logger.error(errMsg);
 					res.send(500, {status:"ERROR", data: errMsg});
 				} else {
 					var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
@@ -54,7 +54,7 @@ module.exports = function (app){
 							if(!err) {
 								res.send(200, {status:'OK', data:prices});
 							} else {
-								console.error('%s - Error: %s', dateTime.getDatetime(), err);
+								log.logger.error('Error: %s', err);
 								res.send(500, {status:'ERROR', data: err});
 							}
 						});
@@ -70,14 +70,14 @@ module.exports = function (app){
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.error('%s - Error: %s', dateTime.getDatetime(), err);
+				log.logger.error('Error: %s', err);
 				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
 			} else {
 				var paramTerminal = req.params.terminal;
 
 				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal){
 					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-					console.error(errMsg);
+					log.logger.error(errMsg);
 					res.send(500, {status:"ERROR", data: errMsg});
 				} else {
 					var param = [
@@ -115,13 +115,13 @@ module.exports = function (app){
 										res.send(200, {status:'OK', data: result});
 
 									} else {
-										console.error('%s - Error: %s', dateTime.getDatetime(), err);
+										log.logger.error('Error: %s', err);
 										res.send(500, {status:'ERROR', data: err});
 									}
 								});
 
 						} else {
-							console.error('%s - Error: %s', dateTime.getDatetime(), err);
+							log.logger.error('Error: %s', err);
 							res.send(500, {status:'ERROR', data: err});
 						}
 					});
@@ -135,14 +135,14 @@ module.exports = function (app){
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				console.error('%s - Error: %s', dateTime.getDatetime(), err);
+				log.logger.error('Error: %s', err);
 				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
 			} else {
 				var paramTerminal = req.params.terminal;
 
 				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal){
 					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-					console.error(errMsg);
+					log.logger.error(errMsg);
 					res.send(500, {status:"ERROR", data: errMsg});
 				} else {
 

@@ -1,22 +1,23 @@
 /**
  * Created by Diego Reyes on 1/7/14.
  */
-var express		=	require('express'),
+var	config = require('./config/config.js'),
+	dateTime = require('./include/moment'),
+	express		=	require('express'),
+	fs			=	require('fs'),
+	LocalStrategy =	require('passport-local').Strategy,
+	log4n		=	require('./include/Log/log4node.js'),
+	mail = require("./include/emailjs"),
+	moment = require('moment'),
 	mongoose	=	require('mongoose'),
 	passport	=	require('passport'),
-	LocalStrategy =	require('passport-local').Strategy,
-	path		=	 require('path'),
-	fs			=	require('fs');
-
-var mail = require("./include/emailjs");
-var socketio = require('socket.io');
-
-var dateTime = require('./include/moment');
-
-var config = require('./config/config.js');
+	path		=	require('path'),
+	socketio = require('socket.io');
 
 var server, port, protocol;
 var app = express();
+
+var log = new log4n(config.log);
 
 var processArgs = process.argv.slice(2);
 
@@ -47,9 +48,14 @@ if (process.env.HTTP === 'https'){
 port = processArgs[0] || port;
 
 app.configure(function () {
+
+	app.set('views', __dirname + '/public');
+	app.engine('.html', require('jade').__express);
+
 	app.use(express.bodyParser());
 	app.use(express.methodOverride());
 	app.use(app.router);
+
 //	app.use(passport.initialize());
 
 });
@@ -78,18 +84,24 @@ app.all('/*', function(req, res, next) {
 var Account = require(__dirname +'/models/account');
 passport.use(Account.createStrategy());
 
-app.get('/', function(req, res) {
-	var db='<p><b>Versión Mongoose: '+mongoose.version+'</b></p><p><b>MongoDb: </b>';
 
+app.get('/', function(req, res) {
+
+	var connected = false;
 	if (mongoose.connections.length>0)
 		if (mongoose.connections[0]._hasOpened)
-			db+='<span style="color:green">Connected</span></p>';
-		else
-			db+='<span style="color:red">Not connected</span></p>';
+			connected = true;
 
-	res.send("<h1>Servicio Terminales Portuarias.</h1><p>Administración General de Puertos.</p><br/><p><b>Servidor: </b>"+process.env.NODE_ENV+"</p><b>Versión NodeJs: "+process.version+"</b>"+db+"<p>Runtime: "+server.runtime+"</p>");
+	var params = {
+		server	: process.env.NODE_ENV,
+		node	: {version:process.version, runtime: server.runtime},
+		mongoose: {version:mongoose.version, connected:connected},
+		pid		: process.pid
+	}
+	res.render('index.jade', params, function(err, html) {
+		res.send(200, html);
+	});
 
-	io.sockets.emit('invoice', {status:"OK"})
 });
 
 app.get('/log', function(req, res) {
@@ -126,85 +138,96 @@ app.get('/log', function(req, res) {
 	});
 });
 
+var files=[];
 app.get('/log2', function(req, res) {
 
-	var filename = 'log/nohup.out';
-	//res.writeHead(200, {'Content-Type': 'application/json'});
+	if (req.query.filename === undefined){
+		log.getFiles(function (files){
+			var params = {
+				moment: moment,
+				json:[],
+				files: files
+			};
+			res.render('log.jade', params, function(err, html) {
+				res.send(200, html);
+			});
+		});
+	} else {
+		fs.exists(req.query.filename, function(exists){
+			if (exists) {
+				var params = {
+					moment: moment,
+					json:[],
+					filename:req.query.filename,
+					files:files
+				};
+				// serve file
+				var lazy = require("lazy")
+				new lazy(fs.createReadStream(req.query.filename))
+					.lines
+					.forEach(function(line){
+						params.json.push(JSON.parse(line.toString()));
+					}
+				).on('pipe', function(){
+						res.render('log.jade', params, function(err, html) {
+							res.send(200, html);
+						});
+					});
+			} else {
+				res.end();
+			}
+		});
+	}
 
-	fs.exists(filename, function(exists){
-		if (exists) {
-			var fileStream='[';
-			// serve file
-			var lazy = require("lazy")
-			new lazy(fs.createReadStream(filename))
-				.lines
-				.forEach(function(line){
-					fileStream+=line.toString();
-				}
-			).on('pipe', function(){
-					fileStream+= ']';
-//					res.send(JSON.stringify( [{"hi":"nj"}, {"hi":"nj"}] ));
-					res.send(JSON.parse(fileStream));
 
-					res.end();
-				});
-		} else {
-			res.end();
-		}
-	});
 });
 
 server.listen(port, function() {
 	server.runtime = dateTime.getDatetime();
-	console.log("===============================================================================");
-	console.log("%s - Nodejs server Version: %s", dateTime.getDatetime(), process.version);
-	console.log("%s - Running on %s://localhost:%s", dateTime.getDatetime(), protocol, port);
-	console.log("%s - Process Id (pid): %s", dateTime.getDatetime(), process.pid);
-	console.log("===============================================================================");
+	log.logger.info("Nodejs server Version: %s", process.version);
+	log.logger.info("Running on %s://localhost:%s", protocol, port);
+	log.logger.info("Process Id (pid): %s", process.pid);
 });
 
 var io = socketio.listen(server);
 io.set('log level', 1);
 io.on('connection', function (socket){
 	console.log('%s - Socket Client Connected.', dateTime.getDatetime());
+	log.info('%s - Socket Client Connected.', dateTime.getDatetime());
 	socket.on('send', function (data) {
 		io.sockets.emit('message', data);
 	});
 });
 
 //routes = require('./routes/accounts')(app, passport);
-require('./routes/accounts')(app);
-require('./routes/invoice')(app, io);
-require('./routes/comment')(app, io);
-require('./routes/price')(app);
-require('./routes/matchPrice')(app);
-require('./routes/appointment')(app, io);
-require('./routes/gate')(app, io);
+require('./routes/accounts')(app, null, log);
+require('./routes/invoice')(app, io, log);
+require('./routes/comment')(app, io, log);
+require('./routes/price')(app, log);
+require('./routes/matchPrice')(app, log);
+require('./routes/appointment')(app, io, log);
+require('./routes/gate')(app, io, log);
 require('./routes/voucherType')(app);
 
 //	Database configuration
 mongoose.connect(config.mongo_url, config.mongo_opts);
 
 mongoose.connection.on('connected', function () {
-	console.log("%s - Mongoose version: %s", dateTime.getDatetime(), mongoose.version);
-	console.log('%s - Connected to Database. %s', dateTime.getDatetime(), config.mongo_url);
-	console.log("===============================================================================");
+	log.logger.info("Mongoose version: %s", mongoose.version);
+	log.logger.info("Connected to Database. %s",config.mongo_url);
 });
 mongoose.connection.on('error',function (err) {
-	console.error('%s - ERROR: Database or Mongoose error. %s', dateTime.getDatetime(), err);
-	console.log("===============================================================================");
+	log.logger.error("ERROR: Database or Mongoose error. %s",err);
 });
 mongoose.connection.on('disconnected', function () {
-	console.log('Mongoose default connection disconnected');
-	console.log("===============================================================================");
+	log.logger.error("Mongoose default connection disconnected");
 });
 
 // If the Node process ends, close the Mongoose connection
 process.on('SIGINT', function() {
 	mongoose.connection.close(function () {
-		console.log('Mongoose default connection disconnected through app termination');
-		console.log("===============================================================================");
-		console.log("process.env.NODE_ENV %s", process.env.NODE_ENV)
+		log.logger.info("Mongoose default connection disconnected through app termination");
+		log.logger.info("process.env.NODE_ENV %s", process.env.NODE_ENV);
 		if (process.env.NODE_ENV === 'production'){
 			var mailer = new mail.mail(config.email);
 			mailer.send('noreply@puertobuenosaires.gob.ar', 'AGP-TERAPI - ERROR', 'Mongoose default connection disconnected', function() {
@@ -217,5 +240,5 @@ process.on('SIGINT', function() {
 });
 
 process.on('uncaughtException', function(err) {
-	console.error('Caught exception: ' + err);
+	log.logger.info("Caught exception: " + err);
 });
