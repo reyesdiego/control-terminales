@@ -231,6 +231,7 @@ module.exports = function(app, io, log) {
 						if (postData.otrosTributos)
 							postData.otrosTributos.forEach(function (item){
 								var otId = item.id.toString();
+								var otId = (item.id !== undefined) ? item.id.toString() : null;
 								var otDesc = item.desc;
 								invoice.otrosTributos.push(
 									{
@@ -242,7 +243,7 @@ module.exports = function(app, io, log) {
 							});
 
 						postData.detalle.forEach(function (container){
-							var buqueId = container.buqueId.toString();
+							var buqueId = (container.buqueId !== undefined) ? container.buqueId.toString() : null;
 							var buqueDesc = container.buqueDesc;
 							var viaje = container.viaje;
 							var fecha = (container.fecha !== undefined) ? moment(container.fecha) : null;
