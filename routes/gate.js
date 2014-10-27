@@ -200,7 +200,7 @@ module.exports = function (app, io, log) {
 				if (gate2insert) {
 					Gate.insert(gate2insert, function (errSave, data) {
 						if (!errSave){
-							log.logger.insert('Gate INS: %s - %s - %s', data._id, usr.terminal, gate2insert.gateTimestamp);
+							log.logger.insert('Gate INS: %s - %s - %s', data._id, usr.terminal, moment(gate2insert.gateTimestamp).format("YYYY-MM-DD hh:mm:ss"));
 							var socketMsg = {status:'OK', datetime: dateTime.getDatetime(), terminal: usr.terminal};
 							io.sockets.emit('gate', socketMsg);
 							res.send(200, {status: "OK", data: data});

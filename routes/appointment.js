@@ -23,22 +23,22 @@ module.exports = function (app, io, log) {
 				log.logger.error(usr);
 				res.send(500, {status:'ERROR', data: err});
 			} else {
-				var fecha;
+				var fechaIni, fechaFin;
 				var param = {};
 
 				if (req.query.contenedor)
 					param.contenedor = req.query.contenedor;
 
-				if (req.query.fechaInicio || req.query.fechaFin){
+				if (req.query.buque)
+					param.buque = req.query.buque;
+
+				if (req.query.fechaInicio && req.query.fechaFin){
 					param.$or=[];
-					if (req.query.fechaInicio){
-						fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
-						param.$or.push({inicio:{$lte: fecha}, fin: {$gte:fecha}});
-					}
-					if (req.query.fechaFin){
-						fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
-						param.$or.push({inicio:{$lte: fecha}, fin: {$gte:fecha}});
-					}
+					fechaIni = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+					param.$or.push({inicio:{$lte: fechaIni}, fin: {$gte: fechaIni}});
+					fechaFin = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+					param.$or.push({inicio:{$lte: fechaFin}, fin: {$gte: fechaFin}});
+					param.$or.push({inicio:{$gte: fechaIni}, fin: {$lte: fechaFin}});
 				}
 
 				if (usr.role === 'agp')
@@ -176,7 +176,8 @@ module.exports = function (app, io, log) {
 				if (appointment2insert) {
 					Appointment.insert(appointment2insert, function (errData, data){
 						if (!errData){
-							log.logger.insert('Appointment INS: %s - %s - Inicio: %s, Fin: %s', data._id, usr.terminal, data.inicio, data.fin);
+							var str = util.format('Appointment INS: %s - %s - Inicio: %s, Fin: %s', data._id, usr.terminal, data.inicio, data.fin);
+							log.logger.insert(str);
 							var socketMsg = {status:'OK', datetime: dateTime.getDatetime(), terminal: usr.terminal};
 							io.sockets.emit('appointment', socketMsg);
 							res.send(200, {status: 'OK', data: data});
@@ -197,8 +198,30 @@ module.exports = function (app, io, log) {
 		});
 	}
 
+	function getDistincts( req, res) {
+
+		var distinct = '';
+
+		if (req.route.path === '/appointments/containers')
+			distinct = 'contenedor';
+
+		if (req.route.path === '/appointments/ships')
+			distinct = 'buque';
+
+		Appointment.distinct(distinct, {}, function (err, data){
+			if (err){
+				res.send(500, {status: 'ERROR', data: err});
+			} else {
+				res.send(200, {status: 'OK', totalCount: data.length, data: data.sort()});
+			}
+		});
+
+	}
+
 	app.get('/appointmentsByHour', getAppointmentsByHour);
 	app.get('/appointmentsByMonth', getAppointmentsByMonth);
 	app.get('/appointments/:terminal/:skip/:limit', getAppointments);
+	app.get('/appointments/containers', getDistincts);
+	app.get('/appointments/ships', getDistincts);
 	app.post('/appointment', addAppointment);
 };

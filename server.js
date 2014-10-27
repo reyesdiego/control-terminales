@@ -169,6 +169,7 @@ app.get('/log2', function(req, res) {
 						params.json.push(JSON.parse(line.toString()));
 					}
 				).on('pipe', function(){
+						params.json.reverse();
 						res.render('log.jade', params, function(err, html) {
 							res.send(200, html);
 						});
