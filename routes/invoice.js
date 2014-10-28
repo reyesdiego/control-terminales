@@ -1042,7 +1042,7 @@ module.exports = function(app, io, log) {
 						var faltantes = [];
 						var control = 0;
 						var contadorFaltantes = 0;
-						var i;
+
 						invoices.forEach(function(invoice){
 							if (control == 0){
 								control = invoice.nroComprob
@@ -1050,10 +1050,13 @@ module.exports = function(app, io, log) {
 								control += 1;
 								if (control != invoice.nroComprob){
 									if (invoice.nroComprob - control > 3){
-										faltantes.push('Del ' + control + ' al ' + (invoice.nroComprob - 1) + ' (' + (invoice.nroComprob - 1) - control + ')');
+										var dif = (invoice.nroComprob - 1) - control;
+										contadorFaltantes+=dif;
+										var item2Add = util.format('[%d a %d] (%d)', control, (invoice.nroComprob - 1), dif);
+										faltantes.push(item2Add);
 									} else {
-										for (i=control;i<invoice.nroComprob;i++){
-											faltantes.push(i);
+										for (var i=control, len=invoice.nroComprob ; i<len;i++){
+											faltantes.push(i.toString());
 											contadorFaltantes++;
 										}
 									}
