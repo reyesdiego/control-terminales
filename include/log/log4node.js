@@ -2,7 +2,7 @@
  * Created by diego on 23/10/2014.
  */
 
-var log4njs = function (logPath) {
+var log4njs = function (options) {
 	'use strict';
 
 	var self = this;
@@ -35,33 +35,41 @@ var log4njs = function (logPath) {
 		}
 	};
 
+	var transports = [];
+	if (options.toConsole)
+		transports.push(new (winston.transports.Console)({
+			colorize: true,
+			raw: false,
+			timestamp: true
+		}));
+	if (options.toFile)
+		transports.push(
+			new (winston.transports.File)({ filename: options.path + options.filename })
+		);
+
 	var logger = module.exports = new (winston.Logger)({
-		transports: [
-			new (winston.transports.Console)({
-				colorize: true,
-				raw: false,
-				timestamp: true
-			}),
-			new (winston.transports.File)({ filename: logPath + 'nohup.out' })
-		],
+		transports: transports,
 		levels: config.levels,
 		colors: config.colors
 	});
 
-	this.moment = moment;
-	this.logger = logger;
-	this.logPath = logPath;
+	self.moment = moment;
+	self.logger = logger;
+	self.path = options.path;
+	self.filename = options.filename;
+	self.toConsole = options.toConsole;
+	self.toFile = options.toFile;
 
 	this.getFiles = function (callback){
 		if (callback !== undefined && typeof (callback) === 'function'){
 			var logFiles = [];
-			fs.readdir(self.logPath, function (err, files) {
+			fs.readdir(self.path, function (err, files) {
 				if (err) {
 					console.log(err);
 					return;
 				}
 				files.forEach(function (item){
-					logFiles.push({title: item, url: self.logPath + '/' + item});
+					logFiles.push({title: item, url: self.path + '/' + item});
 				});
 				callback(logFiles);
 

@@ -6,7 +6,7 @@ var	config = require('./config/config.js'),
 	express		=	require('express'),
 	fs			=	require('fs'),
 	LocalStrategy =	require('passport-local').Strategy,
-	log4n		=	require('./include/Log/log4node.js'),
+	log4n		=	require('./include/log/log4node.js'),
 	mail = require("./include/emailjs"),
 	moment = require('moment'),
 	mongoose	=	require('mongoose'),
@@ -17,7 +17,13 @@ var	config = require('./config/config.js'),
 var server, port, protocol;
 var app = express();
 
-var log = new log4n(config.log);
+var logOptions = {
+	path: config.log.path,
+	filename: config.log.filename,
+	toConsole: config.log.toConsole,
+	toFile: config.log.toFile
+};
+var log = new log4n(logOptions);
 
 var processArgs = process.argv.slice(2);
 
@@ -193,8 +199,7 @@ server.listen(port, function() {
 var io = socketio.listen(server);
 io.set('log level', 1);
 io.on('connection', function (socket){
-	console.log('%s - Socket Client Connected.', dateTime.getDatetime());
-	log.info('%s - Socket Client Connected.', dateTime.getDatetime());
+	log.logger.info('%s - Socket Client Connected.', dateTime.getDatetime());
 	socket.on('send', function (data) {
 		io.sockets.emit('message', data);
 	});
