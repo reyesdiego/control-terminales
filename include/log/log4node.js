@@ -11,6 +11,8 @@ var log4njs = function (options) {
 	var winston	=	require('winston');
 	var fs		=	require('fs');
 
+	var elapsed = 0;
+
 // Logging levels
 	var config = {
 		levels: {
@@ -60,7 +62,7 @@ var log4njs = function (options) {
 	self.toConsole = options.toConsole;
 	self.toFile = options.toFile;
 
-	this.getFiles = function (callback){
+	self.getFiles = function (callback){
 		if (callback !== undefined && typeof (callback) === 'function'){
 			var logFiles = [];
 			fs.readdir(self.path, function (err, files) {
@@ -75,6 +77,15 @@ var log4njs = function (options) {
 
 			});
 		}
+	}
+
+	self.startElapsed = function (){
+		elapsed = moment();
+	}
+	self.getElapsed = function (){
+		var elapsedEnd = moment();
+		elapsed = elapsed.diff(elapsedEnd) * (-1);
+		return elapsed;
 	}
 
 };
