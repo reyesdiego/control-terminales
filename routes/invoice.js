@@ -582,6 +582,9 @@ module.exports = function(app, io, log) {
 	}
 
 	function getNoRates (req, res) {
+
+		log.startElapsed();
+
 		var terminal = req.params.terminal;
 
 		var _price = require('../include/price.js');
@@ -622,6 +625,8 @@ module.exports = function(app, io, log) {
 				}
 
 				var invoices = Invoice.find(param);
+//				var invoices = Invoice.find(param, {nroComprob:1, codTipoComprob:1,nroPtoVenta:1, razon:1, 'fecha.emision':1, 'importe.total':1});
+
 				invoices.limit(limit).skip(skip);
 
 				if (req.query.order){
@@ -638,6 +643,7 @@ module.exports = function(app, io, log) {
 							totalCount: cnt,
 							pageCount: (req.params.limit > cnt) ? cnt : req.params.limit,
 							page: skip,
+							elapsed: log.getElapsed(),
 							data: invoices
 						}
 						res.send(200, dataResult);
@@ -996,6 +1002,8 @@ module.exports = function(app, io, log) {
 
 	function getCorrelative (req, res) {
 
+		var functionIni = log.moment();
+
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
@@ -1028,7 +1036,7 @@ module.exports = function(app, io, log) {
 				else
 					param.terminal = usr.terminal;
 
-				var invoices = Invoice.find(param);
+				var invoices = Invoice.find(param, {codTipoComprob:1, nroComprob:1});
 
 				if (req.query.order){
 					var order = JSON.parse(req.query.order);
@@ -1064,15 +1072,17 @@ module.exports = function(app, io, log) {
 								}
 							}
 						});
+						var functionFin = log.moment();
 						var result = {
 							status: 'OK',
 							totalCount: contadorFaltantes,
+							elapsed: functionIni.diff(functionFin)*(-1),
 							data: faltantes
 						};
 						res.send(200, result);
 					} else {
-						log.logger.error("Error: %s", err.error);
-						res.send(500 , {status: "ERROR", data: err});
+						log.logger.error("Error: %s", err.message);
+						res.send(500 , {status: "ERROR", data: {name: err.name, message: err.message} });
 					}
 				});
 			}
