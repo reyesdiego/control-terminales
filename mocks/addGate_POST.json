@@ -4,6 +4,7 @@
 	"contenedor": "CAXU1234567",
 	"mov": "IMPO",
 	"tipo": "OUT",
+	"carga": "LL",
 	"patenteCamion": "WWW333",
 	"gateTimestamp": "2014-03-17T08:20:41.000Z",
 	"turnoInicio": "2014-03-17T07:00:00.000Z",
