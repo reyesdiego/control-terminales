@@ -214,6 +214,7 @@ require('./routes/matchPrice')(app, log);
 require('./routes/appointment')(app, io, log);
 require('./routes/gate')(app, io, log);
 require('./routes/voucherType')(app);
+require('./routes/docType')(app);
 
 //	Database configuration
 mongoose.connect(config.mongo_url, config.mongo_opts);
