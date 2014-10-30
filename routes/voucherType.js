@@ -9,7 +9,7 @@ module.exports = function (app){
 
 		Voucher.find({}, function (err, data){
 			if (err){
-
+				res.send(500, {status:"ERROR", data: err.message});
 			} else {
 				var result = data;
 				if (req.query.type === 'array'){
@@ -18,7 +18,12 @@ module.exports = function (app){
 						result[item._id] = item.description;
 					});
 				}
-				res.send(200, {status:'OK', data: result});
+				var response = {
+					status:		'OK',
+					totalCount:	data.length,
+					data: result
+				};
+				res.send(200, response);
 			}
 		});
 	}
