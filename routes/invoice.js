@@ -23,7 +23,6 @@ var config = require('../config/config.js');
 module.exports = function(app, io, log) {
 
 	var Invoice = require('../models/invoice.js');
-	var Price = require('../models/price.js');
 	var MatchPrice = require('../models/matchPrice.js');
 	var Comment = require('../models/comment.js');
 
@@ -527,7 +526,11 @@ module.exports = function(app, io, log) {
 		];
 
 		Invoice.aggregate(jsonParam, function (err, data){
-			res.send(200, data);
+			if (err){
+				res.send(500, {status:"ERROR", data: err.message});
+			} else {
+				res.send(200, {status: 'OK', data: data});
+			}
 		});
 
 	}
@@ -573,9 +576,9 @@ module.exports = function(app, io, log) {
 
 		Invoice.aggregate(jsonParam, function (err, data){
 			if (err){
-				res.send(500, err);
+				res.send(500, {status:"ERROR", data: err.message});
 			} else {
-				res.send(200, data);
+				res.send(200, {status: 'OK', data: data});
 			}
 		});
 
@@ -710,7 +713,7 @@ module.exports = function(app, io, log) {
 			];
 			Invoice.aggregate(jsonParam, function (err, data){
 				if (err)
-					res.send(500, {status:'ERROR', data: err });
+					res.send(500, {status:'ERROR', data: err.message });
 				else
 					res.send(200, {status:'OK', data: data });
 			});
@@ -796,7 +799,7 @@ module.exports = function(app, io, log) {
 						];
 						Invoice.aggregate(jsonParam, function (err, data){
 							if (err)
-								res.send(500, {status:'ERROR', data: err });
+								res.send(500, {status:'ERROR', data: err.message });
 							else
 								res.send(200, {status:'OK', data: data });
 						});
@@ -902,7 +905,7 @@ module.exports = function(app, io, log) {
 
 						} else {
 							log.logger.error('Error: %s', err);
-							res.send(500, {status:'ERROR', data: err});
+							res.send(500, {status:'ERROR', data: err.message});
 						}
 					});
 				}
@@ -964,6 +967,7 @@ module.exports = function(app, io, log) {
 				rates.exec( function (err, ratesData){
 					if (err){
 						log.logger.error(err);
+						res.send(500, {status:"ERROR", data: err.message});
 					}
 					else {
 						var response = Enumerable.from(ratesData)
@@ -1176,7 +1180,7 @@ module.exports = function(app, io, log) {
 
 		Invoice.distinct(distinct, {}, function (err, data){
 			if (err){
-				res.send(500, {status: 'ERROR', data: err});
+				res.send(500, {status: 'ERROR', data: err.message});
 			} else {
 				res.send(200, {status: 'OK', data: data.sort()});
 			}
