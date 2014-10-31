@@ -295,7 +295,7 @@ module.exports = function(app, io, log) {
 					var invoice2add = new Invoice(invoice);
 					invoice2add.save(function (errSave, data) {
 						if (!errSave) {
-							log.logger.insert("%s - Invoice INS:%s - %s - Tipo: %s - %s", dateTime.getDatetime(), data._id, usr.terminal, postData.codTipoComprob, postData.fechaEmision);
+							log.logger.insert("Invoice INS:%s - %s - Tipo: %s - %s", data._id, usr.terminal, postData.codTipoComprob, postData.fechaEmision);
 
 							var socketMsg = {status:'OK', datetime: dateTime.getDatetime(), terminal: usr.terminal};
 							io.sockets.emit('invoice', socketMsg);
@@ -628,8 +628,6 @@ module.exports = function(app, io, log) {
 				}
 
 				var invoices = Invoice.find(param);
-//				var invoices = Invoice.find(param, {nroComprob:1, codTipoComprob:1,nroPtoVenta:1, razon:1, 'fecha.emision':1, 'importe.total':1});
-
 				invoices.limit(limit).skip(skip);
 
 				if (req.query.order){
@@ -695,14 +693,11 @@ module.exports = function(app, io, log) {
 				};
 
 			var jsonParam = [
-				{	$unwind : '$detalle'	},
-				{	$unwind : '$detalle.items'	},
-				{	$match : {
-					'detalle.items.id' : {$in: rates},
-					'fecha.emision': {$gte: today, $lt: tomorrow} }
-				},
-				{	$project : {terminal: 1, 'detalle.items': 1, "total" : sum }
-				},
+				{	$match : {'fecha.emision': {$gte: today, $lt: tomorrow}}},
+				{	$unwind : '$detalle'},
+				{	$unwind : '$detalle.items'},
+				{	$match : {'detalle.items.id' : {$in: rates}}},
+				{	$project : {terminal: 1, 'detalle.items': 1, "total" : sum }},
 				{
 					$group  : {
 						_id: { terminal: '$terminal'},
@@ -715,7 +710,10 @@ module.exports = function(app, io, log) {
 				if (err)
 					res.send(500, {status:'ERROR', data: err.message });
 				else
-					res.send(200, {status:'OK', data: data });
+					res.send(200, {
+						status:'OK',
+						data: data }
+					);
 			});
 		});
 
@@ -1062,7 +1060,7 @@ module.exports = function(app, io, log) {
 								control += 1;
 								if (control != invoice.nroComprob){
 									if (invoice.nroComprob - control > 3){
-										var dif = (invoice.nroComprob - 1) - control;
+										var dif = (invoice.nroComprob) - control;
 										contadorFaltantes+=dif;
 										var item2Add = util.format('[%d a %d] (%d)', control, (invoice.nroComprob - 1), dif);
 										faltantes.push(item2Add);

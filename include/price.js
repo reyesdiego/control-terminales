@@ -15,6 +15,7 @@ price.prototype = {
 			selfPrice.aggregate(
 				[
 					{ $match: { terminal:{$exists : 1}}},
+					{ $project: {match:1, price:1}},
 					{$unwind:'$match'}
 				], function(err, data){
 					selfPrice.populate(data, [{path:'price', match:{rate:{$exists:1}}}], function (err, data){
