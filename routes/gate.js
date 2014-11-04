@@ -164,18 +164,34 @@ module.exports = function (app, io, log) {
 
 	function getDistincts( req, res) {
 
-		var distinct = '';
-		if (req.route.path === '/gates/ships')
-			distinct = 'buque';
-
-		if (req.route.path === '/gates/containers')
-			distinct = 'contenedor';
-
-		Gate.distinct(distinct, {}, function (err, data){
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				res.send(500, {status: 'ERROR', data: err});
+				log.logger.error(usr);
+				res.send(500, {status:'ERROR', data: err});
 			} else {
-				res.send(200, {status: 'OK', data: data.sort()});
+
+				var distinct = '';
+
+				if (req.route.path === '/gates/:terminal/ships')
+					distinct = 'buque';
+
+				if (req.route.path === '/gates/:terminal/containers')
+					distinct = 'contenedor';
+
+				var param = {};
+				if (usr.role === 'agp')
+					param.terminal= req.params.terminal;
+				else
+					param.terminal= usr.terminal;
+
+				Gate.distinct(distinct, param, function (err, data){
+					if (err){
+						res.send(500, {status: 'ERROR', data: err.message});
+					} else {
+						res.send(200, {status: 'OK', data: data.sort()});
+					}
+				});
 			}
 		});
 
@@ -226,7 +242,7 @@ module.exports = function (app, io, log) {
 	app.get('/gatesByHour', getGatesByHour);
 	app.get('/gatesByMonth', getGatesByMonth);
 	app.get('/gates/:terminal/:skip/:limit', getGates);
-	app.get('/gates/ships', getDistincts);
-	app.get('/gates/containers', getDistincts);
+	app.get('/gates/:terminal/ships', getDistincts);
+	app.get('/gates/:terminal/containers', getDistincts);
 	app.post('/gate', addGate);
 };

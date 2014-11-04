@@ -200,28 +200,43 @@ module.exports = function (app, io, log) {
 
 	function getDistincts( req, res) {
 
-		var distinct = '';
-
-		if (req.route.path === '/appointments/containers')
-			distinct = 'contenedor';
-
-		if (req.route.path === '/appointments/ships')
-			distinct = 'buque';
-
-		Appointment.distinct(distinct, {}, function (err, data){
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				res.send(500, {status: 'ERROR', data: err});
+				log.logger.error(usr);
+				res.send(500, {status:'ERROR', data: err});
 			} else {
-				res.send(200, {status: 'OK', totalCount: data.length, data: data.sort()});
+
+				var distinct = '';
+
+				if (req.route.path === '/appointments/:terminal/containers')
+					distinct = 'contenedor';
+
+				if (req.route.path === '/appointments/:terminal/ships')
+					distinct = 'buque';
+
+				var param = {};
+				if (usr.role === 'agp')
+					param.terminal = req.params.terminal;
+				else
+					param.terminal = usr.terminal;
+
+				Appointment.distinct(distinct, param, function (err, data){
+					if (err){
+						res.send(500, {status: 'ERROR', data: err});
+					} else {
+						res.send(200, {status: 'OK', totalCount: data.length, data: data.sort()});
+					}
+				});
+
 			}
 		});
-
 	}
 
 	app.get('/appointmentsByHour', getAppointmentsByHour);
 	app.get('/appointmentsByMonth', getAppointmentsByMonth);
 	app.get('/appointments/:terminal/:skip/:limit', getAppointments);
-	app.get('/appointments/containers', getDistincts);
-	app.get('/appointments/ships', getDistincts);
+	app.get('/appointments/:terminal/containers', getDistincts);
+	app.get('/appointments/:terminal/ships', getDistincts);
 	app.post('/appointment', addAppointment);
 };

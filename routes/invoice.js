@@ -1166,21 +1166,36 @@ module.exports = function(app, io, log) {
 
 	function getDistincts( req, res) {
 
-		var distinct = '';
-		if (req.route.path === '/ships')
-			distinct = 'detalle.buque.nombre';
-
-		if (req.route.path === '/containers')
-			distinct = 'detalle.contenedor';
-
-		if (req.route.path === '/clients')
-			distinct = 'razon';
-
-		Invoice.distinct(distinct, {}, function (err, data){
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				res.send(500, {status: 'ERROR', data: err.message});
+				log.logger.error(usr);
+				res.send(500, {status:'ERROR', data: err});
 			} else {
-				res.send(200, {status: 'OK', data: data.sort()});
+				var distinct = '';
+
+				if (req.route.path === '/invoices/:terminal/ships')
+					distinct = 'detalle.buque.nombre';
+
+				if (req.route.path === '/invoices/:terminal/containers')
+					distinct = 'detalle.contenedor';
+
+				if (req.route.path === '/invoices/:terminal/clients')
+					distinct = 'razon';
+
+				var param = {};
+				if (usr.role === 'agp')
+					param.terminal = req.params.terminal;
+				else
+					param.terminal = usr.terminal;
+
+				Invoice.distinct(distinct, param, function (err, data){
+					if (err){
+						res.send(500, {status: 'ERROR', data: err.message});
+					} else {
+						res.send(200, {status: 'OK', data: data.sort()});
+					}
+				});
 			}
 		});
 
@@ -1202,9 +1217,9 @@ module.exports = function(app, io, log) {
 	app.put('/invoice/:terminal/:_id', updateInvoice);
 	app.put('/invoice/setState/:terminal/:_id', setState);
 	app.delete('/invoices/:_id', removeInvoices);
-	app.get('/ships', getDistincts);
-	app.get('/containers', getDistincts);
-	app.get('/clients', getDistincts);
+	app.get('/invoices/:terminal/ships', getDistincts);
+	app.get('/invoices/:terminal/containers', getDistincts);
+	app.get('/invoices/:terminal/clients', getDistincts);
 
 	app.post('/invoices/byRates', getInvoicesByRates);
 
