@@ -32,6 +32,9 @@ module.exports = function (app, io, log) {
 				if (req.query.buque)
 					param.buque = req.query.buque;
 
+				if (req.query.viaje)
+					param.viaje = req.query.viaje;
+
 				if (req.query.fechaInicio && req.query.fechaFin){
 					param.$or=[];
 					fechaIni = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));

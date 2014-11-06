@@ -26,9 +26,6 @@ module.exports = function (app, io, log) {
 				var fecha;
 				var param = {};
 
-				if (req.query.contenedor)
-					param.contenedor = req.query.contenedor;
-
 				if (req.query.fechaInicio || req.query.fechaFin){
 					param.gateTimestamp={};
 					if (req.query.fechaInicio){
@@ -41,9 +38,12 @@ module.exports = function (app, io, log) {
 					}
 				}
 
+				if (req.query.contenedor)
+					param.contenedor = req.query.contenedor;
 				if (req.query.buqueNombre)
 					param.buque = req.query.buqueNombre;
-
+				if (req.query.viaje)
+					param.viaje = req.query.viaje;
 
 				if (usr.role === 'agp')
 					param.terminal= req.params.terminal;

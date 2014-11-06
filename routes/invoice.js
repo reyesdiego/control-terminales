@@ -23,6 +23,7 @@ var config = require('../config/config.js');
 module.exports = function(app, io, log) {
 
 	var Invoice = require('../models/invoice.js');
+	var Gate = require('../models/gate.js');
 	var MatchPrice = require('../models/matchPrice.js');
 	var Comment = require('../models/comment.js');
 
@@ -82,6 +83,9 @@ module.exports = function(app, io, log) {
 
 					if (req.query.buqueNombre)
 						param['detalle.buque.nombre'] = req.query.buqueNombre;
+
+					if (req.query.viaje)
+						param['detalle.buque.viaje'] = req.query.viaje;
 
 					if (req.query.code)
 						param['detalle.items.id'] = req.query.code;
@@ -1201,6 +1205,130 @@ module.exports = function(app, io, log) {
 
 	}
 
+	function getShipTrips (req, res) {
+
+		var incomingToken = req.headers.token;
+
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (err){
+				log.logger.error(usr);
+				res.send(500, {status:'ERROR', data: err});
+			} else {
+
+				var paramTerminal = req.params.terminal;
+
+				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
+					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
+					log.logger.error(errMsg);
+					res.send(500, {status:"ERROR", data: errMsg});
+				} else {
+
+					var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
+					var param = {terminal:	ter};
+
+					Invoice.aggregate([
+						{ $match: param },
+						{ $unwind : '$detalle'},
+						{ $group: {_id: {buque: '$detalle.buque.nombre', viaje: '$detalle.buque.viaje'} } },
+						{ $sort: { '_id.buque': 1, '_id.viaje': 1} },
+						{ $project : {buque: '$_id.buque', viaje: '$_id.viaje', _id:false}}
+					], function (err, data){
+						if (err) {
+							res.send(500, {status: 'ERROR', data: err.message});
+						} else {
+							var Enumerable = require('linq');
+							var result = Enumerable.from(data)
+								.groupBy("$.buque" , null,
+									function (key, g) {
+										var prop = g.getSource();
+										var ter = {buque: key, viajes: []};
+										prop.forEach(function (item){
+											for (var pro in item){
+												if (pro !== 'buque')
+													ter.viajes.push(item[pro]);
+											}
+										});
+										return (ter);
+									}).toArray();
+
+							res.send(200, {status: 'OK', data: result});
+						}
+					});
+				}
+			}
+		});
+	}
+
+	function getShipContainers (req, res) {
+
+		log.startElapsed();
+
+		var incomingToken = req.headers.token;
+
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (err){
+				log.logger.error(usr);
+				res.send(500, {status:'ERROR', data: err});
+			} else {
+
+				var paramTerminal = req.params.terminal;
+
+				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
+					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
+					log.logger.error(errMsg);
+					res.send(500, {status:"ERROR", data: errMsg});
+				} else {
+
+					var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
+					var param = {terminal:	ter};
+
+					var buque = req.query.buqueNombre;
+					var viaje = req.query.viaje;
+
+					Invoice.aggregate([
+						{ $match: param },
+						{ $unwind : '$detalle'},
+						{ $match: {'detalle.buque.nombre': buque, "detalle.buque.viaje" : viaje} },
+						{ $group: {_id: {buque: '$detalle.buque.nombre', viaje: "$detalle.buque.viaje", contenedor: '$detalle.contenedor'} } },
+						{ $project: {contenedor: '$_id.contenedor', _id: false}},
+						{ $sort: {contenedor: 1} }
+					], function (err, dataContainers){
+						if (err) {
+							res.send(500, {status: 'ERROR', data: err.message});
+						} else {
+							Gate.find({buque: buque, viaje: viaje}, function (err, dataGates){
+								if (err) {
+									res.send(500, {status: 'ERROR', data: err.message});
+								} else {
+									var Enumerable = require('linq');
+
+									var response = Enumerable.from(dataContainers)
+										.groupJoin(dataGates, '$.contenedor', '$.contenedor', function (inner,outer){
+											var result = {
+												contenedor:'',
+												gates: []
+											};
+											if (outer.getSource !== undefined)
+												result.gates =outer.getSource();
+
+											result.contenedor = inner;
+											return result;
+										}).toArray();
+
+									res.send(200, {
+										status: 'OK',
+										elapsed: log.getElapsed(),
+										data: response}
+									);
+								}
+							});
+						}
+					});
+				}
+			}
+		});
+	}
+
 	app.get('/invoices/:terminal/:skip/:limit', getInvoices);
 	app.get('/invoice/:id', getInvoice);
 	app.get('/invoices', getInvoices);
@@ -1220,6 +1348,8 @@ module.exports = function(app, io, log) {
 	app.get('/invoices/:terminal/ships', getDistincts);
 	app.get('/invoices/:terminal/containers', getDistincts);
 	app.get('/invoices/:terminal/clients', getDistincts);
+	app.get('/invoices/:terminal/shipTrips', getShipTrips);
+	app.get('/invoices/:terminal/shipContainers', getShipContainers);
 
 	app.post('/invoices/byRates', getInvoicesByRates);
 
