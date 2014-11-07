@@ -35,5 +35,13 @@ module.exports = {
 		auth:{authdb:"admin"}
 	},
 	'server_port': 8080,
-	'server_ssl_port': 443
+	'server_ssl_port': 443,
+
+	oracle: {
+		hostname: "10.10.0.226",
+		port: 1521,
+		database: "orcl.orapruebadie.agp.gob.ar", // System ID (SID)
+		user: "HR",
+		password: "oracle_4U"
+	}
 };

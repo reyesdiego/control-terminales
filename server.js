@@ -216,6 +216,8 @@ require('./routes/gate')(app, io, log);
 require('./routes/voucherType')(app);
 require('./routes/docType')(app);
 
+require('./routes/oracle/test')(app, log);
+
 //	Database configuration
 mongoose.connect(config.mongo_url, config.mongo_opts);
 
