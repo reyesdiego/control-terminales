@@ -9,6 +9,8 @@ var ad = new ActiveDirectory({ url: 'ldap://10.0.0.56:389',
 
 var processArgs = process.argv.slice(2);
 
+//username : reyes-d@ptobaires.gov.ar
+
 ad.authenticate(processArgs[0], processArgs[1], function(err, auth) {
 	if (err) {
 		console.log('ERROR: '+JSON.stringify(err));
