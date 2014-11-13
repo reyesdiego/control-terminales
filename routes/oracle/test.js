@@ -14,12 +14,37 @@ module.exports = function (app, log){
 
 			var skip = parseInt(req.params.skip, 10);
 			var limit = parseInt(req.params.limit, 10);
-			var strSql = "SELECT STREET_ADDRESS, R FROM " +
-				" (SELECT STREET_ADDRESS, ROW_NUMBER() OVER (ORDER BY STREET_ADDRESS) R FROM locations) " +
+			var strSql = "SELECT * FROM " +
+				" (SELECT id, " +
+				"tiporegistro, " +
+				"sumaria, " +
+				"cuitata, " +
+				"nombreata, " +
+				"estado, " +
+				"fecharegistro, " +
+				"fechaarribo, " +
+				"transportevacio, " +
+				"paisprocedencia, " +
+				"transportista, " +
+				"paistransportista, " +
+				"comentario, " +
+				"impo_expo, " +
+				"desconsolidado, " +
+				"titulo, " +
+				"mercaderiaabordo, " +
+				"via, " +
+				"nacionalidadmediotransporte, " +
+				"lugaroperativo, " +
+				"lugardegiro, " +
+				"nombrebuque, ROW_NUMBER() OVER (ORDER BY id) R FROM REGISTRO1_SUMIMPOMANI ) " +
 				" WHERE R BETWEEN :1 and :2";
-			connection.execute(strSql,[skip, skip+limit-1], function (err, data){
+			connection.execute(strSql,[skip+1, skip+limit], function (err, data){
 				connection.close();
-				res.send(200, { status:'OK', data: data });
+				if (err){
+					res.send(500, { status:'ERROR', data: err.message });
+				} else {
+					res.send(200, { status:'OK', data: data });
+				}
 			});
 
 		});
