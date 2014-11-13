@@ -770,23 +770,21 @@ module.exports = function(app, io, log) {
 							]
 							};
 
-						var param = {
-							$or : [
-								{terminal:	"AGP"},
-								{terminal:	ter}
-							]
-						};
-
 						var jsonParam = [
-							{	$match: { terminal:	ter } },
+							{	$match: {
+											terminal:	ter,
+											'detalle.items.id' : {$in: rates},
+											'detalle.contenedor' : req.params.container
+										}
+							},
 							{	$unwind : '$detalle'	},
 							{	$unwind : '$detalle.items'	},
 							{	$match : {
-								'detalle.items.id' : {$in: rates},
-								'detalle.contenedor' : req.params.container
-							}
+											'detalle.items.id' : {$in: rates},
+											'detalle.contenedor' : req.params.container
+										}
 							},
-							{	$project : {terminal: 1, 'detalle.items': 1, "total" : sum }
+							{	$project : {terminal: 1, 'detalle.items': 1, total : sum }
 							},
 							{
 								$group  : {
@@ -794,7 +792,7 @@ module.exports = function(app, io, log) {
 											terminal: '$terminal',
 											id: '$detalle.items.id'
 									},
-									cnt: { $sum: 1},
+									cnt: { $sum: '$detalle.items.cnt'},
 									total: {$sum: '$total'}
 								}
 							}
