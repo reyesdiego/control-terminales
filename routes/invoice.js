@@ -245,43 +245,50 @@ module.exports = function(app, io, log) {
 									})
 							});
 
-						postData.detalle.forEach(function (container){
-							var buqueId = (container.buqueId !== undefined) ? container.buqueId.toString() : null;
-							var buqueDesc = container.buqueDesc;
-							var viaje = container.viaje;
-							var fecha = (container.fecha !== undefined) ? moment(container.fecha) : null;
-							var buque = {
-								codigo: (buqueId) ? buqueId : "",
-								nombre: (buqueDesc) ? buqueDesc.trim() : "",
-								viaje: (viaje) ? viaje.trim() : "",
-								fecha: fecha
-							};
-							var contenedor = container.contenedor;
-							var cont = {
-								contenedor:		(contenedor) ? container.contenedor.trim() : "",
-								IMO:			container.IMO,
-								buque:			buque,
-								items: []
-							};
-							if (container.items){
-								container.items.forEach( function (item){
-									cont.items.push(
-										{
-											id:			item.id,
-											cnt:		item.cnt,
-											uniMed:		item.uniMed,
-											impUnit:	item.impUnit,
-											impTot:		item.impTot
-										});
-								});
-							} else {
-								var errMsg = util.format("%s - Error: %s", dateTime.getDatetime(), "El contenedor no posee items.");
-								log.logger.error(errMsg);
-								res.send(500, {status:"ERROR", data: errMsg});
-								return;
-							}
-							invoice.detalle.push(cont);
-						});
+						if ( postData.detalle && postData.detalle.length < 1 ){
+							postData.detalle.forEach(function (container){
+								var buqueId = (container.buqueId !== undefined) ? container.buqueId.toString() : null;
+								var buqueDesc = container.buqueDesc;
+								var viaje = container.viaje;
+								var fecha = (container.fecha !== undefined) ? moment(container.fecha) : null;
+								var buque = {
+									codigo: (buqueId) ? buqueId : "",
+									nombre: (buqueDesc) ? buqueDesc.trim() : "",
+									viaje: (viaje) ? viaje.trim() : "",
+									fecha: fecha
+								};
+								var contenedor = container.contenedor;
+								var cont = {
+									contenedor:		(contenedor) ? container.contenedor.trim() : "",
+									IMO:			container.IMO,
+									buque:			buque,
+									items: []
+								};
+								if (container.items){
+									container.items.forEach( function (item){
+										cont.items.push(
+											{
+												id:			item.id,
+												cnt:		item.cnt,
+												uniMed:		item.uniMed,
+												impUnit:	item.impUnit,
+												impTot:		item.impTot
+											});
+									});
+								} else {
+									var errMsg = util.format("Error Invoice INS: %s", "El contenedor no posee items.");
+									log.logger.error(errMsg);
+									res.send(500, {status:"ERROR", data: errMsg});
+									return;
+								}
+								invoice.detalle.push(cont);
+							});
+						} else {
+							var errMsg = util.format("Error Invoice INS: %s", "El comprobante no posee detalles.");
+							log.logger.error(errMsg);
+							res.send(500, {status:"ERROR", data: errMsg});
+							return;
+						}
 
 					} catch (error){
 						var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
@@ -297,7 +304,7 @@ module.exports = function(app, io, log) {
 					}
 
 					var invoice2add = new Invoice(invoice);
-					invoice2add.save(function (errSave, data) {
+					invoice2add.save( function (errSave, data) {
 						if (!errSave) {
 							log.logger.insert("Invoice INS:%s - %s - Tipo: %s - %s", data._id, usr.terminal, postData.codTipoComprob, postData.fechaEmision);
 
@@ -332,7 +339,7 @@ module.exports = function(app, io, log) {
 									nroPtoVenta:	invoice.nroPtoVenta
 								}, function (err, invoice){
 //									var errMsg = util.format('%s - Error INS: El tipo de comprobante: %s, número: %s, fue transferido el %s:\n %s\n\n%s - ERROR:%s\n\n%s', dateTime.getDatetime(), invoice[0].codTipoComprob, invoice[0].nroComprob, dateTime.getDateTimeFromObjectId(invoice[0]._id), invoice[0], moment(), errSave, JSON.stringify(postData));
-									var errMsg = util.format('%s - Error INS: El tipo de comprobante: %s, número: %s, fue transferido el %s:\n %s\n\n%s - ERROR:%s', dateTime.getDatetime(), invoice[0].codTipoComprob, invoice[0].nroComprob, dateTime.getDateTimeFromObjectId(invoice[0]._id), invoice[0], moment(), errSave);
+									var errMsg = util.format('Error INS: El tipo de comprobante: %s, número: %s, fue transferido el %s:\n %s\n\n%s - ERROR:%s', invoice[0].codTipoComprob, invoice[0].nroComprob, dateTime.getDateTimeFromObjectId(invoice[0]._id), invoice[0], moment(), errSave);
 
 									var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
 									//console.error(errMsg);
@@ -346,7 +353,7 @@ module.exports = function(app, io, log) {
 								})
 							} else {
 								var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
-								var strError = util.format('%s - Error INS: %s -\n%s', dateTime.getDatetime(), errSave, JSON.stringify(postData));
+								var strError = util.format('Error INS: %s -\n%s', errSave, JSON.stringify(postData));
 								log.logger.error(strError);
 
 								var mailer = new mail.mail(config.email);
