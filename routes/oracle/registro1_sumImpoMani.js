@@ -1,5 +1,5 @@
 /**
- * Created by diego on 11/6/14.
+ * Created by diego on 11/19/14.
  */
 
 module.exports = function (app, log){
@@ -55,6 +55,6 @@ module.exports = function (app, log){
 		});
 	}
 
-	app.get('/oracle/test/:skip/:limit', getOracleTest)
+	app.get('/afip/registro1_sumimpomani/:skip/:limit', getOracleTest)
 
 };
