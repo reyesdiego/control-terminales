@@ -215,6 +215,28 @@ require('./routes/appointment')(app, io, log);
 require('./routes/gate')(app, io, log);
 require('./routes/voucherType')(app);
 require('./routes/docType')(app);
+require('./routes/unitType')(app);
+
+require('./routes/oracle/registro1_sumImpoMani')(app);
+require('./routes/oracle/registro2_sumImpoMani')(app);
+require('./routes/oracle/registro3_sumImpoMani')(app);
+require('./routes/oracle/registro4_sumImpoMani')(app);
+require('./routes/oracle/registro1_sumExpoMane')(app);
+require('./routes/oracle/registro2_sumExpoMane')(app);
+require('./routes/oracle/registro3_sumExpoMane')(app);
+require('./routes/oracle/registro4_sumExpoMane')(app);
+require('./routes/oracle/registro5_sumExpoMane')(app);
+require('./routes/oracle/registro1_solicitud')(app);
+require('./routes/oracle/registro2_solicitud')(app);
+require('./routes/oracle/registro3_solicitud')(app);
+require('./routes/oracle/registro1_afectacion')(app);
+require('./routes/oracle/registro2_afectacion')(app);
+require('./routes/oracle/registro1_detImpo')(app);
+require('./routes/oracle/registro2_detImpo')(app);
+require('./routes/oracle/registro3_detImpo')(app);
+require('./routes/oracle/registro1_detExpo')(app);
+require('./routes/oracle/registro2_detExpo')(app);
+require('./routes/oracle/registro3_detExpo')(app);
 
 require('./routes/oracle/test')(app, log);
 
