@@ -233,7 +233,7 @@ module.exports = function(app, io, log) {
 
 						if (postData.otrosTributos)
 							postData.otrosTributos.forEach(function (item){
-								var otId = item.id.toString();
+
 								var otId = (item.id !== undefined) ? item.id.toString() : null;
 								var otDesc = item.desc;
 								invoice.otrosTributos.push(
@@ -245,7 +245,8 @@ module.exports = function(app, io, log) {
 									})
 							});
 
-						if ( postData.detalle && postData.detalle.length < 1 ){
+						var subTotalCheck=0;
+						if ( postData.detalle && postData.detalle.length > 0 ){
 							postData.detalle.forEach(function (container){
 								var buqueId = (container.buqueId !== undefined) ? container.buqueId.toString() : null;
 								var buqueDesc = container.buqueDesc;
@@ -274,6 +275,7 @@ module.exports = function(app, io, log) {
 												impUnit:	item.impUnit,
 												impTot:		item.impTot
 											});
+										subTotalCheck += item.impTot;
 									});
 								} else {
 									var errMsg = util.format("Error Invoice INS: %s", "El contenedor no posee items.");
@@ -283,8 +285,16 @@ module.exports = function(app, io, log) {
 								}
 								invoice.detalle.push(cont);
 							});
+
+							if ( ( subTotalCheck > postData.impSubtot + 1) || ( subTotalCheck < postData.impSubtot - 1) ){
+								var errMsg = util.format("Error Invoice INS: %s La suma es %d y se informa %d. - %s. - %j", "El subtotal del comprobante es incorrecto.", subTotalCheck, postData.impSubtot, usr.terminal, postData);
+								log.logger.error(errMsg);
+								res.send(500, {status:"ERROR", data: errMsg});
+								return;
+							}
+
 						} else {
-							var errMsg = util.format("Error Invoice INS: %s", "El comprobante no posee detalles.");
+							var errMsg = util.format("Error Invoice INS: %s - %s. - %j", "El comprobante no posee detalles.", usr.terminal, postData);
 							log.logger.error(errMsg);
 							res.send(500, {status:"ERROR", data: errMsg});
 							return;
