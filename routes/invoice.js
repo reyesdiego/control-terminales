@@ -1045,11 +1045,11 @@ module.exports = function(app, io, log) {
 						param["fecha.emision"]['$lte'] = fecha;
 					}
 				}
-				if (req.query.nroPtoVenta){
-					param.nroPtoVenta = req.query.nroPtoVenta;
+				if (req.query.nroPtoVenta) {
+					param.nroPtoVenta = parseInt( req.query.nroPtoVenta, 10);
 				}
 				if (req.query.codTipoComprob){
-					param.codTipoComprob = req.query.codTipoComprob;
+					param.codTipoComprob = parseInt( req.query.codTipoComprob, 10);
 				}
 
 				if (usr.role === 'agp')
@@ -1057,13 +1057,13 @@ module.exports = function(app, io, log) {
 				else
 					param.terminal = usr.terminal;
 
-				var invoices = Invoice.find(param, {codTipoComprob:1, nroComprob:1});
+				var invoices = Invoice.find(param, {nroComprob:1, _id: 0});
 
 				if (req.query.order){
 					var order = JSON.parse(req.query.order);
 					invoices.sort(order[0]);
 				} else {
-					invoices.sort({codTipoComprob:1, nroComprob:1});
+					invoices.sort({nroComprob:1});
 				}
 
 				invoices.exec(function(err, invoices) {
