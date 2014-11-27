@@ -286,13 +286,6 @@ module.exports = function(app, io, log) {
 								invoice.detalle.push(cont);
 							});
 
-							if ( ( subTotalCheck > postData.impSubtot + 1) || ( subTotalCheck < postData.impSubtot - 1) ){
-								var errMsg = util.format("Error Invoice INS: %s La suma es %d y se informa %d. - %s. - %j", "El subtotal del comprobante es incorrecto.", subTotalCheck, postData.impSubtot, usr.terminal, postData);
-								log.logger.error(errMsg);
-								res.send(500, {status:"ERROR", data: errMsg});
-								return;
-							}
-
 						} else {
 							var errMsg = util.format("Error Invoice INS: %s - %s. - %j", "El comprobante no posee detalles.", usr.terminal, postData);
 							log.logger.error(errMsg);
@@ -321,11 +314,19 @@ module.exports = function(app, io, log) {
 							var socketMsg = {status:'OK', datetime: dateTime.getDatetime(), terminal: usr.terminal};
 							io.sockets.emit('invoice', socketMsg);
 
+							var comment = 'Comprobante transferido correntamente.';
+							var commentState = 'Y';
+
+							if ( ( subTotalCheck > postData.impSubtot + 1) || ( subTotalCheck < postData.impSubtot - 1) ){
+								comment = util.format("El subtotal del comprobante es incorrecto, la suma es %d y se informa %d. - %s.", subTotalCheck, postData.impSubtot, usr.terminal);
+								data.estado[0].estado = 'R';
+							}
+
 							Comment.create({
 								invoice: data._id,
 								title: 'Transferencia comprobante.',
-								comment: 'Comprobante transferido correntamente.',
-								state: 'Y',
+								comment: comment,
+								state: commentState,
 								user: usr.user,
 								group: "ALL"
 							}, function (err, commentAdded){
