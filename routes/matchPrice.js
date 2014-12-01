@@ -115,14 +115,15 @@ module.exports = function (app, log){
 										res.send(200, {status:'OK', data: result});
 
 									} else {
-										log.logger.error('Error: %s', err);
-										res.send(500, {status:'ERROR', data: err});
+										log.logger.error('Error: %s', err.message);
+										res.send(500, {status:'ERROR', data: err.message});
 									}
 								});
 
 						} else {
-							log.logger.error('Error: %s', err);
-							res.send(500, {status:'ERROR', data: err});
+							var errMsg = util.format('Error: %s', err.message);
+							log.logger.error(errMsg);
+							res.send(500, {status:'ERROR', data: errMsg});
 						}
 					});
 				}

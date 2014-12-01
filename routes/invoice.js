@@ -248,7 +248,7 @@ module.exports = function(app, io, log) {
 						var subTotalCheck=0;
 						if ( postData.detalle && postData.detalle.length > 0 ){
 							postData.detalle.forEach(function (container){
-								var buqueId = (container.buqueId !== undefined) ? container.buqueId.toString() : null;
+								var buqueId = (container.buqueId !== undefined && container.buqueId !== null) ? container.buqueId.toString() : null;
 								var buqueDesc = container.buqueDesc;
 								var viaje = container.viaje;
 								var fecha = (container.fecha !== undefined) ? moment(container.fecha) : null;
@@ -403,7 +403,7 @@ module.exports = function(app, io, log) {
 
 					Invoice.findOneAndUpdate(param, { $set: req.body}, null, function (err, data) {
 						if  (err) {
-							var errMsg = util.format("%s - Error: %s", dateTime.getDatetime(), err.error);
+							var errMsg = util.format("Error: %s", err.error);
 							log.logger.error(errMsg);
 							res.send(500, {status: "ERROR", data: errMsg});
 						} else {
@@ -427,7 +427,7 @@ module.exports = function(app, io, log) {
 					{$set: {'estado.$.estado' : req.body.estado}},
 					function (err, rowAffected, data, data2){
 						if (err) {
-							var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'Error in invoice set state.');
+							var errMsg = util.format('Error: %s', 'Error in invoice set state.');
 							log.logger.error(errMsg);
 							res.send(500, {status:'ERROR', data: errMsg});
 						} else  {
@@ -438,7 +438,7 @@ module.exports = function(app, io, log) {
 									{safe: true, upsert: true},
 									function (err, data ){
 										if (err) {
-											var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'Error in invoice set state.');
+											var errMsg = 'Error: Error in invoice set state.';
 											log.logger.error(errMsg);
 											res.send(500, {status:'ERROR', data: errMsg});
 										} else {

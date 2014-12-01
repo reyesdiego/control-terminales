@@ -117,12 +117,12 @@ module.exports = function (app, log){
 					return;
 				}
 				_price.save(function (errSave, data){
-					if(!err) {
+					if(!errSave) {
 						log.logger.insert("Price INS:%s - %s", data._id, usr.terminal);
 						res.send(200,{"status": "OK", "data": _price});
 					} else {
-						log.logger.error('Error: %s', errSave);
-						res.send(500, {"status":"ERROR", "data": errSave});
+						log.logger.error('Error: %s', errSave.message);
+						res.send(500, {"status":"ERROR", "data": errSave.message});
 					}
 				});
 			}
