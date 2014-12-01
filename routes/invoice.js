@@ -309,7 +309,7 @@ module.exports = function(app, io, log) {
 					var invoice2add = new Invoice(invoice);
 					invoice2add.save( function (errSave, data) {
 						if (!errSave) {
-							log.logger.insert("Invoice INS:%s - %s - Tipo: %s - %s", data._id, usr.terminal, postData.codTipoComprob, postData.fechaEmision);
+							log.logger.insert("Invoice INS: %s - %s - Tipo: %s Nro: %s - %s", data._id, usr.terminal, postData.codTipoComprob, postData.nroComprob, postData.fechaEmision);
 
 							var socketMsg = {status:'OK', datetime: dateTime.getDatetime(), terminal: usr.terminal};
 							io.sockets.emit('invoice', socketMsg);
