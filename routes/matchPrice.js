@@ -47,7 +47,7 @@ module.exports = function (app, log){
 							param.rate = {$exists:true};
 					}
 
-					price.find(param)
+					price.find(param, {topPrices : {$slice:-1}})
 						.populate({path:'matches', match:{"terminal":req.params.terminal}})
 						.sort({terminal:1,code:1})
 						.exec(function (err, prices) {
