@@ -23,7 +23,8 @@ var log4njs = function (options) {
 			warn: 4,
 			debug: 5,
 			error: 6,
-			insert:7
+			insert:7,
+			update:8
 		},
 		colors: {
 			silly: 'magenta',
@@ -33,7 +34,8 @@ var log4njs = function (options) {
 			warn: 'yellow',
 			debug: 'blue',
 			error: 'red',
-			insert: 'yellow'
+			insert: 'yellow',
+			update: 'green'
 		}
 	};
 
