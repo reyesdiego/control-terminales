@@ -154,7 +154,6 @@ module.exports = function (app, log){
 							code:		req.body.code.toUpperCase(),
 							description:req.body.description,
 							unit:		req.body.unit,
-							currency:	req.body.currency,
 							topPrices:	req.body.topPrices,
 							matches:	null
 						});
@@ -175,7 +174,6 @@ module.exports = function (app, log){
 							if (req.body.topPrices[0].price !== price2Upd.topPrices[price2Upd.topPrices.length-1].price)
 								price2Upd.topPrices.push (req.body.topPrices[0]);
 
-							price2Upd.currency = req.body.currency;
 							price2Upd.unit = req.body.unit;
 							price2Upd.save(function (errSave, dataSaved){
 								if(!errSave) {
