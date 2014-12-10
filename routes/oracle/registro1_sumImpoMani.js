@@ -37,7 +37,7 @@ module.exports = function (app, log){
 				"		NACIONALIDADMEDIOTRANSPORTE, " +
 				"		LUGAROPERATIVO, " +
 				"		LUGARDEGIRO, " +
-				"		NOMBREBUQUE, " +
+				"		NOMBREBUQUE as buque, " +
 				"		REGISTRADO_POR, " +
 				"		REGISTRADO_EN, " +
 				"		ROW_NUMBER() OVER (ORDER BY id) R " +

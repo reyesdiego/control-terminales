@@ -216,6 +216,7 @@ require('./routes/gate')(app, io, log);
 require('./routes/voucherType')(app);
 require('./routes/docType')(app);
 require('./routes/unitType')(app);
+require('./routes/state')(app);
 
 require('./routes/oracle/registro1_sumImpoMani')(app);
 require('./routes/oracle/registro2_sumImpoMani')(app);

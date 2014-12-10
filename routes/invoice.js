@@ -91,9 +91,10 @@ module.exports = function(app, io, log) {
 						param['detalle.items.id'] = req.query.code;
 
 					if (req.query.estado){
+						var states = req.query.estado.split(",");
 						param['$or'] = [
-							{ estado:{$size: 1, $elemMatch: {estado: req.query.estado, grupo:'ALL'} } },
-							{ 'estado.1': { $exists: true } , estado: {$elemMatch: {estado: req.query.estado, grupo: usr.group} } }
+							{ estado:{$size: 1, $elemMatch: {estado: {$in: states}, grupo:'ALL'} } },
+							{ 'estado.1': { $exists: true } , estado: {$elemMatch: {estado: {$in: states}, grupo: usr.group} } }
 						]
 					}
 				}
