@@ -2,7 +2,7 @@
  * Created by diego on 9/5/14.
  */
 
-module.exports = function (app, log) {
+module.exports = function (app, io, log) {
 
 	var util = require('util');
 	var dateTime = require('../include/moment');
@@ -52,14 +52,19 @@ module.exports = function (app, log) {
 				req.body.group = usr.group;
 				Comment.create(req.body, function (err, commentInserted) {
 					if (err){
-						log.logger.error("Error Comment INS: %s", err.error);
-						res.send(403, {status:"ERROR", data: err.errors});
+						log.logger.error("Error Comment INS: %s", err.errors);
+						res.send(500, {status:"ERROR", data: err.errors});
 					} else {
 
 						Invoice.findOne({_id: req.body.invoice}, function (err, invoice) {
 							invoice.comment.push(commentInserted._id);
-							invoice.save(function (err, data){
-								res.send(200, {status: 'OK', data: commentInserted});
+							invoice.save(function (err){
+								if (err){
+									log.logger.error("Error Invoice UPD Adding Comment : %s", err.errors);
+									res.send(500, {status:"ERROR", data: err.errors});
+								} else {
+									res.send(200, {status: 'OK', data: commentInserted});
+								}
 							});
 						});
 					}

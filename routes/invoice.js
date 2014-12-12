@@ -426,7 +426,7 @@ module.exports = function(app, io, log) {
 			} else {
 				var invoice = Invoice.update({_id: req.params._id, 'estado.grupo': usr.group},
 					{$set: {'estado.$.estado' : req.body.estado}},
-					function (err, rowAffected, data, data2){
+					function (err, rowAffected, data){
 						if (err) {
 							var errMsg = util.format('Error: %s', 'Error in invoice set state.');
 							log.logger.error(errMsg);
