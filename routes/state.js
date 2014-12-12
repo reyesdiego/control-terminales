@@ -15,7 +15,11 @@ module.exports = function (app){
 				if (req.query.type === 'array'){
 					result={};
 					data.forEach(function (item){
-						result[item._id] = {name: item.name, description: item.description};
+						result[item._id] = {
+							name: item.name,
+							description: item.description,
+							type: item.type
+						};
 					});
 				}
 				var response = {
