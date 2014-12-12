@@ -26,6 +26,9 @@ module.exports = function (app, io, log) {
 				var fecha;
 				var param = {};
 
+				var limit = parseInt(req.params.limit, 10);
+				var skip = parseInt(req.params.skip, 10);
+
 				if (req.query.fechaInicio || req.query.fechaFin){
 					param.gateTimestamp={};
 					if (req.query.fechaInicio){
@@ -50,7 +53,7 @@ module.exports = function (app, io, log) {
 				else
 					param.terminal= usr.terminal;
 
-				var gates = Gate.find(param).limit(req.params.limit).skip(req.params.skip);
+				var gates = Gate.find(param).limit(limit).skip(skip);
 				if (req.query.order){
 					var order = JSON.parse(req.query.order);
 					gates.sort(order[0]);
@@ -64,11 +67,12 @@ module.exports = function (app, io, log) {
 						res.send(500 , {status: "ERROR", data: err});
 					} else {
 						Gate.count(param, function (err, cnt){
+							var pageCount = gates.length;
 							var result = {
 								status: 'OK',
 								totalCount: cnt,
-								pageCount: (req.params.limit > cnt)?cnt:req.params.limit,
-								page: req.params.skip,
+								pageCount: (limit > pageCount) ? limit : pageCount,
+								page: skip,
 								data: gates
 							};
 							res.send(200, result);
@@ -96,8 +100,6 @@ module.exports = function (app, io, log) {
 				log.logger.error(usr);
 				res.send(403, {status:'ERROR', data: err});
 			} else {
-
-//				param.terminal= usr.terminal;
 
 				var jsonParam = [
 					{$match: { 'gateTimestamp': {$gte: date, $lt: tomorrow} }},
@@ -139,8 +141,6 @@ module.exports = function (app, io, log) {
 				log.logger.error(usr);
 				res.send(403, {status:'ERROR', data: err});
 			} else {
-
-//				param.terminal= usr.terminal;
 
 				var jsonParam = [
 					{$match: { 'gateTimestamp': {$gte: month5Ago, $lt: nextMonth} }},

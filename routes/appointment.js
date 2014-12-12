@@ -26,6 +26,9 @@ module.exports = function (app, io, log) {
 				var fechaIni, fechaFin;
 				var param = {};
 
+				var limit = parseInt(req.params.limit, 10);
+				var skip = parseInt(req.params.skip, 10);
+
 				if (req.query.contenedor)
 					param.contenedor = req.query.contenedor;
 
@@ -49,18 +52,19 @@ module.exports = function (app, io, log) {
 				else
 					param.terminal= usr.terminal;
 
-				var appointment = Appointment.find(param).limit(req.params.limit).skip(req.params.skip);
+				var appointment = Appointment.find(param).limit(limit).skip(skip);
 				appointment.exec( function( err, appointments){
 					if (err){
 						log.logger.error("Error: %s", err.error);
 						res.send(500 , {status: "ERROR", data: err});
 					} else {
 						Appointment.count(param, function (err, cnt){
+							var pageCount = appointments.length;
 							var result = {
 								status: 'OK',
 								totalCount: cnt,
-								pageCount: (req.params.limit > cnt)?cnt:req.params.limit,
-								page: req.params.skip,
+								pageCount: (limit > pageCount) ? limit : pageCount,
+								page: skip,
 								data: appointments
 							}
 							res.send(200, result);
@@ -136,8 +140,6 @@ module.exports = function (app, io, log) {
 				log.logger.error(usr);
 				res.send(500, {status:'ERROR', data: err});
 			} else {
-
-//				param.terminal= usr.terminal;
 
 				var jsonParam = [
 					{$match: { 'inicio': {$gte: month5Ago, $lt: nextMonth} }},

@@ -39,6 +39,8 @@ module.exports = function(app, io, log) {
 				var fecha;
 
 				var paramTerminal = req.params.terminal;
+				var limit = parseInt(req.params.limit, 10);
+				var skip = parseInt(req.params.skip, 10);
 
 				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
 					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
@@ -101,10 +103,7 @@ module.exports = function(app, io, log) {
 
 				var invoices = Invoice.find(param);
 
-				var limit = parseInt(req.params.limit, 10);
-				var skip = parseInt(req.params.skip, 10);
-
-				invoices.limit(limit).skip(skip);
+				invoices.skip(skip).limit(limit);
 				if (req.query.order){
 					var order = JSON.parse(req.query.order);
 					invoices.sort(order[0]);
@@ -115,18 +114,19 @@ module.exports = function(app, io, log) {
 				invoices.exec(function(err, invoices) {
 					if(!err) {
 						Invoice.count(param, function (err, cnt){
+							var pageCount = invoices.length;
 							var result = {
 								status: 'OK',
 								totalCount: cnt,
-								pageCount: (req.params.limit > cnt)?cnt:req.params.limit,
+								pageCount: (limit > pageCount) ? pageCount : pageCount,
 								page: skip,
 								data: invoices
 							}
 							res.send(200, result);
 						});
 					} else {
-						log.logger.error("Error: %s", err);
-						res.send(500 , {status: "ERROR", data: err});
+						log.logger.error("Error: %s", err.message);
+						res.send(500 , {status: "ERROR", data: err.message});
 					}
 				});
 			}
@@ -661,11 +661,12 @@ module.exports = function(app, io, log) {
 				}
 
 				invoices.exec(function(err, invoices){
+					var pageCount = invoices.length;
 					Invoice.count(param, function (err, cnt){
 						var dataResult = {
 							status: 'OK',
 							totalCount: cnt,
-							pageCount: (req.params.limit > cnt) ? cnt : req.params.limit,
+							pageCount: (limit > pageCount) ? limit : pageCount,
 							page: skip,
 							elapsed: log.getElapsed(),
 							data: invoices
@@ -907,10 +908,11 @@ module.exports = function(app, io, log) {
 										inv.group({_id: null,cnt:{$sum:1}});
 										inv.exec(function (err, data2) {
 											var cnt = data2[0].cnt;
+											var pageCount = data.length;
 											var result = {
 												status: 'OK',
 												totalCount: cnt,
-												pageCount: (req.params.limit > cnt)? cnt : req.params.limit,
+												pageCount: (limit > pageCount)? limit : pageCount,
 												page: skip,
 												data: data
 											}
@@ -1348,7 +1350,6 @@ module.exports = function(app, io, log) {
 
 	app.get('/invoices/:terminal/:skip/:limit', getInvoices);
 	app.get('/invoice/:id', getInvoice);
-	app.get('/invoices', getInvoices);
 	app.get('/invoices/counts', getCounts);
 	app.get('/invoices/countsByDate/:currency', getCountByDate);
 	app.get('/invoices/countsByMonth/:currency', getCountByMonth);
