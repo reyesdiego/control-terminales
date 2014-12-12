@@ -209,8 +209,19 @@ module.exports = function (app, io, log) {
 				var gate2insert = req.body;
 
 				gate2insert.gateTimestamp = moment(gate2insert.gateTimestamp);
-				gate2insert.turnoInicio = moment(gate2insert.turnoInicio);
-				gate2insert.turnoFin = moment(gate2insert.turnoFin);
+
+				var inicio = gate2insert.turnoInicio;
+				if (inicio !== undefined && inicio !== '' && inicio != null)
+					gate2insert.turnoInicio = moment(inicio);
+				else
+					gate2insert.turnoInicio = null;
+
+				var fin = gate2insert.turnoFin;
+				if (fin !== undefined && fin !== '' && fin != null)
+					gate2insert.turnoFin = moment(fin);
+				else
+					gate2insert.turnoFin = null;
+
 				gate2insert.terminal = usr.terminal;
 
 				if (gate2insert) {

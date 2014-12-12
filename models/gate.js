@@ -23,7 +23,8 @@ gate.index({
 	buque : 1,
 	viaje : 1,
 	contenedor : 1,
-	mov : 1
+	mov : 1,
+	gateTimestamp : 1
 }, {unique:true});
 
 gate.statics.insert = function(gate, cb){
