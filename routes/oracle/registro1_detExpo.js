@@ -39,11 +39,24 @@ module.exports = function (app, log){
 				"	FROM REGISTRO1_DETEXPO) " +
 				"WHERE R BETWEEN :1 and :2";
 			connection.execute(strSql,[skip+1, skip+limit], function (err, data){
-				connection.close();
 				if (err){
 					res.send(500, { status:'ERROR', data: err.message });
 				} else {
-					res.send(200, { status:'OK', data: data });
+					strSql = "SELECT COUNT(*) AS TOTAL FROM REGISTRO1_DETEXPO";
+					connection.execute(strSql, [], function (err, dataCount){
+						connection.close();
+						if (err){
+							res.send(500, { status:'ERROR', data: err.message });
+						} else {
+							var total = dataCount[0].TOTAL;
+							var result = {
+								status:'OK',
+								totalCount : total,
+								pageCount : (limit > total) ? total : limit,
+								data: data };
+							res.send(200, result);
+						}
+					});
 				}
 			});
 
