@@ -6,6 +6,7 @@ module.exports = function (app, log){
 
 	var oracle = require('oracle');
 	var	config = require('../../config/config.js');
+	var util = require("util");
 
 	function getOracleTest( req, res){
 
@@ -19,6 +20,11 @@ module.exports = function (app, log){
 				"		ID, " +
 				"		TIPOREGISTRO, " +
 				"		SUMARIA, " +
+				"		SUBSTR( sumaria, 0, 2) as	ANIO, " +
+				"		SUBSTR( sumaria, 3, 3) as	ADUANA, " +
+				"		SUBSTR( sumaria, 6, 4) as	TIPO_SUMARIA, " +
+				"		SUBSTR( sumaria, 10, 6) as	MANI_NRO, " +
+				"		SUBSTR( sumaria, 16, 1) as	LETRA_CTRL, " +
 				"		CUITATA, " +
 				"		NOMBREATA, " +
 				"		ESTADO, " +
@@ -42,7 +48,11 @@ module.exports = function (app, log){
 				"		REGISTRADO_EN, " +
 				"		ROW_NUMBER() OVER (ORDER BY id) R " +
 				"	FROM REGISTRO1_SUMIMPOMANI ) " +
-				"WHERE R BETWEEN :1 and :2";
+				"WHERE R BETWEEN :1 and :2	";
+
+			if (req.query.buque)
+				strSql += util.format(" AND BUQUE = '%s'", req.query.buque);
+
 			connection.execute(strSql,[skip+1, skip+limit], function (err, data){
 				if (err){
 					res.send(500, { status:'ERROR', data: err.message });

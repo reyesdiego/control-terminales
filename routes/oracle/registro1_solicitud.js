@@ -33,6 +33,11 @@ module.exports = function (app, log){
 				"		MATRICULAMEDIOTRANSPINTERNO, " +
 				"		COMENTARIO, " +
 				"		SUMARIA, " +
+				"		SUBSTR( sumaria, 0, 2) as	ANIO, " +
+				"		SUBSTR( sumaria, 3, 3) as	ADUANA, " +
+				"		SUBSTR( sumaria, 6, 4) as	TIPO_SUMARIA, " +
+				"		SUBSTR( sumaria, 10, 6) as	MANI_NRO, " +
+				"		SUBSTR( sumaria, 16, 1) as	LETRA_CTRL, " +
 				"		NOMBREBUQUE, " +
 				"		REGISTRADO_POR, " +
 				"		REGISTRADO_EN, " +

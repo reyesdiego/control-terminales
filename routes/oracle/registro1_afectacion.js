@@ -33,6 +33,11 @@ module.exports = function (app, log){
 				"		MOTIVOAFECTACION, " +
 				"		IDENTIFICADORMOTIVOMICDTA, " +
 				"		SUMARIA, " +
+				"		SUBSTR( sumaria, 0, 2) as	ANIO, " +
+				"		SUBSTR( sumaria, 3, 3) as	ADUANA, " +
+				"		SUBSTR( sumaria, 6, 4) as	TIPO_SUMARIA, " +
+				"		SUBSTR( sumaria, 10, 6) as	MANI_NRO, " +
+				"		SUBSTR( sumaria, 16, 1) as	LETRA_CTRL, " +
 				"		MEDIOTRANSPORTEINTERNO, " +
 				"		NACMEDIOTRANSPINTERNO, " +
 				"		MATRICULAMEDIOTRANSPINTERNO, " +
