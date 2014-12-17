@@ -318,9 +318,9 @@ module.exports = function(app, io, log) {
 							var comment = 'Comprobante transferido correntamente.';
 							var commentState = 'Y';
 
-							if ( ( subTotalCheck > postData.impSubtot + 1) || ( subTotalCheck < postData.impSubtot - 1) ){
+							if ( ( subTotalCheck > postData.impSubtot + 2) || ( subTotalCheck < postData.impSubtot - 2) ){
 								comment = util.format("El subtotal del comprobante es incorrecto, la suma es %d y se informa %d. - %s.", subTotalCheck, postData.impSubtot, usr.terminal);
-								data.estado[0].estado = 'R';
+								data.estado[0].estado = 'T';
 							}
 
 							Comment.create({
