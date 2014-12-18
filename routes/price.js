@@ -26,11 +26,11 @@ module.exports = function (app, log){
 				var paramTerminal = req.params.terminal;
 
 				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal){
-					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
+					var errMsg = util.format('Error: %s', 'La terminal recibida por parámetro es inválida para el token.');
 					log.logger.error(errMsg);
 					res.send(500, {status:"ERROR", data: errMsg});
 				} else {
-					var ter = (usr.role === 'agp')?req.params.terminal:usr.terminal;
+					var ter = (usr.role === 'agp') ? req.params.terminal : usr.terminal;
 					var param = {
 						$or : [
 							{terminal:	"AGP"},
@@ -58,8 +58,8 @@ module.exports = function (app, log){
 											}
 							);
 						} else {
-							log.logger.error('Error: %s', err);
-							res.send(500, {status:'ERROR', data: err});
+							log.logger.error('Error: %s', err.message);
+							res.send(500, {status:'ERROR', data: err.message});
 						}
 					});
 				}
@@ -79,11 +79,11 @@ module.exports = function (app, log){
 				var paramTerminal = req.params.terminal;
 
 				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal){
-					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
+					var errMsg = util.format('Error: %s', 'La terminal recibida por parámetro es inválida para el token.');
 					log.logger.error(errMsg);
 					res.send(500, {status:"ERROR", data: errMsg});
 				} else {
-					var ter = (usr.role === 'agp')?req.params.terminal:usr.terminal;
+					var ter = (usr.role === 'agp') ? req.params.terminal : usr.terminal;
 					var param = {
 						$or : [
 							{terminal:	"AGP"},
@@ -100,8 +100,8 @@ module.exports = function (app, log){
 							if(!err) {
 								res.send(200, {status:'OK', totalCount: 1, data: price});
 							} else {
-								log.logger.error('Error: %s', err);
-								res.send(500, {status:'ERROR', data: err});
+								log.logger.error('Error: %s', err.message);
+								res.send(500, {status:'ERROR', data: err.message});
 							}
 						});
 				}
@@ -128,8 +128,8 @@ module.exports = function (app, log){
 						if(!err) {
 							res.send(200, {status:'OK', data:priceList});
 						} else {
-							log.logger.error('Error: %s', err);
-							res.send(500, {status:'ERROR', data: err});
+							log.logger.error('Error: %s', err.message);
+							res.send(500, {status:'ERROR', data: err.message});
 						}
 					});
 			}
@@ -147,7 +147,7 @@ module.exports = function (app, log){
 			} else {
 				var _price;
 				try {
-					req.body.topPrices[0].from = moment(moment()).format('YYYY-MM-DD HH:mm Z');
+					req.body.topPrices[0].from = moment(req.body.topPrices[0].from);
 					if (req.method === 'POST'){
 						_price = new price({
 							terminal:	req.body.terminal,
@@ -187,7 +187,7 @@ module.exports = function (app, log){
 						});
 					}
 				} catch (error){
-					res.send(500, {"status":"ERROR", "data": error.message});
+					res.send(500, {"status":"ERROR", "data": "Error en addPrice " + error.message});
 					return;
 				}
 			}

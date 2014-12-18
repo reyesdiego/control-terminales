@@ -26,11 +26,11 @@ module.exports = function (app, log){
 				var paramTerminal = req.params.terminal;
 
 				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
-					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
+					var errMsg = util.format('Error: %s', 'La terminal recibida por parámetro es inválida para el token.');
 					log.logger.error(errMsg);
 					res.send(500, {status:"ERROR", data: errMsg});
 				} else {
-					var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
+					var ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
 					var param = {
 						$or : [
 							{terminal:	"AGP"},
@@ -54,8 +54,8 @@ module.exports = function (app, log){
 							if(!err) {
 								res.send(200, {status:'OK', data:prices});
 							} else {
-								log.logger.error('Error: %s', err);
-								res.send(500, {status:'ERROR', data: err});
+								log.logger.error('Error: %s', err.message);
+								res.send(500, {status:'ERROR', data: err.message});
 							}
 						});
 				}
@@ -76,7 +76,7 @@ module.exports = function (app, log){
 				var paramTerminal = req.params.terminal;
 
 				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal){
-					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
+					var errMsg = util.format('Error: %s', 'La terminal recibida por parámetro es inválida para el token.');
 					log.logger.error(errMsg);
 					res.send(500, {status:"ERROR", data: errMsg});
 				} else {
@@ -142,7 +142,7 @@ module.exports = function (app, log){
 				var paramTerminal = req.params.terminal;
 
 				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal){
-					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
+					var errMsg = util.format('Error: %s', 'La terminal recibida por parámetro es inválida para el token.');
 					log.logger.error(errMsg);
 					res.send(500, {status:"ERROR", data: errMsg});
 				} else {

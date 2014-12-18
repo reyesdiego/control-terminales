@@ -173,7 +173,7 @@ module.exports = function(app, io, log) {
 				try {
 					postData = JSON.parse(postData);
 				} catch (errParsing){
-					var strBody = util.format("%s - Error: Parsing JSON: [%s], JSON:%s", dateTime.getDatetime(), errParsing.toString(), postData);
+					var strBody = util.format("Error: Parsing JSON: [%s], JSON:%s", errParsing.toString(), postData);
 					var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
 					log.logger.error(strBody);
 					var mailer = new mail.mail(config.email);
@@ -183,7 +183,7 @@ module.exports = function(app, io, log) {
 				}
 
 				if (err) {
-					var errMsg = util.format("%s - Error: %s", dateTime.getDatetime(), err.error);
+					var errMsg = util.format("Error: %s", err.error);
 					log.logger.error(errMsg);
 					res.send(403, {status: "ERROR", data: errMsg});
 				} else {
