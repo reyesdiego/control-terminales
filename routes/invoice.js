@@ -27,6 +27,8 @@ module.exports = function(app, io, log) {
 	var MatchPrice = require('../models/matchPrice.js');
 	var Comment = require('../models/comment.js');
 
+	var logInvoiceBody = false;
+
 	//GET - Return all invoice in the DB
 	function getInvoices (req, res) {
 
@@ -163,6 +165,13 @@ module.exports = function(app, io, log) {
 		var postData = '';
 		req.setEncoding("utf8");
 
+		var contentType = req.headers["content-type"].toLowerCase();
+		if (contentType !== 'text/plain'){
+			var errMsg = util.format("El content-type:%s es incorrecto. Debe enviar text/plain", contentType);
+			res.send(400, errMsg);
+			return;
+		}
+
 		req.addListener("data", function(postDataChunk) {
 			postData += postDataChunk;
 		});
@@ -171,6 +180,9 @@ module.exports = function(app, io, log) {
 			var incomingToken = req.headers.token;
 			Account.verifyToken(incomingToken, function(err, usr) {
 				try {
+					if (logInvoiceBody === 1)
+						log.logger.info("Invoice body INS: %s - %s", postData, usr.terminal);
+
 					postData = JSON.parse(postData);
 				} catch (errParsing){
 					var strBody = util.format("Error: Parsing JSON: [%s], JSON:%s", errParsing.toString(), postData);
@@ -1372,5 +1384,17 @@ module.exports = function(app, io, log) {
 	app.get('/invoices/:terminal/shipContainers', getShipContainers);
 
 	app.post('/invoices/byRates', getInvoicesByRates);
+
+	app.get('/invoices/log/:seconds', function( req, res) {
+		logInvoiceBody = 1;
+		log.logger.info("Loguear invoiceBody en insert Habilitado.")
+
+		setTimeout(function(){
+			log.logger.info("Loguear invoiceBody en insert Deshabilitado.")
+			logInvoiceBody = 0;
+		}, req.params.seconds);
+
+		res.send(200);
+	})
 
 };
