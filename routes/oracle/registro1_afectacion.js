@@ -19,6 +19,11 @@ module.exports = function (app, log){
 				"		ID, " +
 				"		TIPOREGISTRO, " +
 				"		AFECTACION, " +
+				"		SUBSTR( AFECTACION, 0, 2) as	AFE_ANIO, " +
+				"		SUBSTR( AFECTACION, 3, 3) as	AFE_ADUANA, " +
+				"		SUBSTR( AFECTACION, 6, 4) as	AFE_TIPO, " +
+				"		SUBSTR( AFECTACION, 10, 6) as	AFE_NRO, " +
+				"		SUBSTR( AFECTACION, 16, 1) as	AFE_LETRA_CTRL, " +
 				"		CUITATA, " +
 				"		NOMBREATA, " +
 				"		ESTADO, " +
@@ -33,11 +38,11 @@ module.exports = function (app, log){
 				"		MOTIVOAFECTACION, " +
 				"		IDENTIFICADORMOTIVOMICDTA, " +
 				"		SUMARIA, " +
-				"		SUBSTR( sumaria, 0, 2) as	ANIO, " +
-				"		SUBSTR( sumaria, 3, 3) as	ADUANA, " +
-				"		SUBSTR( sumaria, 6, 4) as	TIPO_SUMARIA, " +
-				"		SUBSTR( sumaria, 10, 6) as	MANI_NRO, " +
-				"		SUBSTR( sumaria, 16, 1) as	LETRA_CTRL, " +
+				"		SUBSTR( SUMARIA, 0, 2) as	SUM_ANIO, " +
+				"		SUBSTR( SUMARIA, 3, 3) as	SUM_ADUANA, " +
+				"		SUBSTR( SUMARIA, 6, 4) as	SUM_TIPO, " +
+				"		SUBSTR( SUMARIA, 10, 6) as	SUM_NRO, " +
+				"		SUBSTR( SUMARIA, 16, 1) as	SUM_LETRA_CTRL, " +
 				"		MEDIOTRANSPORTEINTERNO, " +
 				"		NACMEDIOTRANSPINTERNO, " +
 				"		MATRICULAMEDIOTRANSPINTERNO, " +

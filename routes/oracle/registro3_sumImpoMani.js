@@ -20,11 +20,11 @@ module.exports = function (app, log){
 				"		ID, " +
 				"		TIPOREGISTRO, " +
 				"		SUMARIA, " +
-				"		SUBSTR( sumaria, 0, 2) as	ANIO, " +
-				"		SUBSTR( sumaria, 3, 3) as	ADUANA, " +
-				"		SUBSTR( sumaria, 6, 4) as	TIPO_SUMARIA, " +
-				"		SUBSTR( sumaria, 10, 6) as	MANI_NRO, " +
-				"		SUBSTR( sumaria, 16, 1) as	LETRA_CTRL, " +
+				"		SUBSTR( sumaria, 0, 2) as	SUM_ANIO, " +
+				"		SUBSTR( sumaria, 3, 3) as	SUM_ADUANA, " +
+				"		SUBSTR( sumaria, 6, 4) as	SUM_TIPO, " +
+				"		SUBSTR( sumaria, 10, 6) as	SUM_NRO, " +
+				"		SUBSTR( sumaria, 16, 1) as	SUM_LETRA_CTRL, " +
 				"		CONOCIMIENTO, " +
 				"		NRO_LINEA, " +
 				"		COD_EMBALAJE, " +

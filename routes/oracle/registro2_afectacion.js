@@ -19,6 +19,11 @@ module.exports = function (app, log){
 				"		ID, " +
 				"		TIPOREGISTRO, " +
 				"		AFECTACION, " +
+				"		SUBSTR( AFECTACION, 0, 2) as	AFE_ANIO, " +
+				"		SUBSTR( AFECTACION, 3, 3) as	AFE_ADUANA, " +
+				"		SUBSTR( AFECTACION, 6, 4) as	AFE_TIPO, " +
+				"		SUBSTR( AFECTACION, 10, 6) as	AFE_NRO, " +
+				"		SUBSTR( AFECTACION, 16, 1) as	AFE_LETRA_CTRL, " +
 				"		TITULOCOMPLETO, " +
 				"		NRO_LINEA, " +
 				"		COD_EMBALAJE, " +

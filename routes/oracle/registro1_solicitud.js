@@ -19,6 +19,11 @@ module.exports = function (app, log){
 				"		ID, " +
 				"		TIPOREGISTRO, " +
 				"		SOLICITUD, " +
+				"		SUBSTR( SOLICITUD, 0, 2) as		SOL_ANIO, " +
+				"		SUBSTR( SOLICITUD, 3, 3) as		SOL_ADUANA, " +
+				"		SUBSTR( SOLICITUD, 6, 4) as		SOL_TIPO, " +
+				"		SUBSTR( SOLICITUD, 10, 6) as	SOL_NRO, " +
+				"		SUBSTR( SOLICITUD, 16, 1) as	SOL_LETRA_CTRL, " +
 				"		CUITATA, " +
 				"		NOMBREATA, " +
 				"		ESTADO, " +
@@ -33,11 +38,11 @@ module.exports = function (app, log){
 				"		MATRICULAMEDIOTRANSPINTERNO, " +
 				"		COMENTARIO, " +
 				"		SUMARIA, " +
-				"		SUBSTR( sumaria, 0, 2) as	ANIO, " +
-				"		SUBSTR( sumaria, 3, 3) as	ADUANA, " +
-				"		SUBSTR( sumaria, 6, 4) as	TIPO_SUMARIA, " +
-				"		SUBSTR( sumaria, 10, 6) as	MANI_NRO, " +
-				"		SUBSTR( sumaria, 16, 1) as	LETRA_CTRL, " +
+				"		SUBSTR( sumaria, 0, 2) as	SUM_ANIO, " +
+				"		SUBSTR( sumaria, 3, 3) as	SUM_ADUANA, " +
+				"		SUBSTR( sumaria, 6, 4) as	SUM_TIPO, " +
+				"		SUBSTR( sumaria, 10, 6) as	SUM_NRO, " +
+				"		SUBSTR( sumaria, 16, 1) as	SUM_LETRA_CTRL, " +
 				"		NOMBREBUQUE, " +
 				"		REGISTRADO_POR, " +
 				"		REGISTRADO_EN, " +

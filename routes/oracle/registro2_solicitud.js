@@ -19,6 +19,11 @@ module.exports = function (app, log){
 				"		ID, " +
 				"		TIPOREGISTRO, " +
 				"		SOLICITUD, " +
+				"		SUBSTR( SOLICITUD, 0, 2) as		SOL_ANIO, " +
+				"		SUBSTR( SOLICITUD, 3, 3) as		SOL_ADUANA, " +
+				"		SUBSTR( SOLICITUD, 6, 4) as		SOL_TIPO, " +
+				"		SUBSTR( SOLICITUD, 10, 6) as	SOL_NRO, " +
+				"		SUBSTR( SOLICITUD, 16, 1) as	SOL_LETRA_CTRL, " +
 				"		CONOCIMIENTO, " +
 				"		NRO_LINEA, " +
 				"		COD_EMBALAJE, " +

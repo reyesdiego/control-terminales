@@ -19,6 +19,11 @@ module.exports = function (app, log){
 				"	ID, " +
 				"	TIPOREGISTRO, " +
 				"	SUMARIA, " +
+				"	SUBSTR( SUMARIA, 0, 2) as	SUM_ANIO, " +
+				"	SUBSTR( SUMARIA, 3, 3) as	SUM_ADUANA, " +
+				"	SUBSTR( SUMARIA, 6, 4) as	SUM_TIPO, " +
+				"	SUBSTR( SUMARIA, 10, 6) as	SUM_NRO, " +
+				"	SUBSTR( SUMARIA, 16, 1) as	SUM_LETRA_CTRL, " +
 				"	CUITATA, " +
 				"	NOMBREATA, " +
 				"	CODIGOPROCESO, " +

@@ -19,6 +19,11 @@ module.exports = function (app, log){
 				"		ID, " +
 				"		TIPOREGISTRO, " +
 				"		DETALLADA, " +
+				"		SUBSTR( DETALLADA, 0, 2) as	DET_ANIO, " +
+				"		SUBSTR( DETALLADA, 3, 3) as	DET_ADUANA, " +
+				"		SUBSTR( DETALLADA, 6, 4) as	DET_TIPO, " +
+				"		SUBSTR( DETALLADA, 10, 6) as	DET_NRO, " +
+				"		SUBSTR( DETALLADA, 16, 1) as	DET_LETRA_CTRL, " +
 				"		IMPO_EXPO, " +
 				"		DIVISAFOB, " +
 				"		MONTOFOB, " +
