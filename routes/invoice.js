@@ -165,14 +165,6 @@ module.exports = function(app, io, log) {
 		var postData = '';
 		//req.setEncoding("utf8");
 
-		var contentTypeExists = req.headers["content-type"].toLowerCase().indexOf("text/plain");
-		if (contentTypeExists === -1){
-			var errMsg = util.format("El content-type:%s es incorrecto. Debe enviar text/plain", req.headers["content-type"]);
-			log.logger.error(errMsg);
-			res.send(400, errMsg);
-			return;
-		}
-
 		req.addListener("data", function(postDataChunk) {
 			postData += postDataChunk;
 		});
@@ -180,6 +172,15 @@ module.exports = function(app, io, log) {
 
 			var incomingToken = req.headers.token;
 			Account.verifyToken(incomingToken, function(err, usr) {
+
+				var contentTypeExists = req.headers["content-type"].toLowerCase().indexOf("text/plain");
+				if (contentTypeExists === -1){
+					var errMsg = util.format("El content-type:%s es incorrecto. Debe enviar text/plain. %s", req.headers["content-type"], usr.terminal);
+					log.logger.error(errMsg);
+					res.send(400, errMsg);
+					return;
+				}
+
 				try {
 					if (logInvoiceBody === 1)
 						log.logger.info("Invoice body INS: %s - %s", postData, usr.terminal);
