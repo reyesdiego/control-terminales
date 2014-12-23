@@ -163,11 +163,12 @@ module.exports = function(app, io, log) {
 
 	function addInvoice ( req, res) {
 		var postData = '';
-		req.setEncoding("utf8");
+		//req.setEncoding("utf8");
 
-		var contentType = req.headers["content-type"].toLowerCase();
-		if (contentType !== 'text/plain'){
-			var errMsg = util.format("El content-type:%s es incorrecto. Debe enviar text/plain", contentType);
+		var contentTypeExists = req.headers["content-type"].toLowerCase().indexOf("text/plain");
+		if (contentTypeExists === -1){
+			var errMsg = util.format("El content-type:%s es incorrecto. Debe enviar text/plain", req.headers["content-type"]);
+			log.logger.error(errMsg);
 			res.send(400, errMsg);
 			return;
 		}
