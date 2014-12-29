@@ -1,6 +1,6 @@
-{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2014-10-28T13:32:40.678Z"}
-{"level":"info","message":"Running on http://localhost:8080","timestamp":"2014-10-28T13:32:40.680Z"}
-{"level":"info","message":"Process Id (pid): 4998","timestamp":"2014-10-28T13:32:40.680Z"}
-{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2014-10-28T13:32:40.717Z"}
-{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2014-10-28T13:32:40.718Z"}
-{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2014-10-28T13:37:53.323Z"}
+{ "timestamp":"2014-12-28T23:59:01", "level":"info","message":"======== comes from nohup.12-28-2014.out =========="}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2014-12-29T13:00:28.555Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2014-12-29T13:00:28.557Z"}
+{"level":"info","message":"Process Id (pid): 20501","timestamp":"2014-12-29T13:00:28.557Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2014-12-29T13:00:28.616Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2014-12-29T13:00:28.616Z"}

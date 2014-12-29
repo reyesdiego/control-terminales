@@ -72,11 +72,23 @@ var log4njs = function (options) {
 					console.log(err);
 					return;
 				}
+				var pathFilename = '';
+				var stats;
 				files.forEach(function (item){
-					logFiles.push({title: item, url: self.path + '/' + item});
+					pathFilename = self.path + '/' +item;
+					stats = fs.statSync(pathFilename);
+					logFiles.push({title: item, mtime: stats.mtime, url: pathFilename});
+				});
+				logFiles.sort(function compare(a,b) {
+					var time1 = moment(a.mtime);
+					var time2 = moment(b.mtime);
+					if (time1 > time2)
+						return -1;
+					if (time1 < time2)
+						return 1;
+					return 0;
 				});
 				callback(logFiles);
-
 			});
 		}
 	}
