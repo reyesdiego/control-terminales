@@ -380,7 +380,7 @@ module.exports = function(app, io, log) {
 								})
 							} else {
 								var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
-								var strError = util.format('Error INS: %s -\n%s', errSave, JSON.stringify(postData));
+								var strError = util.format('Error INS: %s -\n%s - %s', errSave, JSON.stringify(postData), usr.terminal);
 								log.logger.error(strError);
 
 								var mailer = new mail.mail(config.email);
