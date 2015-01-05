@@ -91,20 +91,34 @@ invoiceSchema.pre('save', function (next, done){
 });
 
 detalleSchema.pre('save', function (next, done){
-	/*
+
 	if (this.buque){
 		if (this.buque.codigo !== undefined && this.buque.nombre !== undefined) {
-			var codigo = (this.buque.codigo.trim().length === 0) ? 0 : 1;
-			var nombre = (this.buque.nombre.trim().length === 0) ? 0 : 1;
-			var viaje = (this.buque.viaje.trim().length === 0) ? 0 : 1;
-			var totalLength = codigo + nombre + viaje;
+			var codigo = 0;
+			var nombre = 0;
+			var viaje = 0;
+			var fecha = 0;
 
-			if ( totalLength > 0 && totalLength <3) {
-				next( new Error("El dato del Buque Viaje es inconsistente.") );
+			if (this.buque.codigo != null)
+				codigo = (this.buque.codigo.trim().length === 0) ? 0 : 1;
+
+			if (this.buque.nombre != null)
+				nombre = (this.buque.nombre.trim().length === 0) ? 0 : 1;
+
+			if (this.buque.viaje != null)
+				viaje = (this.buque.viaje.trim().length === 0) ? 0 : 1;
+
+			if (this.buque.fecha != null && this.buque.fecha !== '')
+				fecha = 1;
+
+			var totalLength = codigo + nombre + viaje + fecha;
+
+			if ( totalLength > 0 && totalLength < 4) {
+				next( new Error("El dato del Buque: Codigo-Nombre-Viaje-Fecha es inconsistente. Debe ser completo si el detalle posee Contenedor.") );
 			}
 		}
 	}
-	*/
+
 	next();
 });
 

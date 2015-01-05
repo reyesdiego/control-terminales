@@ -263,16 +263,17 @@ module.exports = function(app, io, log) {
 						var subTotalCheck=0;
 						if ( postData.detalle && postData.detalle.length > 0 ){
 							postData.detalle.forEach(function (container){
-								var buqueId = (container.buqueId !== undefined && container.buqueId !== null) ? container.buqueId.toString() : null;
+								var buqueId = (container.buqueId !== undefined && container.buqueId !== null) ? container.buqueId.toString() : "";
 								var buqueDesc = container.buqueDesc;
 								var viaje = container.viaje;
-								var fecha = (container.fecha !== undefined) ? moment(container.fecha) : null;
+								var fecha = (container.fecha !== undefined && container.fecha !== "") ? moment(container.fecha) : "";
 								var buque = {
-									codigo: (buqueId) ? buqueId : "",
+									codigo: (buqueId) ? buqueId.trim() : "",
 									nombre: (buqueDesc) ? buqueDesc.trim() : "",
 									viaje: (viaje) ? viaje.trim() : "",
 									fecha: fecha
 								};
+
 								var contenedor = container.contenedor;
 								var cont = {
 									contenedor:		(contenedor) ? container.contenedor.trim() : "",
