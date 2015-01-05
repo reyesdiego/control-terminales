@@ -238,8 +238,7 @@ module.exports = function (app, io, log) {
 
 							var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
 							var mailer = new mail.mail(config.email);
-							mailer.send("dreyes@puertobuenosaires.gob.ar", strSubject, errMsg, function(){
-//							mailer.send(usr.email, strSubject, errMsg, function(){
+							mailer.send(usr.email, strSubject, errMsg, function(){
 							});
 
 							res.send(500, {status:"ERROR", data: errMsg});
