@@ -58,11 +58,11 @@ module.exports = function(app, io, log) {
 					if (req.query.fechaInicio || req.query.fechaFin){
 						param["fecha.emision"]={};
 						if (req.query.fechaInicio){
-							fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+							fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD 00:00:00 Z'));
 							param["fecha.emision"]['$gte'] = fecha;
 						}
 						if (req.query.fechaFin){
-							fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+							fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD 00:00:00 Z'));
 							param["fecha.emision"]['$lte'] = fecha;
 						}
 					}
