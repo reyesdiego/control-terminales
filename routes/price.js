@@ -147,8 +147,11 @@ module.exports = function (app, log){
 			} else {
 				var _price;
 				try {
-					req.body.topPrices[0].from = moment(req.body.topPrices[0].from);
-					if (req.method === 'POST'){
+					req.body.topPrices.forEach(function (item){
+						item.from = moment(item.from).format("YYYY-MM-DD 00:00:00 Z");
+					});
+
+					if (req.method === 'POST') {
 						_price = new price({
 							terminal:	req.body.terminal,
 							code:		req.body.code.toUpperCase(),
@@ -168,12 +171,10 @@ module.exports = function (app, log){
 						});
 					} else {
 
-						_price = price.findOne({_id: req.params.id}, function (err, price2Upd){
+						_price = price.findOne({_id: req.params.id}, function (err, price2Upd) {
 							price2Upd.description = req.body.description;
 							price2Upd.code = req.body.code;
-							if (req.body.topPrices[0].price !== price2Upd.topPrices[price2Upd.topPrices.length-1].price)
-								price2Upd.topPrices.push (req.body.topPrices[0]);
-
+							price2Upd.topPrices = req.body.topPrices;
 							price2Upd.unit = req.body.unit;
 							price2Upd.save(function (errSave, dataSaved){
 								if(!errSave) {
