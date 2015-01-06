@@ -16,9 +16,13 @@ email.server.send(
 	{
 		text:		"Testing",
 		from:		"AGP <noreply@puertobuenosaires.gob.ar>",
-		to:			"AGP <noreply@puertobuenosaires.gob.ar>",
-		bcc:		"AGP <noreply@puertobuenosaires.gob.ar>",
-		subject:	"Testing"
+		to:			"dreyes@puertobuenosaires.gob.ar",
+		bcc:		"dreyes@puertobuenosaires.gob.ar",
+		subject:	"Testing",
+		attachment:
+			[
+				{data:"<html>i <i>hope</i> this works!</html>", alternative:true}
+			]
 	}, function(err, message) {
 		console.log(err || message);
 	});
