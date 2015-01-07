@@ -195,10 +195,41 @@ module.exports = function (app, log){
 		});
 	}
 
+	function deletePrice( req, res) {
+
+		var matchPrice = require('../models/matchPrice.js');
+
+		var incomingToken = req.headers.token;
+
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (err){
+				log.logger.error(err);
+				res.send(403, {status:'ERROR', data: err});
+			} else {
+				price.remove({_id : req.params.id}, function (err){
+					if (!err) {
+						matchPrice.remove ({price: req.params.id}, function (err){
+							if (!err){
+								res.send(200, {status:'OK', data:{}})
+							} else {
+								log.logger.error('Error DELETE: %s - %s', err.message, usr.terminal);
+								res.send(403, {status:'ERROR', data: err.message});
+							}
+						})
+					} else {
+						log.logger.error('Error DELETE: %s - %s', err.message, usr.terminal);
+						res.send(403, {status:'ERROR', data: err.message});
+					}
+				})
+			}
+		});
+	}
+
 	app.get('/prices/:terminal', getPrices);
 	app.get('/price/:id/:terminal', getPrice);
 	app.get('/rates', getRates);
 	app.post('/price', addPrice);
 	app.put('/price/:id', addPrice);
+	app.delete('/price/:id', deletePrice);
 
 };
