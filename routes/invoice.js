@@ -266,7 +266,7 @@ module.exports = function(app, io, log) {
 								var buqueId = (container.buqueId !== undefined && container.buqueId !== null) ? container.buqueId.toString() : "";
 								var buqueDesc = container.buqueDesc;
 								var viaje = container.viaje;
-								var fecha = (container.fecha !== undefined && container.fecha !== "") ? moment(container.fecha) : "";
+								var fecha = (container.fecha !== undefined && container.fecha !== "" && container.fecha != null) ? moment(container.fecha) : "";
 								var buque = {
 									codigo: (buqueId) ? buqueId.trim() : "",
 									nombre: (buqueDesc) ? buqueDesc.trim() : "",
