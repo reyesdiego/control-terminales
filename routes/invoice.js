@@ -1260,7 +1260,7 @@ module.exports = function(app, io, log) {
 				} else {
 
 					var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
-					var param = {terminal:	ter};
+					var param = {terminal:	ter, 'detalle.buque.nombre':{$ne:null}};
 
 					Invoice.aggregate([
 						{ $match: param },
