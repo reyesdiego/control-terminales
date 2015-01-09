@@ -13,6 +13,7 @@ module.exports = function (app, log){
 		oracle.connect(config.oracle, function(err, connection) {
 			if (err) { console.log("Error connecting to db:", err); return; }
 
+			var strWhere = '';
 			var skip = parseInt(req.params.skip, 10);
 			var limit = parseInt(req.params.limit, 10);
 			var strSql = "SELECT * FROM " +
@@ -43,21 +44,24 @@ module.exports = function (app, log){
 				"		NACIONALIDADMEDIOTRANSPORTE, " +
 				"		LUGAROPERATIVO, " +
 				"		LUGARDEGIRO, " +
-				"		NOMBREBUQUE as buque, " +
+				"		NOMBREBUQUE, " +
 				"		REGISTRADO_POR, " +
 				"		REGISTRADO_EN, " +
 				"		ROW_NUMBER() OVER (ORDER BY id) R " +
-				"	FROM REGISTRO1_SUMIMPOMANI ) " +
+				"	FROM REGISTRO1_SUMIMPOMANI %s) " +
 				"WHERE R BETWEEN :1 and :2	";
 
 			if (req.query.buque)
-				strSql += util.format(" AND BUQUE = '%s'", req.query.buque);
+				strWhere += util.format("WHERE NOMBREBUQUE = '%s' ", req.query.buque);
 
+			strSql = util.format(strSql, strWhere);
 			connection.execute(strSql,[skip+1, skip+limit], function (err, data){
 				if (err){
 					res.send(500, { status:'ERROR', data: err.message });
 				} else {
-					strSql = "SELECT COUNT(*) AS TOTAL FROM REGISTRO1_SUMIMPOMANI";
+					strSql = "SELECT COUNT(*) AS TOTAL FROM REGISTRO1_SUMIMPOMANI ";
+					if (strWhere !== '')
+						strSql += util.format(" %s", strWhere);
 					connection.execute(strSql, [], function (err, dataCount){
 						connection.close();
 						if (err){
@@ -67,6 +71,7 @@ module.exports = function (app, log){
 							var result = {
 								status:'OK',
 								totalCount : total,
+								page: skip,
 								pageCount : (limit > total) ? total : limit,
 								data: data };
 							res.send(200, result);
