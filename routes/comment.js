@@ -52,16 +52,16 @@ module.exports = function (app, io, log) {
 				req.body.group = usr.group;
 				Comment.create(req.body, function (err, commentInserted) {
 					if (err){
-						log.logger.error("Error Comment INS: %s", err.errors);
-						res.send(500, {status:"ERROR", data: err.errors});
+						log.logger.error("Error Comment INS: %s - %s", err.message, usr.user);
+						res.send(500, {status:"ERROR", data: err.message});
 					} else {
 
 						Invoice.findOne({_id: req.body.invoice}, function (err, invoice) {
 							invoice.comment.push(commentInserted._id);
 							invoice.save(function (err){
 								if (err){
-									log.logger.error("Error Invoice UPD Adding Comment : %s", err.errors);
-									res.send(500, {status:"ERROR", data: err.errors});
+									log.logger.error("Error Invoice UPD Adding Comment : %s", err.message);
+									res.send(500, {status:"ERROR", data: err.message});
 								} else {
 									res.send(200, {status: 'OK', data: commentInserted});
 								}
