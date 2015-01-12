@@ -92,7 +92,7 @@ invoiceSchema.pre('save', function (next, done){
 
 detalleSchema.pre('save', function (next, done){
 
-	if (this.buque){
+	if (this.buque && this.__parent.terminal !== 'TRP'){
 		if (this.buque.codigo !== undefined && this.buque.nombre !== undefined) {
 			var codigo = 0;
 			var nombre = 0;
