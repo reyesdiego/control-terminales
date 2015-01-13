@@ -92,36 +92,39 @@ invoiceSchema.pre('save', function (next, done){
 
 detalleSchema.pre('save', function (next, done){
 
-	if (this.buque && this.__parent.terminal !== 'TRP'){
-		if (this.buque.codigo !== undefined && this.buque.nombre !== undefined) {
-			var codigo = 0;
-			var nombre = 0;
-			var viaje = 0;
-//			var fecha = 0;
+	if (this.isNew) {
 
-			if (this.buque.codigo != null)
-				codigo = (this.buque.codigo.trim().length === 0) ? 0 : 1;
+		if (this.buque && this.__parent.terminal !== 'TRP'){
+			if (this.buque.codigo !== undefined && this.buque.nombre !== undefined) {
+				var codigo = 0;
+				var nombre = 0;
+				var viaje = 0;
+	//			var fecha = 0;
 
-			if (this.buque.nombre != null)
-				nombre = (this.buque.nombre.trim().length === 0) ? 0 : 1;
+				if (this.buque.codigo != null)
+					codigo = (this.buque.codigo.trim().length === 0) ? 0 : 1;
 
-			if (this.buque.viaje != null)
-				viaje = (this.buque.viaje.trim().length === 0) ? 0 : 1;
+				if (this.buque.nombre != null)
+					nombre = (this.buque.nombre.trim().length === 0) ? 0 : 1;
 
-//			if (this.buque.fecha != null && this.buque.fecha !== '')
-//				fecha = 1;
+				if (this.buque.viaje != null)
+					viaje = (this.buque.viaje.trim().length === 0) ? 0 : 1;
 
-//			var totalLength = codigo + nombre + viaje + fecha;
-			var totalLength = codigo + nombre + viaje;
+	//			if (this.buque.fecha != null && this.buque.fecha !== '')
+	//				fecha = 1;
 
-			if ( totalLength > 0 && totalLength < 3) {
-				next( new Error("El dato del Buque: Codigo-Nombre-Viaje es inconsistente. De existir uno de ellos deben estar todos completos.") );
+	//			var totalLength = codigo + nombre + viaje + fecha;
+				var totalLength = codigo + nombre + viaje;
+
+				if ( totalLength > 0 && totalLength < 3) {
+					next( new Error("El dato del Buque: Codigo-Nombre-Viaje es inconsistente. De existir uno de ellos deben estar todos completos.") );
+				}
 			}
 		}
 	}
 
 	next();
-});
 
+});
 
 module.exports = mongoose.model('invoice', invoiceSchema);
