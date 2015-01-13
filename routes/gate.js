@@ -189,7 +189,12 @@ module.exports = function (app, io, log) {
 					if (err){
 						res.send(500, {status: 'ERROR', data: err.message});
 					} else {
-						res.send(200, {status: 'OK', data: data.sort()});
+						res.send(200,	{
+											status: 'OK',
+											totalCount: data.length,
+											data: data.sort()
+										}
+						);
 					}
 				});
 			}
