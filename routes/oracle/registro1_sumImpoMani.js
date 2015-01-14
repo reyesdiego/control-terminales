@@ -8,7 +8,7 @@ module.exports = function (app, log){
 	var	config = require('../../config/config.js');
 	var util = require("util");
 
-	function getOracleTest( req, res){
+	function getRegistro1_sumimpomani( req, res){
 
 		oracle.connect(config.oracle, function(err, connection) {
 			if (err) { console.log("Error connecting to db:", err); return; }
@@ -21,11 +21,11 @@ module.exports = function (app, log){
 				"		ID, " +
 				"		TIPOREGISTRO, " +
 				"		SUMARIA, " +
-				"		SUBSTR( sumaria, 0, 2) as	SUM_ANIO, " +
-				"		SUBSTR( sumaria, 3, 3) as	SUM_ADUANA, " +
-				"		SUBSTR( sumaria, 6, 4) as	SUM_TIPO, " +
-				"		SUBSTR( sumaria, 10, 6) as	SUM_NRO, " +
-				"		SUBSTR( sumaria, 16, 1) as	SUM_LETRA_CTRL, " +
+				"		SUBSTR( SUMARIA, 0, 2) as	SUM_ANIO, " +
+				"		SUBSTR( SUMARIA, 3, 3) as	SUM_ADUANA, " +
+				"		SUBSTR( SUMARIA, 6, 4) as	SUM_TIPO, " +
+				"		SUBSTR( SUMARIA, 10, 6) as	SUM_NRO, " +
+				"		SUBSTR( SUMARIA, 16, 1) as	SUM_LETRA_CTRL, " +
 				"		CUITATA, " +
 				"		NOMBREATA, " +
 				"		ESTADO, " +
@@ -83,6 +83,52 @@ module.exports = function (app, log){
 		});
 	}
 
-	app.get('/afip/registro1_sumimpomani/:skip/:limit', getOracleTest)
+	function getSumariaImpoContenedor (req, res) {
+		oracle.connect(config.oracle, function(err, connection) {
+			if (err) { console.log("Error connecting to db:", err); return; }
 
+			var strWhere = '';
+			var strSql = "	select sumaria, conocimiento " +
+						"	from registro4_sumimpomani " +
+						"	where contenedor = :1";
+
+			connection.execute(strSql,[req.params.contenedor], function (err, dataSum){
+				if (err){
+					res.send(500, { status:'ERROR', data: err.message });
+				} else {
+					strSql = 'SELECT r1.SUMARIA, ' +
+							'SUBSTR( r1.SUMARIA, 0, 2) as SUM_ANIO, ' +
+							'SUBSTR( r1.SUMARIA, 3, 3) as SUM_ADUANA, ' +
+							'SUBSTR( r1.SUMARIA, 6, 4) as SUM_TIPO, ' +
+							'SUBSTR( r1.SUMARIA, 10, 6) as SUM_NRO, ' +
+							'SUBSTR( r1.SUMARIA, 16, 1) as SUM_LETRA_CTRL, ' +
+							'r2.CONOCIMIENTO, FECHAREGISTRO, FECHAARRIBO, NOMBREBUQUE BUQUE, PESO, p1.NOMBRE P_PROCEDENCIA ' +
+							'FROM REGISTRO1_SUMIMPOMANI r1 ' +
+							'INNER JOIN REGISTRO2_SUMIMPOMANI r2 ON r1.SUMARIA = r2.SUMARIA '+
+							'INNER JOIN REGISTRO3_SUMIMPOMANI r3 ON r2.CONOCIMIENTO = r3.CONOCIMIENTO ' +
+							'INNER JOIN PAISES p1 on p1.ID = PAISPROCEDENCIA ' +
+							'WHERE r2.CONOCIMIENTO = :1 ';
+
+					var result;
+					if (dataSum.length > 0) {
+						connection.execute(strSql,[dataSum[0].CONOCIMIENTO], function (err, data) {
+							connection.close();
+							result = {
+								status:'OK',
+								data: data };
+							res.send(200, result);
+						});
+					} else {
+						result = {
+							status:'OK',
+							data: [] };
+						res.send(200, result);
+					}
+				}
+			});
+		});
+	}
+
+	app.get('/afip/registro1_sumimpomani/:skip/:limit', getRegistro1_sumimpomani)
+	app.get('/afip/sumariaImpo/:contenedor', getSumariaImpoContenedor)
 };
