@@ -9,7 +9,6 @@ module.exports = function (app, log){
 	var Invoice = require('../models/invoice.js');
 	var util = require('util');
 	var price = require('../models/price.js');
-	var dateTime = require('../include/moment');
 	var moment = require('moment');
 
 	var path = require('path');
