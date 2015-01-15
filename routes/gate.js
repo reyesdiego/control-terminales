@@ -9,10 +9,12 @@ module.exports = function (app, io, log) {
 	var moment = require('moment');
 	var path = require('path');
 	var Account = require(path.join(__dirname, '..', '/models/account'));
+	var Invoice = require('../models/invoice.js');
 	var Gate = require('../models/gate.js');
 	var util = require('util');
 	var mail = require("../include/emailjs");
 	var config = require('../config/config.js');
+	var linq = require('linq');
 
 	function getGates(req, res){
 		'use strict';
@@ -126,7 +128,6 @@ module.exports = function (app, io, log) {
 
 	function getGatesByMonth (req, res) {
 		'use strict';
-		var moment = require('moment');
 
 		var date = moment(moment().format('YYYY-MM-DD')).subtract('days', moment().date()-1);
 		if (req.query.fecha !== undefined){
@@ -163,6 +164,7 @@ module.exports = function (app, io, log) {
 	}
 
 	function getDistincts( req, res) {
+		'use strict';
 
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
@@ -197,6 +199,118 @@ module.exports = function (app, io, log) {
 						);
 					}
 				});
+			}
+		});
+
+	}
+
+	function getMissingGates (req, res) {
+		'use strict';
+
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (err){
+				log.logger.error(usr);
+				res.send(500, {status:'ERROR', data: err});
+			} else {
+				var terminal = '';
+				if (usr.role === 'agp')
+					terminal = req.params.terminal;
+				else
+					terminal = usr.terminal;
+
+					var _price = require('../include/price.js');
+					var _rates = new _price.price();
+					_rates.rates(function (err, rates){
+
+					var invoices = Invoice.aggregate([
+						{$match: {terminal: terminal}},
+						{$unwind: '$detalle'},
+						{$unwind: '$detalle.items'},
+						{$match: {'detalle.items.id': {$in: rates}}},
+						{$project: {nroPtoVenta: 1, codTipoComprob: 1, nroComprob: 1, contenedor: '$detalle.contenedor', code: '$detalle.items.id', fecha: '$fecha.emision'}}
+					]);
+					invoices.exec(function (err, dataInvoices){
+						if (err)
+							res.send(500, {status: 'ERROR', data: err.message});
+						else {
+							var gates = Gate.find({terminal: terminal});
+							gates.exec(function (err, dataGates){
+								if (err)
+									res.send(500, {status: 'ERROR', data: err.message});
+								else {
+									var invoicesWoGates = linq.from(dataInvoices)
+										.except(dataGates, "$.contenedor").toArray();
+
+									res.send(200, {	status:'OK',
+											totalCount: invoicesWoGates.length,
+											data: invoicesWoGates
+										}
+									);
+								}
+							});
+						}
+					});
+				});
+
+			}
+		});
+
+	}
+
+	function getMissingInvoices (req, res) {
+		'use strict';
+
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (err){
+				log.logger.error(usr);
+				res.send(500, {status:'ERROR', data: err});
+			} else {
+				var terminal = '';
+				if (usr.role === 'agp')
+					terminal = req.params.terminal;
+				else
+					terminal = usr.terminal;
+
+				var _price = require('../include/price.js');
+				var _rates = new _price.price();
+				_rates.rates(function (err, rates){
+
+					var gates = Gate.find({terminal: terminal});
+					gates.exec(function (err, dataGates){
+						if (err)
+							res.send(500, {status: 'ERROR', data: err.message});
+						else {
+
+							var invoices = Invoice.aggregate([
+								{$match: {terminal: terminal}},
+								{$unwind: '$detalle'},
+								{$unwind: '$detalle.items'},
+								{$match: {'detalle.items.id': {$in: rates}}},
+								{$project: { contenedor: '$detalle.contenedor'}}
+							]);
+							invoices.exec(function (err, dataInvoices){
+
+								if (err)
+									res.send(500, {status: 'ERROR', data: err.message});
+								else {
+									var gatesWoGates = linq.from(dataGates)
+										.except(dataInvoices, "$.contenedor").toArray();
+
+									res.send(200, {	status:'OK',
+											totalCount: gatesWoGates.length,
+											data: gatesWoGates
+										}
+									);
+								}
+
+
+							});
+						}
+					});
+				});
+
 			}
 		});
 
@@ -257,7 +371,10 @@ module.exports = function (app, io, log) {
 	app.get('/gatesByHour', getGatesByHour);
 	app.get('/gatesByMonth', getGatesByMonth);
 	app.get('/gates/:terminal/:skip/:limit', getGates);
+	app.get('/gates/:terminal/missingGates', getMissingGates);
+	app.get('/gates/:terminal/missingInvoices', getMissingInvoices);
 	app.get('/gates/:terminal/ships', getDistincts);
 	app.get('/gates/:terminal/containers', getDistincts);
 	app.post('/gate', addGate);
+
 };
