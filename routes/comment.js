@@ -5,7 +5,6 @@
 module.exports = function (app, io, log) {
 
 	var util = require('util');
-	var dateTime = require('../include/moment');
 
 	var path = require('path');
 	var Account = require(path.join(__dirname, '..', '/models/account'));
