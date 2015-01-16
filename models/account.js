@@ -113,12 +113,12 @@ Account.statics.login = function (username, password, cb) {
 					full_name: user.full_name
 				});
 			} else {
-				var errMsg = 'Invalid or missing Login or Password';
+				var errMsg = 'Usuario o Contraseña incorrectos';
 				cb({error: errMsg});
 			}
 		});
 	} else {
-		var errMsg = 'Invalid or missing Login or Password';
+		var errMsg = 'Usuario o Contraseña incorrectos';
 		cb({error: errMsg});
 	}
 
@@ -137,14 +137,14 @@ Account.statics.password = function (email, password, newPassword, cb) {
 				cb(err, null);
 			} else {
 				if (rowsAffected === 1){
-					cb(null, "La clave ha cambiado satisfactoriamente");
+					cb(null, "El cambio de Contraseña ha sido exitoso.");
 				} else {
-					cb({message: "El cambio de clave ha sido erroneo"});
+					cb({message: "Usuario o Contraseña incorrectos."});
 				}
 			}
 		});
 	} else {
-		var errMsg = 'Invalid or missing Login or Password';
+		var errMsg = 'Usuario o Contraseña incorrectos.';
 		console.log(errMsg);
 		cb({error: errMsg});
 	}
