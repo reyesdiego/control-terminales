@@ -132,11 +132,15 @@ Account.statics.password = function (email, password, newPassword, cb) {
 					},
 					{
 						$set: { password: newPassword }
-					}, null, function (err, user){
+					}, null, function (err, rowsAffected, user){
 			if (err){
 				cb(err, null);
 			} else {
-				cb(null, {data: "Password changed successfully"});
+				if (rowsAffected === 1){
+					cb(null, "La clave ha cambiado satisfactoriamente");
+				} else {
+					cb({message: "El cambio de clave ha sido erroneo"});
+				}
 			}
 		});
 	} else {

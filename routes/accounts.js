@@ -1,17 +1,16 @@
 'use strict';
 
-var path = require('path');
-var config = require(path.join(__dirname, '..', '/config/config.js'));
-var Account = require(path.join(__dirname, '..', '/models/account'));
-var flash = require(path.join(__dirname, '..', '/include/utils')).flash;
-var dateTime = require('../include/moment');
-var util = require('util');
-
 /**
  * @module Accounts
  */
 
 module.exports = function (app, passport, log) {
+	var path = require('path');
+	var config = require(path.join(__dirname, '..', '/config/config.js'));
+	var Account = require(path.join(__dirname, '..', '/models/account'));
+	var flash = require(path.join(__dirname, '..', '/include/utils')).flash;
+	var dateTime = require('../include/moment');
+	var util = require('util');
 
 	/**
 	 * Default route for app, currently displays signup form.
@@ -127,7 +126,9 @@ module.exports = function (app, passport, log) {
 				}
 			});
 		} else {
-			res.send(403, "user or email is missing");
+			var errMsg = "user or email is missing";
+			log.logger.info(errMsg);
+			res.send(403, errMsg);
 		}
 	});
 
@@ -136,9 +137,11 @@ module.exports = function (app, passport, log) {
 			Account.password(req.body.email, req.body.password, req.body.newPass, function(err, result) {
 
 				if (err) {
-					res.send(err);
+					log.logger.error("El password de %s ha producido un error: %s.", req.body.email, err.message);
+					res.send(500, {status:"ERROR", data: err.message});
 				} else {
-					res.send(result);
+					log.logger.info("El password de %s ha cambiado satisfactoriamente.", req.body.email);
+					res.send(200, {status:"OK", data: result});
 				}
 			});
 		} else {
