@@ -219,22 +219,30 @@ module.exports = function (app, io, log) {
 				else
 					terminal = usr.terminal;
 
-					var _price = require('../include/price.js');
+				var _price = require('../include/price.js');
 					var _rates = new _price.price();
 					_rates.rates(function (err, rates){
 
-					var invoices = Invoice.aggregate([
-						{$match: {terminal: terminal}},
-						{$unwind: '$detalle'},
-						{$unwind: '$detalle.items'},
-						{$match: {'detalle.items.id': {$in: rates}}},
-						{$project: {nroPtoVenta: 1, codTipoComprob: 1, nroComprob: 1, contenedor: '$detalle.contenedor', code: '$detalle.items.id', fecha: '$fecha.emision'}}
-					]);
-					invoices.exec(function (err, dataInvoices){
+						var invoices = Invoice.aggregate([
+							{$match: {terminal: terminal}},
+							{$unwind: '$detalle'},
+							{$unwind: '$detalle.items'},
+							{$match: {'detalle.items.id': {$in: rates}}},
+							{$project: {nroPtoVenta: 1, codTipoComprob: 1, nroComprob: 1, contenedor: '$detalle.contenedor', code: '$detalle.items.id', fecha: '$fecha.emision'}}
+						]);
+
+						if (req.query.order){
+							var order = JSON.parse(req.query.order);
+							invoices.sort(order[0]);
+						} else {
+							invoices.sort({codTipoComprob: 1, nroComprob: 1});
+						}
+
+						invoices.exec(function (err, dataInvoices){
 						if (err)
 							res.send(500, {status: 'ERROR', data: err.message});
 						else {
-							var gates = Gate.find({terminal: terminal});
+							var gates = Gate.find({terminal: terminal}, {contenedor:1});
 							gates.exec(function (err, dataGates){
 								if (err)
 									res.send(500, {status: 'ERROR', data: err.message});
@@ -278,6 +286,12 @@ module.exports = function (app, io, log) {
 				_rates.rates(function (err, rates){
 
 					var gates = Gate.find({terminal: terminal});
+					if (req.query.order){
+						var order = JSON.parse(req.query.order);
+						gates.sort(order[0]);
+					} else {
+						gates.sort({gateTimestamp: 1});
+					}
 					gates.exec(function (err, dataGates){
 						if (err)
 							res.send(500, {status: 'ERROR', data: err.message});
@@ -290,6 +304,7 @@ module.exports = function (app, io, log) {
 								{$match: {'detalle.items.id': {$in: rates}}},
 								{$project: { contenedor: '$detalle.contenedor'}}
 							]);
+
 							invoices.exec(function (err, dataInvoices){
 
 								if (err)
