@@ -12,18 +12,23 @@ module.exports = function (app, log){
 		oracle.connect(config.oracle, function(err, connection) {
 			if (err) { console.log("Error connecting to db:", err); return; }
 
+			var oracleUtils = require('../../include/oracle.js')
+			oracleUtils = new oracleUtils();
+			var orderBy = oracleUtils.orderBy(req.query.order);
+
 			var skip = parseInt(req.params.skip, 10);
 			var limit = parseInt(req.params.limit, 10);
+
 			var strSql = "SELECT * FROM " +
 				" (SELECT " +
 				"		ID, " +
 				"		TIPOREGISTRO, " +
 				"		AFECTACION, " +
-				"		SUBSTR( AFECTACION, 0, 2) as	AFE_ANIO, " +
-				"		SUBSTR( AFECTACION, 3, 3) as	AFE_ADUANA, " +
-				"		SUBSTR( AFECTACION, 6, 4) as	AFE_TIPO, " +
-				"		SUBSTR( AFECTACION, 10, 6) as	AFE_NRO, " +
-				"		SUBSTR( AFECTACION, 16, 1) as	AFE_LETRA_CTRL, " +
+				"		AFE_ANIO, " +
+				"		AFE_ADUANA, " +
+				"		AFE_TIPO, " +
+				"		AFE_NRO, " +
+				"		AFE_LETRA_CTRL, " +
 				"		TITULOCOMPLETO, " +
 				"		NRO_LINEA, " +
 				"		COD_EMBALAJE, " +
@@ -37,11 +42,12 @@ module.exports = function (app, log){
 				"		NUMERACIONBULTOS, " +
 				"		REGISTRADO_POR, " +
 				"		REGISTRADO_EN, " +
-				"		ROW_NUMBER() OVER (ORDER BY id) R " +
-				"	FROM REGISTRO2_AFECTACION ) " +
+				"		ROW_NUMBER() OVER (ORDER BY " + orderBy + ") R " +
+				"	FROM V_REGISTRO2_AFECTACION ) " +
 				"WHERE R BETWEEN :1 and :2";
 			connection.execute(strSql,[skip+1, skip+limit], function (err, data){
 				if (err){
+					connection.close();
 					res.send(500, { status:'ERROR', data: err.message });
 				} else {
 					strSql = "SELECT COUNT(*) AS TOTAL FROM REGISTRO2_AFECTACION";

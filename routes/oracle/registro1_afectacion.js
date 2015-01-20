@@ -16,7 +16,6 @@ module.exports = function (app, log){
 			} else {
 				var oracleUtils = require('../../include/oracle.js')
 				oracleUtils = new oracleUtils();
-
 				var orderBy = oracleUtils.orderBy(req.query.order);
 
 				var skip = parseInt(req.params.skip, 10);
@@ -27,11 +26,11 @@ module.exports = function (app, log){
 					"		ID, " +
 					"		TIPOREGISTRO, " +
 					"		AFECTACION, " +
-					"		SUBSTR( AFECTACION, 0, 2) as	AFE_ANIO, " +
-					"		SUBSTR( AFECTACION, 3, 3) as	AFE_ADUANA, " +
-					"		SUBSTR( AFECTACION, 6, 4) as	AFE_TIPO, " +
-					"		SUBSTR( AFECTACION, 10, 6) as	AFE_NRO, " +
-					"		SUBSTR( AFECTACION, 16, 1) as	AFE_LETRA_CTRL, " +
+					"		AFE_ANIO, " +
+					"		AFE_ADUANA, " +
+					"		AFE_TIPO, " +
+					"		AFE_NRO, " +
+					"		AFE_LETRA_CTRL, " +
 					"		CUITATA, " +
 					"		NOMBREATA, " +
 					"		ESTADO, " +
@@ -46,11 +45,11 @@ module.exports = function (app, log){
 					"		MOTIVOAFECTACION, " +
 					"		IDENTIFICADORMOTIVOMICDTA, " +
 					"		SUMARIA, " +
-					"		SUBSTR( SUMARIA, 0, 2) as	SUM_ANIO, " +
-					"		SUBSTR( SUMARIA, 3, 3) as	SUM_ADUANA, " +
-					"		SUBSTR( SUMARIA, 6, 4) as	SUM_TIPO, " +
-					"		SUBSTR( SUMARIA, 10, 6) as	SUM_NRO, " +
-					"		SUBSTR( SUMARIA, 16, 1) as	SUM_LETRA_CTRL, " +
+					"		SUM_ANIO, " +
+					"		SUM_ADUANA, " +
+					"		SUM_TIPO, " +
+					"		SUM_NRO, " +
+					"		SUM_LETRA_CTRL, " +
 					"		MEDIOTRANSPORTEINTERNO, " +
 					"		NACMEDIOTRANSPINTERNO, " +
 					"		MATRICULAMEDIOTRANSPINTERNO, " +
@@ -61,10 +60,11 @@ module.exports = function (app, log){
 					"		REGISTRADO_POR, " +
 					"		REGISTRADO_EN, " +
 					"		ROW_NUMBER() OVER (ORDER BY " + orderBy + ") R " +
-					"	FROM REGISTRO1_AFECTACION ) " +
+					"	FROM V_REGISTRO1_AFECTACION ) " +
 					"WHERE R BETWEEN :1 and :2";
 				connection.execute(strSql, [skip+1, skip+limit], function (err, data){
 					if (err){
+						connection.close();
 						res.send(500, { status:'ERROR', data: err.message });
 					} else {
 						strSql = "SELECT COUNT(*) AS TOTAL FROM REGISTRO1_AFECTACION";
