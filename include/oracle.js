@@ -13,9 +13,12 @@ oracleUtils.prototype = {
 		var orderBy = '';
 		var orderType='ASC';
 		if (order) {
-			for (var i= 0, len = order.length; i < len; i++)
-				for (var prop in order[i]){
-					if (order[i][prop] === -1) orderType = 'DESC';
+
+			var _orderBy = JSON.parse(order);
+
+			for (var i= 0, len = _orderBy.length; i < len; i++)
+				for (var prop in _orderBy[i]){
+					if (_orderBy[i][prop] === -1) orderType = 'DESC';
 					orderBy = prop + ' ' + orderType;
 				}
 		} else {
