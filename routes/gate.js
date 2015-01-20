@@ -242,7 +242,7 @@ module.exports = function (app, io, log) {
 						if (err)
 							res.send(500, {status: 'ERROR', data: err.message});
 						else {
-							var gates = Gate.find({terminal: terminal}, {contenedor:1});
+							var gates = Gate.find({terminal: terminal, carga:"LL"}, {contenedor:1});
 							gates.exec(function (err, dataGates){
 								if (err)
 									res.send(500, {status: 'ERROR', data: err.message});
@@ -285,7 +285,7 @@ module.exports = function (app, io, log) {
 				var _rates = new _price.price();
 				_rates.rates(function (err, rates){
 
-					var gates = Gate.find({terminal: terminal});
+					var gates = Gate.find({terminal: terminal, carga:"LL"});
 					if (req.query.order){
 						var order = JSON.parse(req.query.order);
 						gates.sort(order[0]);
