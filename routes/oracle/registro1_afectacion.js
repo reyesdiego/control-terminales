@@ -6,7 +6,6 @@ module.exports = function (app, log){
 
 	var oracle = require('oracle');
 	var	config = require('../../config/config.js');
-	var oracleUtils = require('../../include/oracle.js')
 
 	function getRegistro1Afectacion( req, res){
 
@@ -15,6 +14,7 @@ module.exports = function (app, log){
 				log.logger.error("Error connecting to db: %s", err.message);
 				res.send(500, {status:"ERROR", data: err.message});
 			} else {
+				var oracleUtils = require('../../include/oracle.js')
 				oracleUtils = new oracleUtils();
 
 				var orderBy = oracleUtils.orderBy(req.query.order);
