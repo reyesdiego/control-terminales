@@ -218,28 +218,56 @@ require('./routes/docType')(app);
 require('./routes/unitType')(app);
 require('./routes/state')(app);
 
-require('./routes/oracle/registro1_sumImpoMani')(app);
-require('./routes/oracle/registro2_sumImpoMani')(app);
-require('./routes/oracle/registro3_sumImpoMani')(app);
-require('./routes/oracle/registro4_sumImpoMani')(app);
-require('./routes/oracle/registro1_sumExpoMane')(app);
-require('./routes/oracle/registro2_sumExpoMane')(app);
-require('./routes/oracle/registro3_sumExpoMane')(app);
-require('./routes/oracle/registro4_sumExpoMane')(app);
-require('./routes/oracle/registro5_sumExpoMane')(app);
-require('./routes/oracle/registro1_solicitud')(app);
-require('./routes/oracle/registro2_solicitud')(app);
-require('./routes/oracle/registro3_solicitud')(app);
-require('./routes/oracle/registro1_afectacion')(app);
-require('./routes/oracle/registro2_afectacion')(app);
-require('./routes/oracle/registro1_detImpo')(app);
-require('./routes/oracle/registro2_detImpo')(app);
-require('./routes/oracle/registro3_detImpo')(app);
-require('./routes/oracle/registro1_detExpo')(app);
-require('./routes/oracle/registro2_detExpo')(app);
-require('./routes/oracle/registro3_detExpo')(app);
+
+var genericPool = require('generic-pool');
+var oracle = require('oracle');
+
+var pool = genericPool.Pool({
+	name: 'testpool 0',
+	log: true,
+	max: 10,
+	create: function(callback) {
+		var settings = {
+			hostname: config.oracle.hostname,
+			port: config.oracle.port,
+			database: config.oracle.database,
+			user: config.oracle.user,
+			password: config.oracle.password
+		}
+		new oracle.connect(settings, function(err, connection) {
+			callback(err, connection);
+		});
+	},
+	destroy: function(connection) {
+		connection.close();
+	}
+});
+
+
+require('./routes/oracle/registro1_sumImpoMani')(app, log);
+require('./routes/oracle/registro2_sumImpoMani')(app, log);
+require('./routes/oracle/registro3_sumImpoMani')(app, log);
+require('./routes/oracle/registro4_sumImpoMani')(app, log);
+require('./routes/oracle/registro1_sumExpoMane')(app, log);
+require('./routes/oracle/registro2_sumExpoMane')(app, log);
+require('./routes/oracle/registro3_sumExpoMane')(app, log);
+require('./routes/oracle/registro4_sumExpoMane')(app, log);
+require('./routes/oracle/registro5_sumExpoMane')(app, log);
+require('./routes/oracle/registro1_solicitud')(app, log);
+require('./routes/oracle/registro2_solicitud')(app, log);
+require('./routes/oracle/registro3_solicitud')(app, log);
+require('./routes/oracle/registro1_afectacion')(app, log, pool);
+require('./routes/oracle/registro2_afectacion')(app, log, pool);
+require('./routes/oracle/registro1_detImpo')(app, log);
+require('./routes/oracle/registro2_detImpo')(app, log);
+require('./routes/oracle/registro3_detImpo')(app, log);
+require('./routes/oracle/registro1_detExpo')(app, log);
+require('./routes/oracle/registro2_detExpo')(app, log);
+require('./routes/oracle/registro3_detExpo')(app, log);
 
 require('./routes/oracle/test')(app, log);
+
+
 
 //	Database configuration
 mongoose.connect(config.mongo_url, config.mongo_opts);
