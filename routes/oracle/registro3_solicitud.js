@@ -12,6 +12,10 @@ module.exports = function (app, log){
 		oracle.connect(config.oracle, function(err, connection) {
 			if (err) { console.log("Error connecting to db:", err); return; }
 
+			var oracleUtils = require('../../include/oracle.js')
+			oracleUtils = new oracleUtils();
+			var orderBy = oracleUtils.orderBy(req.query.order);
+
 			var skip = parseInt(req.params.skip, 10);
 			var limit = parseInt(req.params.limit, 10);
 			var strSql = "SELECT * FROM " +
@@ -19,17 +23,17 @@ module.exports = function (app, log){
 				"		ID, " +
 				"		TIPOREGISTRO, " +
 				"		SOLICITUD, " +
-				"		SUBSTR( SOLICITUD, 0, 2) as		SOL_ANIO, " +
-				"		SUBSTR( SOLICITUD, 3, 3) as		SOL_ADUANA, " +
-				"		SUBSTR( SOLICITUD, 6, 4) as		SOL_TIPO, " +
-				"		SUBSTR( SOLICITUD, 10, 6) as	SOL_NRO, " +
-				"		SUBSTR( SOLICITUD, 16, 1) as	SOL_LETRA_CTRL, " +
+				"		SOL_ANIO, " +
+				"		SOL_ADUANA, " +
+				"		SOL_TIPO, " +
+				"		SOL_NRO, " +
+				"		SOL_LETRA_CTRL, " +
 				"		CONTENEDOR, " +
 				"		ESTADO, " +
 				"		REGISTRADO_POR, " +
 				"		REGISTRADO_EN, " +
-				"		ROW_NUMBER() OVER (ORDER BY id) R " +
-				"	FROM REGISTRO3_SOLICITUD ) " +
+				"		ROW_NUMBER() OVER (ORDER BY " + orderBy + ") R " +
+				"	FROM V_REGISTRO3_SOLICITUD ) " +
 				"WHERE R BETWEEN :1 and :2";
 			connection.execute(strSql,[skip+1, skip+limit], function (err, data){
 				if (err){

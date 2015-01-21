@@ -13,6 +13,10 @@ module.exports = function (app, log){
 		oracle.connect(config.oracle, function(err, connection) {
 			if (err) { console.log("Error connecting to db:", err); return; }
 
+			var oracleUtils = require('../../include/oracle.js')
+			oracleUtils = new oracleUtils();
+			var orderBy = oracleUtils.orderBy(req.query.order);
+
 			var skip = parseInt(req.params.skip, 10);
 			var limit = parseInt(req.params.limit, 10);
 			var strSql = "SELECT * FROM " +
@@ -20,11 +24,11 @@ module.exports = function (app, log){
 				"		ID, " +
 				"		TIPOREGISTRO, " +
 				"		SUMARIA, " +
-				"		SUBSTR( sumaria, 0, 2) as	SUM_ANIO, " +
-				"		SUBSTR( sumaria, 3, 3) as	SUM_ADUANA, " +
-				"		SUBSTR( sumaria, 6, 4) as	SUM_TIPO, " +
-				"		SUBSTR( sumaria, 10, 6) as	SUM_NRO, " +
-				"		SUBSTR( sumaria, 16, 1) as	SUM_LETRA_CTRL, " +
+				"		SUM_ANIO, " +
+				"		SUM_ADUANA, " +
+				"		SUM_TIPO, " +
+				"		SUM_NRO, " +
+				"		SUM_LETRA_CTRL, " +
 				"		CONOCIMIENTO, " +
 				"		NRO_LINEA, " +
 				"		COD_EMBALAJE, " +
@@ -39,8 +43,8 @@ module.exports = function (app, log){
 				"		COMENTARIOS, " +
 				"		REGISTRADO_POR, " +
 				"		REGISTRADO_EN, " +
-				"		ROW_NUMBER() OVER (ORDER BY id) R " +
-				"	FROM REGISTRO3_SUMIMPOMANI )" +
+				"		ROW_NUMBER() OVER (ORDER BY " + orderBy + ") R " +
+				"	FROM V_REGISTRO3_SUMIMPOMANI )" +
 				"WHERE R BETWEEN :1 and :2";
 			connection.execute(strSql,[skip+1, skip+limit], function (err, data){
 				if (err){
