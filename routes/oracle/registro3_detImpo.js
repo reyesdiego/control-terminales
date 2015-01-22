@@ -2,15 +2,15 @@
  * Created by diego on 11/19/14.
  */
 
-module.exports = function (app, log){
-
-	var oracle = require('oracle');
-	var	config = require('../../config/config.js');
+module.exports = function (app, log, pool){
 
 	function getRegistro3DetImpo( req, res){
 
-		oracle.connect(config.oracle, function(err, connection) {
-			if (err) { console.log("Error connecting to db:", err); return; }
+		pool.acquire(function(err, connection) {
+			if (err) {
+				console.log(err, "Error acquiring from pool.");
+				return;
+			}
 
 			var oracleUtils = require('../../include/oracle.js')
 			oracleUtils = new oracleUtils();
@@ -23,11 +23,11 @@ module.exports = function (app, log){
 				"		ID, " +
 				"		TIPOREGISTRO, " +
 				"		DETALLADA, " +
-				"		SUBSTR( DETALLADA, 0, 2) as	DET_ANIO, " +
-				"		SUBSTR( DETALLADA, 3, 3) as	DET_ADUANA, " +
-				"		SUBSTR( DETALLADA, 6, 4) as	DET_TIPO, " +
-				"		SUBSTR( DETALLADA, 10, 6) as	DET_NRO, " +
-				"		SUBSTR( DETALLADA, 16, 1) as	DET_LETRA_CTRL, " +
+				"		DET_ANIO, " +
+				"		DET_ADUANA, " +
+				"		DET_TIPO, " +
+				"		DET_NRO, " +
+				"		DET_LETRA_CTRL, " +
 				"		NRO_ITEM, " +
 				"		POSICIONARANCELARIA, " +
 				"		ESTADO_MERCA, " +
@@ -45,11 +45,12 @@ module.exports = function (app, log){
 				"WHERE R BETWEEN :1 and :2";
 			connection.execute(strSql,[skip+1, skip+limit], function (err, data){
 				if (err){
+					pool.destroy(connection);
 					res.send(500, { status:'ERROR', data: err.message });
 				} else {
 					strSql = "SELECT COUNT(*) AS TOTAL FROM REGISTRO3_DETIMPO";
 					connection.execute(strSql, [], function (err, dataCount){
-						connection.close();
+						pool.release(connection);
 						if (err){
 							res.send(500, { status:'ERROR', data: err.message });
 						} else {

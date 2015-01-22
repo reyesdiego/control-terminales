@@ -244,26 +244,26 @@ var pool = genericPool.Pool({
 });
 
 
-require('./routes/oracle/registro1_sumImpoMani')(app, log);
-require('./routes/oracle/registro2_sumImpoMani')(app, log);
-require('./routes/oracle/registro3_sumImpoMani')(app, log);
-require('./routes/oracle/registro4_sumImpoMani')(app, log);
-require('./routes/oracle/registro1_sumExpoMane')(app, log);
-require('./routes/oracle/registro2_sumExpoMane')(app, log);
-require('./routes/oracle/registro3_sumExpoMane')(app, log);
-require('./routes/oracle/registro4_sumExpoMane')(app, log);
-require('./routes/oracle/registro5_sumExpoMane')(app, log);
-require('./routes/oracle/registro1_solicitud')(app, log);
-require('./routes/oracle/registro2_solicitud')(app, log);
-require('./routes/oracle/registro3_solicitud')(app, log);
+require('./routes/oracle/registro1_sumImpoMani')(app, log, pool);
+require('./routes/oracle/registro2_sumImpoMani')(app, log, pool);
+require('./routes/oracle/registro3_sumImpoMani')(app, log, pool);
+require('./routes/oracle/registro4_sumImpoMani')(app, log, pool);
+require('./routes/oracle/registro1_sumExpoMane')(app, log, pool);
+require('./routes/oracle/registro2_sumExpoMane')(app, log, pool);
+require('./routes/oracle/registro3_sumExpoMane')(app, log, pool);
+require('./routes/oracle/registro4_sumExpoMane')(app, log, pool);
+require('./routes/oracle/registro5_sumExpoMane')(app, log, pool);
+require('./routes/oracle/registro1_solicitud')(app, log, pool);
+require('./routes/oracle/registro2_solicitud')(app, log, pool);
+require('./routes/oracle/registro3_solicitud')(app, log, pool);
 require('./routes/oracle/registro1_afectacion')(app, log, pool);
 require('./routes/oracle/registro2_afectacion')(app, log, pool);
-require('./routes/oracle/registro1_detImpo')(app, log);
-require('./routes/oracle/registro2_detImpo')(app, log);
-require('./routes/oracle/registro3_detImpo')(app, log);
-require('./routes/oracle/registro1_detExpo')(app, log);
-require('./routes/oracle/registro2_detExpo')(app, log);
-require('./routes/oracle/registro3_detExpo')(app, log);
+require('./routes/oracle/registro1_detImpo')(app, log, pool);
+require('./routes/oracle/registro2_detImpo')(app, log, pool);
+require('./routes/oracle/registro3_detImpo')(app, log, pool);
+require('./routes/oracle/registro1_detExpo')(app, log, pool);
+require('./routes/oracle/registro2_detExpo')(app, log, pool);
+require('./routes/oracle/registro3_detExpo')(app, log, pool);
 
 require('./routes/oracle/test')(app, log);
 

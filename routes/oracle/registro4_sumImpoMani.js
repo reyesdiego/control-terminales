@@ -3,15 +3,15 @@
  */
 
 
-module.exports = function (app, log){
-
-	var oracle = require('oracle');
-	var	config = require('../../config/config.js');
+module.exports = function (app, log, pool){
 
 	function getRegistro4SumImpoMani( req, res){
 
-		oracle.connect(config.oracle, function(err, connection) {
-			if (err) { console.log("Error connecting to db:", err); return; }
+		pool.acquire(function(err, connection) {
+			if (err) {
+				console.log(err, "Error acquiring from pool.");
+				return;
+			}
 
 			var oracleUtils = require('../../include/oracle.js')
 			oracleUtils = new oracleUtils();
@@ -41,11 +41,12 @@ module.exports = function (app, log){
 				"WHERE R BETWEEN :1 and :2";
 			connection.execute(strSql,[skip+1, skip+limit], function (err, data){
 				if (err){
+					pool.destroy(connection);
 					res.send(500, { status:'ERROR', data: err.message });
 				} else {
 					strSql = "SELECT COUNT(*) AS TOTAL FROM REGISTRO4_SUMIMPOMANI";
 					connection.execute(strSql, [], function (err, dataCount){
-						connection.close();
+						pool.release(connection);
 						if (err){
 							res.send(500, { status:'ERROR', data: err.message });
 						} else {

@@ -2,16 +2,17 @@
  * Created by diego on 11/19/14.
  */
 
-module.exports = function (app, log){
+module.exports = function (app, log, pool){
 
-	var oracle = require('oracle');
-	var	config = require('../../config/config.js');
 	var util = require("util");
 
 	function getRegistro1_sumimpomani( req, res){
 
-		oracle.connect(config.oracle, function(err, connection) {
-			if (err) { console.log("Error connecting to db:", err); return; }
+		pool.acquire(function(err, connection) {
+			if (err) {
+				console.log(err, "Error acquiring from pool.");
+				return;
+			}
 
 			var oracleUtils = require('../../include/oracle.js')
 			oracleUtils = new oracleUtils();
@@ -61,13 +62,14 @@ module.exports = function (app, log){
 			strSql = util.format(strSql, strWhere);
 			connection.execute(strSql,[skip+1, skip+limit], function (err, data){
 				if (err){
+					pool.destroy(connection);
 					res.send(500, { status:'ERROR', data: err.message });
 				} else {
 					strSql = "SELECT COUNT(*) AS TOTAL FROM REGISTRO1_SUMIMPOMANI ";
 					if (strWhere !== '')
 						strSql += util.format(" %s", strWhere);
 					connection.execute(strSql, [], function (err, dataCount){
-						connection.close();
+						pool.release(connection);
 						if (err){
 							res.send(500, { status:'ERROR', data: err.message });
 						} else {
@@ -88,8 +90,11 @@ module.exports = function (app, log){
 	}
 
 	function getSumariaImpoContenedor (req, res) {
-		oracle.connect(config.oracle, function(err, connection) {
-			if (err) { console.log("Error connecting to db:", err); return; }
+		pool.acquire(function(err, connection) {
+			if (err) {
+				console.log(err, "Error acquiring from pool.");
+				return;
+			}
 
 			var strWhere = '';
 			var strSql = "	select sumaria, conocimiento " +
@@ -98,6 +103,7 @@ module.exports = function (app, log){
 
 			connection.execute(strSql,[req.params.contenedor], function (err, dataSum){
 				if (err){
+					pool.destroy(connection);
 					res.send(500, { status:'ERROR', data: err.message });
 				} else {
 					strSql = 'SELECT r1.SUMARIA, ' +
@@ -116,7 +122,7 @@ module.exports = function (app, log){
 					var result;
 					if (dataSum.length > 0) {
 						connection.execute(strSql,[dataSum[0].CONOCIMIENTO], function (err, data) {
-							connection.close();
+							pool.release(connection);
 							result = {
 								status:'OK',
 								data: data };
