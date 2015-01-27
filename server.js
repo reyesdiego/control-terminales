@@ -199,10 +199,12 @@ server.listen(port, function() {
 var io = socketio.listen(server);
 io.set('log level', 1);
 io.on('connection', function (socket){
-	log.logger.info('%s - Socket Client Connected.', dateTime.getDatetime());
-	socket.on('send', function (data) {
-		io.sockets.emit('message', data);
+	log.logger.info('Socket Client Connected: %s.', socket.id);
+
+	socket.on('newUser', function (cb){
+		cb(socket.id);
 	});
+
 });
 
 //routes = require('./routes/accounts')(app, passport);

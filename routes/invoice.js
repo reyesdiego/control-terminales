@@ -1064,9 +1064,15 @@ module.exports = function(app, io, log) {
 						param["fecha.emision"]['$lte'] = fecha;
 					}
 				}
+				var cashBoxes = [];
 				if (req.query.nroPtoVenta) {
-					param.nroPtoVenta = parseInt( req.query.nroPtoVenta, 10);
+					cashBoxes = req.query.nroPtoVenta.split(',');
+				} else {
+					log.logger.error("Error: El nro de punto de venta no ha sido enviado");
+					res.send(403 , {status: "ERROR", data: "Error: El nro de punto de venta no ha sido enviado" });
 				}
+
+
 				if (req.query.codTipoComprob){
 					param.codTipoComprob = parseInt( req.query.codTipoComprob, 10);
 				}
@@ -1076,55 +1082,81 @@ module.exports = function(app, io, log) {
 				else
 					param.terminal = usr.terminal;
 
-				var invoices = Invoice.find(param, {nroComprob:1, _id: 0});
+				var cashboxExecs = [];
+				var contadorFaltantesTotal = 0;
+				cashBoxes.forEach(function(cash){
+					//funcion que calcula la correlatividad por cada caja que sera ejecutada en paralelo con async
+					var cashboxExec = function (callback){
+						param.nroPtoVenta = cash;
+						var invoices = Invoice.find(param, {nroComprob:1, _id: 0});
 
-				if (req.query.order){
-					var order = JSON.parse(req.query.order);
-					invoices.sort(order[0]);
-				} else {
-					invoices.sort({nroComprob:1});
-				}
+						if (req.query.order){
+							var order = JSON.parse(req.query.order);
+							invoices.sort(order[0]);
+						} else {
+							invoices.sort({nroComprob:1});
+						}
+						invoices.exec(function(err, invoices) {
+							if(!err) {
+								var faltantes = [];
+								var control = 0;
+								var contadorFaltantes = 0;
 
-				invoices.exec(function(err, invoices) {
-					if(!err) {
-						var faltantes = [];
-						var control = 0;
-						var contadorFaltantes = 0;
-
-						invoices.forEach(function(invoice){
-							if (control == 0){
-								control = invoice.nroComprob
-							} else {
-								control += 1;
-								if (control != invoice.nroComprob){
-									if (invoice.nroComprob - control > 3){
-										var dif = (invoice.nroComprob) - control;
-										contadorFaltantes+=dif;
-										var item2Add = util.format('[%d a %d] (%d)', control, (invoice.nroComprob - 1), dif);
-										faltantes.push(item2Add);
+								invoices.forEach(function(invoice){
+									if (control == 0){
+										control = invoice.nroComprob
 									} else {
-										for (var i=control, len=invoice.nroComprob ; i<len;i++){
-											faltantes.push(i.toString());
-											contadorFaltantes++;
+										control += 1;
+										if (control != invoice.nroComprob){
+											if (invoice.nroComprob - control > 3){
+												var dif = (invoice.nroComprob) - control;
+												contadorFaltantes+=dif;
+												var item2Add = util.format('[%d a %d] (%d)', control, (invoice.nroComprob - 1), dif);
+												faltantes.push(item2Add);
+											} else {
+												for (var i=control, len=invoice.nroComprob ; i<len;i++){
+													faltantes.push(i.toString());
+													contadorFaltantes++;
+												}
+											}
+											control = invoice.nroComprob;
 										}
 									}
-									control = invoice.nroComprob;
-								}
+								});
+								contadorFaltantesTotal += contadorFaltantes;
+
+								var result = {
+									status: 'OK',
+									nroPtoVenta: cash,
+									totalCount: contadorFaltantes,
+									data: faltantes
+								};
+//								io.sockets.emit('correlative', result);
+								io.sockets.emit('correlative_'+req.query.x, result);
+
+
+								callback(null, result);
+							} else {
+								log.logger.error("Error: %s", err.message);
+								res.send(500 , {status: "ERROR", data: {name: err.name, message: err.message} });
 							}
 						});
-						var functionFin = log.moment();
-						var result = {
-							status: 'OK',
-							totalCount: contadorFaltantes,
-							elapsed: functionIni.diff(functionFin)*(-1),
-							data: faltantes
-						};
-						res.send(200, result);
-					} else {
-						log.logger.error("Error: %s", err.message);
-						res.send(500 , {status: "ERROR", data: {name: err.name, message: err.message} });
-					}
+					};
+
+					cashboxExecs.push(cashboxExec);
 				});
+
+				var async = require('async');
+				async.parallel(cashboxExecs, function (err, results){
+					var response = {
+						status: "OK",
+						totalCount: contadorFaltantesTotal,
+						data: results
+					};
+					res.send(200, response);
+				});
+
+
 			}
 		});
 	}
