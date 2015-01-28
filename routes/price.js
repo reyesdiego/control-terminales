@@ -8,6 +8,9 @@ var Account = require(path.join(__dirname, '..', '/models/account'));
 var util = require('util');
 var moment = require('moment');
 
+var mail = require("../include/emailjs");
+var config = require('../config/config.js');
+
 var dateTime = require('../include/moment');
 
 module.exports = function (app, log){
@@ -163,6 +166,13 @@ module.exports = function (app, log){
 						_price.save(function (errSave, data){
 							if(!errSave) {
 								log.logger.insert("Price INS:%s - %s", data._id, usr.terminal);
+
+								var strSubject = util.format("AGP - %s - Tarifa Nueva", usr.terminal);
+								var strMsg = util.format('Se dio de alta una Tarifa nueva: %s', data);
+								var mailer = new mail.mail(config.email);
+								mailer.send("dreyes@puertobuenosaires.gob.ar", strSubject, strMsg, function(){
+								});
+
 								res.send(200,{"status": "OK", "data": _price});
 							} else {
 								log.logger.error('Error: %s', errSave.message);
