@@ -193,7 +193,10 @@ module.exports = function (app, log){
 									result.push(item._id.code);
 								});
 
-								res.send(200, {status:'OK', data: result});
+								res.send(200, {
+									status:'OK',
+									totalCount: result.length,
+									data: result});
 							});
 						}
 					});
