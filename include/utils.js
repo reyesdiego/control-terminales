@@ -1,8 +1,8 @@
 
-function flash (info, error) {
+function flash (status, data) {
     return {
-        info: info,
-        err: error
+        status: status,
+        data: data
     };
 }
 

@@ -11,16 +11,7 @@ module.exports = function (app, passport, log) {
 	var flash = require(path.join(__dirname, '..', '/include/utils')).flash;
 	var dateTime = require('../include/moment');
 	var util = require('util');
-
-	/**
-	 * Default route for app, currently displays signup form.
-	 *
-	 * @param {Object} req the request object
-	 * @param {Object} res the response object
-	 */
-	app.get('/', function (req, res) {
-		res.render('register', {info: null, err: null});
-	});
+	var mail = require("../include/emailjs");
 
 	/**
 	 * Post method to register a new user
@@ -29,32 +20,87 @@ module.exports = function (app, passport, log) {
 	 * @param {Object} res the response object
 	 */
 	app.post('/agp/register', function(req, res) {
+
 		var name = req.body.full_name;
 		var email = req.body.email;
 		var password = req.body.password;
 		var terminal = req.body.terminal;
-		var user = new Account({full_name: name,email: email, terminal: terminal});
+
+		var user = new Account(
+			{
+				firstname : req.body.firstname,
+				lastname : req.body.lastname,
+				full_name: name,
+				email: email,
+				password: req.body.password,
+				user: req.body.user,
+				role: req.body.role,
+				terminal: terminal
+			}
+		);
 		var message;
 //TODO tengo que incluir /token -> createToken aqui en register y mandar un mail con el token y un link de activacion
 		/*Passport method injection*/
 		Account.register(user, password, function(error, account) {
 			if (error) {
-				if (error.name === 'BadRequesterroror' && error.message && error.message.indexOf('exists') > -1) {
-					message = flash(null, 'Sorry. That email already exists. Try again.');
+				if (error.name === 'BadRequestError' && error.message && error.message.indexOf('exists') > -1) {
+					message = flash("ERROR", 'El email ya existe.');
 				}
-				else if (error.name === 'BadRequesterroror' && error.message && error.message.indexOf('argument not set')) {
-					message =  flash (null, 'It looks like you\'re missing a required argument. Try again.');
+				else if (error.name === 'BadRequestError' && error.message && error.message.indexOf('argument not set')) {
+					message =  flash ("ERROR", 'It looks like you\'re missing a required argument. Try again.');
 				}
 				else {
-					message = flash(null, 'Sorry. There was an error processing your request. Please try again or contact technical support.');
+					message = flash("ERROR", 'Ha ocurrido un error en la llamada.');
 				}
 
-//				res.render('register', message);
+				res.send(500, message);
 			} else {
 				//Successfully registered user
-				res.send(account);
+				var mailer = new mail.mail(config.email);
+				var html = {
+					data : "<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link http://terminales.puertobuenosaires.gob.ar:8080/agp/token?salt="+user.salt+"</p></body></html>",
+					alternative: true
+				};
+				mailer.send(user.email, "Nuevo Usuario", html, function(messageBack){
+						log.logger.insert('Account INS: %s, se envió mail a %s', user.email, JSON.stringify(messageBack));
+				});
+				message = flash('OK', account);
+				res.send(200, message);
 			}
 		});
+	});
+
+	app.get('/accounts', function (req, res){
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (err){
+				log.logger.error(usr);
+				res.send(403, {status:'ERROR', data: err});
+			} else {
+				if (usr.terminal === 'AGP' && usr.group === 'ADMIN'){
+					var project = {
+						firstname : true,
+						lastname : true,
+						full_name: true,
+						email: true,
+						password: true,
+						user: true,
+						role: true,
+						terminal: true
+					};
+
+					Account.findAll({}, project, function (err, data){
+						if (err){
+							res.send(500, {status:"ERROR", data: err.message});
+						} else {
+							res.send(200, {status:'OK', data: data});
+						}
+					});
+				} else {
+					res.send(403, {status:"ERROR", data: "No posee permisos para requerir estos datos"});
+				}
+			}
+		})
 	});
 
 	/**
@@ -150,20 +196,20 @@ module.exports = function (app, passport, log) {
 	});
 
 //	app.post('/token/', passport.authenticate('local', {session: false}), function(req, res) {
-	app.post('/token/', function(req, res) {
-		if (req.user) {
-			Account.createUserToken(req.user.email, function(err, usersToken) {
-				// console.log('token generated: ' +usersToken);
-				// console.log(err);
-				if (err) {
-					res.json({error: 'Issue generating token'});
-				} else {
-					res.json({token : usersToken});
-				}
+	app.get('/agp/token', function(req, res) {
+
+		if (req.query.salt !== undefined){
+			Account.findAll({salt: req.query.salt}, function (err, data){
+				Account.createUserToken(data[0].email, function(err, usersToken) {
+					if (err) {
+						res.send(500, {status: "ERROR", data: 'Hubo un problema al generar el token'});
+					} else {
+						res.send(200, "<html><body><p>El usuario "+data[0].email+" ha sido habilitado correctamente</p><p>http://terminales.puertobuenosaires.gob.ar</p></body></html>");
+					}
+				});
 			});
-		} else {
-			res.json({error: 'AuthError'});
 		}
+
 	});
 
 	app.get('/apitest/', function(req, res) {

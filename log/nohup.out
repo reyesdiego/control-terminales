@@ -4,3 +4,152 @@
 {"level":"info","message":"Process Id (pid): 20501","timestamp":"2014-12-29T13:00:28.557Z"}
 {"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2014-12-29T13:00:28.616Z"}
 {"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2014-12-29T13:00:28.616Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-01-30T14:00:57.066Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-01-30T14:00:57.068Z"}
+{"level":"info","message":"Process Id (pid): 18249","timestamp":"2015-01-30T14:00:57.068Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-01-30T14:00:57.094Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-01-30T14:00:57.094Z"}
+{"attachments":[],"alternative":{"data":"<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link http://terminales.puertobuenosaires.gob.ar:8080/unitTypes?key=14cb841f72283b4465379b53ea3440d2ab39f44ac01e8f4ec94fa4b1525a6761</p></body></html>","alternative":true,"charset":"utf-8","type":"text/html","inline":true},"header":{"message-id":"<1422626768329.0.18249@UBUNTUSIS058>","date":"Fri, 30 Jan 2015 11:06:08 -0300","from":"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>","to":"reyesdiego@hotmail.com","bcc":"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>","subject":"=?UTF-8?Q?Nuevo_Usuario?="},"content":"text/plain; charset=utf-8","text":"","level":"info","message":"Se envio un mail a %j","timestamp":"2015-01-30T14:06:08.602Z"}
+{"attachments":[],"alternative":{"data":"<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link http://terminales.puertobuenosaires.gob.ar:8080/unitTypes?key=7e7292eae13986faabf3147781e2e81b22a9e4df3cf3deefb0087bcc524e666b</p></body></html>","alternative":true,"charset":"utf-8","type":"text/html","inline":true},"header":{"message-id":"<1422626907003.1.18249@UBUNTUSIS058>","date":"Fri, 30 Jan 2015 11:08:27 -0300","from":"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>","to":"reyesdiego@hotmail.com","bcc":"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>","subject":"=?UTF-8?Q?Nuevo_Usuario?="},"content":"text/plain; charset=utf-8","text":"","level":"info","message":"Se envio un mail a %j","timestamp":"2015-01-30T14:09:02.175Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-01-30T14:09:57.734Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-01-30T14:10:08.132Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-01-30T14:10:08.134Z"}
+{"level":"info","message":"Process Id (pid): 18405","timestamp":"2015-01-30T14:10:08.134Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-01-30T14:10:08.238Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-01-30T14:10:08.238Z"}
+{"level":"info","message":"Se envio un mail a {\"attachments\":[],\"alternative\":{\"data\":\"<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link http://terminales.puertobuenosaires.gob.ar:8080/unitTypes?key=76db089de5cc88daaa5fcb05edc56be38a7cbfe651a784674fb549238d4344a3</p></body></html>\",\"alternative\":true,\"charset\":\"utf-8\",\"type\":\"text/html\",\"inline\":true},\"header\":{\"message-id\":\"<1422627025044.0.18405@UBUNTUSIS058>\",\"date\":\"Fri, 30 Jan 2015 11:10:25 -0300\",\"from\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"to\":\"reyesdiego@hotmail.com\",\"bcc\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"subject\":\"=?UTF-8?Q?Nuevo_Usuario?=\"},\"content\":\"text/plain; charset=utf-8\",\"text\":\"\"}","timestamp":"2015-01-30T14:10:25.278Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-01-30T14:11:59.284Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-01-30T14:12:06.729Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-01-30T14:12:06.731Z"}
+{"level":"info","message":"Process Id (pid): 18455","timestamp":"2015-01-30T14:12:06.732Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-01-30T14:12:06.790Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-01-30T14:12:06.791Z"}
+{"level":"insert","message":"Account INS reyesdiego@hotmail.com, se envió mail a {\"attachments\":[],\"alternative\":{\"data\":\"<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link http://terminales.puertobuenosaires.gob.ar:8080/unitTypes?key=74c0d5fed3c8b0ff0ca82ff7e5b51e16941b6909ca19c28cb78bca766013bdb9</p></body></html>\",\"alternative\":true,\"charset\":\"utf-8\",\"type\":\"text/html\",\"inline\":true},\"header\":{\"message-id\":\"<1422627158404.0.18455@UBUNTUSIS058>\",\"date\":\"Fri, 30 Jan 2015 11:12:38 -0300\",\"from\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"to\":\"reyesdiego@hotmail.com\",\"bcc\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"subject\":\"=?UTF-8?Q?Nuevo_Usuario?=\"},\"content\":\"text/plain; charset=utf-8\",\"text\":\"\"}","timestamp":"2015-01-30T14:12:38.661Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-01-30T14:49:29.043Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-01-30T14:49:39.872Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-01-30T14:49:39.874Z"}
+{"level":"info","message":"Process Id (pid): 19303","timestamp":"2015-01-30T14:49:39.875Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-01-30T14:49:40.037Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-01-30T14:49:40.037Z"}
+{"level":"insert","message":"Account INS: reyesdiego@hotmail.com, se envió mail a {\"attachments\":[],\"alternative\":{\"data\":\"<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link http://terminales.puertobuenosaires.gob.ar:8080/agp/token?salt=991112344dc818101b4375cb0efdbc131a2e53da9d07e3e63296d3eed2c88591</p></body></html>\",\"alternative\":true,\"charset\":\"utf-8\",\"type\":\"text/html\",\"inline\":true},\"header\":{\"message-id\":\"<1422629415396.0.19303@UBUNTUSIS058>\",\"date\":\"Fri, 30 Jan 2015 11:50:15 -0300\",\"from\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"to\":\"reyesdiego@hotmail.com\",\"bcc\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"subject\":\"=?UTF-8?Q?Nuevo_Usuario?=\"},\"content\":\"text/plain; charset=utf-8\",\"text\":\"\"}","timestamp":"2015-01-30T14:50:15.616Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-01-30T14:51:47.542Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-01-30T14:52:08.425Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-01-30T14:52:08.427Z"}
+{"level":"info","message":"Process Id (pid): 19371","timestamp":"2015-01-30T14:52:08.428Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-01-30T14:52:08.577Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-01-30T14:52:08.579Z"}
+{"level":"insert","message":"Account INS: reyesdiego@hotmail.com, se envió mail a {\"attachments\":[],\"alternative\":{\"data\":\"<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link http://terminales.puertobuenosaires.gob.ar:8080/agp/token?salt=dfa1b97cc59e3ef4bf351e7dc794812a89b05f067b0bc26babaf9910e7938925</p></body></html>\",\"alternative\":true,\"charset\":\"utf-8\",\"type\":\"text/html\",\"inline\":true},\"header\":{\"message-id\":\"<1422629636795.0.19371@UBUNTUSIS058>\",\"date\":\"Fri, 30 Jan 2015 11:53:56 -0300\",\"from\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"to\":\"reyesdiego@hotmail.com\",\"bcc\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"subject\":\"=?UTF-8?Q?Nuevo_Usuario?=\"},\"content\":\"text/plain; charset=utf-8\",\"text\":\"\"}","timestamp":"2015-01-30T14:53:57.012Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-01-30T14:55:38.403Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-01-30T14:55:54.825Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-01-30T14:55:54.827Z"}
+{"level":"info","message":"Process Id (pid): 19519","timestamp":"2015-01-30T14:55:54.828Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-01-30T14:55:55.270Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-01-30T14:55:55.271Z"}
+{"level":"insert","message":"Account INS: reyesdiego@hotmail.com, se envió mail a {\"attachments\":[],\"alternative\":{\"data\":\"<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link http://terminales.puertobuenosaires.gob.ar:8080/agp/token?salt=dfbde5ab2dbe514065e48f7245224bd346bd56aa866fc8afc4a8654ac9a80441</p></body></html>\",\"alternative\":true,\"charset\":\"utf-8\",\"type\":\"text/html\",\"inline\":true},\"header\":{\"message-id\":\"<1422629756823.0.19519@UBUNTUSIS058>\",\"date\":\"Fri, 30 Jan 2015 11:55:56 -0300\",\"from\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"to\":\"reyesdiego@hotmail.com\",\"bcc\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"subject\":\"=?UTF-8?Q?Nuevo_Usuario?=\"},\"content\":\"text/plain; charset=utf-8\",\"text\":\"\"}","timestamp":"2015-01-30T14:55:57.085Z"}
+{"level":"info","message":"Caught exception: TypeError: Cannot read property 'email' of undefined","timestamp":"2015-01-30T14:57:25.260Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-01-30T14:58:22.014Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-01-30T14:58:29.437Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-01-30T14:58:29.439Z"}
+{"level":"info","message":"Process Id (pid): 19620","timestamp":"2015-01-30T14:58:29.440Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-01-30T14:58:29.473Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-01-30T14:58:29.474Z"}
+{"level":"info","message":"Caught exception: TypeError: Cannot read property 'email' of undefined","timestamp":"2015-01-30T14:59:33.690Z"}
+{"level":"insert","message":"Account INS: reyesdiego@hotmail.com, se envió mail a {\"attachments\":[],\"alternative\":{\"data\":\"<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link http://terminales.puertobuenosaires.gob.ar:8080/agp/token?salt=c2f0c126d777c79febc4001257145d425c43452c048bc9ffbb2f0750c58d1651</p></body></html>\",\"alternative\":true,\"charset\":\"utf-8\",\"type\":\"text/html\",\"inline\":true},\"header\":{\"message-id\":\"<1422629975082.0.19620@UBUNTUSIS058>\",\"date\":\"Fri, 30 Jan 2015 11:59:35 -0300\",\"from\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"to\":\"reyesdiego@hotmail.com\",\"bcc\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"subject\":\"=?UTF-8?Q?Nuevo_Usuario?=\"},\"content\":\"text/plain; charset=utf-8\",\"text\":\"\"}","timestamp":"2015-01-30T14:59:35.270Z"}
+{"level":"info","message":"Caught exception: TypeError: Cannot read property 'email' of undefined","timestamp":"2015-01-30T15:01:19.507Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-01-30T15:01:19.539Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-01-30T15:01:26.960Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-01-30T15:01:26.962Z"}
+{"level":"info","message":"Process Id (pid): 19708","timestamp":"2015-01-30T15:01:26.963Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-01-30T15:01:26.986Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-01-30T15:01:26.986Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-01-30T15:01:38.005Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-01-30T15:01:44.586Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-01-30T15:01:44.588Z"}
+{"level":"info","message":"Process Id (pid): 19728","timestamp":"2015-01-30T15:01:44.588Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-01-30T15:01:44.614Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-01-30T15:01:44.615Z"}
+{"level":"info","message":"Caught exception: TypeError: Cannot set property 'token' of null","timestamp":"2015-01-30T15:01:55.295Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-01-30T15:02:54.115Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-01-30T15:03:00.962Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-01-30T15:03:00.964Z"}
+{"level":"info","message":"Process Id (pid): 19774","timestamp":"2015-01-30T15:03:00.964Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-01-30T15:03:00.992Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-01-30T15:03:00.993Z"}
+{"level":"insert","message":"Account INS: reyesdiego@hotmail.com, se envió mail a {\"attachments\":[],\"alternative\":{\"data\":\"<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link http://terminales.puertobuenosaires.gob.ar:8080/agp/token?salt=4d67ad4271acadfc33b9a70b7a51432c151c632bdcf4f4f3df0a09c2d33a0518</p></body></html>\",\"alternative\":true,\"charset\":\"utf-8\",\"type\":\"text/html\",\"inline\":true},\"header\":{\"message-id\":\"<1422630211157.0.19774@UBUNTUSIS058>\",\"date\":\"Fri, 30 Jan 2015 12:03:31 -0300\",\"from\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"to\":\"reyesdiego@hotmail.com\",\"bcc\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"subject\":\"=?UTF-8?Q?Nuevo_Usuario?=\"},\"content\":\"text/plain; charset=utf-8\",\"text\":\"\"}","timestamp":"2015-01-30T15:03:31.312Z"}
+{"level":"info","message":"Caught exception: TypeError: Cannot set property 'token' of null","timestamp":"2015-01-30T15:04:06.475Z"}
+{"level":"info","message":"Caught exception: TypeError: Cannot set property 'token' of null","timestamp":"2015-01-30T15:04:57.636Z"}
+{"level":"info","message":"Caught exception: TypeError: Cannot set property 'token' of null","timestamp":"2015-01-30T15:05:21.298Z"}
+{"level":"info","message":"Caught exception: TypeError: Cannot set property 'token' of null","timestamp":"2015-01-30T15:06:16.931Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-01-30T15:06:16.977Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-01-30T15:06:23.897Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-01-30T15:06:23.899Z"}
+{"level":"info","message":"Process Id (pid): 19856","timestamp":"2015-01-30T15:06:23.900Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-01-30T15:06:23.934Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-01-30T15:06:23.934Z"}
+{"level":"insert","message":"Account INS: reyesdiego@hotmail.com, se envió mail a {\"attachments\":[],\"alternative\":{\"data\":\"<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link http://terminales.puertobuenosaires.gob.ar:8080/agp/token?salt=dbf27a9f40973e61f9dcc1d79652597b7caa40fd79acc6108e8324205343cd1a</p></body></html>\",\"alternative\":true,\"charset\":\"utf-8\",\"type\":\"text/html\",\"inline\":true},\"header\":{\"message-id\":\"<1422630417796.0.19856@UBUNTUSIS058>\",\"date\":\"Fri, 30 Jan 2015 12:06:57 -0300\",\"from\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"to\":\"reyesdiego@hotmail.com\",\"bcc\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"subject\":\"=?UTF-8?Q?Nuevo_Usuario?=\"},\"content\":\"text/plain; charset=utf-8\",\"text\":\"\"}","timestamp":"2015-01-30T15:06:58.109Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-01-30T15:22:26.529Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-01-30T15:22:37.548Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-01-30T15:22:37.549Z"}
+{"level":"info","message":"Process Id (pid): 20236","timestamp":"2015-01-30T15:22:37.550Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-01-30T15:22:38.074Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-01-30T15:22:38.074Z"}
+{"level":"insert","message":"Account INS: reyesdiego@hotmail.com, se envió mail a {\"attachments\":[],\"alternative\":{\"data\":\"<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link http://terminales.puertobuenosaires.gob.ar:8080/agp/token?salt=fb78a3d27fcdb504c3e10efc4e0002b1d135e4224ec173643639ccbba87437e3</p></body></html>\",\"alternative\":true,\"charset\":\"utf-8\",\"type\":\"text/html\",\"inline\":true},\"header\":{\"message-id\":\"<1422631391742.0.20236@UBUNTUSIS058>\",\"date\":\"Fri, 30 Jan 2015 12:23:11 -0300\",\"from\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"to\":\"reyesdiego@hotmail.com\",\"bcc\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"subject\":\"=?UTF-8?Q?Nuevo_Usuario?=\"},\"content\":\"text/plain; charset=utf-8\",\"text\":\"\"}","timestamp":"2015-01-30T15:23:11.925Z"}
+{"level":"info","message":"User 'reyes-d' has logged in From: 127.0.0.1","timestamp":"2015-01-30T15:25:31.275Z"}
+{"level":"info","message":"Socket Client Connected: vP4NYwVPAi0EH6pob8O1.","timestamp":"2015-01-30T15:27:03.667Z"}
+{"level":"info","message":"User 'agp' has logged in From: 10.10.0.182","timestamp":"2015-01-30T17:52:39.052Z"}
+{"level":"insert","message":"Account INS: akolesnikov@puertobuenosaires.gob.ar, se envió mail a {\"attachments\":[],\"alternative\":{\"data\":\"<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link http://terminales.puertobuenosaires.gob.ar:8080/agp/token?salt=82992b972774e2affdcc66594955f04893f517263cda2aa2c01a235757ffff81</p></body></html>\",\"alternative\":true,\"charset\":\"utf-8\",\"type\":\"text/html\",\"inline\":true},\"header\":{\"message-id\":\"<1422640469514.1.20236@UBUNTUSIS058>\",\"date\":\"Fri, 30 Jan 2015 14:54:29 -0300\",\"from\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"to\":\"akolesnikov@puertobuenosaires.gob.ar\",\"bcc\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"subject\":\"=?UTF-8?Q?Nuevo_Usuario?=\"},\"content\":\"text/plain; charset=utf-8\",\"text\":\"\"}","timestamp":"2015-01-30T17:54:29.763Z"}
+{"level":"info","message":"User 'kolesnikov-a' has logged in From: 10.10.0.182","timestamp":"2015-01-30T17:55:59.409Z"}
+{"error":"Token decoding error.Not enough or too many segments","level":"error","message":"Error: %s","timestamp":"2015-01-30T17:57:12.131Z"}
+{"error":"Issue decoding incoming token.","level":"error","message":"Error: %s","timestamp":"2015-01-30T17:57:12.132Z"}
+{"level":"error","message":"undefined","timestamp":"2015-01-30T17:57:12.187Z"}
+{"level":"error","message":"undefined","timestamp":"2015-01-30T17:57:12.188Z"}
+{"level":"error","message":"undefined","timestamp":"2015-01-30T17:57:12.189Z"}
+{"level":"error","message":"undefined","timestamp":"2015-01-30T17:57:12.190Z"}
+{"level":"error","message":"undefined","timestamp":"2015-01-30T17:57:12.191Z"}
+{"level":"error","message":"undefined","timestamp":"2015-01-30T17:57:12.191Z"}
+{"level":"error","message":"undefined","timestamp":"2015-01-30T17:57:12.193Z"}
+{"level":"error","message":"undefined","timestamp":"2015-01-30T17:57:12.193Z"}
+{"level":"error","message":"undefined","timestamp":"2015-01-30T17:57:12.194Z"}
+{"level":"error","message":"undefined","timestamp":"2015-01-30T17:57:12.195Z"}
+{"error":"Token decoding error.Not enough or too many segments","level":"error","message":"Error: %s","timestamp":"2015-01-30T17:57:12.196Z"}
+{"error":"Issue decoding incoming token.","level":"error","message":"Error: %s","timestamp":"2015-01-30T17:57:12.196Z"}
+{"error":"Token decoding error.Not enough or too many segments","level":"error","message":"Error: %s","timestamp":"2015-01-30T17:57:12.831Z"}
+{"error":"Issue decoding incoming token.","level":"error","message":"Error: %s","timestamp":"2015-01-30T17:57:12.832Z"}
+{"level":"info","message":"User 'kolesnikov-a' has logged in From: 10.10.0.182","timestamp":"2015-01-30T17:57:33.667Z"}
+{"level":"info","message":"User 'agp' has logged in From: 10.10.0.182","timestamp":"2015-01-30T17:58:36.752Z"}
+{"level":"info","message":"User 'kolesnikov-a' has logged in From: 10.10.0.182","timestamp":"2015-01-30T17:58:48.199Z"}
+{"level":"insert","message":"Account INS: akolesnikov@puertobuenosaires.gob.ar, se envió mail a {\"attachments\":[],\"alternative\":{\"data\":\"<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link http://terminales.puertobuenosaires.gob.ar:8080/agp/token?salt=35a30094dabb7f981c52f14472add5932418f714a88d430f51a485cbe6b02436</p></body></html>\",\"alternative\":true,\"charset\":\"utf-8\",\"type\":\"text/html\",\"inline\":true},\"header\":{\"message-id\":\"<1422642346894.2.20236@UBUNTUSIS058>\",\"date\":\"Fri, 30 Jan 2015 15:25:46 -0300\",\"from\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"to\":\"akolesnikov@puertobuenosaires.gob.ar\",\"bcc\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"subject\":\"=?UTF-8?Q?Nuevo_Usuario?=\"},\"content\":\"text/plain; charset=utf-8\",\"text\":\"\"}","timestamp":"2015-01-30T18:25:47.070Z"}
+{"level":"info","message":"Caught exception: TypeError: Cannot read property 'email' of undefined","timestamp":"2015-01-30T18:26:34.903Z"}
+{"level":"info","message":"User 'kolesnikov-a' has logged in From: 10.10.0.182","timestamp":"2015-01-30T18:27:20.954Z"}
+{"level":"info","message":"Caught exception: TypeError: Cannot read property 'email' of undefined","timestamp":"2015-01-30T18:28:34.836Z"}
+{"level":"info","message":"Caught exception: TypeError: Cannot read property 'email' of undefined","timestamp":"2015-01-30T18:30:34.858Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-01-30T18:32:07.693Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-01-30T18:35:39.124Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-01-30T18:35:39.127Z"}
+{"level":"info","message":"Process Id (pid): 24063","timestamp":"2015-01-30T18:35:39.127Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-01-30T18:35:39.357Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-01-30T18:35:39.358Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-01-30T18:45:42.238Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-01-30T19:10:11.590Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-01-30T19:10:11.592Z"}
+{"level":"info","message":"Process Id (pid): 25225","timestamp":"2015-01-30T19:10:11.593Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-01-30T19:10:12.140Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-01-30T19:10:12.140Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-01-30T19:11:57.303Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-01-30T19:12:16.190Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-01-30T19:12:16.192Z"}
+{"level":"info","message":"Process Id (pid): 25319","timestamp":"2015-01-30T19:12:16.193Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-01-30T19:12:16.229Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-01-30T19:12:16.229Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-01-30T19:21:05.038Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-01-30T19:21:39.165Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-01-30T19:21:39.168Z"}
+{"level":"info","message":"Process Id (pid): 25596","timestamp":"2015-01-30T19:21:39.169Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-01-30T19:21:39.438Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-01-30T19:21:39.438Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-01-30T19:36:56.321Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-01-30T19:37:26.242Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-01-30T19:37:26.244Z"}
+{"level":"info","message":"Process Id (pid): 25975","timestamp":"2015-01-30T19:37:26.246Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-01-30T19:37:26.668Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-01-30T19:37:26.668Z"}

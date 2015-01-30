@@ -163,12 +163,18 @@ Account.statics.findUser = function(email, token, cb) {
 	});
 };
 
-Account.statics.findAll = function (param, cb) {
+Account.statics.findAll = function (param, project, cb) {
 	var self = this;
-	var r = this.find(param);
+	var projectAux = {};
+	if (typeof project === 'function')
+		cb = project;
+	else
+		projectAux = project;
+
+	var r = this.find(param, projectAux);
 	r.exec(function(err, data){
 		if (!err){
-			if (cb !== undefined){
+			if (typeof cb === 'function'){
 				cb(err, data);
 			}
 		}
