@@ -15,12 +15,13 @@ module.exports = {
 	 */
 	'ttl': 3600000, //1 hour
 	'resetTokenExpiresMinutes': 20, //20 minutes later
-	'email': false,
+	'url': "http://terminales.puertobuenosaires.gob.ar:8080",
+	'email': true,
 	'log': {
 		path:'log/',
 		filename: 'nohup.out',
 		toConsole: true,
-		toFile: false
+		toFile: true
 	},
 	'mongo_url': 'mongodb://localhost:27017/terapi',
 	'mongo_opts':	{

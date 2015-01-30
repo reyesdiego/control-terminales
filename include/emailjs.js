@@ -17,7 +17,19 @@ var mail = function (status){
 };
 
 mail.prototype = {
-	send : function (to, subject, text, callback){
+	send : function (to, subject, text, attachment, callback){
+
+		if (typeof text === 'object'){
+			if (typeof attachment === 'function'){
+				callback = attachment;
+			}
+			attachment = text;
+			text = '';
+		} else {
+			if (typeof attachment === 'function'){
+				callback = attachment;
+			}
+		}
 
 		if (this.status === true){
 			this.server.send(
@@ -26,11 +38,12 @@ mail.prototype = {
 					from:		"AGP <noreply@puertobuenosaires.gob.ar>",
 					to:			to,
 					bcc:		"AGP <noreply@puertobuenosaires.gob.ar>",
-					subject:	subject
+					subject:	subject,
+					attachment: (attachment) ? attachment : []
 				}, function(err, message) {
 					console.log(err || message);
-					if (callback !== undefined && callback != null)
-						callback();
+					if (typeof callback === 'function')
+						callback(message);
 				});
 		}
 	}
