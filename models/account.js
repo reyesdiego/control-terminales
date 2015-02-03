@@ -111,16 +111,17 @@ Account.statics.login = function (username, password, cb) {
 					terminal: user.terminal,
 					token: user.token,
 					date_created: user.date_created,
-					full_name: user.full_name
+					full_name: user.full_name,
+					status: user.status
 				});
 			} else {
 				var errMsg = 'Usuario o Contraseña incorrectos';
-				cb({error: errMsg});
+				cb({message: errMsg});
 			}
 		});
 	} else {
 		var errMsg = 'Usuario o Contraseña incorrectos';
-		cb({error: errMsg});
+		cb({message: errMsg});
 	}
 
 }

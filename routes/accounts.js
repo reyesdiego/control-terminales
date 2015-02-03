@@ -124,6 +124,8 @@ module.exports = function (app, passport, log) {
 	app.post('/login', function(req, res) {
 
 		var json = req.body;
+		var errMsg='';
+
 		if (json.email !== undefined) {
 			Account.login(json.email, json.password, function(err, usersToken) {
 
@@ -174,19 +176,24 @@ module.exports = function (app, passport, log) {
 //						console.error(errMsg);
 //						res.send(403, errMsg);
 //					}
-					var errMsg = util.format("ERROR: Authentication Failed - %s. From: %s", err.error, req.socket.remoteAddress);
-					log.logger.info(errMsg);
-					res.send(403, errMsg);
+					errMsg = util.format("Ha ocurrido un error en el inicio de sesion - %s.", err.message);
+					log.logger.error(errMsg);
+					res.send(403, {status:"ERROR", data: errMsg});
 
 				} else {
-					log.logger.info("User '%s' has logged in From: %s", json.email, req.socket.remoteAddress);
-					res.send(200, usersToken);
+					if (usersToken.status){
+						log.logger.info("User '%s' has logged in From: %s", json.email, req.socket.remoteAddress);
+						res.send(200, {status:"OK", data: usersToken});
+					} else {
+						errMsg = util.format("El usuario %s no se encuentra habilitado para utilizar el sistema. Debe contactar al administrador del sistema.", usersToken.email);
+						res.send(403, {status:"ERROR", data: errMsg});
+					}
 				}
 			});
 		} else {
-			var errMsg = "user or email is missing";
-			log.logger.info(errMsg);
-			res.send(403, errMsg);
+			errMsg = util.format("Debe proveerse un usuario o email");
+			log.logger.error(errMsg);
+			res.send(403, {status:"ERROR", data: errMsg});
 		}
 	});
 
