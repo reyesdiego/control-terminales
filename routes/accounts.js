@@ -5,6 +5,7 @@
  */
 
 module.exports = function (app, passport, log) {
+	var self = this;
 	var path = require('path');
 	var config = require(path.join(__dirname, '..', '/config/config.js'));
 	var Account = require(path.join(__dirname, '..', '/models/account'));
@@ -35,7 +36,8 @@ module.exports = function (app, passport, log) {
 				password: req.body.password,
 				user: req.body.user,
 				role: req.body.role,
-				terminal: terminal
+				terminal: terminal,
+				status: false
 			}
 		);
 		var message;
@@ -58,7 +60,7 @@ module.exports = function (app, passport, log) {
 				//Successfully registered user
 				var mailer = new mail.mail(config.email);
 				var html = {
-					data : "<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link http://terminales.puertobuenosaires.gob.ar:8080/agp/token?salt="+user.salt+"</p></body></html>",
+					data : '<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link <a href="http://terminales.puertobuenosaires.gob.ar:8080/agp/token?salt='+user.salt+'">http://terminales.puertobuenosaires.gob.ar:8080/agp/token?salt='+user.salt+'</a></p></body></html>',
 					alternative: true
 				};
 				mailer.send(user.email, "Nuevo Usuario", html, function(messageBack){
@@ -70,7 +72,7 @@ module.exports = function (app, passport, log) {
 		});
 	});
 
-	app.get('/accounts', function (req, res){
+	app.get('/agp/accounts', function (req, res){
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
@@ -86,7 +88,9 @@ module.exports = function (app, passport, log) {
 						password: true,
 						user: true,
 						role: true,
-						terminal: true
+						group: true,
+						terminal: true,
+						status: true
 					};
 
 					Account.findAll({}, project, function (err, data){
@@ -101,6 +105,14 @@ module.exports = function (app, passport, log) {
 				}
 			}
 		})
+	});
+
+	app.put('/agp/account/:id/enable', function (req, res) {
+		enableAccount(req, res, true);
+	});
+
+	app.put('/agp/account/:id/disable', function (req, res) {
+		enableAccount(req, res, false);
 	});
 
 	/**
@@ -204,7 +216,7 @@ module.exports = function (app, passport, log) {
 					if (err) {
 						res.send(500, {status: "ERROR", data: 'Hubo un problema al generar el token'});
 					} else {
-						res.send(200, "<html><body><p>El usuario "+data[0].email+" ha sido habilitado correctamente</p><p>http://terminales.puertobuenosaires.gob.ar</p></body></html>");
+						res.send(200, '<html><body><p>El usuario '+data[0].email+' ha sido habilitado correctamente</p><a href="http://terminales.puertobuenosaires.gob.ar">http://terminales.puertobuenosaires.gob.ar</a></body></html>');
 					}
 				});
 			});
@@ -212,7 +224,7 @@ module.exports = function (app, passport, log) {
 
 	});
 
-	app.get('/apitest/', function(req, res) {
+	app.get('/apitest', function(req, res) {
 		var incomingToken = req.headers.token;
 		console.log('incomingToken: ' + incomingToken);
 		var decoded = Account.decode(incomingToken);
@@ -264,6 +276,41 @@ module.exports = function (app, passport, log) {
 		});
 	});
 
+	app.post('/agp/resetPassword/:email', function (req, res){
+
+		if (req.params.email != null && req.params.email !== ''){
+			Account.findUserByEmailOnly(req.params.email, function (err, user){
+				var newPass = '';
+				//genero random de 8 letras
+				for (var i=0; i<9; i++){
+					var ascii = Math.random();
+					ascii = ascii * (90 - 65) + 65;
+					ascii = parseInt(ascii, 10);
+					if (Math.random() < .5)
+						newPass += String.fromCharCode(ascii).toLowerCase();
+					else
+						newPass += String.fromCharCode(ascii);
+				}
+
+				user.password = newPass;
+				user.save (function (err, userUpd, rowAffected){
+					var mailer = new mail.mail(config.email);
+					var html = {
+						data : "<html><body><p>Ud. a solicitado el cambio de Clave en la página de Control de Información de Terminales portuarias.</p><p>El nuevo password temporal es: <span color=blue><b>"+newPass+"</b></span></p></body></html>",
+						alternative: true
+					};
+					mailer.send(user.email, "Cambio de Clave", html, function(messageBack){
+						log.logger.update('Account UPD: %s, se envío el cambio de clave correctamente.', user.email);
+					});
+					var result = {email: userUpd.email, full_name: userUpd.full_name, terminal: userUpd.terminal}
+					var message = flash('OK', userUpd);
+					res.send(200, message);
+				});
+
+			});
+		}
+	});
+
 	app.get('/reset/:id', function(req, res) {
 		console.log('GOT IN /reset/:id...');
 		var token = req.params.id,
@@ -284,15 +331,30 @@ module.exports = function (app, passport, log) {
 		}
 	});
 
-	app.get('/test', function(req, res){
+
+	function enableAccount(req, res, enable) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
-			if (err) {
-				res.send(err);
+			if (err){
+				log.logger.error(usr);
+				res.send(403, {status:'ERROR', data: err});
 			} else {
-				res.send({"test": "OK", user: usr});
+				if (usr.terminal === 'AGP' && usr.group === 'ADMIN'){
+					Account.findOne({_id: req.params.id}, function (err, user){
+						if (err){
+
+						}else{
+							user.status = enable;
+							user.save(function (err, userUpd, rowsAffected){
+								var desc = (enable) ? "Habilitada" : "Deshabilitada";
+								log.logger.update('Account UPD: La cuenta ha sido %s correctamente. %s', desc, userUpd.email);
+								res.send(200, {status:'OK', data: userUpd});
+							});
+						}
+					});
+				}
 			}
 		});
-	})
+	}
 
 };

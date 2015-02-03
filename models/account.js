@@ -30,7 +30,8 @@ var Account = new Schema({
 	token: {type: Object},
 	//For reset we use a reset token with an expiry (which must be checked)
 	reset_token: {type: String},
-	reset_token_expires_millis: {type: Number}
+	reset_token_expires_millis: {type: Number},
+	status: {type: Boolean}
 });
 
 Account.plugin(passportLocalMongoose, {usernameField: 'email'});
