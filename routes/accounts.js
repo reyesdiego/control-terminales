@@ -176,7 +176,7 @@ module.exports = function (app, passport, log) {
 //						console.error(errMsg);
 //						res.send(403, errMsg);
 //					}
-					errMsg = util.format("Ha ocurrido un error en el inicio de sesion - %s.", err.message);
+					errMsg = err.message;
 					log.logger.error(errMsg);
 					res.send(403, {status:"ERROR", data: errMsg});
 
@@ -185,7 +185,7 @@ module.exports = function (app, passport, log) {
 						log.logger.info("User '%s' has logged in From: %s", json.email, req.socket.remoteAddress);
 						res.send(200, {status:"OK", data: usersToken});
 					} else {
-						errMsg = util.format("El usuario %s no se encuentra habilitado para utilizar el sistema. Debe contactar al administrador del sistema.", usersToken.email);
+						errMsg = util.format("El usuario %s no se encuentra habilitado para utilizar el sistema. Debe contactar al administrador.", usersToken.email);
 						res.send(403, {status:"ERROR", data: errMsg});
 					}
 				}
