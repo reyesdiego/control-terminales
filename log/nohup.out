@@ -153,3 +153,198 @@
 {"level":"info","message":"Process Id (pid): 25975","timestamp":"2015-01-30T19:37:26.246Z"}
 {"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-01-30T19:37:26.668Z"}
 {"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-01-30T19:37:26.668Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-01-30T19:43:30.730Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T12:51:27.169Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T12:51:27.171Z"}
+{"level":"info","message":"Process Id (pid): 4062","timestamp":"2015-02-02T12:51:27.171Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T12:51:27.229Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T12:51:27.229Z"}
+{"level":"info","message":"User 'agp' has logged in From: 10.10.0.182","timestamp":"2015-02-02T14:06:20.926Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T14:33:30.921Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T14:33:48.727Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T14:33:48.729Z"}
+{"level":"info","message":"Process Id (pid): 6347","timestamp":"2015-02-02T14:33:48.730Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T14:33:48.964Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T14:33:48.964Z"}
+{"level":"insert","message":"Account INS: reyesdiego@hotmail.com, se envió mail a {\"attachments\":[],\"alternative\":{\"data\":\"<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link http://terminales.puertobuenosaires.gob.ar:8080/agp/token?salt=a81c969e6e37c4533465f798e7cc7e9654ecd860cc591c7777a3007a586ed23f</p></body></html>\",\"alternative\":true,\"charset\":\"utf-8\",\"type\":\"text/html\",\"inline\":true},\"header\":{\"message-id\":\"<1422887929808.0.6347@UBUNTUSIS058>\",\"date\":\"Mon, 02 Feb 2015 11:38:49 -0300\",\"from\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"to\":\"reyesdiego@hotmail.com\",\"bcc\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"subject\":\"=?UTF-8?Q?Nuevo_Usuario?=\"},\"content\":\"text/plain; charset=utf-8\",\"text\":\"\"}","timestamp":"2015-02-02T14:38:50.086Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T14:46:32.987Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T14:46:41.909Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T14:46:41.910Z"}
+{"level":"info","message":"Process Id (pid): 6673","timestamp":"2015-02-02T14:46:41.911Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T14:46:41.998Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T14:46:41.998Z"}
+{"level":"insert","message":"Account INS: reyesdiego@hotmail.com, se envió mail a {\"attachments\":[],\"alternative\":{\"data\":\"<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link <a href=\\\"http://terminales.puertobuenosaires.gob.ar:8080/agp/token?salt=d9070091a4add8c539594a15897f07c34be8882b3d58841ac3153f1d1f835f9b\\\">http://terminales.puertobuenosaires.gob.ar:8080/agp/token?salt=d9070091a4add8c539594a15897f07c34be8882b3d58841ac3153f1d1f835f9b</a></p></body></html>\",\"alternative\":true,\"charset\":\"utf-8\",\"type\":\"text/html\",\"inline\":true},\"header\":{\"message-id\":\"<1422888448792.0.6673@UBUNTUSIS058>\",\"date\":\"Mon, 02 Feb 2015 11:47:28 -0300\",\"from\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"to\":\"reyesdiego@hotmail.com\",\"bcc\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"subject\":\"=?UTF-8?Q?Nuevo_Usuario?=\"},\"content\":\"text/plain; charset=utf-8\",\"text\":\"\"}","timestamp":"2015-02-02T14:47:29.039Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T14:50:26.058Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T14:50:33.337Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T14:50:33.339Z"}
+{"level":"info","message":"Process Id (pid): 6830","timestamp":"2015-02-02T14:50:33.340Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T14:50:33.364Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T14:50:33.364Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T14:53:54.612Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T14:54:02.001Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T14:54:02.004Z"}
+{"level":"info","message":"Process Id (pid): 6899","timestamp":"2015-02-02T14:54:02.004Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T14:54:02.031Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T14:54:02.031Z"}
+{"level":"info","message":"Caught exception: ReferenceError: account is not defined","timestamp":"2015-02-02T14:54:32.773Z"}
+{"level":"insert","message":"Account UPD: reyesdiego@hotmail.com, se envío el cambio de clave correctamente.","timestamp":"2015-02-02T14:54:33.260Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T15:00:32.268Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T15:00:44.199Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T15:00:44.201Z"}
+{"level":"info","message":"Process Id (pid): 7046","timestamp":"2015-02-02T15:00:44.202Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T15:00:44.379Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T15:00:44.380Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T15:01:04.241Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T15:01:10.800Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T15:01:10.802Z"}
+{"level":"info","message":"Process Id (pid): 7067","timestamp":"2015-02-02T15:01:10.803Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T15:01:10.829Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T15:01:10.830Z"}
+{"level":"insert","message":"Account INS: reyesdiego@hotmail.com, se envió mail a {\"attachments\":[],\"alternative\":{\"data\":\"<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link <a href=\\\"http://terminales.puertobuenosaires.gob.ar:8080/agp/token?salt=7962be183f94b3de69ab48cdc7f6c2da0ae0343893049a5602f9d2e0c64f9b17\\\">http://terminales.puertobuenosaires.gob.ar:8080/agp/token?salt=7962be183f94b3de69ab48cdc7f6c2da0ae0343893049a5602f9d2e0c64f9b17</a></p></body></html>\",\"alternative\":true,\"charset\":\"utf-8\",\"type\":\"text/html\",\"inline\":true},\"header\":{\"message-id\":\"<1422889312204.0.7067@UBUNTUSIS058>\",\"date\":\"Mon, 02 Feb 2015 12:01:52 -0300\",\"from\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"to\":\"reyesdiego@hotmail.com\",\"bcc\":\"=?UTF-8?Q?AGP?= <noreply@puertobuenosaires.gob.ar>\",\"subject\":\"=?UTF-8?Q?Nuevo_Usuario?=\"},\"content\":\"text/plain; charset=utf-8\",\"text\":\"\"}","timestamp":"2015-02-02T15:01:52.469Z"}
+{"level":"insert","message":"Account UPD: reyesdiego@hotmail.com, se envío el cambio de clave correctamente.","timestamp":"2015-02-02T15:39:30.810Z"}
+{"level":"insert","message":"Account UPD: reyesdiego@hotmail.com, se envío el cambio de clave correctamente.","timestamp":"2015-02-02T15:40:41.168Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T15:50:14.975Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T15:50:31.938Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T15:50:31.940Z"}
+{"level":"info","message":"Process Id (pid): 8430","timestamp":"2015-02-02T15:50:31.940Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T15:50:32.058Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T15:50:32.059Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T16:01:47.726Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T17:10:40.153Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T17:10:40.155Z"}
+{"level":"info","message":"Process Id (pid): 4528","timestamp":"2015-02-02T17:10:40.155Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T17:10:40.260Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T17:10:40.261Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T17:16:25.723Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T17:28:14.215Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T17:28:14.217Z"}
+{"level":"info","message":"Process Id (pid): 5062","timestamp":"2015-02-02T17:28:14.217Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T17:28:14.358Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T17:28:14.359Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T17:28:54.292Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T17:29:03.041Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T17:29:03.045Z"}
+{"level":"info","message":"Process Id (pid): 5094","timestamp":"2015-02-02T17:29:03.045Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T17:29:03.095Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T17:29:03.095Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T17:29:47.296Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T17:29:54.198Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T17:29:54.200Z"}
+{"level":"info","message":"Process Id (pid): 5115","timestamp":"2015-02-02T17:29:54.201Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T17:29:54.237Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T17:29:54.238Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T17:31:00.296Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T17:31:07.086Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T17:31:07.088Z"}
+{"level":"info","message":"Process Id (pid): 5150","timestamp":"2015-02-02T17:31:07.088Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T17:31:07.126Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T17:31:07.127Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T17:31:31.338Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T17:31:40.609Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T17:31:40.611Z"}
+{"level":"info","message":"Process Id (pid): 5172","timestamp":"2015-02-02T17:31:40.612Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T17:31:40.639Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T17:31:40.640Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T17:32:35.693Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T17:32:42.982Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T17:32:42.984Z"}
+{"level":"info","message":"Process Id (pid): 5213","timestamp":"2015-02-02T17:32:42.984Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T17:32:43.018Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T17:32:43.018Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T17:37:39.447Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T17:37:46.399Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T17:37:46.401Z"}
+{"level":"info","message":"Process Id (pid): 5431","timestamp":"2015-02-02T17:37:46.401Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T17:37:46.440Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T17:37:46.440Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T17:39:30.189Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T17:39:40.710Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T17:39:40.712Z"}
+{"level":"info","message":"Process Id (pid): 5466","timestamp":"2015-02-02T17:39:40.713Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T17:39:40.738Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T17:39:40.738Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T17:40:51.990Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T17:40:58.392Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T17:40:58.394Z"}
+{"level":"info","message":"Process Id (pid): 5498","timestamp":"2015-02-02T17:40:58.394Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T17:40:58.419Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T17:40:58.419Z"}
+{"level":"insert","message":"Account UPD: reyesdiego@hotmail.com, se envío el cambio de clave correctamente.","timestamp":"2015-02-02T17:41:03.992Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T17:42:50.684Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T17:42:57.064Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T17:42:57.066Z"}
+{"level":"info","message":"Process Id (pid): 5558","timestamp":"2015-02-02T17:42:57.067Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T17:42:57.100Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T17:42:57.101Z"}
+{"level":"insert","message":"Account UPD: reyesdiego@hotmail.com, se envío el cambio de clave correctamente.","timestamp":"2015-02-02T17:43:04.561Z"}
+{"level":"insert","message":"Account UPD: reyesdiego@hotmail.com, se envío el cambio de clave correctamente.","timestamp":"2015-02-02T18:37:41.578Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T18:46:20.768Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T18:46:33.263Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T18:46:33.265Z"}
+{"level":"info","message":"Process Id (pid): 7071","timestamp":"2015-02-02T18:46:33.265Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T18:46:33.484Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T18:46:33.485Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T19:13:22.925Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T19:13:33.355Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T19:13:33.357Z"}
+{"level":"info","message":"Process Id (pid): 7666","timestamp":"2015-02-02T19:13:33.357Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T19:13:33.396Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T19:13:33.397Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T19:15:04.488Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T19:15:11.107Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T19:15:11.109Z"}
+{"level":"info","message":"Process Id (pid): 7708","timestamp":"2015-02-02T19:15:11.110Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T19:15:11.136Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T19:15:11.136Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T19:15:58.184Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T19:16:04.855Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T19:16:04.857Z"}
+{"level":"info","message":"Process Id (pid): 7731","timestamp":"2015-02-02T19:16:04.858Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T19:16:04.893Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T19:16:04.893Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T19:27:52.004Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T19:28:03.405Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T19:28:03.407Z"}
+{"level":"info","message":"Process Id (pid): 8099","timestamp":"2015-02-02T19:28:03.407Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T19:28:03.514Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T19:28:03.514Z"}
+{"level":"update","message":"Account UPD: La cuenta ha sido Habilitada correctamente.","timestamp":"2015-02-02T19:28:57.744Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-02T19:30:08.737Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-02T19:30:15.134Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-02T19:30:15.136Z"}
+{"level":"info","message":"Process Id (pid): 8175","timestamp":"2015-02-02T19:30:15.136Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-02T19:30:15.159Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-02T19:30:15.159Z"}
+{"level":"update","message":"Account UPD: La cuenta ha sido Habilitada correctamente. reyesdiego@hotmail.com","timestamp":"2015-02-02T19:31:09.756Z"}
+{"level":"info","message":"User 'agp' has logged in From: 10.10.0.182","timestamp":"2015-02-03T12:29:43.807Z"}
+{"level":"info","message":"User 'agp' has logged in From: 10.10.0.182","timestamp":"2015-02-03T13:32:03.222Z"}
+{"level":"error","message":"undefined","timestamp":"2015-02-03T13:33:01.639Z"}
+{"level":"info","message":"User 'agp' has logged in From: 10.10.0.182","timestamp":"2015-02-03T13:34:26.230Z"}
+{"level":"error","message":"undefined","timestamp":"2015-02-03T13:34:29.470Z"}
+{"level":"error","message":"undefined","timestamp":"2015-02-03T13:34:55.693Z"}
+{"level":"error","message":"undefined","timestamp":"2015-02-03T13:35:30.260Z"}
+{"level":"error","message":"undefined","timestamp":"2015-02-03T13:35:42.678Z"}
+{"level":"error","message":"undefined","timestamp":"2015-02-03T13:35:50.657Z"}
+{"level":"error","message":"undefined","timestamp":"2015-02-03T13:36:42.869Z"}
+{"level":"error","message":"undefined","timestamp":"2015-02-03T13:40:41.260Z"}
+{"level":"info","message":"User 'agp' has logged in From: 10.10.0.182","timestamp":"2015-02-03T13:43:57.875Z"}
+{"level":"error","message":"undefined","timestamp":"2015-02-03T13:44:02.355Z"}
+{"level":"error","message":"undefined","timestamp":"2015-02-03T13:48:12.638Z"}
+{"level":"error","message":"undefined","timestamp":"2015-02-03T13:48:36.267Z"}
+{"level":"info","message":"User 'agp' has logged in From: 127.0.0.1","timestamp":"2015-02-03T14:06:52.751Z"}
+{"level":"info","message":"User 'agp' has logged in From: 127.0.0.1","timestamp":"2015-02-03T14:08:19.351Z"}
+{"level":"info","message":"User 'agp' has logged in From: 10.10.0.182","timestamp":"2015-02-03T14:15:03.391Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-03T14:16:55.480Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-03T14:17:08.604Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-03T14:17:08.606Z"}
+{"level":"info","message":"Process Id (pid): 29919","timestamp":"2015-02-03T14:17:08.606Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-03T14:17:08.740Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-03T14:17:08.741Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-03T14:18:59.476Z"}
+{"level":"info","message":"Nodejs server Version: v0.10.29","timestamp":"2015-02-03T14:19:09.172Z"}
+{"level":"info","message":"Running on http://localhost:8080","timestamp":"2015-02-03T14:19:09.174Z"}
+{"level":"info","message":"Process Id (pid): 29970","timestamp":"2015-02-03T14:19:09.174Z"}
+{"level":"info","message":"Mongoose version: 3.8.1","timestamp":"2015-02-03T14:19:09.217Z"}
+{"level":"info","message":"Connected to Database. mongodb://localhost:27017/terapi","timestamp":"2015-02-03T14:19:09.218Z"}
+{"level":"update","message":"Account UPD: reyesdiego@hotmail.com, se envío el cambio de clave correctamente.","timestamp":"2015-02-03T14:19:29.108Z"}
+{"level":"error","message":"Mongoose default connection disconnected","timestamp":"2015-02-03T14:38:58.799Z"}

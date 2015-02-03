@@ -21,7 +21,7 @@ module.exports = {
 		path:'log/',
 		filename: 'nohup.out',
 		toConsole: true,
-		toFile: true
+		toFile: false
 	},
 	'mongo_url': 'mongodb://localhost:27017/terapi',
 	'mongo_opts':	{
