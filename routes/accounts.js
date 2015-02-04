@@ -59,15 +59,19 @@ module.exports = function (app, passport, log) {
 			} else {
 				//Successfully registered user
 				var mailer = new mail.mail(config.email);
-				var html = {
-					data : '<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link <a href="http://terminales.puertobuenosaires.gob.ar:8080/agp/token?salt='+user.salt+'">http://terminales.puertobuenosaires.gob.ar:8080/agp/token?salt='+user.salt+'</a></p></body></html>',
-					alternative: true
-				};
-				mailer.send(user.email, "Nuevo Usuario", html, function(messageBack){
+
+				res.render('registerUser.jade', {salt: user.salt, full_name: user.full_name, user: user.user, password: user.password}, function(err, html) {
+					var html = {
+						data : html,
+						alternative: true
+					};
+					mailer.send(user.email, "Solicitud de registro", html, function(messageBack){
 						log.logger.insert('Account INS: %s, se envió mail a %s', user.email, JSON.stringify(messageBack));
+					});
+					message = flash('OK', account);
+					res.send(200, message);
 				});
-				message = flash('OK', account);
-				res.send(200, message);
+
 			}
 		});
 	});
@@ -109,12 +113,29 @@ module.exports = function (app, passport, log) {
 	});
 
 	app.put('/agp/account/:id/enable', function (req, res) {
-		enableAccount(req, res, true);
+		var message = '';
+		enableAccount(req, res, true, function (user){
+			res.render('enableUser.jade', {full_name: user.full_name, user: user.user, password: user.password}, function(err, html) {
+				var html = {
+					data : html,
+					alternative: true
+				};
+				var mailer = new mail.mail(config.email);
+				mailer.send(user.email, "Usuario aprobado", html, function(messageBack){
+					log.logger.update('Account ENABLE: %s, se envió mail a %s', user.email, JSON.stringify(messageBack));
+					message = flash('OK', user);
+					res.send(200, message);
+				});
+			});
+		});
 	});
 
-	app.put('/agp/account/:id/disable', function (req, res) {
-		enableAccount(req, res, false);
+	app.put('/agp/account/:id/disable', function (req, res){
+		enableAccount(req, res, false, function (user){
+			res.send(200, {status:'OK', data: user});
+		});
 	});
+
 
 	/**
 	 * Login method
@@ -220,11 +241,22 @@ module.exports = function (app, passport, log) {
 
 		if (req.query.salt !== undefined){
 			Account.findAll({salt: req.query.salt}, function (err, data){
-				Account.createUserToken(data[0].email, function(err, usersToken) {
+				var user = data[0];
+				Account.createUserToken(user.email, function(err, html) {
 					if (err) {
 						res.send(500, {status: "ERROR", data: 'Hubo un problema al generar el token'});
 					} else {
-						res.send(200, '<html><body><p>El usuario '+data[0].email+' ha sido habilitado correctamente</p><a href="http://terminales.puertobuenosaires.gob.ar">http://terminales.puertobuenosaires.gob.ar</a></body></html>');
+						res.render('tokenUser.jade', {full_name: user.full_name, user: user.user, password: user.password}, function(err, html) {
+							var mailer = new mail.mail(config.email);
+							var htmlMail = {
+								data : "<html><body><p>El usuario "+user.user+" ha solicitado ingreso al sistema.</p></body></html>",
+								alternative: true
+							};
+							mailer.send("dreyes@puertobuenosaires.gob.ar", "Nuevo usuario para IIT", htmlMail, function(messageBack){
+							});
+							res.send(200, html);
+						});
+
 					}
 				});
 			});
@@ -260,28 +292,6 @@ module.exports = function (app, passport, log) {
 
 	app.get('/logout', function(req, res) {
 		req.logout();
-	});
-
-	app.get('/forgot', function(req, res) {
-		res.render('forgot');
-	});
-
-	app.post('/forgot', function(req, res) {
-
-		Account.generateResetToken(req.body.email, function(err, user) {
-			if (err) {
-				res.json({error: 'Issue finding user.'});
-			} else {
-				var token = user.reset_token;
-				var resetLink = 'http://localhost:1337/reset/'+ token;
-
-				//TODO: This is all temporary hackish. When we have email configured
-				//properly, all this will be stuffed within that email instead :)
-				res.send('<h2>Reset Email (simulation)</h2><br><p>To reset your password click the URL below.</p><br>' +
-					'<a href=' + resetLink + '>' + resetLink + '</a><br>' +
-					'If you did not request your password to be reset please ignore this email and your password will stay as it is.');
-			}
-		});
 	});
 
 	app.post('/agp/resetPassword/:email', function (req, res){
@@ -320,7 +330,7 @@ module.exports = function (app, passport, log) {
 								log.logger.update('Account UPD: %s, se envío el cambio de clave correctamente.', user.email);
 							});
 							var result = {email: userUpd.email, full_name: userUpd.full_name, terminal: userUpd.terminal}
-							var message = flash('OK', userUpd);
+							var message = flash('OK', result);
 							res.send(200, message);
 						});
 					} else {
@@ -355,7 +365,7 @@ module.exports = function (app, passport, log) {
 	});
 
 
-	function enableAccount(req, res, enable) {
+	function enableAccount(req, res, enable, callback) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
@@ -371,7 +381,7 @@ module.exports = function (app, passport, log) {
 							user.save(function (err, userUpd, rowsAffected){
 								var desc = (enable) ? "Habilitada" : "Deshabilitada";
 								log.logger.update('Account UPD: La cuenta ha sido %s correctamente. %s', desc, userUpd.email);
-								res.send(200, {status:'OK', data: userUpd});
+								callback(userUpd);
 							});
 						}
 					});
