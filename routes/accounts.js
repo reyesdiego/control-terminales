@@ -90,7 +90,8 @@ module.exports = function (app, passport, log) {
 						role: true,
 						group: true,
 						terminal: true,
-						status: true
+						status: true,
+						'token.date_created': true
 					};
 
 					Account.findAll({}, project, function (err, data){
@@ -286,34 +287,49 @@ module.exports = function (app, passport, log) {
 	app.post('/agp/resetPassword/:email', function (req, res){
 
 		if (req.params.email != null && req.params.email !== ''){
-			Account.findUserByEmailOnly(req.params.email, function (err, user){
-				var newPass = '';
-				//genero random de 8 letras
-				for (var i=0; i<9; i++){
-					var ascii = Math.random();
-					ascii = ascii * (90 - 65) + 65;
-					ascii = parseInt(ascii, 10);
-					if (Math.random() < .5)
-						newPass += String.fromCharCode(ascii).toLowerCase();
-					else
-						newPass += String.fromCharCode(ascii);
+			Account.findUserByEmailOnly(req.params.email, function (err, user) {
+				var message='';
+				if (err) {
+					var msg = util.format('Ha ocurrido un error al intentar resetar el password: %s', err.message);
+					message = flash("ERROR", msg);
+					res.send(500, message);
+				} else {
+
+					if (user != null){
+
+						var newPass = '';
+						//genero random de 8 letras
+						for (var i=0; i<9; i++){
+							var ascii = Math.random();
+							ascii = ascii * (90 - 65) + 65;
+							ascii = parseInt(ascii, 10);
+							if (Math.random() < .5)
+								newPass += String.fromCharCode(ascii).toLowerCase();
+							else
+								newPass += String.fromCharCode(ascii);
+						}
+
+						user.password = newPass;
+						user.save (function (err, userUpd, rowAffected){
+							var mailer = new mail.mail(config.email);
+							var html = {
+								data : "<html><body><p>Ud. a solicitado el cambio de Clave en la página de Control de Información de Terminales portuarias.</p><p>El nuevo password temporal es: <span color=blue><b>"+newPass+"</b></span></p></body></html>",
+								alternative: true
+							};
+							mailer.send(user.email, "Cambio de Clave", html, function(messageBack){
+								log.logger.update('Account UPD: %s, se envío el cambio de clave correctamente.', user.email);
+							});
+							var result = {email: userUpd.email, full_name: userUpd.full_name, terminal: userUpd.terminal}
+							var message = flash('OK', userUpd);
+							res.send(200, message);
+						});
+					} else {
+						var msg = util.format('La cuenta de correo %s no ha sido registrada.', req.params.email);
+						message = flash("ERROR", msg);
+						res.send(500, message);
+					}
+
 				}
-
-				user.password = newPass;
-				user.save (function (err, userUpd, rowAffected){
-					var mailer = new mail.mail(config.email);
-					var html = {
-						data : "<html><body><p>Ud. a solicitado el cambio de Clave en la página de Control de Información de Terminales portuarias.</p><p>El nuevo password temporal es: <span color=blue><b>"+newPass+"</b></span></p></body></html>",
-						alternative: true
-					};
-					mailer.send(user.email, "Cambio de Clave", html, function(messageBack){
-						log.logger.update('Account UPD: %s, se envío el cambio de clave correctamente.', user.email);
-					});
-					var result = {email: userUpd.email, full_name: userUpd.full_name, terminal: userUpd.terminal}
-					var message = flash('OK', userUpd);
-					res.send(200, message);
-				});
-
 			});
 		}
 	});

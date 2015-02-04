@@ -47,7 +47,7 @@ Account.statics.decode = function(data) {
 Account.statics.verifyToken = function(incomingToken, cb) {
 	var err;
 
-	if (incomingToken !== undefined){
+	if (incomingToken !== undefined && incomingToken != null){
 		try {
 			var decoded = jwt.decode(incomingToken, tokenSecret);
 		} catch (e){
@@ -91,29 +91,34 @@ Account.statics.login = function (username, password, cb) {
 
 	if (username !== undefined && username !== '' && password !== undefined && password !== ''){
 		this.findOne({
-				$or: [{email: username}, {user:username}],
-				password: password
-			}, function(err, user){
+			$or: [{email: username}, {user:username}],
+			password: password
+		}, function(err, user){
 			if (err){
 				cb(err, null);
 			} else if (user) {
 
-				//TODO
-				//Por ahora solo acceso a terminales
-				var rutasAcceso = ['matches.search','tarifario', 'invoices', 'invoices.result', 'invoices.search', 'matches', 'control', 'cfacturas', 'cfacturas.result', 'gates', 'gates.invoices', 'gates.invoices.result', 'gates.result.container', 'turnos', 'turnos.result'];
+				if (user.token !== undefined){
+					//TODO
+					//Por ahora solo acceso a terminales
+					var rutasAcceso = ['matches.search','tarifario', 'invoices', 'invoices.result', 'invoices.search', 'matches', 'control', 'cfacturas', 'cfacturas.result', 'gates', 'gates.invoices', 'gates.invoices.result', 'gates.result.container', 'turnos', 'turnos.result'];
 
-				cb(false, {
-					acceso: rutasAcceso,
-					role: user.role,
-					email: user.email,
-					user: user.user,
-					group: user.group,
-					terminal: user.terminal,
-					token: user.token,
-					date_created: user.date_created,
-					full_name: user.full_name,
-					status: user.status
-				});
+					cb(false, {
+						acceso: rutasAcceso,
+						role: user.role,
+						email: user.email,
+						user: user.user,
+						group: user.group,
+						terminal: user.terminal,
+						token: user.token,
+						date_created: user.date_created,
+						full_name: user.full_name,
+						status: user.status
+					});
+				} else {
+					var errMsg = 'El usuario no ha validado su cuenta para ingresar el sistema. Verifique su cuenta de correo.';
+					cb({message: errMsg});
+				}
 			} else {
 				var errMsg = 'Usuario o Contraseña incorrectos';
 				cb({message: errMsg});
@@ -186,10 +191,10 @@ Account.statics.findAll = function (param, project, cb) {
 Account.statics.findUserByEmailOnly = function(email, cb) {
     var self = this;
     this.findOne({email: email}, function(err, usr) {
-        if(err || !usr) {
+        if(err) {
             cb(err, null);
         } else {
-            cb(false, usr);
+            cb(null, usr);
         }
     });
 };
