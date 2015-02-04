@@ -35,9 +35,9 @@ mail.prototype = {
 			this.server.send(
 				{
 					text:		text,
-					from:		"AGP <noreply@puertobuenosaires.gob.ar>",
+					from:		"A.G.P. <noreply@puertobuenosaires.gob.ar>",
 					to:			to,
-					bcc:		"AGP <noreply@puertobuenosaires.gob.ar>",
+					bcc:		"A.G.P. <noreply@puertobuenosaires.gob.ar>",
 					subject:	subject,
 					attachment: (attachment) ? attachment : []
 				}, function(err, message) {
