@@ -629,7 +629,7 @@ module.exports = function(app, io, log) {
 		var terminal = req.params.terminal;
 
 		var _price = require('../include/price.js');
-		var _rates = new _price.price();
+		var _rates = new _price.price(terminal);
 
 		_rates.rates(function (err, rates){
 
