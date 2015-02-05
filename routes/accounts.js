@@ -115,23 +115,32 @@ module.exports = function (app, passport, log) {
 	app.put('/agp/account/:id/enable', function (req, res) {
 		var message = '';
 		enableAccount(req, res, true, function (user){
-			res.render('enableUser.jade', {full_name: user.full_name, user: user.user, password: user.password}, function(err, html) {
-				var html = {
-					data : html,
-					alternative: true
-				};
-				var mailer = new mail.mail(config.email);
-				mailer.send(user.email, "Usuario aprobado", html, function(messageBack){
-					log.logger.update('Account ENABLE: %s, se envió mail a %s', user.email, JSON.stringify(messageBack));
-					message = flash('OK', user);
-					res.send(200, message);
+			var sendMail = config.email;
+
+			message = flash('OK', user);
+
+			if (sendMail){
+				res.render('enableUser.jade', {full_name: user.full_name, user: user.user, password: user.password}, function(err, html) {
+					var html = {
+						data : html,
+						alternative: true
+					};
+					var mailer = new mail.mail(config.email);
+					mailer.send(user.email, "Usuario aprobado", html, function(messageBack){
+						log.logger.update('Account ENABLE: %s, se envió mail a %s', user.email, JSON.stringify(messageBack));
+						res.send(200, message);
+					});
 				});
-			});
+			} else {
+				log.logger.update('Account ENABLE: %s', user.email);
+				res.send(200, message);
+			}
 		});
 	});
 
 	app.put('/agp/account/:id/disable', function (req, res){
 		enableAccount(req, res, false, function (user){
+			log.logger.update('Account DISABLED: %s', user.email);
 			res.send(200, {status:'OK', data: user});
 		});
 	});
@@ -379,9 +388,12 @@ module.exports = function (app, passport, log) {
 						}else{
 							user.status = enable;
 							user.save(function (err, userUpd, rowsAffected){
-								var desc = (enable) ? "Habilitada" : "Deshabilitada";
-								log.logger.update('Account UPD: La cuenta ha sido %s correctamente. %s', desc, userUpd.email);
-								callback(userUpd);
+								if (err != null){
+									log.logger.error("Error en Enable/Disable Account %s", err.message);
+									res.send(500, {status:'ERROR', data: err.message});
+								} else {
+									callback(userUpd);
+								}
 							});
 						}
 					});
