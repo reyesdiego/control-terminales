@@ -89,7 +89,6 @@ module.exports = function (app, io, log) {
 	function getGatesByHour(req, res){
 		'use strict';
 
-		var moment = require('moment');
 		var date = moment(moment().format('YYYY-MM-DD')).toDate();
 		if (req.query.fecha !== undefined){
 			date = moment(moment(req.query.fecha).format('YYYY-MM-DD')).toDate();
@@ -105,13 +104,16 @@ module.exports = function (app, io, log) {
 
 				var jsonParam = [
 					{$match: { 'gateTimestamp': {$gte: date, $lt: tomorrow} }},
-					{ $project: {'accessDate':'$gateTimestamp', terminal: '$terminal'} },
+					{ $project: {
+						gateTimestamp : {$subtract:[ '$gateTimestamp', 60*60*3000]},
+						terminal: '$terminal'}
+					},
 					{ $group : {
 						_id : { terminal: '$terminal',
-							year: { $year : "$accessDate" },
-							month: { $month : "$accessDate" },
-							day: { $dayOfMonth : "$accessDate" },
-							hour: { $hour : "$accessDate" }
+							year: { $year : "$gateTimestamp" },
+							month: { $month : "$gateTimestamp" },
+							day: { $dayOfMonth : "$gateTimestamp" },
+							hour: { $hour : "$gateTimestamp" }
 						},
 						cnt : { $sum : 1 }
 					}
@@ -145,14 +147,18 @@ module.exports = function (app, io, log) {
 
 				var jsonParam = [
 					{$match: { 'gateTimestamp': {$gte: month5Ago, $lt: nextMonth} }},
-					{ $project: {'accessDate':'$gateTimestamp', terminal: '$terminal'} },
-					{ $group : {
-						_id : { terminal: '$terminal',
-							year: { $year : "$accessDate" },
-							month: { $month : "$accessDate" }
-						},
-						cnt : { $sum : 1 }
+					{ $project : {
+						terminal: '$terminal',
+						gateTimestamp : {$subtract:[ '$gateTimestamp', 60*60*3000]}
 					}
+					},
+					{"$group":	{	_id:{
+										"terminal":"$terminal",
+										"year":{"$year":"$gateTimestamp"},
+										"month":{"$month":"$gateTimestamp"}
+									},
+									cnt:{"$sum":1}
+								}
 					},
 					{ $sort: {'_id.month': 1, '_id.terminal': 1 }}
 				];
