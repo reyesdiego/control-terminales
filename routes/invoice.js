@@ -4,23 +4,23 @@
 
 'use strict';
 
-var path = require('path');
-var Account = require(path.join(__dirname, '..', '/models/account'));
-var util = require('util');
-
-var mail = require("../include/emailjs");
-
-var dateTime = require('../include/moment');
-var moment = require('moment');
-
-var config = require('../config/config.js');
-
 /**
  * Created by Diego Reyes on 1/7/14.
  *
  * @module Routes
  */
 module.exports = function(app, io, log) {
+
+	var path = require('path');
+	var Account = require(path.join(__dirname, '..', '/models/account'));
+	var util = require('util');
+
+	var mail = require("../include/emailjs");
+
+	var dateTime = require('../include/moment');
+	var moment = require('moment');
+
+	var config = require('../config/config.js');
 
 	var Invoice = require('../models/invoice.js');
 	var Gate = require('../models/gate.js');
@@ -492,31 +492,45 @@ module.exports = function(app, io, log) {
 	}
 
 	function getCounts (req, res){
-		var mongoose = require('mongoose');
 
 		var jsonParam = [];
+		var match = {$match:{}};
 
-		if (req.query.fecha){
-			var objIdToday = dateTime.getObjectId0000(req.query.fecha);
-			var objIdTomorrow = dateTime.getObjectId0000(moment(req.query.fecha).add('days',1));
-
-			jsonParam.push({$match: {_id: {
-				$gte: mongoose.Types.ObjectId(objIdToday),
-				$lt: mongoose.Types.ObjectId(objIdTomorrow)
-			}
-			}});
+		var fechaEmision = moment(moment().format('YYYY-MM-DD')).toDate();
+		if (req.query.fecha !== undefined) {
+			fechaEmision = moment(moment(req.query.fecha).format('YYYY-MM-DD')).toDate();
 		}
-		jsonParam.push({ $group: {
-			_id: {terminal:'$terminal'},
-			cnt: {$sum: 1}
-		}});
+		var tomorrow = moment(fechaEmision).add('days', 1).toDate();
+		match['$match'] = {'fecha.emision' : {$gte: fechaEmision, '$lt': tomorrow}};
+		jsonParam.push(match);
+/*
+ var mongoose = require('mongoose');
+ 		if (req.query.fechaTransferencia){
+			var objIdToday = dateTime.getObjectId0000(req.query.fechaTransferencia);
+			var objIdTomorrow = dateTime.getObjectId0000(moment(req.query.fechaTransferencia).add('days',1));
+
+			match['_id'] = {
+								$gte: mongoose.Types.ObjectId(objIdToday),
+								$lt: mongoose.Types.ObjectId(objIdTomorrow)
+							};
+		}
+*/
+
+		jsonParam.push({
+					$group:	{
+								_id: {terminal:'$terminal', codTipoComprob: '$codTipoComprob'},
+								total: {$sum: '$importe.total'},
+								cnt: {$sum: 1}
+							}
+		});
+		jsonParam.push({$sort: {'_id.terminal':1, '_id.codTipoComprob': 1}});
 
 		Invoice.aggregate(jsonParam, function (err, data){
 			if (!err){
 				res.send({status:"OK", data: data}, {"content-type":"applicacion/json"}, 200);
 			} else {
 				log.logger.error(err);
-				res.send(err, {"content-type":"text/plain"}, 500);
+				res.send({status: 'OK', data: err.message}, {"content-type":"text/plain"}, 500);
 			}
 		});
 	}
