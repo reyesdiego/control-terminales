@@ -15,7 +15,7 @@ module.exports = {
 	 */
 	'ttl': 3600000, //1 hour
 	'resetTokenExpiresMinutes': 20, //20 minutes later
-	'url': "http://terminales.puertobuenosaires.gob.ar:8080",
+	'url': "http://10.0.0.223:8080",
 	'email': false,
 	'log': {
 		path:'log/',
