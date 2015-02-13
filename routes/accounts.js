@@ -60,7 +60,7 @@ module.exports = function (app, passport, log) {
 				//Successfully registered user
 				var mailer = new mail.mail(config.email);
 
-				res.render('registerUser.jade', {salt: user.salt, full_name: user.full_name, user: user.user, password: user.password}, function(err, html) {
+				res.render('registerUser.jade', {url: config.url, salt: user.salt, full_name: user.full_name, user: user.user, password: user.password}, function(err, html) {
 					var html = {
 						data : html,
 						alternative: true
