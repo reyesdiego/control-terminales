@@ -6,7 +6,11 @@
 
 
 try {
-	throw (33,"rrr");
+
+	var json =	'{"l": 9}';
+	json = JSON.parse(json);
+
+	console.log(json);
 } catch (e) {
-	console.log(e);
+	console.error(e);
 }

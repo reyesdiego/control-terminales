@@ -1161,7 +1161,7 @@ module.exports = function(app, io, log) {
 									data: faltantes
 								};
 //								io.sockets.emit('correlative', result);
-								io.sockets.emit('correlative_'+req.query.x, req.query.x, result);
+								io.sockets.emit('correlative_'+req.query.x, result);
 
 
 								callback(null, result);
