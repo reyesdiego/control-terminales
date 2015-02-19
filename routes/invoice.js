@@ -538,14 +538,47 @@ module.exports = function(app, io, log) {
 								cnt: {$sum: 1}
 							}
 		});
-		jsonParam.push({$sort: {'_id.terminal':1, '_id.codTipoComprob': 1}});
+		jsonParam.push({$project : {_id:false, terminal: '$_id.terminal', codTipoComprob: '$_id.codTipoComprob', cnt : '$cnt'}});
+		jsonParam.push({$sort: {'terminal':1, 'codTipoComprob': 1}});
 
 		Invoice.aggregate(jsonParam, function (err, data){
 			if (!err){
-				res.send({status:"OK", data: data}, {"content-type":"applicacion/json"}, 200);
+
+				var Enumerable = require('linq');
+
+				var response = Enumerable.from(data)
+					.groupBy(
+					function (item){
+						return item.codTipoComprob
+					},
+					function (item){
+						return item
+					},
+					function (job, grouping) {
+
+						var grupo = grouping.getSource();
+						var tot = grouping.sum(function (item){
+							return item.cnt;
+						});
+
+						var grupoItem={
+							codTipoComprob: job,
+							total: tot
+						};
+
+						grupo.forEach(function (item){
+							var porcen = item.cnt * 100 / tot;
+							grupoItem[item.terminal] = [item.cnt, porcen];
+						});
+
+						return grupoItem;
+
+					}).toArray();
+
+				res.send({status:"OK", data: response}, {"content-type":"applicacion/json"}, 200);
 			} else {
 				log.logger.error(err);
-				res.send({status: 'OK', data: err.message}, {"content-type":"text/plain"}, 500);
+				res.send({status: 'ERROR', data: err.message}, {"content-type":"text/plain"}, 500);
 			}
 		});
 	}
