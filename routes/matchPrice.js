@@ -1,9 +1,9 @@
 /**
  * Created by Diego Reyes	on 2/18/14.
  */
-'use strict';
 
 module.exports = function (app, log){
+	'use strict';
 
 	var MatchPrice = require('../models/matchPrice.js');
 	var Invoice = require('../models/invoice.js');
@@ -64,7 +64,6 @@ module.exports = function (app, log){
 	}
 
 	function getMatches (req, res){
-		'use strict';
 
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
@@ -131,7 +130,7 @@ module.exports = function (app, log){
 	}
 
 	function getNoMatches (req, res) {
-		'use strict';
+
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
@@ -207,7 +206,6 @@ module.exports = function (app, log){
 	}
 
 	function addMatchPrice (req, res){
-		'use strict';
 
 		var async = require('async');
 
