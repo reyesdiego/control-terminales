@@ -338,7 +338,14 @@ module.exports = function(app, io, log) {
 			if (!errSave) {
 				log.logger.insert("Invoice INS: %s - %s - Tipo: %s Nro: %s - %s", data._id, usr.terminal, postData.codTipoComprob, postData.nroComprob, postData.fechaEmision);
 
-				var socketMsg = {status:'OK', datetime: dateTime.getDatetime(), terminal: usr.terminal};
+				var socketMsg = {
+					status:'OK',
+					data : {
+						emision : data.fecha.emision,
+						terminal : data.terminal,
+						codTipoComprob : data.codTipoComprob
+					}
+				}
 				io.sockets.emit('invoice', socketMsg);
 
 				var comment = 'Comprobante transferido correntamente.';
@@ -379,16 +386,18 @@ module.exports = function(app, io, log) {
 
 						var estado = invoices[0].estado[invoices[0].estado.length-1].estado;
 						if (estado === 'E'){
-							Invoice.remove({_id : invoices[0]._id}, function (err, invoDeleted){
-								console.log('borrado.');
-								_addInvoice(res, postData, usr, function (statusHttp, object){
-									res.send(statusHttp, object);
+							Invoice.remove({_id : invoices[0]._id}, function (err, delInvoice){
+								log.logger.delete('Se eliminó el comprobante %s para ser retransferido.', invoices[0]._id.toString());
+								Comment.remove({invoice: invoices[0]._id}, function (errComment, delComment){
+									_addInvoice(res, postData, usr, function (statusHttp, object){
+										res.send(statusHttp, object);
+									});
 								});
 							});
 						} else {
 							var errMsg = util.format('Error INS: El tipo de comprobante: %s, número: %s, fue transferido el %s:\n %s\n\n%s - ERROR:%s', invoices[0].codTipoComprob, invoices[0].nroComprob, dateTime.getDateTimeFromObjectId(invoices[0]._id), invoices[0], moment(), errSave);
 							var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
-							log.logger.error('error', errMsg, { data: postData});
+							log.logger.error(errMsg, { data: postData});
 
 							var mailer = new mail.mail(config.email);
 							mailer.send(usr.email, strSubject, errMsg, function(){
