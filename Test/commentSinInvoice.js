@@ -17,9 +17,9 @@ console.log('Running mongoose version %s', mongoose.version);
  */
 
 //mongoose.connect('mongodb://localhost/terapi', function (err) {
-mongoose.connect('mongodb://10.1.0.51/terapi', {
+mongoose.connect('mongodb://localhost/terapi', {
 	user: 'admin',
-	pass: 'Pt trend 54',
+	pass: 'desarrollo',
 	auth:{authdb:"admin"}
 }, function (err) {
 
@@ -39,9 +39,12 @@ function getData() {
 			Invoice.findOne({_id: comment.invoice}, function (err, invoice){
 
 					if (invoice == null){
-						Comment.remove({_id: comment._id}, function (err, commentDel){
-							asyncCallback();
-						});
+//						Comment.remove({_id: comment._id}, function (err, commentDel){
+//							asyncCallback();
+//						});
+						asyncCallback();
+						console.log(comment._id);
+						done();
 					} else {
 						asyncCallback();
 					}
@@ -54,5 +57,6 @@ function done(){
 	console.log("terminó..");
 	mongoose.connection.close(function () {
 		console.log("Mongoose conexión cerrada normalmente.");
+		process.exit(0);
 	});
 }
