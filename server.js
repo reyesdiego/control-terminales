@@ -46,6 +46,8 @@ if (process.env.HTTP === 'https'){
 } else {
 	var http = require('http');
 
+	http.globalAgent.maxSockets = 100;
+
 	port = config.server_port;
 	protocol = 'http';
 
@@ -279,7 +281,7 @@ mongoose.connection.on('connected', function () {
 	log.logger.info("Connected to Database. %s",config.mongo_url);
 });
 mongoose.connection.on('error',function (err) {
-	log.logger.error("ERROR: Database or Mongoose error. %s",err);
+	log.logger.error("Database or Mongoose error. %s", err.toString());
 });
 mongoose.connection.on('disconnected', function () {
 	log.logger.error("Mongoose default connection disconnected");
