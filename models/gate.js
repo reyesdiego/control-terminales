@@ -7,7 +7,7 @@ var gate = new mongoose.Schema({
 	terminal:	{type: String},
 	buque:			{type: String},
 	viaje:			{type: String},
-	contenedor:		{type: String, required: true},
+	contenedor:		{type: String},
 	mov:			{type: String, enum:['IMPO', 'EXPO', 'PASO']},
 	tipo:			{type: String, enum:['IN', 'OUT']},
 	carga:			{type: String, enum:['NO', 'LL', 'VA']},
