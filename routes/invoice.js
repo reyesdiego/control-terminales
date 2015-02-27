@@ -12,7 +12,9 @@
 module.exports = function(app, io, log) {
 
 	var path = require('path');
+
 	var Account = require(path.join(__dirname, '..', '/models/account'));
+
 	var util = require('util');
 
 	var mail = require("../include/emailjs");
@@ -29,488 +31,135 @@ module.exports = function(app, io, log) {
 
 	var logInvoiceBody = false;
 
-	//GET - Return all invoice in the DB
-	function getInvoices (req, res) {
-
+	function isValidToken (req, res, next){
 		var incomingToken = req.headers.token;
+		var paramTerminal = req.params.terminal;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				log.logger.error(usr);
+				log.logger.error(err);
 				res.send(500, {status:'ERROR', data: err});
 			} else {
-				var fecha;
 
-				var paramTerminal = req.params.terminal;
-				var limit = parseInt(req.params.limit, 10);
-				var skip = parseInt(req.params.skip, 10);
-
-				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
+				if (paramTerminal !== undefined && usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
 					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
 					log.logger.error(errMsg);
 					res.send(500, {status:"ERROR", data: errMsg});
 				} else {
-
-					var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
-					var param = {
-						terminal:	ter
-					};
-
-					if (req.query.fechaInicio || req.query.fechaFin){
-						param["fecha.emision"]={};
-						if (req.query.fechaInicio){
-							fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD 00:00:00 Z'));
-							param["fecha.emision"]['$gte'] = fecha;
-						}
-						if (req.query.fechaFin){
-							fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD 00:00:00 Z'));
-							param["fecha.emision"]['$lte'] = fecha;
-						}
-					}
-					if (req.query.nroPtoVenta){
-						param.nroPtoVenta = req.query.nroPtoVenta;
-					}
-					if (req.query.codTipoComprob){
-						param.codTipoComprob = req.query.codTipoComprob;
-					}
-					if (req.query.nroComprobante){
-						param.nroComprob = req.query.nroComprobante;
-					}
-					if (req.query.razonSocial){
-						param.razon = {$regex:req.query.razonSocial}
-					}
-					if (req.query.documentoCliente){
-						param.nroDoc = req.query.documentoCliente;
-					}
-
-					if (req.query.contenedor)
-						param['detalle.contenedor'] = req.query.contenedor;
-
-					if (req.query.buqueNombre)
-						param['detalle.buque.nombre'] = req.query.buqueNombre;
-
-					if (req.query.viaje)
-						param['detalle.buque.viaje'] = req.query.viaje;
-
-					if (req.query.code)
-						param['detalle.items.id'] = req.query.code;
-
-					if (req.query.estado){
-						var states = req.query.estado.split(",");
-						param['$or'] = [
-							{ estado:{$size: 1, $elemMatch: {estado: {$in: states}, grupo:'ALL'} } },
-							{ 'estado.1': { $exists: true } , estado: {$elemMatch: {estado: {$in: states}, grupo: usr.group} } }
-						]
-					}
+					req.usr = usr;
+					next();
 				}
+			}
+		});
+	}
 
-				var invoices = Invoice.find(param);
+	//GET - Return all invoice in the DB
+	function getInvoices (req, res) {
 
-				invoices.skip(skip).limit(limit);
-				if (req.query.order){
-					var order = JSON.parse(req.query.order);
-					invoices.sort(order[0]);
-				} else {
-					invoices.sort({codTipoComprob:1, nroComprob:1});
-				}
+		var usr = req.usr;
+		var paramTerminal = req.params.terminal;
 
-				invoices.exec(function(err, invoices) {
-					if(!err) {
-						Invoice.count(param, function (err, cnt){
-							var pageCount = invoices.length;
-							var result = {
-								status: 'OK',
-								totalCount: cnt,
-								pageCount: (limit > pageCount) ? pageCount : pageCount,
-								page: skip,
-								data: invoices
-							}
-							res.send(200, result);
-						});
-					} else {
-						log.logger.error("Error: %s", err.message);
-						res.send(500 , {status: "ERROR", data: err.message});
+		var fecha;
+
+		var limit = parseInt(req.params.limit, 10);
+		var skip = parseInt(req.params.skip, 10);
+
+		var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
+		var param = {
+			terminal:	ter
+		};
+
+		if (req.query.fechaInicio || req.query.fechaFin){
+			param["fecha.emision"]={};
+			if (req.query.fechaInicio){
+				fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD 00:00:00 Z'));
+				param["fecha.emision"]['$gte'] = fecha;
+			}
+			if (req.query.fechaFin){
+				fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD 00:00:00 Z'));
+				param["fecha.emision"]['$lte'] = fecha;
+			}
+		}
+		if (req.query.nroPtoVenta){
+			param.nroPtoVenta = req.query.nroPtoVenta;
+		}
+		if (req.query.codTipoComprob){
+			param.codTipoComprob = req.query.codTipoComprob;
+		}
+		if (req.query.nroComprobante){
+			param.nroComprob = req.query.nroComprobante;
+		}
+		if (req.query.razonSocial){
+			param.razon = {$regex:req.query.razonSocial}
+		}
+		if (req.query.documentoCliente){
+			param.nroDoc = req.query.documentoCliente;
+		}
+
+		if (req.query.contenedor)
+			param['detalle.contenedor'] = req.query.contenedor;
+
+		if (req.query.buqueNombre)
+			param['detalle.buque.nombre'] = req.query.buqueNombre;
+
+		if (req.query.viaje)
+			param['detalle.buque.viaje'] = req.query.viaje;
+
+		if (req.query.code)
+			param['detalle.items.id'] = req.query.code;
+
+		if (req.query.estado){
+			var states = req.query.estado.split(",");
+			param['$or'] = [
+				{ estado:{$size: 1, $elemMatch: {estado: {$in: states}, grupo:'ALL'} } },
+				{ 'estado.1': { $exists: true } , estado: {$elemMatch: {estado: {$in: states}, grupo: usr.group} } }
+			]
+		}
+
+		var invoices = Invoice.find(param);
+
+		invoices.skip(skip).limit(limit);
+		if (req.query.order){
+			var order = JSON.parse(req.query.order);
+			invoices.sort(order[0]);
+		} else {
+			invoices.sort({codTipoComprob:1, nroComprob:1});
+		}
+
+		invoices.exec(function(err, invoices) {
+			if(!err) {
+				Invoice.count(param, function (err, cnt){
+					var pageCount = invoices.length;
+					var result = {
+						status: 'OK',
+						totalCount: cnt,
+						pageCount: (limit > pageCount) ? pageCount : pageCount,
+						page: skip,
+						data: invoices
 					}
+					res.send(200, result);
 				});
+			} else {
+				log.logger.error("Error: %s", err.message);
+				res.send(500 , {status: "ERROR", data: err.message});
 			}
 		});
 	}
 
 	function getInvoice(req, res) {
-		var incomingToken = req.headers.token;
-		Account.verifyToken(incomingToken, function(err, usr) {
-			if (err){
-				log.logger.error(usr);
-				res.send(403, {status:'ERROR', data: err});
+		var usr = req.usr;
+		var param = {
+			_id: req.params.id
+		};
+		if (usr.role !== 'agp')
+			param.terminal = usr.terminal;
+
+		var invoice = Invoice.find(param);
+		invoice.exec(function(err, invoices){
+			if (err) {
+				log.logger.error("Error: %s", err.error);
+				res.send({status:'ERROR', data: err});
 			} else {
-				var param = {
-					_id: req.params.id
-				};
-				if (usr.role !== 'agp')
-					param.terminal = usr.terminal;
-
-				var invoice = Invoice.find(param);
-				invoice.exec(function(err, invoices){
-					if (err) {
-						log.logger.error("Error: %s", err.error);
-						res.send({status:'ERROR', data: err});
-					} else {
-						res.send(200, {status:"OK", data: invoices[0]||null})
-					}
-				})
-			}
-		});
-	}
-
-	function addInvoice ( req, res) {
-		var self = this;
-		var postData = '';
-		//req.setEncoding("utf8");
-
-		req.addListener("data", function(postDataChunk) {
-			postData += postDataChunk;
-		});
-		req.addListener("end", function() {
-
-			var incomingToken = req.headers.token;
-			Account.verifyToken(incomingToken, function(err, usr) {
-
-				if (err) {
-					var errMsg = util.format("Error: %s", err.error);
-					log.logger.error(errMsg);
-					res.send(403, {status: "ERROR", data: errMsg});
-				} else {
-
-					var contentTypeExists = req.headers["content-type"].toLowerCase().indexOf("text/plain");
-					if (contentTypeExists === -1){
-						var errMsg = util.format("El content-type:%s es incorrecto. Debe enviar text/plain. %s", req.headers["content-type"], usr.terminal);
-						log.logger.error(errMsg);
-						res.send(400, errMsg);
-						return;
-					}
-
-					try {
-						if (logInvoiceBody === 1)
-							log.logger.info("Invoice body INS: %s - %s", postData, usr.terminal);
-
-						postData = JSON.parse(postData);
-					} catch (errParsing){
-						var strBody = util.format("Error: Parsing JSON: [%s], JSON:%s", errParsing.toString(), postData);
-						var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
-						log.logger.error(strBody);
-						var mailer = new mail.mail(config.email);
-						mailer.send(usr.email, strSubject, strBody);
-						res.send(500, {status:"ERROR", data: strBody} );
-						return;
-					}
-
-					_addInvoice(res, postData, usr, function(statusHttp, object){
-						res.send(statusHttp, object);
-					});
-
-				}
-			});
-		});
-	}
-
-	function _addInvoice(res, postData, usr, callback){
-
-		try {
-			var invoice = {
-				terminal:		usr.terminal,
-
-				nroPtoVenta:	postData.nroPtoVenta,
-				codTipoComprob: parseInt(postData.codTipoComprob.toString().trim(), 10),
-				nroComprob:		postData.nroComprob,
-				codTipoAutoriz:	postData.codTipoAutoriz,
-				codAutoriz:		postData.codAutoriz,
-				codTipoDoc:		postData.codTipoDoc,
-				nroDoc:			postData.nroDoc,
-				clienteId:		postData.clientId,
-				razon:			postData.razon.trim(),
-				importe:		{
-					gravado:		postData.impGrav,
-					noGravado:		postData.impNoGrav,
-					exento:			postData.impExento,
-					subtotal:		postData.impSubtot,
-					iva:			postData.impIva,
-					otrosTributos:	postData.impOtrosTrib,
-					total:			postData.impTotal
-				},
-				codMoneda:		postData.codMoneda,
-				cotiMoneda:		postData.cotiMoneda,
-				observa:	 	postData.observa,
-				codConcepto:	postData.codConcepto,
-				fecha:			{
-					emision:	moment(postData.fechaEmision),
-					vcto:		moment(postData.fechaVcto),
-					desde:		moment(postData.fechaServDesde),
-					hasta:		moment(postData.fechaServHasta),
-					vctoPago:	moment(postData.fechaVctoPago)
-				},
-				detalle:		[],
-				otrosTributos:	[],
-				estado: 		[
-					{
-						estado	:	"Y",
-						grupo	:	"ALL",
-						user	:	usr.user
-					}
-				],
-				comment: []
-			};
-
-			if (postData.otrosTributos)
-				postData.otrosTributos.forEach(function (item){
-
-					var otId = (item.id !== undefined) ? item.id.toString() : null;
-					var otDesc = item.desc;
-					invoice.otrosTributos.push(
-						{
-							id:			(otId) ? otId : "",
-							desc	:	(otDesc) ? otDesc.trim() : "",
-							imponible:	item.imponible,
-							imp:		item.imp
-						})
-				});
-
-			var subTotalCheck=0;
-			if ( postData.detalle && postData.detalle.length > 0 ){
-				postData.detalle.forEach(function (container){
-					var buqueId = (container.buqueId !== undefined && container.buqueId !== null) ? container.buqueId.toString() : "";
-					var buqueDesc = container.buqueDesc;
-					var viaje = container.viaje;
-					var fecha = (container.fecha !== undefined && container.fecha !== "" && container.fecha != null) ? moment(container.fecha) : "";
-					var buque = {
-						codigo: (buqueId) ? buqueId.trim() : "",
-						nombre: (buqueDesc) ? buqueDesc.trim() : "",
-						viaje: (viaje) ? viaje.trim() : "",
-						fecha: fecha
-					};
-
-					var contenedor = container.contenedor;
-					var cont = {
-						contenedor:		(contenedor) ? container.contenedor.trim() : "",
-						IMO:			container.IMO,
-						buque:			buque,
-						items: []
-					};
-					if (container.items){
-						container.items.forEach( function (item){
-							cont.items.push(
-								{
-									id:			item.id,
-									cnt:		item.cnt,
-									uniMed:		item.uniMed,
-									impUnit:	item.impUnit,
-									impTot:		item.impTot
-								});
-							subTotalCheck += item.impTot;
-						});
-					} else {
-						var errMsg = util.format("Error Invoice INS: %s", "El contenedor no posee items.");
-						log.logger.error(errMsg);
-						callback(500, {status:"ERROR", data: errMsg});
-						return;
-					}
-					invoice.detalle.push(cont);
-				});
-
-			} else {
-				var errMsg = util.format("Error Invoice INS: %s - %s. - %j", "El comprobante no posee detalles.", usr.terminal, postData);
-				log.logger.error(errMsg);
-				callback(500, {status:"ERROR", data: errMsg});
-			}
-
-		} catch (error){
-			var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
-			var body = util.format('Error al insertar comprobante. %s. \n%s',  error.message, JSON.stringify(postData));
-
-			log.logger.error(body);
-
-			var mailer = new mail.mail(config.email);
-			mailer.send(usr.email, strSubject, body, function(){
-			});
-			callback(500, {"status":"ERROR", "data": body});
-		}
-
-		var invoice2add = new Invoice(invoice);
-		invoice2add.save( function (errSave, data) {
-			if (!errSave) {
-				log.logger.insert("Invoice INS: %s - %s - Tipo: %s Nro: %s - %s", data._id, usr.terminal, postData.codTipoComprob, postData.nroComprob, postData.fechaEmision);
-
-				var socketMsg = {
-					status:'OK',
-					data : {
-						emision : data.fecha.emision,
-						terminal : data.terminal,
-						codTipoComprob : data.codTipoComprob
-					}
-				}
-				io.sockets.emit('invoice', socketMsg);
-
-				var comment = 'Comprobante transferido correntamente.';
-				var commentState = 'Y';
-
-				if ( ( subTotalCheck > postData.impSubtot + 2) || ( subTotalCheck < postData.impSubtot - 2) ){
-					comment = util.format("El subtotal del comprobante es incorrecto, la suma es %d y se informa %d. - %s.", subTotalCheck, postData.impSubtot, usr.terminal);
-					data.estado[0].estado = 'T';
-				}
-
-				Comment.create({
-					invoice: data._id,
-					title: 'Transferencia comprobante.',
-					comment: comment,
-					state: commentState,
-					user: usr.user,
-					group: "ALL"
-				}, function (err, commentAdded){
-					if (err){
-
-					} else {
-						data.comment.push(commentAdded._id);
-						data.save(function (){
-							callback(200,{status: "OK", data: data});
-						});
-					}
-				});
-
-			} else {
-				//TODO crear objecto para tratar los errores, en este caso trato el tema de duplicados.
-				if (errSave.code === 11000){
-					Invoice.find({
-						terminal:		usr.terminal,
-						codTipoComprob:	invoice.codTipoComprob,
-						nroComprob:		invoice.nroComprob,
-						nroPtoVenta:	invoice.nroPtoVenta
-					}, function (err, invoices){
-
-						var estado = invoices[0].estado[invoices[0].estado.length-1].estado;
-						if (estado === 'E'){
-							Invoice.remove({_id : invoices[0]._id}, function (err, delInvoice){
-								log.logger.delete('Se eliminó el comprobante %s para ser retransferido.', invoices[0]._id.toString());
-								Comment.remove({invoice: invoices[0]._id}, function (errComment, delComment){
-									_addInvoice(res, postData, usr, function (statusHttp, object){
-										res.send(statusHttp, object);
-									});
-								});
-							});
-						} else {
-							var errMsg = util.format('Error INS: El tipo de comprobante: %s, número: %s, fue transferido el %s:\n %s\n\n%s - ERROR:%s', invoices[0].codTipoComprob, invoices[0].nroComprob, dateTime.getDateTimeFromObjectId(invoices[0]._id), invoices[0], moment(), errSave);
-							var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
-							log.logger.error(errMsg, { data: postData});
-
-							var mailer = new mail.mail(config.email);
-							mailer.send(usr.email, strSubject, errMsg, function(){
-							});
-
-							callback(500, {status: "ERROR", data: errMsg});
-						}
-
-					});
-				} else {
-					var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
-					var strError = util.format('Error INS: %s -\n%s - %s', errSave, JSON.stringify(postData), usr.terminal);
-					log.logger.error(strError);
-
-					var mailer = new mail.mail(config.email);
-					mailer.send(usr.email, strSubject, strError, function(){
-					});
-
-					callback(500, {status: "ERROR", data: strError});
-				}
-			}
-		});
-	}
-
-	function updateInvoice (req, res) {
-
-		var incomingToken = req.headers.token;
-		Account.verifyToken(incomingToken, function(err, usr) {
-			if (err){
-				log.logger.error(usr);
-				res.send(403, {status:'ERROR', data: err});
-			} else {
-
-				var paramTerminal = req.params.terminal;
-
-				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
-					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-					log.logger.error(errMsg);
-					res.send(500, {status:"ERROR", data: errMsg});
-				} else {
-
-					var param = {_id: req.params._id, terminal: paramTerminal};
-
-					Invoice.findOneAndUpdate(param, { $set: req.body}, null, function (err, data) {
-						if  (err) {
-							var errMsg = util.format("Error: %s", err.error);
-							log.logger.error(errMsg);
-							res.send(500, {status: "ERROR", data: errMsg});
-						} else {
-							res.send(200, {"status": "OK", "data": data})
-						}
-					});
-				}
-			}
-		});
-	}
-
-	function setState (req, res) {
-
-		var incomingToken = req.headers.token;
-		Account.verifyToken(incomingToken, function(err, usr) {
-			if (err){
-				log.logger.error(err);
-				res.send(403, {status:'ERROR', data: err});
-			} else {
-				var invoice = Invoice.update({_id: req.params._id, 'estado.grupo': usr.group},
-					{$set: {'estado.$.estado' : req.body.estado}},
-					function (err, rowAffected, data){
-						if (err) {
-							var errMsg = util.format('Error: %s', 'Error in invoice set state.');
-							log.logger.error(errMsg);
-							res.send(500, {status:'ERROR', data: errMsg});
-						} else  {
-
-							if (rowAffected === 0){
-								Invoice.findByIdAndUpdate( req.params._id,
-									{ $push: { estado: { estado: req.body.estado, grupo: usr.group, user: usr.user } } },
-									{safe: true, upsert: true},
-									function (err, data ){
-										if (err) {
-											var errMsg = 'Error: Error in invoice set state.';
-											log.logger.error(errMsg);
-											res.send(500, {status:'ERROR', data: errMsg});
-										} else {
-											res.send(200, {status:'OK', data: data});
-										}
-									});
-							} else {
-								res.send(200, {status:'OK', data: data});
-							}
-						}
-					});
-			}
-		});
-	}
-
-	function removeInvoices ( req, res){
-		var incomingToken = req.headers.token;
-		Account.verifyToken(incomingToken, function(err, usr) {
-			if (!err){
-				console.log(usr);
-				Invoice.remove({_id: req.params._id}, function (err){
-					if (!err){
-						log.logger.info('Invoice Removed %s', req.params._id);
-						res.send({"response": "OK"});
-					} else {
-						res.send({"error": "Error al intentar eliminar"});
-					}
-				});
-			}
-			else {
-				log.logger.error(err);
-				res.send(err);
+				res.send(200, {status:"OK", data: invoices[0]||null})
 			}
 		});
 	}
@@ -527,25 +176,25 @@ module.exports = function(app, io, log) {
 		var tomorrow = moment(fechaEmision).add('days', 1).toDate();
 		match['$match'] = {'fecha.emision' : {$gte: fechaEmision, '$lt': tomorrow}};
 		jsonParam.push(match);
-/*
- var mongoose = require('mongoose');
- 		if (req.query.fechaTransferencia){
-			var objIdToday = dateTime.getObjectId0000(req.query.fechaTransferencia);
-			var objIdTomorrow = dateTime.getObjectId0000(moment(req.query.fechaTransferencia).add('days',1));
+		/*
+		 var mongoose = require('mongoose');
+		 if (req.query.fechaTransferencia){
+		 var objIdToday = dateTime.getObjectId0000(req.query.fechaTransferencia);
+		 var objIdTomorrow = dateTime.getObjectId0000(moment(req.query.fechaTransferencia).add('days',1));
 
-			match['_id'] = {
-								$gte: mongoose.Types.ObjectId(objIdToday),
-								$lt: mongoose.Types.ObjectId(objIdTomorrow)
-							};
-		}
-*/
+		 match['_id'] = {
+		 $gte: mongoose.Types.ObjectId(objIdToday),
+		 $lt: mongoose.Types.ObjectId(objIdTomorrow)
+		 };
+		 }
+		 */
 
 		jsonParam.push({
-					$group:	{
-								_id: {terminal:'$terminal', codTipoComprob: '$codTipoComprob'},
-								total: {$sum: '$importe.total'},
-								cnt: {$sum: 1}
-							}
+			$group:	{
+				_id: {terminal:'$terminal', codTipoComprob: '$codTipoComprob'},
+				total: {$sum: '$importe.total'},
+				cnt: {$sum: 1}
+			}
 		});
 		jsonParam.push({$project : {_id:false, terminal: '$_id.terminal', codTipoComprob: '$_id.codTipoComprob', cnt : '$cnt'}});
 		jsonParam.push({$sort: {'terminal':1, 'codTipoComprob': 1}});
@@ -821,8 +470,8 @@ module.exports = function(app, io, log) {
 					res.send(500, {status:'ERROR', data: err.message });
 				else
 					res.send(200, {
-						status:'OK',
-						data: data }
+							status:'OK',
+							data: data }
 					);
 			});
 		});
@@ -830,193 +479,696 @@ module.exports = function(app, io, log) {
 	}
 
 	function getRatesByContainer (req, res){
+		var usr = req.usr;
+		var paramTerminal = req.params.terminal;
+
 		var moment = require('moment');
 
-		var incomingToken = req.headers.token;
-		Account.verifyToken(incomingToken, function(err, usr) {
-			if (err){
-				log.logger.error(usr);
-				res.send(500, {status:'ERROR', data: err});
-			} else {
+		var today = moment(moment().format('YYYY-MM-DD')).toDate();
+		var tomorrow = moment(moment().format('YYYY-MM-DD')).add('days',1).toDate();
+		if (req.query.fecha !== undefined){
+			today = moment(moment(req.query.fecha).format('YYYY-MM-DD')).toDate();
+			tomorrow = moment(moment(req.query.fecha).format('YYYY-MM-DD')).add('days',1).toDate();
+		}
 
-				var today = moment(moment().format('YYYY-MM-DD')).toDate();
-				var tomorrow = moment(moment().format('YYYY-MM-DD')).add('days',1).toDate();
-				if (req.query.fecha !== undefined){
-					today = moment(moment(req.query.fecha).format('YYYY-MM-DD')).toDate();
-					tomorrow = moment(moment(req.query.fecha).format('YYYY-MM-DD')).add('days',1).toDate();
-				}
 
-				var paramTerminal = req.params.terminal;
+		if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
+			var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
+			console.error(errMsg);
+			res.send(500, {status:"ERROR", data: errMsg});
+		} else {
 
-				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
-					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-					console.error(errMsg);
-					res.send(500, {status:"ERROR", data: errMsg});
-				} else {
+			var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
 
-					var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
+			var _price = require('../include/price.js');
+			var _rates = new _price.price();
+			_rates.rates(function (err, rates){
 
-					var _price = require('../include/price.js');
-					var _rates = new _price.price();
-					_rates.rates(function (err, rates){
+				var sum = {};
+				if (req.params.currency === 'PES')
+					sum = { $cond: [
+						{$eq:['$codMoneda', 'PES' ]},
+						'$detalle.items.impTot',
+						{$multiply:['$detalle.items.impTot','$cotiMoneda'] }
+					]
+					};
+				else if (req.params.currency === 'DOL')
+					sum = { $cond: [
+						{$eq:['$codMoneda', 'DOL' ]},
+						'$detalle.items.impTot',
+						{$divide:['$detalle.items.impTot','$cotiMoneda'] }
+					]
+					};
 
-						var sum = {};
-						if (req.params.currency === 'PES')
-							sum = { $cond: [
-								{$eq:['$codMoneda', 'PES' ]},
-								'$detalle.items.impTot',
-								{$multiply:['$detalle.items.impTot','$cotiMoneda'] }
-							]
-							};
-						else if (req.params.currency === 'DOL')
-							sum = { $cond: [
-								{$eq:['$codMoneda', 'DOL' ]},
-								'$detalle.items.impTot',
-								{$divide:['$detalle.items.impTot','$cotiMoneda'] }
-							]
-							};
-
-						var jsonParam = [
-							{	$match: {
-											terminal:	ter,
-											'detalle.items.id' : {$in: rates},
-											'detalle.contenedor' : req.params.container
-										}
-							},
-							{	$unwind : '$detalle'	},
-							{	$unwind : '$detalle.items'	},
-							{	$match : {
-											'detalle.items.id' : {$in: rates},
-											'detalle.contenedor' : req.params.container
-										}
-							},
-							{	$project : {terminal: 1, 'detalle.items': 1, total : sum }
-							},
-							{
-								$group  : {
-									_id: {
-											terminal: '$terminal',
-											id: '$detalle.items.id'
-									},
-									cnt: { $sum: '$detalle.items.cnt'},
-									total: {$sum: '$total'}
-								}
-							}
-						];
-						Invoice.aggregate(jsonParam, function (err, data){
-							if (err)
-								res.send(500, {status:'ERROR', data: err.message });
-							else
-								res.send(200, {status:'OK', data: data });
-						});
-					});
+				var jsonParam = [
+					{	$match: {
+						terminal:	ter,
+						'detalle.items.id' : {$in: rates},
+						'detalle.contenedor' : req.params.container
 					}
-			}
-		});
+					},
+					{	$unwind : '$detalle'	},
+					{	$unwind : '$detalle.items'	},
+					{	$match : {
+						'detalle.items.id' : {$in: rates},
+						'detalle.contenedor' : req.params.container
+					}
+					},
+					{	$project : {terminal: 1, 'detalle.items': 1, total : sum }
+					},
+					{
+						$group  : {
+							_id: {
+								terminal: '$terminal',
+								id: '$detalle.items.id'
+							},
+							cnt: { $sum: '$detalle.items.cnt'},
+							total: {$sum: '$total'}
+						}
+					}
+				];
+				Invoice.aggregate(jsonParam, function (err, data){
+					if (err)
+						res.send(500, {status:'ERROR', data: err.message });
+					else
+						res.send(200, {status:'OK', data: data });
+				});
+			});
+		}
 
 	}
 
 	function getNoMatches (req, res) {
-		'use strict';
+
+		var paramTerminal = req.params.terminal;
+		var skip = parseInt(req.params.skip, 10);
+		var limit = parseInt(req.params.limit, 10);
+
+		var param = [
+			{
+				$match: {terminal:	paramTerminal }
+			},
+			{	$unwind: '$match' },
+			{ $project: {match: '$match', _id:0}}
+		];
+
+		var s = MatchPrice.aggregate(param);
+		s.exec(function (err, noMatches){
+			if(!err) {
+				var arrResult = [];
+				noMatches.forEach(function (item){
+					arrResult.push(item.match);
+				});
+
+				var fecha;
+				var match = {
+					terminal: paramTerminal
+				};
+				if (req.query.fechaInicio || req.query.fechaFin){
+					match["fecha.emision"]={};
+					if (req.query.fechaInicio){
+						fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z')).toDate();
+						match["fecha.emision"]['$gte'] = fecha;
+					}
+					if (req.query.fechaFin){
+						fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z')).toDate();
+						match["fecha.emision"]['$lte'] = fecha;
+					}
+				}
+
+//					var inv = Invoice.aggregate();
+//					inv.match({"terminal": req.params.terminal});
+//					inv.project({detalle: '$detalle', _id: '$_id._id'});
+//					inv.unwind('detalle','detalle.items');
+//					inv.match(match);
+//					inv.group({ _id:{
+//						'_id':'$_id',
+//						'nroPtoVenta' : '$nroPtoVenta',
+//						'nroComprob' : '$nroComprob',
+//						'codTipoComprob' : '$codTipoComprob',
+//						'razon' : '$razon',
+//						'codMoneda': '$codMoneda',
+//						'cotiMoneda': '$cotiMoneda',
+//						'fecha' : '$fecha.emision',
+//						'impTot' : '$importe.total',
+//						'estado' : '$estado'
+//					}
+//					});
+//					inv.sort({'_id.fecha':-1});
+//					inv.skip(skip);
+//					inv.limit(limit);
+
+				var parametro = [
+					{ $match: match},
+					{ $unwind: "$detalle"},
+					{ $unwind: "$detalle.items"},
+					{ $project: { code: '$detalle.items.id'}},
+					{ $match: {code: {$nin: arrResult}}},
+					{ $group: {_id:{ _id: "$_id"}}},
+					{ $skip : skip},
+					{ $limit : limit}
+				];
+
+		var inv = Invoice.aggregate(parametro);
+
+				inv.exec(function (err, data){
+					var ids = [];
+					data.forEach(function (item){
+						ids.push(item._id._id);
+					});
+					if (!err){
+						if (data.length > 0){
+							inv._pipeline.splice(6,2);
+							inv.group({_id: null,cnt:{$sum:1}});
+							inv.exec(function (err, data2) {
+
+								Invoice.find({_id :{$in: ids}}, function (err, invoices){
+									var cnt = data2[0].cnt;
+									var pageCount = data.length;
+									var result = {
+										status: 'OK',
+										totalCount: cnt,
+										pageCount: (limit > pageCount)? limit : pageCount,
+										page: skip,
+										data: invoices
+									}
+									res.send(200, result);
+								});
+
+							});
+						} else {
+							res.send(200, { status:'OK', data: null });
+						}
+					}
+				});
+
+			} else {
+				log.logger.error('Error: %s', err);
+				res.send(500, {status:'ERROR', data: err.message});
+			}
+		});
+	}
+
+	function getCorrelative (req, res) {
+		var usr = req.usr;
+
+			var fecha;
+		var param = {};
+
+		if (usr.role === 'agp')
+			param.terminal = req.params.terminal;
+		else
+			param.terminal = usr.terminal;
+
+		if (req.query.fechaInicio || req.query.fechaFin){
+			param["fecha.emision"]={};
+			if (req.query.fechaInicio){
+				fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+				param["fecha.emision"]['$gte'] = fecha;
+			}
+			if (req.query.fechaFin){
+				fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+				param["fecha.emision"]['$lte'] = fecha;
+			}
+		}
+		var cashBoxes = [];
+		if (req.query.nroPtoVenta) {
+			cashBoxes = req.query.nroPtoVenta.split(',');
+		} else {
+			log.logger.error("Error: El nro de punto de venta no ha sido enviado");
+			res.send(403 , {status: "ERROR", data: "Error: El nro de punto de venta no ha sido enviado" });
+		}
+
+
+		if (req.query.codTipoComprob){
+			param.codTipoComprob = parseInt( req.query.codTipoComprob, 10);
+		}
+
+		var cashboxExecs = [];
+		var contadorFaltantesTotal = 0;
+		cashBoxes.forEach(function(cash){
+			//funcion que calcula la correlatividad por cada caja que sera ejecutada en paralelo con async
+			var cashboxExec = function (callback){
+				param.nroPtoVenta = cash;
+				var invoices = Invoice.find(param, {nroComprob:1, _id: 0});
+
+				if (req.query.order){
+					var order = JSON.parse(req.query.order);
+					invoices.sort(order[0]);
+				} else {
+					invoices.sort({nroComprob:1});
+				}
+				invoices.exec(function(err, invoices) {
+					if(!err) {
+						var faltantes = [];
+						var control = 0;
+						var contadorFaltantes = 0;
+
+						invoices.forEach(function(invoice){
+							if (control == 0){
+								control = invoice.nroComprob
+							} else {
+								control += 1;
+								if (control != invoice.nroComprob){
+									if (invoice.nroComprob - control > 3){
+										var dif = (invoice.nroComprob) - control;
+										contadorFaltantes+=dif;
+										var item2Add = util.format('[%d a %d] (%d)', control, (invoice.nroComprob - 1), dif);
+										faltantes.push(item2Add);
+									} else {
+										for (var i=control, len=invoice.nroComprob ; i<len;i++){
+											faltantes.push(i.toString());
+											contadorFaltantes++;
+										}
+									}
+									control = invoice.nroComprob;
+								}
+							}
+						});
+						contadorFaltantesTotal += contadorFaltantes;
+
+						var result = {
+							status: 'OK',
+							nroPtoVenta: cash,
+							totalCount: contadorFaltantes,
+							data: faltantes
+						};
+//								io.sockets.emit('correlative', result);
+						io.sockets.emit('correlative_'+req.query.x, result);
+
+
+						callback(null, result);
+					} else {
+						log.logger.error("%s", err.message);
+						res.send(500 , {status: "ERROR", data: {name: err.name, message: err.message} });
+					}
+				});
+			};
+
+			cashboxExecs.push(cashboxExec);
+		});
+
+		var async = require('async');
+		async.parallel(cashboxExecs, function (err, results){
+			var response = {
+				status: "OK",
+				totalCount: contadorFaltantesTotal,
+				data: results
+			};
+			res.send(200, response);
+		});
+
+	}
+
+	function getCashbox (req, res){
+		var usr = req.usr;
+		var paramTerminal = req.params.terminal;
+
+		var fecha;
+
+		if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
+			var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
+			log.logger.error(errMsg);
+			res.send(500, {status:"ERROR", data: errMsg});
+		} else {
+
+			var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
+			var param = {terminal:	ter};
+
+			if (req.query.fechaInicio || req.query.fechaFin){
+				param["fecha.emision"]={};
+				if (req.query.fechaInicio){
+					fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+					param["fecha.emision"]['$gte'] = fecha;
+				}
+				if (req.query.fechaFin){
+					fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+					param["fecha.emision"]['$lte'] = fecha;
+				}
+			}
+			if (req.query.nroPtoVenta){
+				param.nroPtoVenta = req.query.nroPtoVenta;
+			}
+			if (req.query.codTipoComprob){
+				param.codTipoComprob = req.query.codTipoComprob;
+			}
+			if (req.query.nroComprobante){
+				param.nroComprob = req.query.nroComprobante;
+			}
+			if (req.query.razonSocial){
+				param.razon = {$regex:req.query.razonSocial}
+			}
+			if (req.query.documentoCliente){
+				param.nroDoc = req.query.documentoCliente;
+			}
+
+			if (req.query.contenedor)
+				param['detalle.contenedor'] = req.query.contenedor;
+
+			if (req.query.code)
+				param['detalle.items.id'] = req.query.code;
+
+			if (req.query.estado){
+				var states = req.query.estado.split(",");
+				param['$or'] = [
+					{ estado:{$size: 1, $elemMatch: {estado: {$in: states}, grupo:'ALL'} } },
+					{ 'estado.1': { $exists: true } , estado: {$elemMatch: {estado: {$in: states}, grupo: usr.group} } }
+				]
+			}
+
+		}
+
+		Invoice.distinct('nroPtoVenta', param, function (err, data){
+			if (err){
+				res.send(500, {status: 'ERROR', data: err.message});
+			} else {
+				res.send(200, {status: 'OK', data: data.sort()});
+			}
+		});
+	}
+
+	function addInvoice ( req, res) {
+
+		var usr = req.usr;
+
+		var postData = '';
+
+		req.addListener("data", function(postDataChunk) {
+			postData += postDataChunk;
+		});
+		req.addListener("end", function() {
+
+					var contentTypeExists = req.headers["content-type"].toLowerCase().indexOf("text/plain");
+					if (contentTypeExists === -1){
+						var errMsg = util.format("El content-type:%s es incorrecto. Debe enviar text/plain. %s", req.headers["content-type"], usr.terminal);
+						log.logger.error(errMsg);
+						res.send(400, errMsg);
+						return;
+					}
+
+					try {
+						if (logInvoiceBody === 1)
+							log.logger.info("Invoice body INS: %s - %s", postData, usr.terminal);
+
+						postData = JSON.parse(postData);
+					} catch (errParsing){
+						var strBody = util.format("Error: Parsing JSON: [%s], JSON:%s", errParsing.toString(), postData);
+						var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
+						log.logger.error(strBody);
+						var mailer = new mail.mail(config.email);
+						mailer.send(usr.email, strSubject, strBody);
+						res.send(500, {status:"ERROR", data: strBody} );
+						return;
+					}
+
+					_addInvoice(res, postData, usr, function(statusHttp, object){
+						res.send(statusHttp, object);
+					});
+		});
+	}
+
+	function _addInvoice(res, postData, usr, callback){
+
+		try {
+			var invoice = {
+				terminal:		usr.terminal,
+
+				nroPtoVenta:	postData.nroPtoVenta,
+				codTipoComprob: parseInt(postData.codTipoComprob.toString().trim(), 10),
+				nroComprob:		postData.nroComprob,
+				codTipoAutoriz:	postData.codTipoAutoriz,
+				codAutoriz:		postData.codAutoriz,
+				codTipoDoc:		postData.codTipoDoc,
+				nroDoc:			postData.nroDoc,
+				clienteId:		postData.clientId,
+				razon:			postData.razon.trim(),
+				importe:		{
+					gravado:		postData.impGrav,
+					noGravado:		postData.impNoGrav,
+					exento:			postData.impExento,
+					subtotal:		postData.impSubtot,
+					iva:			postData.impIva,
+					otrosTributos:	postData.impOtrosTrib,
+					total:			postData.impTotal
+				},
+				codMoneda:		postData.codMoneda,
+				cotiMoneda:		postData.cotiMoneda,
+				observa:	 	postData.observa,
+				codConcepto:	postData.codConcepto,
+				fecha:			{
+					emision:	moment(postData.fechaEmision),
+					vcto:		moment(postData.fechaVcto),
+					desde:		moment(postData.fechaServDesde),
+					hasta:		moment(postData.fechaServHasta),
+					vctoPago:	moment(postData.fechaVctoPago)
+				},
+				detalle:		[],
+				otrosTributos:	[],
+				estado: 		[
+					{
+						estado	:	"Y",
+						grupo	:	"ALL",
+						user	:	usr.user
+					}
+				],
+				comment: []
+			};
+
+			if (postData.otrosTributos)
+				postData.otrosTributos.forEach(function (item){
+
+					var otId = (item.id !== undefined) ? item.id.toString() : null;
+					var otDesc = item.desc;
+					invoice.otrosTributos.push(
+						{
+							id:			(otId) ? otId : "",
+							desc	:	(otDesc) ? otDesc.trim() : "",
+							imponible:	item.imponible,
+							imp:		item.imp
+						})
+				});
+
+			var subTotalCheck=0;
+			if ( postData.detalle && postData.detalle.length > 0 ){
+				postData.detalle.forEach(function (container){
+					var buqueId = (container.buqueId !== undefined && container.buqueId !== null) ? container.buqueId.toString() : "";
+					var buqueDesc = container.buqueDesc;
+					var viaje = container.viaje;
+					var fecha = (container.fecha !== undefined && container.fecha !== "" && container.fecha != null) ? moment(container.fecha) : "";
+					var buque = {
+						codigo: (buqueId) ? buqueId.trim() : "",
+						nombre: (buqueDesc) ? buqueDesc.trim() : "",
+						viaje: (viaje) ? viaje.trim() : "",
+						fecha: fecha
+					};
+
+					var contenedor = container.contenedor;
+					var cont = {
+						contenedor:		(contenedor) ? container.contenedor.trim() : "",
+						IMO:			container.IMO,
+						buque:			buque,
+						items: []
+					};
+					if (container.items){
+						container.items.forEach( function (item){
+							cont.items.push(
+								{
+									id:			item.id,
+									cnt:		item.cnt,
+									uniMed:		item.uniMed,
+									impUnit:	item.impUnit,
+									impTot:		item.impTot
+								});
+							subTotalCheck += item.impTot;
+						});
+					} else {
+						var errMsg = util.format("Error Invoice INS: %s", "El contenedor no posee items.");
+						log.logger.error(errMsg);
+						callback(500, {status:"ERROR", data: errMsg});
+						return;
+					}
+					invoice.detalle.push(cont);
+				});
+
+			} else {
+				var errMsg = util.format("Error Invoice INS: %s - %s. - %j", "El comprobante no posee detalles.", usr.terminal, postData);
+				log.logger.error(errMsg);
+				callback(500, {status:"ERROR", data: errMsg});
+			}
+
+		} catch (error){
+			var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
+			var body = util.format('Error al insertar comprobante. %s. \n%s',  error.message, JSON.stringify(postData));
+
+			log.logger.error(body);
+
+			var mailer = new mail.mail(config.email);
+			mailer.send(usr.email, strSubject, body, function(){
+			});
+			callback(500, {"status":"ERROR", "data": body});
+		}
+
+		var invoice2add = new Invoice(invoice);
+		invoice2add.save( function (errSave, data) {
+			if (!errSave) {
+				log.logger.insert("Invoice INS: %s - %s - Tipo: %s Nro: %s - %s", data._id, usr.terminal, postData.codTipoComprob, postData.nroComprob, postData.fechaEmision);
+
+				var socketMsg = {
+					status:'OK',
+					data : {
+						emision : data.fecha.emision,
+						terminal : data.terminal,
+						codTipoComprob : data.codTipoComprob
+					}
+				}
+				io.sockets.emit('invoice', socketMsg);
+
+				var comment = 'Comprobante transferido correntamente.';
+				var commentState = 'Y';
+
+				if ( ( subTotalCheck > postData.impSubtot + 2) || ( subTotalCheck < postData.impSubtot - 2) ){
+					comment = util.format("El subtotal del comprobante es incorrecto, la suma es %d y se informa %d. - %s.", subTotalCheck, postData.impSubtot, usr.terminal);
+					data.estado[0].estado = 'T';
+				}
+
+				Comment.create({
+					invoice: data._id,
+					title: 'Transferencia comprobante.',
+					comment: comment,
+					state: commentState,
+					user: usr.user,
+					group: "ALL"
+				}, function (err, commentAdded){
+					if (err){
+
+					} else {
+						data.comment.push(commentAdded._id);
+						data.save(function (){
+							callback(200,{status: "OK", data: data});
+						});
+					}
+				});
+
+			} else {
+				//TODO crear objecto para tratar los errores, en este caso trato el tema de duplicados.
+				if (errSave.code === 11000){
+					Invoice.find({
+						terminal:		usr.terminal,
+						codTipoComprob:	invoice.codTipoComprob,
+						nroComprob:		invoice.nroComprob,
+						nroPtoVenta:	invoice.nroPtoVenta
+					}, function (err, invoices){
+
+						var estado = invoices[0].estado[invoices[0].estado.length-1].estado;
+						if (estado === 'E'){
+							Invoice.remove({_id : invoices[0]._id}, function (err, delInvoice){
+								log.logger.delete('Se eliminó el comprobante %s para ser retransferido.', invoices[0]._id.toString());
+								Comment.remove({invoice: invoices[0]._id}, function (errComment, delComment){
+									_addInvoice(res, postData, usr, function (statusHttp, object){
+										res.send(statusHttp, object);
+									});
+								});
+							});
+						} else {
+							var errMsg = util.format('Error INS: El tipo de comprobante: %s, número: %s, fue transferido el %s:\n %s\n\n%s - ERROR:%s', invoices[0].codTipoComprob, invoices[0].nroComprob, dateTime.getDateTimeFromObjectId(invoices[0]._id), invoices[0], moment(), errSave);
+							var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
+							log.logger.error(errMsg, { data: postData});
+
+							var mailer = new mail.mail(config.email);
+							mailer.send(usr.email, strSubject, errMsg, function(){
+							});
+
+							callback(500, {status: "ERROR", data: errMsg});
+						}
+
+					});
+				} else {
+					var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
+					var strError = util.format('Error INS: %s -\n%s - %s', errSave, JSON.stringify(postData), usr.terminal);
+					log.logger.error(strError);
+
+					var mailer = new mail.mail(config.email);
+					mailer.send(usr.email, strSubject, strError, function(){
+					});
+
+					callback(500, {status: "ERROR", data: strError});
+				}
+			}
+		});
+	}
+
+	function updateInvoice (req, res) {
+
+		var usr = req.usr;
+
+		var param = {_id: req.params._id, terminal: paramTerminal};
+		Invoice.findOneAndUpdate(param, { $set: req.body}, null, function (err, data) {
+			if  (err) {
+				var errMsg = util.format("Error: %s", err.error);
+				log.logger.error(errMsg);
+				res.send(500, {status: "ERROR", data: errMsg});
+			} else {
+				res.send(200, {"status": "OK", "data": data})
+			}
+		});
+	}
+
+	function setState (req, res) {
 
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				log.logger.error('Error: %s', err);
-				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
+				log.logger.error(err);
+				res.send(403, {status:'ERROR', data: err});
 			} else {
+				var invoice = Invoice.update({_id: req.params._id, 'estado.grupo': usr.group},
+					{$set: {'estado.$.estado' : req.body.estado}},
+					function (err, rowAffected, data){
+						if (err) {
+							var errMsg = util.format('Error: %s', 'Error in invoice set state.');
+							log.logger.error(errMsg);
+							res.send(500, {status:'ERROR', data: errMsg});
+						} else  {
 
-				var skip = parseInt(req.params.skip, 10);
-				var limit = parseInt(req.params.limit, 10);
-
-				var paramTerminal = req.params.terminal;
-
-				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal){
-					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-					log.logger.error(errMsg);
-					res.send(500, {status:"ERROR", data: errMsg});
-				} else {
-					var param = [
-						{
-							$match: {terminal:	paramTerminal }
-						},
-						{	$unwind: '$match' },
-						{ $project: {match: '$match', _id:0}}
-					];
-
-					var s = MatchPrice.aggregate(param);
-					s.exec(function (err, noMatches){
-						if(!err) {
-							var arrResult = [];
-							noMatches.forEach(function (item){
-								arrResult.push(item.match);
-							});
-
-							var fecha;
-							var match = {};
-							if (req.query.fechaInicio || req.query.fechaFin){
-								match["fecha.emision"]={};
-								if (req.query.fechaInicio){
-									fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z')).toDate();
-									match["fecha.emision"]['$gte'] = fecha;
-								}
-								if (req.query.fechaFin){
-									fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z')).toDate();
-									match["fecha.emision"]['$lte'] = fecha;
-								}
+							if (rowAffected === 0){
+								Invoice.findByIdAndUpdate( req.params._id,
+									{ $push: { estado: { estado: req.body.estado, grupo: usr.group, user: usr.user } } },
+									{safe: true, upsert: true},
+									function (err, data ){
+										if (err) {
+											var errMsg = 'Error: Error in invoice set state.';
+											log.logger.error(errMsg);
+											res.send(500, {status:'ERROR', data: errMsg});
+										} else {
+											res.send(200, {status:'OK', data: data});
+										}
+									});
+							} else {
+								res.send(200, {status:'OK', data: data});
 							}
-							match['detalle.items.id'] = { $nin: arrResult };
-
-							var inv = Invoice.aggregate();
-							inv.match({"terminal": req.params.terminal});
-							inv.unwind('detalle','detalle.items');
-							inv.match(match);
-							inv.group({ _id:{
-								'_id':'$_id',
-								'nroPtoVenta' : '$nroPtoVenta',
-								'nroComprob' : '$nroComprob',
-								'razon' : '$razon',
-								'codMoneda': '$codMoneda',
-								'cotiMoneda': '$cotiMoneda',
-								'fecha' : '$fecha.emision',
-								'impTot' : '$importe.total'
-							}
-							});
-							inv.sort({'_id.fecha':-1});
-							inv.skip(skip);
-							inv.limit(limit);
-
-							inv.exec(function (err, data){
-
-								if (!err){
-									if (data.length > 0){
-										inv._pipeline.splice(6,2);
-										inv.group({_id: null,cnt:{$sum:1}});
-										inv.exec(function (err, data2) {
-											var cnt = data2[0].cnt;
-											var pageCount = data.length;
-											var result = {
-												status: 'OK',
-												totalCount: cnt,
-												pageCount: (limit > pageCount)? limit : pageCount,
-												page: skip,
-												data: data
-											}
-											res.send(200, result);
-										});
-									} else {
-										res.send(200, { status:'OK', data: [] });
-									}
-								}
-							});
-
-						} else {
-							log.logger.error('Error: %s', err);
-							res.send(500, {status:'ERROR', data: err.message});
 						}
 					});
-				}
+			}
+		});
+	}
 
+	function removeInvoices ( req, res){
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (!err){
+				console.log(usr);
+				Invoice.remove({_id: req.params._id}, function (err){
+					if (!err){
+						log.logger.info('Invoice Removed %s', req.params._id);
+						res.send({"response": "OK"});
+					} else {
+						res.send({"error": "Error al intentar eliminar"});
+					}
+				});
+			}
+			else {
+				log.logger.error(err);
+				res.send(err);
 			}
 		});
 	}
@@ -1111,390 +1263,201 @@ module.exports = function(app, io, log) {
 
 	}
 
-	function getCorrelative (req, res) {
-
-		var functionIni = log.moment();
-
-		var incomingToken = req.headers.token;
-		Account.verifyToken(incomingToken, function(err, usr) {
-			if (err){
-				log.logger.error(usr);
-				res.send(500, {status:'ERROR', data: err});
-			} else {
-				var fecha;
-				var param = {};
-
-				if (req.query.fechaInicio || req.query.fechaFin){
-					param["fecha.emision"]={};
-					if (req.query.fechaInicio){
-						fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
-						param["fecha.emision"]['$gte'] = fecha;
-					}
-					if (req.query.fechaFin){
-						fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
-						param["fecha.emision"]['$lte'] = fecha;
-					}
-				}
-				var cashBoxes = [];
-				if (req.query.nroPtoVenta) {
-					cashBoxes = req.query.nroPtoVenta.split(',');
-				} else {
-					log.logger.error("Error: El nro de punto de venta no ha sido enviado");
-					res.send(403 , {status: "ERROR", data: "Error: El nro de punto de venta no ha sido enviado" });
-				}
-
-
-				if (req.query.codTipoComprob){
-					param.codTipoComprob = parseInt( req.query.codTipoComprob, 10);
-				}
-
-				if (usr.role === 'agp')
-					param.terminal = req.params.terminal;
-				else
-					param.terminal = usr.terminal;
-
-				var cashboxExecs = [];
-				var contadorFaltantesTotal = 0;
-				cashBoxes.forEach(function(cash){
-					//funcion que calcula la correlatividad por cada caja que sera ejecutada en paralelo con async
-					var cashboxExec = function (callback){
-						param.nroPtoVenta = cash;
-						var invoices = Invoice.find(param, {nroComprob:1, _id: 0});
-
-						if (req.query.order){
-							var order = JSON.parse(req.query.order);
-							invoices.sort(order[0]);
-						} else {
-							invoices.sort({nroComprob:1});
-						}
-						invoices.exec(function(err, invoices) {
-							if(!err) {
-								var faltantes = [];
-								var control = 0;
-								var contadorFaltantes = 0;
-
-								invoices.forEach(function(invoice){
-									if (control == 0){
-										control = invoice.nroComprob
-									} else {
-										control += 1;
-										if (control != invoice.nroComprob){
-											if (invoice.nroComprob - control > 3){
-												var dif = (invoice.nroComprob) - control;
-												contadorFaltantes+=dif;
-												var item2Add = util.format('[%d a %d] (%d)', control, (invoice.nroComprob - 1), dif);
-												faltantes.push(item2Add);
-											} else {
-												for (var i=control, len=invoice.nroComprob ; i<len;i++){
-													faltantes.push(i.toString());
-													contadorFaltantes++;
-												}
-											}
-											control = invoice.nroComprob;
-										}
-									}
-								});
-								contadorFaltantesTotal += contadorFaltantes;
-
-								var result = {
-									status: 'OK',
-									nroPtoVenta: cash,
-									totalCount: contadorFaltantes,
-									data: faltantes
-								};
-//								io.sockets.emit('correlative', result);
-								io.sockets.emit('correlative_'+req.query.x, result);
-
-
-								callback(null, result);
-							} else {
-								log.logger.error("Error: %s", err.message);
-								res.send(500 , {status: "ERROR", data: {name: err.name, message: err.message} });
-							}
-						});
-					};
-
-					cashboxExecs.push(cashboxExec);
-				});
-
-				var async = require('async');
-				async.parallel(cashboxExecs, function (err, results){
-					var response = {
-						status: "OK",
-						totalCount: contadorFaltantesTotal,
-						data: results
-					};
-					res.send(200, response);
-				});
-
-
-			}
-		});
-	}
-
-	function getCashbox (req, res){
-
-		var incomingToken = req.headers.token;
-		Account.verifyToken(incomingToken, function(err, usr) {
-			if (err){
-				log.logger.error(usr);
-				res.send(500, {status:'ERROR', data: err});
-			} else {
-				var fecha;
-
-				var paramTerminal = req.params.terminal;
-
-				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
-					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-					log.logger.error(errMsg);
-					res.send(500, {status:"ERROR", data: errMsg});
-				} else {
-
-					var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
-					var param = {terminal:	ter};
-
-					if (req.query.fechaInicio || req.query.fechaFin){
-						param["fecha.emision"]={};
-						if (req.query.fechaInicio){
-							fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
-							param["fecha.emision"]['$gte'] = fecha;
-						}
-						if (req.query.fechaFin){
-							fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
-							param["fecha.emision"]['$lte'] = fecha;
-						}
-					}
-					if (req.query.nroPtoVenta){
-						param.nroPtoVenta = req.query.nroPtoVenta;
-					}
-					if (req.query.codTipoComprob){
-						param.codTipoComprob = req.query.codTipoComprob;
-					}
-					if (req.query.nroComprobante){
-						param.nroComprob = req.query.nroComprobante;
-					}
-					if (req.query.razonSocial){
-						param.razon = {$regex:req.query.razonSocial}
-					}
-					if (req.query.documentoCliente){
-						param.nroDoc = req.query.documentoCliente;
-					}
-
-					if (req.query.contenedor)
-						param['detalle.contenedor'] = req.query.contenedor;
-
-					if (req.query.code)
-						param['detalle.items.id'] = req.query.code;
-
-					if (req.query.estado){
-						var states = req.query.estado.split(",");
-						param['$or'] = [
-							{ estado:{$size: 1, $elemMatch: {estado: {$in: states}, grupo:'ALL'} } },
-							{ 'estado.1': { $exists: true } , estado: {$elemMatch: {estado: {$in: states}, grupo: usr.group} } }
-						]
-					}
-
-				}
-
-				Invoice.distinct('nroPtoVenta', param, function (err, data){
-					if (err){
-						res.send(500, {status: 'ERROR', data: err.message});
-					} else {
-						res.send(200, {status: 'OK', data: data.sort()});
-					}
-				});
-			}
-		})
-	}
-
 	function getDistincts( req, res) {
+		var usr = req.usr;
+		var distinct = '';
 
-		var incomingToken = req.headers.token;
-		Account.verifyToken(incomingToken, function(err, usr) {
+		if (req.route.path === '/invoices/:terminal/ships')
+			distinct = 'detalle.buque.nombre';
+
+		if (req.route.path === '/invoices/:terminal/containers')
+			distinct = 'detalle.contenedor';
+
+		if (req.route.path === '/invoices/:terminal/clients')
+			distinct = 'razon';
+
+		var param = {};
+		if (usr.role === 'agp')
+			param.terminal = req.params.terminal;
+		else
+			param.terminal = usr.terminal;
+
+		Invoice.distinct(distinct, param, function (err, data){
 			if (err){
-				log.logger.error(usr);
-				res.send(500, {status:'ERROR', data: err});
+				res.send(500, {status: 'ERROR', data: err.message});
 			} else {
-				var distinct = '';
-
-				if (req.route.path === '/invoices/:terminal/ships')
-					distinct = 'detalle.buque.nombre';
-
-				if (req.route.path === '/invoices/:terminal/containers')
-					distinct = 'detalle.contenedor';
-
-				if (req.route.path === '/invoices/:terminal/clients')
-					distinct = 'razon';
-
-				var param = {};
-				if (usr.role === 'agp')
-					param.terminal = req.params.terminal;
-				else
-					param.terminal = usr.terminal;
-
-				Invoice.distinct(distinct, param, function (err, data){
-					if (err){
-						res.send(500, {status: 'ERROR', data: err.message});
-					} else {
-						res.send(200,	{
-								status: 'OK',
-								totalCount: data.length,
-								data: data.sort()
-							}
-						);
+				res.send(200,	{
+						status: 'OK',
+						totalCount: data.length,
+						data: data.sort()
 					}
-				});
+				);
 			}
 		});
-
 	}
 
 	function getShipTrips (req, res) {
+		var usr = req.usr;
+		var paramTerminal = req.params.terminal;
 
-		var incomingToken = req.headers.token;
+		if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
+			var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
+			log.logger.error(errMsg);
+			res.send(500, {status:"ERROR", data: errMsg});
+		} else {
 
-		Account.verifyToken(incomingToken, function(err, usr) {
-			if (err){
-				log.logger.error(usr);
-				res.send(500, {status:'ERROR', data: err});
-			} else {
+			var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
+			var param = {terminal:	ter, 'detalle.buque.nombre':{$ne:null}};
 
-				var paramTerminal = req.params.terminal;
-
-				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
-					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-					log.logger.error(errMsg);
-					res.send(500, {status:"ERROR", data: errMsg});
+			Invoice.aggregate([
+				{ $match: param },
+				{ $unwind : '$detalle'},
+				{ $group: {_id: {buque: '$detalle.buque.nombre', viaje: '$detalle.buque.viaje'} } },
+				{ $sort: { '_id.buque': 1, '_id.viaje': 1} },
+				{ $project : {buque: '$_id.buque', viaje: '$_id.viaje', _id:false}}
+			], function (err, data){
+				if (err) {
+					res.send(500, {status: 'ERROR', data: err.message});
 				} else {
+					var Enumerable = require('linq');
+					var result = Enumerable.from(data)
+						.groupBy("$.buque" , null,
+							function (key, g) {
+								var prop = g.getSource();
+								var ter = {buque: key, viajes: []};
+								prop.forEach(function (item){
+									for (var pro in item){
+										if (pro !== 'buque')
+											ter.viajes.push(item[pro]);
+									}
+								});
+								return (ter);
+							}).toArray();
 
-					var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
-					var param = {terminal:	ter, 'detalle.buque.nombre':{$ne:null}};
+					res.send(200, {status: 'OK', data: result});
+				}
+			});
+		}
+	}
 
-					Invoice.aggregate([
-						{ $match: param },
-						{ $unwind : '$detalle'},
-						{ $group: {_id: {buque: '$detalle.buque.nombre', viaje: '$detalle.buque.viaje'} } },
-						{ $sort: { '_id.buque': 1, '_id.viaje': 1} },
-						{ $project : {buque: '$_id.buque', viaje: '$_id.viaje', _id:false}}
-					], function (err, data){
+	function getShipContainers (req, res) {
+		var usr = req.usr;
+		log.startElapsed();
+
+		var paramTerminal = req.params.terminal;
+
+		if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
+			var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
+			log.logger.error(errMsg);
+			res.send(500, {status:"ERROR", data: errMsg});
+		} else {
+
+			var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
+			var param = {terminal:	ter};
+
+			var buque = req.query.buqueNombre;
+			var viaje = req.query.viaje;
+
+			Invoice.aggregate([
+				{ $match: param },
+				{ $unwind : '$detalle'},
+				{ $match: {'detalle.buque.nombre': buque, "detalle.buque.viaje" : viaje} },
+				{ $group: {_id: {buque: '$detalle.buque.nombre', viaje: "$detalle.buque.viaje", contenedor: '$detalle.contenedor'} } },
+				{ $project: {contenedor: '$_id.contenedor', _id: false}},
+				{ $sort: {contenedor: 1} }
+			], function (err, dataContainers){
+				if (err) {
+					res.send(500, {status: 'ERROR', data: err.message});
+				} else {
+					Gate.find({buque: buque, viaje: viaje}, function (err, dataGates){
 						if (err) {
 							res.send(500, {status: 'ERROR', data: err.message});
 						} else {
 							var Enumerable = require('linq');
-							var result = Enumerable.from(data)
-								.groupBy("$.buque" , null,
-									function (key, g) {
-										var prop = g.getSource();
-										var ter = {buque: key, viajes: []};
-										prop.forEach(function (item){
-											for (var pro in item){
-												if (pro !== 'buque')
-													ter.viajes.push(item[pro]);
-											}
-										});
-										return (ter);
-									}).toArray();
 
-							res.send(200, {status: 'OK', data: result});
+							var response = Enumerable.from(dataContainers)
+								.groupJoin(dataGates, '$.contenedor', '$.contenedor', function (inner,outer){
+									var result = {
+										contenedor:'',
+										gates: []
+									};
+									if (outer.getSource !== undefined)
+										result.gates =outer.getSource();
+
+									result.contenedor = inner;
+									return result;
+								}).toArray();
+
+							res.send(200, {
+								status: 'OK',
+								elapsed: log.getElapsed(),
+								data: response}
+							);
 						}
 					});
 				}
-			}
+			});
+		}
+	}
+
+	function getContainersNoRates (req, res) {
+		var paramTerminal = req.params.terminal;
+
+		var _price = require('../include/price.js');
+		var _rates = new _price.price(paramTerminal);
+
+		var Enumerable = require("linq");
+
+		_rates.rates(function (err, rates){
+
+			var inv = Invoice.aggregate([
+				{ $match: {terminal: paramTerminal, codTipoComprob : 1}},
+				{ $project : {'detalle.items.id': 1, 'detalle.contenedor': 1, _id: 0}},
+				{ $unwind: '$detalle' },
+				{ $unwind: '$detalle.items' },
+				{ $match : {'detalle.items.id' : {$in: rates }}},
+				{ $project : {contenedor : '$detalle.contenedor'} }
+			]);
+			inv.exec(function (err, data1){
+
+				Invoice.distinct('detalle.contenedor', {terminal: paramTerminal, codTipoComprob : 1}, function (err, data2){
+
+					var contes = Enumerable.from(data1).select('$.contenedor');
+					var contDist = Enumerable.from(data2);
+
+					var dife = contDist.except(contes).select(function (item){
+						return {contenedor: {contenedor: item}};
+					}).toArray();
+
+					res.send(200, {status: 'OK', totalCount: dife.length, data: dife});
+				});
+
+			});
 		});
 	}
 
-	function getShipContainers (req, res) {
-
-		log.startElapsed();
-
-		var incomingToken = req.headers.token;
-
-		Account.verifyToken(incomingToken, function(err, usr) {
-			if (err){
-				log.logger.error(usr);
-				res.send(500, {status:'ERROR', data: err});
-			} else {
-
-				var paramTerminal = req.params.terminal;
-
-				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
-					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-					log.logger.error(errMsg);
-					res.send(500, {status:"ERROR", data: errMsg});
-				} else {
-
-					var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
-					var param = {terminal:	ter};
-
-					var buque = req.query.buqueNombre;
-					var viaje = req.query.viaje;
-
-					Invoice.aggregate([
-						{ $match: param },
-						{ $unwind : '$detalle'},
-						{ $match: {'detalle.buque.nombre': buque, "detalle.buque.viaje" : viaje} },
-						{ $group: {_id: {buque: '$detalle.buque.nombre', viaje: "$detalle.buque.viaje", contenedor: '$detalle.contenedor'} } },
-						{ $project: {contenedor: '$_id.contenedor', _id: false}},
-						{ $sort: {contenedor: 1} }
-					], function (err, dataContainers){
-						if (err) {
-							res.send(500, {status: 'ERROR', data: err.message});
-						} else {
-							Gate.find({buque: buque, viaje: viaje}, function (err, dataGates){
-								if (err) {
-									res.send(500, {status: 'ERROR', data: err.message});
-								} else {
-									var Enumerable = require('linq');
-
-									var response = Enumerable.from(dataContainers)
-										.groupJoin(dataGates, '$.contenedor', '$.contenedor', function (inner,outer){
-											var result = {
-												contenedor:'',
-												gates: []
-											};
-											if (outer.getSource !== undefined)
-												result.gates =outer.getSource();
-
-											result.contenedor = inner;
-											return result;
-										}).toArray();
-
-									res.send(200, {
-										status: 'OK',
-										elapsed: log.getElapsed(),
-										data: response}
-									);
-								}
-							});
-						}
-					});
-				}
-			}
-		});
-	}
-
-	app.get('/invoices/:terminal/:skip/:limit', getInvoices);
-	app.get('/invoice/:id', getInvoice);
-	app.get('/invoices/counts', getCounts);
-	app.get('/invoices/countsByDate/:currency', getCountByDate);
-	app.get('/invoices/countsByMonth/:currency', getCountByMonth);
-	app.get('/invoices/noRates/:terminal/:skip/:limit', getNoRates);
-	app.get('/invoices/ratesTotal/:currency', getRatesTotal);
-	app.get('/invoices/rates/:terminal/:container/:currency', getRatesByContainer);
-	app.get('/invoices/noMatches/:terminal/:skip/:limit', getNoMatches);
-	app.get('/invoices/correlative/:terminal', getCorrelative);
-	app.get('/invoices/cashbox/:terminal', getCashbox);
-	app.post('/invoice', addInvoice);
-	app.put('/invoice/:terminal/:_id', updateInvoice);
-	app.put('/invoice/setState/:terminal/:_id', setState);
-	app.delete('/invoices/:_id', removeInvoices);
-	app.get('/invoices/:terminal/ships', getDistincts);
-	app.get('/invoices/:terminal/containers', getDistincts);
-	app.get('/invoices/:terminal/clients', getDistincts);
-	app.get('/invoices/:terminal/shipTrips', getShipTrips);
-	app.get('/invoices/:terminal/shipContainers', getShipContainers);
-
-	app.post('/invoices/byRates', getInvoicesByRates);
+	app.get('/invoices/:terminal/:skip/:limit', isValidToken, getInvoices);
+	app.get('/invoice/:id', isValidToken, getInvoice);
+	app.get('/invoices/counts', isValidToken, getCounts);
+	app.get('/invoices/countsByDate/:currency', isValidToken, getCountByDate);
+	app.get('/invoices/countsByMonth/:currency', isValidToken, getCountByMonth);
+	app.get('/invoices/noRates/:terminal/:skip/:limit', isValidToken, getNoRates);
+	app.get('/invoices/ratesTotal/:currency', isValidToken, getRatesTotal);
+	app.get('/invoices/rates/:terminal/:container/:currency', isValidToken, getRatesByContainer);
+	app.get('/invoices/noMatches/:terminal/:skip/:limit', isValidToken, getNoMatches);
+	app.get('/invoices/correlative/:terminal', isValidToken, getCorrelative);
+	app.get('/invoices/cashbox/:terminal', isValidToken, getCashbox);
+	app.post('/invoice', isValidToken, addInvoice);
+	app.put('/invoice/:terminal/:_id', isValidToken, updateInvoice);
+	app.put('/invoice/setState/:terminal/:_id', isValidToken, setState);
+	app.delete('/invoices/:_id', isValidToken, removeInvoices);
+	app.get('/invoices/:terminal/ships', isValidToken, getDistincts);
+	app.get('/invoices/:terminal/containers', isValidToken, getDistincts);
+	app.get('/invoices/:terminal/clients', isValidToken, getDistincts);
+	app.get('/invoices/:terminal/shipTrips', isValidToken, getShipTrips);
+	app.get('/invoices/:terminal/shipContainers', isValidToken, getShipContainers);
+	app.post('/invoices/byRates', isValidToken, getInvoicesByRates);
+	app.get('/invoices/containersNoRates/:terminal', isValidToken, getContainersNoRates);
 
 	app.get('/invoices/log/:seconds', function( req, res) {
 		logInvoiceBody = 1;
