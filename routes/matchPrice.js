@@ -95,20 +95,21 @@ module.exports = function (app, log){
 							param.rate = {$exists:true};
 					}
 
-					Price.aggregate([
-							{$match: param},
-							{$unwind: '$matches'},
-							{$project: {topPrices:true, matches: true}}
-							])
-						.exec(function (err, prices) {
-							if(!err) {
-								MatchPrice.find({}, {code:true, price: true}, function (err, matches){
+					Price.find(param, {topPrices: true})
+						.exec(function (err, prices){
+							if (!err){
+								var matchPrices = MatchPrice.aggregate([
+									{ $match : param},
+									{ $unwind : '$match'},
+									{ $project : {price: true, match : true, code : true}}
+								]);
+								matchPrices.exec (function (err, matches){
 									var Enumerable = require('linq');
 									var response = [];
 									Enumerable.from(matches)
 										.join(Enumerable.from(prices), '$.price.id', '$._id.id', function (match, price){
-											response.push({code: match.code,
-															topPrices : price.topPrices})
+											response.push({code: match.match,
+												topPrices : price.topPrices})
 										}
 									).toArray();
 									res.send(200, {status:'OK', data: response});
@@ -118,6 +119,7 @@ module.exports = function (app, log){
 								res.send(500, {status:'ERROR', data: err.message});
 							}
 						});
+
 				}
 
 			}
@@ -235,19 +237,19 @@ module.exports = function (app, log){
 								}
 							}
 							param.terminal = paramTerminal;
-
-							Invoice.aggregate([
+							var parametro = [
 								{ $match: param},
 								{ $unwind: '$detalle'},
 								{ $unwind: '$detalle.items'},
 								{ $match: {'detalle.items.id' : {$nin: arrNoMatches } } },
 								{ $group: {_id: {
-													code : '$detalle.items.id'
-												}
-										}
+									code : '$detalle.items.id'
+								}
+								}
 								},
 								{$sort:{'_id.code':1}}
-							], function (err, data){
+							];
+							Invoice.aggregate(parametro, function (err, data){
 								var result = [];
 								data.forEach(function (item){
 									result.push(item._id.code);
