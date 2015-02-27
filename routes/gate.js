@@ -363,6 +363,9 @@ module.exports = function (app, io, log) {
 					gate2insert.turnoFin = null;
 
 				gate2insert.terminal = usr.terminal;
+				gate2insert.buque = gate2insert.buque.trim();
+				gate2insert.viaje = gate2insert.viaje.trim();
+				gate2insert.contenedor = gate2insert.contenedor.trim();
 
 				if (gate2insert) {
 					Gate.insert(gate2insert, function (errSave, data) {
