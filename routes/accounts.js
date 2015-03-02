@@ -10,7 +10,6 @@ module.exports = function (app, passport, log) {
 	var config = require(path.join(__dirname, '..', '/config/config.js'));
 	var Account = require(path.join(__dirname, '..', '/models/account'));
 	var flash = require(path.join(__dirname, '..', '/include/utils')).flash;
-	var dateTime = require('../include/moment');
 	var util = require('util');
 	var mail = require("../include/emailjs");
 
@@ -68,6 +67,7 @@ module.exports = function (app, passport, log) {
 					mailer.send(user.email, "Solicitud de registro", html, function(messageBack){
 						log.logger.insert('Account INS: %s, se envió mail a %s', user.email, JSON.stringify(messageBack));
 					});
+					account.password = '';
 					message = flash('OK', account);
 					res.send(200, message);
 				});
@@ -89,13 +89,14 @@ module.exports = function (app, passport, log) {
 						lastname : true,
 						full_name: true,
 						email: true,
-						password: true,
+						//password: false,
 						user: true,
 						role: true,
 						group: true,
 						terminal: true,
 						status: true,
-						'token.date_created': true
+						'token.date_created': true,
+						'lastLogin' : true
 					};
 
 					Account.findAll({}, project, function (err, data){
@@ -213,8 +214,13 @@ module.exports = function (app, passport, log) {
 
 				} else {
 					if (usersToken.status){
-						log.logger.info("User '%s' has logged in From: %s", json.email, req.socket.remoteAddress);
-						res.send(200, {status:"OK", data: usersToken});
+						Account.findOne({_id: usersToken._id}, function (err, loggedUser){
+							loggedUser.lastLogin = new Date();
+							loggedUser.save(function (err, userSaved){
+								log.logger.info("User '%s' has logged in From: %s", json.email, req.socket.remoteAddress);
+								res.send(200, {status:"OK", data: usersToken});
+							});
+						});
 					} else {
 						errMsg = util.format("El usuario %s no se encuentra habilitado para utilizar el sistema. Debe contactar al administrador.", usersToken.email);
 						res.send(403, {status:"ERROR", data: errMsg});

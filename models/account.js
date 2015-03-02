@@ -31,7 +31,8 @@ var Account = new Schema({
 	//For reset we use a reset token with an expiry (which must be checked)
 	reset_token: {type: String},
 	reset_token_expires_millis: {type: Number},
-	status: {type: Boolean}
+	status: {type: Boolean},
+	lastLogin : {type: Date}
 });
 
 Account.plugin(passportLocalMongoose, {usernameField: 'email'});
@@ -104,6 +105,7 @@ Account.statics.login = function (username, password, cb) {
 					var rutasAcceso = ['matches.search','tarifario', 'invoices', 'invoices.result', 'invoices.search', 'matches', 'control', 'cfacturas', 'cfacturas.result', 'gates', 'gates.invoices', 'gates.invoices.result', 'gates.result.container', 'turnos', 'turnos.result'];
 
 					cb(false, {
+						_id : user._id,
 						acceso: rutasAcceso,
 						role: user.role,
 						email: user.email,
