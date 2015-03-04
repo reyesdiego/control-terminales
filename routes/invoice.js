@@ -491,70 +491,62 @@ module.exports = function(app, io, log) {
 			tomorrow = moment(moment(req.query.fecha).format('YYYY-MM-DD')).add('days',1).toDate();
 		}
 
+		var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
 
-		if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
-			var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-			console.error(errMsg);
-			res.send(500, {status:"ERROR", data: errMsg});
-		} else {
-
-			var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
-
-			var _price = require('../include/price.js');
-			var _rates = new _price.price();
+		var _price = require('../include/price.js');
+		var _rates = new _price.price();
 			_rates.rates(function (err, rates){
 
-				var sum = {};
-				if (req.params.currency === 'PES')
-					sum = { $cond: [
-						{$eq:['$codMoneda', 'PES' ]},
-						'$detalle.items.impTot',
-						{$multiply:['$detalle.items.impTot','$cotiMoneda'] }
-					]
-					};
-				else if (req.params.currency === 'DOL')
-					sum = { $cond: [
-						{$eq:['$codMoneda', 'DOL' ]},
-						'$detalle.items.impTot',
-						{$divide:['$detalle.items.impTot','$cotiMoneda'] }
-					]
-					};
+		var sum = {};
+		if (req.params.currency === 'PES')
+			sum = { $cond: [
+				{$eq:['$codMoneda', 'PES' ]},
+				'$detalle.items.impTot',
+				{$multiply:['$detalle.items.impTot','$cotiMoneda'] }
+			]
+			};
+		else if (req.params.currency === 'DOL')
+			sum = { $cond: [
+				{$eq:['$codMoneda', 'DOL' ]},
+				'$detalle.items.impTot',
+				{$divide:['$detalle.items.impTot','$cotiMoneda'] }
+			]
+			};
 
-				var jsonParam = [
-					{	$match: {
-						terminal:	ter,
-						'detalle.items.id' : {$in: rates},
-						'detalle.contenedor' : req.params.container
-					}
+		var jsonParam = [
+			{	$match: {
+				terminal:	ter,
+				'detalle.items.id' : {$in: rates},
+				'detalle.contenedor' : req.params.container
+			}
+			},
+			{	$unwind : '$detalle'	},
+			{	$unwind : '$detalle.items'	},
+			{	$match : {
+				'detalle.items.id' : {$in: rates},
+				'detalle.contenedor' : req.params.container
+			}
+			},
+			{	$project : {terminal: 1, 'detalle.items': 1, total : sum }
+			},
+			{
+				$group  : {
+					_id: {
+						terminal: '$terminal',
+						id: '$detalle.items.id'
 					},
-					{	$unwind : '$detalle'	},
-					{	$unwind : '$detalle.items'	},
-					{	$match : {
-						'detalle.items.id' : {$in: rates},
-						'detalle.contenedor' : req.params.container
-					}
-					},
-					{	$project : {terminal: 1, 'detalle.items': 1, total : sum }
-					},
-					{
-						$group  : {
-							_id: {
-								terminal: '$terminal',
-								id: '$detalle.items.id'
-							},
-							cnt: { $sum: '$detalle.items.cnt'},
-							total: {$sum: '$total'}
-						}
-					}
-				];
-				Invoice.aggregate(jsonParam, function (err, data){
-					if (err)
-						res.send(500, {status:'ERROR', data: err.message });
-					else
-						res.send(200, {status:'OK', data: data });
-				});
-			});
-		}
+					cnt: { $sum: '$detalle.items.cnt'},
+					total: {$sum: '$total'}
+				}
+			}
+		];
+		Invoice.aggregate(jsonParam, function (err, data){
+			if (err)
+				res.send(500, {status:'ERROR', data: err.message });
+			else
+				res.send(200, {status:'OK', data: data });
+		});
+	});
 
 	}
 
@@ -786,57 +778,50 @@ module.exports = function(app, io, log) {
 
 		var fecha;
 
-		if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
-			var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-			log.logger.error(errMsg);
-			res.send(500, {status:"ERROR", data: errMsg});
-		} else {
+		var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
+		var param = {terminal:	ter};
 
-			var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
-			var param = {terminal:	ter};
-
-			if (req.query.fechaInicio || req.query.fechaFin){
-				param["fecha.emision"]={};
-				if (req.query.fechaInicio){
-					fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
-					param["fecha.emision"]['$gte'] = fecha;
-				}
-				if (req.query.fechaFin){
-					fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
-					param["fecha.emision"]['$lte'] = fecha;
-				}
+		if (req.query.fechaInicio || req.query.fechaFin){
+			param["fecha.emision"]={};
+			if (req.query.fechaInicio){
+				fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+				param["fecha.emision"]['$gte'] = fecha;
 			}
-			if (req.query.nroPtoVenta){
-				param.nroPtoVenta = req.query.nroPtoVenta;
+			if (req.query.fechaFin){
+				fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+				param["fecha.emision"]['$lte'] = fecha;
 			}
-			if (req.query.codTipoComprob){
-				param.codTipoComprob = req.query.codTipoComprob;
-			}
-			if (req.query.nroComprobante){
-				param.nroComprob = req.query.nroComprobante;
-			}
-			if (req.query.razonSocial){
-				param.razon = {$regex:req.query.razonSocial}
-			}
-			if (req.query.documentoCliente){
-				param.nroDoc = req.query.documentoCliente;
-			}
-
-			if (req.query.contenedor)
-				param['detalle.contenedor'] = req.query.contenedor;
-
-			if (req.query.code)
-				param['detalle.items.id'] = req.query.code;
-
-			if (req.query.estado){
-				var states = req.query.estado.split(",");
-				param['$or'] = [
-					{ estado:{$size: 1, $elemMatch: {estado: {$in: states}, grupo:'ALL'} } },
-					{ 'estado.1': { $exists: true } , estado: {$elemMatch: {estado: {$in: states}, grupo: usr.group} } }
-				]
-			}
-
 		}
+		if (req.query.nroPtoVenta){
+			param.nroPtoVenta = req.query.nroPtoVenta;
+		}
+		if (req.query.codTipoComprob){
+			param.codTipoComprob = req.query.codTipoComprob;
+		}
+		if (req.query.nroComprobante){
+			param.nroComprob = req.query.nroComprobante;
+		}
+		if (req.query.razonSocial){
+			param.razon = {$regex:req.query.razonSocial}
+		}
+		if (req.query.documentoCliente){
+			param.nroDoc = req.query.documentoCliente;
+		}
+
+		if (req.query.contenedor)
+			param['detalle.contenedor'] = req.query.contenedor;
+
+		if (req.query.code)
+			param['detalle.items.id'] = req.query.code;
+
+		if (req.query.estado){
+			var states = req.query.estado.split(",");
+			param['$or'] = [
+				{ estado:{$size: 1, $elemMatch: {estado: {$in: states}, grupo:'ALL'} } },
+				{ 'estado.1': { $exists: true } , estado: {$elemMatch: {estado: {$in: states}, grupo: usr.group} } }
+			]
+		}
+
 
 		Invoice.distinct('nroPtoVenta', param, function (err, data){
 			if (err){
@@ -1410,24 +1395,48 @@ module.exports = function(app, io, log) {
 
 		_rates.rates(function (err, rates){
 
-			var inv = Invoice.aggregate([
-				{ $match: {terminal: paramTerminal, codTipoComprob : 1}},
+			var param = {
+				terminal : paramTerminal,
+				codTipoComprob : 1
+			}
+			var fecha='';
+			if (req.query.fechaInicio || req.query.fechaFin){
+				param["fecha.emision"]={};
+				if (req.query.fechaInicio){
+					fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD 00:00:00 Z')).toDate();
+					param["fecha.emision"]['$gte'] = fecha;
+				}
+				if (req.query.fechaFin){
+					fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD 00:00:00 Z')).toDate();
+					param["fecha.emision"]['$lte'] = fecha;
+				}
+			}
+			if (req.query.razonSocial){
+				param.razon = {$regex:req.query.razonSocial}
+			}
+
+			var paramTotal = [
+				{ $match: param },
 				{ $project : {'detalle.items.id': 1, 'detalle.contenedor': 1, _id: 0}},
 				{ $unwind: '$detalle' },
 				{ $unwind: '$detalle.items' },
 				{ $match : {'detalle.items.id' : {$in: rates }}},
 				{ $project : {contenedor : '$detalle.contenedor'} }
-			]);
+			];
+
+			var inv = Invoice.aggregate(paramTotal);
 			inv.exec(function (err, data1){
 
-				Invoice.distinct('detalle.contenedor', {terminal: paramTerminal, codTipoComprob : 1}, function (err, data2){
+				Invoice.distinct('detalle.contenedor', param, function (err, data2){
 
 					var contes = Enumerable.from(data1).select('$.contenedor');
 					var contDist = Enumerable.from(data2);
 
-					var dife = contDist.except(contes).select(function (item){
-						return {contenedor: {contenedor: item}};
-					}).toArray();
+					var dife = contDist.except(contes)
+						.orderBy()
+						.select(function (item){
+							return {contenedor: {contenedor: item}};})
+						.toArray();
 
 					res.send(200, {status: 'OK', totalCount: dife.length, data: dife});
 				});
