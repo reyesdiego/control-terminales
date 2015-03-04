@@ -5,7 +5,7 @@
  */
 
 module.exports = function (app, passport, log) {
-	var self = this;
+
 	var path = require('path');
 	var config = require(path.join(__dirname, '..', '/config/config.js'));
 	var Account = require(path.join(__dirname, '..', '/models/account'));
@@ -40,7 +40,7 @@ module.exports = function (app, passport, log) {
 			}
 		);
 		var message;
-//TODO tengo que incluir /token -> createToken aqui en register y mandar un mail con el token y un link de activacion
+
 		/*Passport method injection*/
 		Account.register(user, password, function(error, account) {
 			if (error) {
@@ -379,7 +379,6 @@ module.exports = function (app, passport, log) {
 		}
 	});
 
-
 	function enableAccount(req, res, enable, callback) {
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
@@ -407,5 +406,7 @@ module.exports = function (app, passport, log) {
 			}
 		});
 	}
+
+
 
 };
