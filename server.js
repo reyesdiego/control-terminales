@@ -229,7 +229,7 @@ var oracle = require('oracle');
 
 var pool = genericPool.Pool({
 	name: 'testpool 0',
-	log: true,
+	log: false,
 	max: 10,
 	create: function(callback) {
 		var settings = {
