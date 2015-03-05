@@ -7,8 +7,6 @@ module.exports = function (app, io, log) {
 
 	var dateTime = require('../include/moment');
 	var moment = require('moment');
-	var path = require('path');
-	var Account = require(path.join(__dirname, '..', '/models/account'));
 	var Invoice = require('../models/invoice.js');
 	var Gate = require('../models/gate.js');
 	var util = require('util');
@@ -17,6 +15,10 @@ module.exports = function (app, io, log) {
 	var linq = require('linq');
 
 	function isValidToken (req, res, next){
+		'use strict';
+
+		var Account = require('../models/account.js');
+
 		var incomingToken = req.headers.token;
 		var paramTerminal = req.params.terminal;
 		Account.verifyToken(incomingToken, function(err, usr) {
