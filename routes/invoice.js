@@ -11,10 +11,6 @@
  */
 module.exports = function(app, io, log) {
 
-	var path = require('path');
-
-	var Account = require(path.join(__dirname, '..', '/models/account'));
-
 	var util = require('util');
 
 	var mail = require("../include/emailjs");
@@ -32,6 +28,9 @@ module.exports = function(app, io, log) {
 	var logInvoiceBody = false;
 
 	function isValidToken (req, res, next){
+
+		var Account = require('../models/account.js');
+
 		var incomingToken = req.headers.token;
 		var paramTerminal = req.params.terminal;
 		Account.verifyToken(incomingToken, function(err, usr) {
@@ -1099,61 +1098,45 @@ module.exports = function(app, io, log) {
 	}
 
 	function setState (req, res) {
+		var usr = req.usr;
 
-		var incomingToken = req.headers.token;
-		Account.verifyToken(incomingToken, function(err, usr) {
-			if (err){
-				log.logger.error(err);
-				res.send(403, {status:'ERROR', data: err});
-			} else {
-				var invoice = Invoice.update({_id: req.params._id, 'estado.grupo': usr.group},
-					{$set: {'estado.$.estado' : req.body.estado}},
-					function (err, rowAffected, data){
-						if (err) {
-							var errMsg = util.format('Error: %s', 'Error in invoice set state.');
-							log.logger.error(errMsg);
-							res.send(500, {status:'ERROR', data: errMsg});
-						} else  {
+		var invoice = Invoice.update({_id: req.params._id, 'estado.grupo': usr.group},
+			{$set: {'estado.$.estado' : req.body.estado}},
+			function (err, rowAffected, data){
+				if (err) {
+					var errMsg = 'Error en cambio de estado. %s';
+					log.logger.error(errMsg, err.message);
+					res.send(500, {status:'ERROR', data: 'Error en cambio de estado.'});
+				} else  {
 
-							if (rowAffected === 0){
-								Invoice.findByIdAndUpdate( req.params._id,
-									{ $push: { estado: { estado: req.body.estado, grupo: usr.group, user: usr.user } } },
-									{safe: true, upsert: true},
-									function (err, data ){
-										if (err) {
-											var errMsg = 'Error: Error in invoice set state.';
-											log.logger.error(errMsg);
-											res.send(500, {status:'ERROR', data: errMsg});
-										} else {
-											res.send(200, {status:'OK', data: data});
-										}
-									});
-							} else {
-								res.send(200, {status:'OK', data: data});
-							}
-						}
-					});
-			}
-		});
+					if (rowAffected === 0){
+						Invoice.findByIdAndUpdate( req.params._id,
+							{ $push: { estado: { estado: req.body.estado, grupo: usr.group, user: usr.user } } },
+							{safe: true, upsert: true},
+							function (err, data ){
+								if (err) {
+									var errMsg = 'Error en cambio de estado. %s';
+									log.logger.error(errMsg, err.message);
+									res.send(500, {status:'ERROR', data: 'Error en cambio de estado.'});
+								} else {
+									res.send(200, {status:'OK', data: data});
+								}
+							});
+					} else {
+						res.send(200, {status:'OK', data: data});
+					}
+				}
+			});
 	}
 
 	function removeInvoices ( req, res){
-		var incomingToken = req.headers.token;
-		Account.verifyToken(incomingToken, function(err, usr) {
+
+		Invoice.remove({_id: req.params._id}, function (err){
 			if (!err){
-				console.log(usr);
-				Invoice.remove({_id: req.params._id}, function (err){
-					if (!err){
-						log.logger.info('Invoice Removed %s', req.params._id);
-						res.send({"response": "OK"});
-					} else {
-						res.send({"error": "Error al intentar eliminar"});
-					}
-				});
-			}
-			else {
-				log.logger.error(err);
-				res.send(err);
+				log.logger.info('Invoice Removed %s', req.params._id);
+				res.send({"response": "OK"});
+			} else {
+				res.send({"error": "Error al intentar eliminar"});
 			}
 		});
 	}
