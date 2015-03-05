@@ -4,11 +4,13 @@
 
 module.exports = function (app, io, log) {
 
-	var Account = require('../models/account.js');
 	var Invoice = require('../models/invoice.js');
 	var Comment = require('../models/comment.js');
 
 	function isValidToken (req, res, next){
+
+		var Account = require('../models/account.js');
+
 		var incomingToken = req.headers.token;
 		var paramTerminal = req.params.terminal;
 		Account.verifyToken(incomingToken, function(err, usr) {
