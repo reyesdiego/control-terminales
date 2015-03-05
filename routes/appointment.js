@@ -36,7 +36,7 @@ module.exports = function (app, io, log) {
 		});
 	}
 
-	function getAppointments(req, res, next){
+	function getAppointments(req, res){
 		'use strict';
 		var usr = req.usr;
 
