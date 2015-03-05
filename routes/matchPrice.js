@@ -11,259 +11,222 @@ module.exports = function (app, log){
 	var Price = require('../models/price.js');
 	var moment = require('moment');
 
-	var path = require('path');
-	var Account = require(path.join(__dirname, '..', '/models/account'));
+	function isValidToken (req, res, next){
 
-	function getMatchPrices (req, res){
+		var Account = require('../models/account.js');
 
 		var incomingToken = req.headers.token;
+		var paramTerminal = req.params.terminal;
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
-				log.logger.error('Error: %s', err);
-				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
+				log.logger.error(err);
+				res.send(500, {status:'ERROR', data: err});
 			} else {
-				var paramTerminal = req.params.terminal;
 
-				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
-					var errMsg = util.format('Error: %s', 'La terminal recibida por parámetro es inválida para el token.');
+				if (paramTerminal !== undefined && usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
+					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
 					log.logger.error(errMsg);
 					res.send(500, {status:"ERROR", data: errMsg});
 				} else {
-					var ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
-					var param = {
-						$or : [
-							{terminal:	"AGP"},
-							{terminal:	ter}
-						]
-					};
-
-					if (req.query.code){
-						param.code = req.query.code;
-					}
-
-					if (req.query.onlyRates){
-						if (req.query.onlyRates !== false)
-							param.rate = {$exists:true};
-					}
-
-					Price.find(param, {topPrices : {$slice:-1}})
-						.populate({path:'matches', match:{"terminal":req.params.terminal}})
-						.sort({terminal:1,code:1})
-						.exec(function (err, prices) {
-							if(!err) {
-								res.send(200, {status:'OK', data:prices});
-							} else {
-								log.logger.error('Error: %s', err.message);
-								res.send(500, {status:'ERROR', data: err.message});
-							}
-						});
+					req.usr = usr;
+					next();
 				}
-
 			}
 		});
+	}
+
+	function getMatchPrices (req, res){
+		var usr = req.usr;
+
+		var paramTerminal = req.params.terminal;
+
+		var ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
+		var param = {
+			$or : [
+				{terminal:	"AGP"},
+				{terminal:	ter}
+			]
+		};
+
+		if (req.query.code){
+			param.code = req.query.code;
+		}
+
+		if (req.query.onlyRates){
+			if (req.query.onlyRates !== false)
+				param.rate = {$exists:true};
+		}
+
+		Price.find(param, {topPrices : {$slice:-1}})
+			.populate({path:'matches', match:{"terminal": paramTerminal}})
+			.sort({terminal:1,code:1})
+			.exec(function (err, prices) {
+				if(!err) {
+					res.send(200, {status:'OK', data: prices});
+				} else {
+					log.logger.error('Error: %s', err.message);
+					res.send(500, {status:'ERROR', data: err.message});
+				}
+			});
 	}
 
 	function getMatchPricesPrice (req, res){
+		var usr = req.usr;
 
-		var incomingToken = req.headers.token;
-		Account.verifyToken(incomingToken, function(err, usr) {
-			if (err){
-				log.logger.error('Error: %s', err);
-				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
-			} else {
-				var paramTerminal = req.params.terminal;
+		var paramTerminal = req.params.terminal;
 
-				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
-					var errMsg = util.format('Error: %s', 'La terminal recibida por parámetro es inválida para el token.');
-					log.logger.error(errMsg);
-					res.send(500, {status:"ERROR", data: errMsg});
-				} else {
-					var ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
-					var param = {
-						$or : [
-							{terminal:	"AGP"},
-							{terminal:	ter}
-						]
-					};
+		var ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
+		var param = {
+			$or : [
+				{terminal:	"AGP"},
+				{terminal:	ter}
+			]
+		};
 
-					if (req.query.code){
-						param.code = req.query.code;
-					}
+		if (req.query.code){
+			param.code = req.query.code;
+		}
 
-					if (req.query.onlyRates){
-						if (req.query.onlyRates !== false)
-							param.rate = {$exists:true};
-					}
+		if (req.query.onlyRates){
+			if (req.query.onlyRates !== false)
+				param.rate = {$exists:true};
+		}
 
-					Price.find(param, {topPrices: true})
-						.exec(function (err, prices){
-							if (!err){
-								var matchPrices = MatchPrice.aggregate([
-									{ $match : param},
-									{ $unwind : '$match'},
-									{ $project : {price: true, match : true, code : true}}
-								]);
-								matchPrices.exec (function (err, matches){
-									var Enumerable = require('linq');
-									var response = [];
-									Enumerable.from(matches)
-										.join(Enumerable.from(prices), '$.price.id', '$._id.id', function (match, price){
-											response.push({code: match.match,
-												topPrices : price.topPrices})
-										}
-									).toArray();
-									res.send(200, {status:'OK', data: response});
-								});
-							} else {
-								log.logger.error('Error: %s', err.message);
-								res.send(500, {status:'ERROR', data: err.message});
+		Price.find(param, {topPrices: true})
+			.exec(function (err, prices){
+				if (!err){
+					var matchPrices = MatchPrice.aggregate([
+						{ $match : param},
+						{ $unwind : '$match'},
+						{ $project : {price: true, match : true, code : true}}
+					]);
+					matchPrices.exec (function (err, matches){
+						var Enumerable = require('linq');
+						var response = [];
+						Enumerable.from(matches)
+							.join(Enumerable.from(prices), '$.price.id', '$._id.id', function (match, price){
+								response.push({code: match.match,
+									topPrices : price.topPrices})
 							}
-						});
-
+						).toArray();
+						res.send(200, {status:'OK', data: response});
+					});
+				} else {
+					log.logger.error('Error: %s', err.message);
+					res.send(500, {status:'ERROR', data: err.message});
 				}
-
-			}
-		});
+			});
 	}
 
 	function getMatches (req, res){
+		var usr = req.usr;
 
-		var incomingToken = req.headers.token;
-		Account.verifyToken(incomingToken, function(err, usr) {
-			if (err){
-				log.logger.error('Error: %s', err);
-				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
-			} else {
-				var paramTerminal = req.params.terminal;
+		var paramTerminal = req.params.terminal;
 
-				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal){
-					var errMsg = util.format('Error: %s', 'La terminal recibida por parámetro es inválida para el token.');
-					log.logger.error(errMsg);
-					res.send(500, {status:"ERROR", data: errMsg});
-				} else {
-					var param = [
-						{
-							$match: {terminal:	paramTerminal }
-						},
-						{	$unwind: '$match' }
-					];
+		var param = [
+			{
+				$match: {terminal:	paramTerminal }
+			},
+			{	$unwind: '$match' }
+		];
 
-					var s = MatchPrice.aggregate(param);
-					s.exec(function (err, matches) {
+		var s = MatchPrice.aggregate(param);
+		s.exec(function (err, matches) {
+			if(!err) {
+
+				Price.find({$or: [{terminal:"AGP"}, {terminal: paramTerminal }]})
+					.exec(function (err, prices) {
 						if(!err) {
-
-							Price.find({$or: [{terminal:"AGP"}, {terminal: paramTerminal }]})
-								.exec(function (err, prices) {
-									if(!err) {
-										var result = {};
-										var Enumerable = require('linq');
-										var response = Enumerable.from(matches)
-											.join(Enumerable.from(prices), '$.price.id', '$._id.id', function (match, price){
-												if (req.query.type){
-													match.description = {
-														'currency': price.currency,
-														'price': price.topPrice
-													};
-												} else {
-													match.description = price.description;
-												}
-												return match;
-											}).toArray();
-										response.forEach(function (item){
-											result[item.match] = item.description;
-										});
-
-										res.send(200, {status:'OK', data: result});
-
+							var result = {};
+							var Enumerable = require('linq');
+							var response = Enumerable.from(matches)
+								.join(Enumerable.from(prices), '$.price.id', '$._id.id', function (match, price){
+									if (req.query.type){
+										match.description = {
+											'currency': price.currency,
+											'price': price.topPrice
+										};
 									} else {
-										log.logger.error('Error: %s', err.message);
-										res.send(500, {status:'ERROR', data: err.message});
+										match.description = price.description;
 									}
-								});
+									return match;
+								}).toArray();
+							response.forEach(function (item){
+								result[item.match] = item.description;
+							});
+
+							res.send(200, {status:'OK', data: result});
 
 						} else {
-							var errMsg = util.format('Error: %s', err.message);
-							log.logger.error(errMsg);
-							res.send(500, {status:'ERROR', data: errMsg});
+							log.logger.error('Error: %s', err.message);
+							res.send(500, {status:'ERROR', data: err.message});
 						}
 					});
-				}
+
+			} else {
+				var errMsg = util.format('Error: %s', err.message);
+				log.logger.error(errMsg);
+				res.send(500, {status:'ERROR', data: errMsg});
 			}
 		});
 	}
 
 	function getNoMatches (req, res) {
+		var usr = req.usr;
+		var paramTerminal = req.params.terminal;
 
-		var incomingToken = req.headers.token;
-		Account.verifyToken(incomingToken, function(err, usr) {
-			if (err){
-				log.logger.error('Error: %s', err);
-				res.send(500, {status:"ERROR", data:"Invalid or missing Token"});
-			} else {
-				var paramTerminal = req.params.terminal;
+		var param = [
+			{
+				$match: {terminal:	paramTerminal }
+			},
+			{	$unwind: '$match' },
+			{ $project: {match: '$match', _id:0}}
+		];
 
-				if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal){
-					var errMsg = util.format('Error: %s', 'La terminal recibida por parámetro es inválida para el token.');
-					log.logger.error(errMsg);
-					res.send(500, {status:"ERROR", data: errMsg});
-				} else {
-
-					var param = [
-						{
-							$match: {terminal:	paramTerminal }
-						},
-						{	$unwind: '$match' },
-						{ $project: {match: '$match', _id:0}}
-					];
-
-					var s = MatchPrice.aggregate(param);
-					s.exec(function (err, noMatches){
-						if(!err) {
-							var arrNoMatches = [];
-							noMatches.forEach(function (item){
-								arrNoMatches.push(item.match);
-							});
-							var fecha;
-							var param = {};
-							if (req.query.fechaInicio || req.query.fechaFin){
-								param["fecha.emision"]={};
-								if (req.query.fechaInicio){
-									fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z')).toDate();
-									param["fecha.emision"]['$gte'] = fecha;
-								}
-								if (req.query.fechaFin){
-									fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z')).toDate();
-									param["fecha.emision"]['$lte'] = fecha;
-								}
-							}
-							param.terminal = paramTerminal;
-							var parametro = [
-								{ $match: param},
-								{ $unwind: '$detalle'},
-								{ $unwind: '$detalle.items'},
-								{ $match: {'detalle.items.id' : {$nin: arrNoMatches } } },
-								{ $group: {_id: {
-									code : '$detalle.items.id'
-								}
-								}
-								},
-								{$sort:{'_id.code':1}}
-							];
-							Invoice.aggregate(parametro, function (err, data){
-								var result = [];
-								data.forEach(function (item){
-									result.push(item._id.code);
-								});
-
-								res.send(200, {
-									status:'OK',
-									totalCount: result.length,
-									data: result});
-							});
-						}
+		var s = MatchPrice.aggregate(param);
+		s.exec(function (err, noMatches){
+			if(!err) {
+				var arrNoMatches = [];
+				noMatches.forEach(function (item){
+					arrNoMatches.push(item.match);
+				});
+				var fecha;
+				var param = {};
+				if (req.query.fechaInicio || req.query.fechaFin){
+					param["fecha.emision"]={};
+					if (req.query.fechaInicio){
+						fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z')).toDate();
+						param["fecha.emision"]['$gte'] = fecha;
+					}
+					if (req.query.fechaFin){
+						fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z')).toDate();
+						param["fecha.emision"]['$lte'] = fecha;
+					}
+				}
+				param.terminal = paramTerminal;
+				var parametro = [
+					{ $match: param},
+					{ $unwind: '$detalle'},
+					{ $unwind: '$detalle.items'},
+					{ $match: {'detalle.items.id' : {$nin: arrNoMatches } } },
+					{ $group: {_id: {
+						code : '$detalle.items.id'
+					}
+					}
+					},
+					{$sort:{'_id.code':1}}
+				];
+				Invoice.aggregate(parametro, function (err, data){
+					var result = [];
+					data.forEach(function (item){
+						result.push(item._id.code);
 					});
 
-				}
+					res.send(200, {
+						status:'OK',
+						totalCount: result.length,
+						data: result});
+				});
 			}
 		});
 	}
@@ -312,11 +275,11 @@ module.exports = function (app, log){
 
 	}
 
-	app.get('/matchprices/:terminal', getMatchPrices);
-	app.get('/matchprices/price/:terminal', getMatchPricesPrice);
-	app.get('/matches/:terminal', getMatches);
-	app.get('/noMatches/:terminal', getNoMatches);
-	app.post('/matchprice', addMatchPrice);
-	app.put('/matchprice', addMatchPrice);
+	app.get('/matchprices/:terminal', isValidToken, getMatchPrices);
+	app.get('/matchprices/price/:terminal', isValidToken, getMatchPricesPrice);
+	app.get('/matches/:terminal', isValidToken, getMatches);
+	app.get('/noMatches/:terminal', isValidToken, getNoMatches);
+	app.post('/matchprice', isValidToken, addMatchPrice);
+	app.put('/matchprice', isValidToken, addMatchPrice);
 
 };
