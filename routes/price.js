@@ -1,51 +1,26 @@
 /**
  * Created by Administrator on 1/10/14.
  */
-'use strict';
 
-var util = require('util');
-var moment = require('moment');
+module.exports = function (log){
+	'use strict';
 
-var mail = require("../include/emailjs");
-var config = require('../config/config.js');
+	var express = require('express');
+	var router = express.Router();
 
-var dateTime = require('../include/moment');
+	var util = require('util');
+	var moment = require('moment');
 
-module.exports = function (app, log){
-
+	var mail = require("../include/emailjs");
+	var config = require('../config/config.js');
 	var price = require('../models/price.js');
-
-	function isValidToken (req, res, next){
-
-		var Account = require('../models/account.js');
-
-		var incomingToken = req.headers.token;
-		var paramTerminal = req.params.terminal;
-		Account.verifyToken(incomingToken, function(err, usr) {
-			if (err){
-				log.logger.error(err);
-				res.send(500, {status:'ERROR', data: err});
-			} else {
-
-				if (paramTerminal !== undefined && usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
-					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-					log.logger.error(errMsg);
-					res.send(500, {status:"ERROR", data: errMsg});
-				} else {
-					req.usr = usr;
-					next();
-				}
-			}
-		});
-	}
 
 	function getPrices (req, res){
 
 		var usr = req.usr;
-
 		var paramTerminal = req.params.terminal;
 
-		var ter = (usr.role === 'agp') ? req.params.terminal : usr.terminal;
+		var ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
 		var param = {
 			$or : [
 				{terminal:	"AGP"},
@@ -66,15 +41,15 @@ module.exports = function (app, log){
 			.sort({terminal:1, code:1})
 			.exec(function(err, priceList){
 			if(!err) {
-				res.send(200,	{
-									status: 'OK',
-									totalCount: priceList.length,
-									data: priceList
-								}
-				);
+				res.status(200)
+					.send({
+							status: 'OK',
+							totalCount: priceList.length,
+							data: priceList
+						});
 			} else {
 				log.logger.error('Error: %s', err.message);
-				res.send(500, {status:'ERROR', data: err.message});
+				res.status(500).send({status:'ERROR', data: err.message});
 			}
 		});
 	}
@@ -83,7 +58,7 @@ module.exports = function (app, log){
 		var usr = req.usr;
 		var paramTerminal = req.params.terminal;
 
-		var ter = (usr.role === 'agp') ? req.params.terminal : usr.terminal;
+		var ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
 		var param = {
 			$or : [
 				{terminal:	"AGP"},
@@ -98,10 +73,10 @@ module.exports = function (app, log){
 		price.findOne(param)
 			.exec(function(err, price){
 				if(!err) {
-					res.send(200, {status:'OK', totalCount: 1, data: price});
+					res.status(200).send({status:'OK', totalCount: 1, data: price});
 				} else {
 					log.logger.error('Error: %s', err.message);
-					res.send(500, {status:'ERROR', data: err.message});
+					res.status(500).send({status:'ERROR', data: err.message});
 				}
 			});
 	}
@@ -117,10 +92,10 @@ module.exports = function (app, log){
 			.sort({rate:1, code:1})
 			.exec(function(err, priceList){
 				if(!err) {
-					res.send(200, {status:'OK', data:priceList});
+					res.status(200).send({status:'OK', data:priceList});
 				} else {
 					log.logger.error('Error: %s', err.message);
-					res.send(500, {status:'ERROR', data: err.message});
+					res.status(500).send({status:'ERROR', data: err.message});
 				}
 			});
 	}
@@ -152,10 +127,10 @@ module.exports = function (app, log){
 						mailer.send("dreyes@puertobuenosaires.gob.ar", strSubject, strMsg, function(){
 						});
 
-						res.send(200,{"status": "OK", "data": _price});
+						res.status(200).send({"status": "OK", "data": _price});
 					} else {
 						log.logger.error('Error: %s', errSave.message);
-						res.send(500, {"status":"ERROR", "data": errSave.message});
+						res.status(500).send({"status":"ERROR", "data": errSave.message});
 					}
 				});
 			} else {
@@ -168,10 +143,10 @@ module.exports = function (app, log){
 					price2Upd.save(function (errSave, dataSaved){
 						if(!errSave) {
 							log.logger.update("Price UPD:%s - %s", dataSaved._id, usr.terminal);
-							res.send(200,{"status": "OK", "data": dataSaved});
+							res.status(200).send({"status": "OK", "data": dataSaved});
 						} else {
 							log.logger.error('Error: %s - %s', errSave.message, usr.terminal);
-							res.send(500, {"status":"ERROR", "data": errSave.message});
+							res.status(500).send({"status":"ERROR", "data": errSave.message});
 						}
 					});
 				});
@@ -190,24 +165,37 @@ module.exports = function (app, log){
 			if (!err) {
 				matchPrice.remove ({price: req.params.id}, function (err){
 					if (!err){
-						res.send(200, {status:'OK', data:{}})
+						res.status(200).send({status:'OK', data:{}})
 					} else {
 						log.logger.error('Error DELETE: %s - %s', err.message, usr.terminal);
-						res.send(403, {status:'ERROR', data: err.message});
+						res.status(403).send({status:'ERROR', data: err.message});
 					}
 				})
 			} else {
 				log.logger.error('Error DELETE: %s - %s', err.message, usr.terminal);
-				res.send(403, {status:'ERROR', data: err.message});
+				res.status(403).send({status:'ERROR', data: err.message});
 			}
 		});
 	}
 
-	app.get('/prices/:terminal', isValidToken, getPrices);
-	app.get('/price/:id/:terminal', isValidToken, getPrice);
-	app.get('/rates', isValidToken, getRates);
-	app.post('/price', isValidToken, addPrice);
-	app.put('/price/:id', isValidToken, addPrice);
-	app.delete('/price/:id', isValidToken, deletePrice);
+	router.use(function timeLog(req, res, next){
+		log.logger.info('Time: %s', Date.now());
+		next();
+	});
+	router.get('/:terminal', getPrices);
+	router.get('/:id/:terminal', getPrice);
+	router.get('/rates', getRates);
+	router.post('/price', addPrice);
+	router.put('/price/:id', addPrice);
+	router.delete('/price/:id', deletePrice);
+
+	return router;
+
+//	app.get('/prices/:terminal', isValidToken, getPrices);
+//	app.get('/price/:id/:terminal', isValidToken, getPrice);
+//	app.get('/rates', isValidToken, getRates);
+//	app.post('/price', isValidToken, addPrice);
+//	app.put('/price/:id', isValidToken, addPrice);
+//	app.delete('/price/:id', isValidToken, deletePrice);
 
 };

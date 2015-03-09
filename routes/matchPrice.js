@@ -1,39 +1,17 @@
 /**
  * Created by Diego Reyes	on 2/18/14.
  */
-
-module.exports = function (app, log){
+module.exports = function (log) {
 	'use strict';
+
+	var express = require('express');
+	var router = express.Router();
 
 	var MatchPrice = require('../models/matchPrice.js');
 	var Invoice = require('../models/invoice.js');
 	var util = require('util');
 	var Price = require('../models/price.js');
 	var moment = require('moment');
-
-	function isValidToken (req, res, next){
-
-		var Account = require('../models/account.js');
-
-		var incomingToken = req.headers.token;
-		var paramTerminal = req.params.terminal;
-		Account.verifyToken(incomingToken, function(err, usr) {
-			if (err){
-				log.logger.error(err);
-				res.send(500, {status:'ERROR', data: err});
-			} else {
-
-				if (paramTerminal !== undefined && usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
-					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-					log.logger.error(errMsg);
-					res.send(500, {status:"ERROR", data: errMsg});
-				} else {
-					req.usr = usr;
-					next();
-				}
-			}
-		});
-	}
 
 	function getMatchPrices (req, res){
 		var usr = req.usr;
@@ -62,10 +40,10 @@ module.exports = function (app, log){
 			.sort({terminal:1,code:1})
 			.exec(function (err, prices) {
 				if(!err) {
-					res.send(200, {status:'OK', data: prices});
+					res.status(200).send({status:'OK', data: prices});
 				} else {
 					log.logger.error('Error: %s', err.message);
-					res.send(500, {status:'ERROR', data: err.message});
+					res.status(500).send({status:'ERROR', data: err.message});
 				}
 			});
 	}
@@ -109,11 +87,11 @@ module.exports = function (app, log){
 									topPrices : price.topPrices})
 							}
 						).toArray();
-						res.send(200, {status:'OK', data: response});
+						res.status(200).send({status:'OK', data: response});
 					});
 				} else {
 					log.logger.error('Error: %s', err.message);
-					res.send(500, {status:'ERROR', data: err.message});
+					res.status(500).send({status:'ERROR', data: err.message});
 				}
 			});
 	}
@@ -155,18 +133,18 @@ module.exports = function (app, log){
 								result[item.match] = item.description;
 							});
 
-							res.send(200, {status:'OK', data: result});
+							res.status(200).send({status:'OK', data: result});
 
 						} else {
 							log.logger.error('Error: %s', err.message);
-							res.send(500, {status:'ERROR', data: err.message});
+							res.status(200).send({status:'ERROR', data: err.message});
 						}
 					});
 
 			} else {
 				var errMsg = util.format('Error: %s', err.message);
 				log.logger.error(errMsg);
-				res.send(500, {status:'ERROR', data: errMsg});
+				res.status(500).send({status:'ERROR', data: errMsg});
 			}
 		});
 	}
@@ -222,10 +200,11 @@ module.exports = function (app, log){
 						result.push(item._id.code);
 					});
 
-					res.send(200, {
-						status:'OK',
-						totalCount: result.length,
-						data: result});
+					res.status(200)
+						.send({
+								status:'OK',
+								totalCount: result.length,
+								data: result});
 				});
 			}
 		});
@@ -275,11 +254,24 @@ module.exports = function (app, log){
 
 	}
 
-	app.get('/matchprices/:terminal', isValidToken, getMatchPrices);
-	app.get('/matchprices/price/:terminal', isValidToken, getMatchPricesPrice);
-	app.get('/matches/:terminal', isValidToken, getMatches);
-	app.get('/noMatches/:terminal', isValidToken, getNoMatches);
-	app.post('/matchprice', isValidToken, addMatchPrice);
-	app.put('/matchprice', isValidToken, addMatchPrice);
+	router.use(function timeLog(req, res, next){
+		log.logger.info('Time: %s', Date.now());
+		next();
+	});
+	router.get('/:terminal', getMatchPrices);
+	router.get('/price/:terminal', getMatchPricesPrice);
+	router.get('/matches/:terminal', getMatches);
+	router.get('/noMatches/:terminal', getNoMatches);
+	router.post('/matchprice', addMatchPrice);
+	router.put('/matchprice', addMatchPrice);
+
+	return router;
+
+//	app.get('/matchprices/:terminal', isValidToken, getMatchPrices);
+//	app.get('/matchprices/price/:terminal', isValidToken, getMatchPricesPrice);
+//	app.get('/matches/:terminal', isValidToken, getMatches);
+//	app.get('/noMatches/:terminal', isValidToken, getNoMatches);
+//	app.post('/matchprice', isValidToken, addMatchPrice);
+//	app.put('/matchprice', isValidToken, addMatchPrice);
 
 };

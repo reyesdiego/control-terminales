@@ -2,39 +2,16 @@
  * Created by Diego Reyes on 3/21/14.
  */
 
+module.exports = function (log, io) {
 
-module.exports = function (app, io, log) {
+	var express = require('express');
+	var router = express.Router();
 
-	var dateTime = require('../include/moment.js');
 	var moment = require('moment');
 	var Appointment = require('../models/appointment.js');
 	var util = require('util');
 	var mail = require("../include/emailjs");
 	var config = require('../config/config.js');
-
-	function isValidToken (req, res, next){
-
-		var Account = require('../models/account.js');
-
-		var incomingToken = req.headers.token;
-		var paramTerminal = req.params.terminal;
-		Account.verifyToken(incomingToken, function(err, usr) {
-			if (err){
-				log.logger.error(err);
-				res.send(500, {status:'ERROR', data: err});
-			} else {
-
-				if (paramTerminal !== undefined && usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
-					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-					log.logger.error(errMsg);
-					res.send(500, {status:"ERROR", data: errMsg});
-				} else {
-					req.usr = usr;
-					next();
-				}
-			}
-		});
-	}
 
 	function getAppointments(req, res){
 		'use strict';
@@ -73,7 +50,7 @@ module.exports = function (app, io, log) {
 		appointment.exec( function( err, appointments){
 			if (err){
 				log.logger.error("Error: %s", err.error);
-				res.send(500 , {status: "ERROR", data: err});
+				res.status(500).send({status: "ERROR", data: err});
 			} else {
 				Appointment.count(param, function (err, cnt){
 					var pageCount = appointments.length;
@@ -84,7 +61,7 @@ module.exports = function (app, io, log) {
 						page: skip,
 						data: appointments
 					}
-					res.send(200, result);
+					res.status(200).send(result);
 				});
 			}
 		});
@@ -120,7 +97,7 @@ module.exports = function (app, io, log) {
 		];
 
 		Appointment.aggregate(jsonParam, function (err, data){
-			res.send(200, data);
+			res.status(200).send(data);
 		});
 	}
 
@@ -149,7 +126,7 @@ module.exports = function (app, io, log) {
 		];
 
 		Appointment.aggregate(jsonParam, function (err, data){
-			res.send(200, data);
+			res.status(200).send(data);
 		});
 	}
 
@@ -167,11 +144,11 @@ module.exports = function (app, io, log) {
 				if (!errData){
 					var str = util.format('Appointment INS: %s - %s - Inicio: %s, Fin: %s', data._id, usr.terminal, data.inicio, data.fin);
 					log.logger.insert(str);
-					var socketMsg = {status:'OK', datetime: dateTime.getDatetime(), terminal: usr.terminal};
+					var socketMsg = {status:'OK', terminal: usr.terminal};
 					io.sockets.emit('appointment', socketMsg);
-					res.send(200, {status: 'OK', data: data});
+					res.status(200).send({status: 'OK', data: data});
 				} else {
-					var errMsg = util.format('%s - ERROR: %s.-%s- \n%s', dateTime.getDatetime(), errData.toString(), usr.terminal, JSON.stringify(req.body));
+					var errMsg = util.format('%s.-%s- \n%s', errData.toString(), usr.terminal, JSON.stringify(req.body));
 					log.logger.error(errMsg);
 
 					var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
@@ -179,7 +156,7 @@ module.exports = function (app, io, log) {
 					mailer.send(usr.email, strSubject, errMsg, function(){
 					});
 
-					res.send(500, {status:'ERROR', data: errMsg});
+					res.status(500).send({status:'ERROR', data: errMsg});
 				}
 			});
 		}
@@ -204,17 +181,29 @@ module.exports = function (app, io, log) {
 
 		Appointment.distinct(distinct, param, function (err, data){
 			if (err){
-				res.send(500, {status: 'ERROR', data: err});
+				res.status(500).send({status: 'ERROR', data: err});
 			} else {
-				res.send(200, {status: 'OK', totalCount: data.length, data: data.sort()});
+				res.status(200).send({status: 'OK', totalCount: data.length, data: data.sort()});
 			}
 		});
 	}
 
-	app.get('/appointmentsByHour', isValidToken, getAppointmentsByHour);
-	app.get('/appointmentsByMonth', isValidToken, getAppointmentsByMonth);
-	app.get('/appointments/:terminal/:skip/:limit', isValidToken, getAppointments);
-	app.get('/appointments/:terminal/containers', isValidToken, getDistincts);
-	app.get('/appointments/:terminal/ships', isValidToken, getDistincts);
-	app.post('/appointment', isValidToken, addAppointment);
+	router.use(function timeLog(req, res, next){
+		log.logger.info('Time: %s', Date.now());
+		next();
+	});
+	router.get('/ByHour', getAppointmentsByHour);
+	router.get('/ByMonth', getAppointmentsByMonth);
+	router.get('/:terminal/:skip/:limit', getAppointments);
+	router.get('/:terminal/containers', getDistincts);
+	router.get('/:terminal/ships', getDistincts);
+	router.post('/appointment', addAppointment);
+
+	return router;
+//	app.get('/appointmentsByHour', isValidToken, getAppointmentsByHour);
+//	app.get('/appointmentsByMonth', isValidToken, getAppointmentsByMonth);
+//	app.get('/appointments/:terminal/:skip/:limit', isValidToken, getAppointments);
+//	app.get('/appointments/:terminal/containers', isValidToken, getDistincts);
+//	app.get('/appointments/:terminal/ships', isValidToken, getDistincts);
+//	app.post('/appointment', isValidToken, addAppointment);
 };

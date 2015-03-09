@@ -2,7 +2,11 @@
  * Created by diego on 11/19/14.
  */
 
-module.exports = function (app, log, pool){
+module.exports = function (log, pool){
+	'use strict'
+
+	var express = require('express');
+	var router = express.Router();
 
 	function getRegistro2DetImpo( req, res){
 
@@ -47,13 +51,13 @@ module.exports = function (app, log, pool){
 			connection.execute(strSql,[skip+1, skip+limit], function (err, data){
 				if (err){
 					pool.destroy(connection);
-					res.send(500, { status:'ERROR', data: err.message });
+					res.status(500).json({ status:'ERROR', data: err.message });
 				} else {
 					strSql = "SELECT COUNT(*) AS TOTAL FROM REGISTRO2_DETIMPO";
 					connection.execute(strSql, [], function (err, dataCount){
 						pool.release(connection);
 						if (err){
-							res.send(500, { status:'ERROR', data: err.message });
+							res.status(500).json({ status:'ERROR', data: err.message });
 						} else {
 							var total = dataCount[0].TOTAL;
 							var result = {
@@ -61,7 +65,7 @@ module.exports = function (app, log, pool){
 								totalCount : total,
 								pageCount : (limit > total) ? total : limit,
 								data: data };
-							res.send(200, result);
+							res.status(200).json(result);
 						}
 					});
 				}
@@ -70,6 +74,13 @@ module.exports = function (app, log, pool){
 		});
 	}
 
-	app.get('/afip/registro2_detimpo/:skip/:limit', getRegistro2DetImpo)
+	router.use(function timeLog(req, res, next){
+		log.logger.info('Time registro2_detimpo: %s', Date.now());
+		next();
+	});
+	router.get('/registro2_detimpo/:skip/:limit', getRegistro2DetImpo);
 
+	//app.get('/afip/registro2_detimpo/:skip/:limit', getRegistro2DetImpo)
+
+	return router;
 };

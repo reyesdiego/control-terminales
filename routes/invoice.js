@@ -1,18 +1,15 @@
 /**
- * Created by Diego Reyes on 2/17/14.
- */
-
-'use strict';
-
-/**
  * Created by Diego Reyes on 1/7/14.
  *
  * @module Routes
  */
-module.exports = function(app, io, log) {
+module.exports = function(log, io) {
+	'use strict';
+
+	var express = require('express');
+	var router = express.Router();
 
 	var util = require('util');
-
 	var mail = require("../include/emailjs");
 
 	var dateTime = require('../include/moment');
@@ -26,30 +23,6 @@ module.exports = function(app, io, log) {
 	var Comment = require('../models/comment.js');
 
 	var logInvoiceBody = false;
-
-	function isValidToken (req, res, next){
-
-		var Account = require('../models/account.js');
-
-		var incomingToken = req.headers.token;
-		var paramTerminal = req.params.terminal;
-		Account.verifyToken(incomingToken, function(err, usr) {
-			if (err){
-				log.logger.error(err);
-				res.send(500, {status:'ERROR', data: err});
-			} else {
-
-				if (paramTerminal !== undefined && usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
-					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-					log.logger.error(errMsg);
-					res.send(500, {status:"ERROR", data: errMsg});
-				} else {
-					req.usr = usr;
-					next();
-				}
-			}
-		});
-	}
 
 	//GET - Return all invoice in the DB
 	function getInvoices (req, res) {
@@ -135,11 +108,11 @@ module.exports = function(app, io, log) {
 						page: skip,
 						data: invoices
 					}
-					res.send(200, result);
+					res.status(200).send(result);
 				});
 			} else {
-				log.logger.error("Error: %s", err.message);
-				res.send(500 , {status: "ERROR", data: err.message});
+				log.logger.error("%s", err.message);
+				res.status(500).send({status: "ERROR", data: err.message});
 			}
 		});
 	}
@@ -155,10 +128,10 @@ module.exports = function(app, io, log) {
 		var invoice = Invoice.find(param);
 		invoice.exec(function(err, invoices){
 			if (err) {
-				log.logger.error("Error: %s", err.error);
-				res.send({status:'ERROR', data: err});
+				log.logger.error("%s", err.error);
+				res.status(500).send({status:'ERROR', data: err});
 			} else {
-				res.send(200, {status:"OK", data: invoices[0]||null})
+				res.status(200).send({status:"OK", data: invoices[0]||null})
 			}
 		});
 	}
@@ -232,10 +205,10 @@ module.exports = function(app, io, log) {
 
 					}).toArray();
 
-				res.send({status:"OK", data: response}, {"content-type":"applicacion/json"}, 200);
+				res.status(200).send({status:"OK", data: response});
 			} else {
 				log.logger.error(err);
-				res.send({status: 'ERROR', data: err.message}, {"content-type":"text/plain"}, 500);
+				res.status(500).send({status: 'ERROR', data: err.message});
 			}
 		});
 	}
@@ -284,9 +257,9 @@ module.exports = function(app, io, log) {
 
 		Invoice.aggregate(jsonParam, function (err, data){
 			if (err){
-				res.send(500, {status:"ERROR", data: err.message});
+				res.status(500).send({status:"ERROR", data: err.message});
 			} else {
-				res.send(200, {status: 'OK', data: data});
+				res.status(200).send({status: 'OK', data: data});
 			}
 		});
 
@@ -333,9 +306,9 @@ module.exports = function(app, io, log) {
 
 		Invoice.aggregate(jsonParam, function (err, data){
 			if (err){
-				res.send(500, {status:"ERROR", data: err.message});
+				res.status(500).send({status:"ERROR", data: err.message});
 			} else {
-				res.send(200, {status: 'OK', data: data});
+				res.status(200).send({status: 'OK', data: data});
 			}
 		});
 
@@ -405,7 +378,7 @@ module.exports = function(app, io, log) {
 							elapsed: log.getElapsed(),
 							data: invoices
 						}
-						res.send(200, dataResult);
+						res.status(200).send(dataResult);
 					});
 				});
 			} else {
@@ -413,7 +386,7 @@ module.exports = function(app, io, log) {
 					status: 'ERROR',
 					data: 'La terminal no tiene Tasa a las Cargas Asociadas.'
 				}
-				res.send(500, errorResult);
+				res.status(500).send(errorResult);
 			}
 		});
 
@@ -466,12 +439,12 @@ module.exports = function(app, io, log) {
 			];
 			Invoice.aggregate(jsonParam, function (err, data){
 				if (err)
-					res.send(500, {status:'ERROR', data: err.message });
+					res.status(500).send({status:'ERROR', data: err.message });
 				else
-					res.send(200, {
+					res.status(200)
+						.send({
 							status:'OK',
-							data: data }
-					);
+							data: data });
 			});
 		});
 
@@ -541,9 +514,9 @@ module.exports = function(app, io, log) {
 		];
 		Invoice.aggregate(jsonParam, function (err, data){
 			if (err)
-				res.send(500, {status:'ERROR', data: err.message });
+				res.status(500).send({status:'ERROR', data: err.message });
 			else
-				res.send(200, {status:'OK', data: data });
+				res.status(200).send({status:'OK', data: data });
 		});
 	});
 
@@ -643,19 +616,19 @@ module.exports = function(app, io, log) {
 										page: skip,
 										data: invoices
 									}
-									res.send(200, result);
+									res.status(200).send(result);
 								});
 
 							});
 						} else {
-							res.send(200, { status:'OK', data: null });
+							res.status(200).send({ status:'OK', data: null });
 						}
 					}
 				});
 
 			} else {
-				log.logger.error('Error: %s', err);
-				res.send(500, {status:'ERROR', data: err.message});
+				log.logger.error('%s', err);
+				res.status(500).send({status:'ERROR', data: err.message});
 			}
 		});
 	}
@@ -686,8 +659,8 @@ module.exports = function(app, io, log) {
 		if (req.query.nroPtoVenta) {
 			cashBoxes = req.query.nroPtoVenta.split(',');
 		} else {
-			log.logger.error("Error: El nro de punto de venta no ha sido enviado");
-			res.send(403 , {status: "ERROR", data: "Error: El nro de punto de venta no ha sido enviado" });
+			log.logger.error("El nro de punto de venta no ha sido enviado");
+			res.status(403).send({status: "ERROR", data: "El nro de punto de venta no ha sido enviado" });
 		}
 
 
@@ -751,7 +724,7 @@ module.exports = function(app, io, log) {
 						callback(null, result);
 					} else {
 						log.logger.error("%s", err.message);
-						res.send(500 , {status: "ERROR", data: {name: err.name, message: err.message} });
+						res.status(500).send({status: "ERROR", data: {name: err.name, message: err.message} });
 					}
 				});
 			};
@@ -777,7 +750,7 @@ module.exports = function(app, io, log) {
 
 		var fecha;
 
-		var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
+		var ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
 		var param = {terminal:	ter};
 
 		if (req.query.fechaInicio || req.query.fechaFin){
@@ -824,9 +797,9 @@ module.exports = function(app, io, log) {
 
 		Invoice.distinct('nroPtoVenta', param, function (err, data){
 			if (err){
-				res.send(500, {status: 'ERROR', data: err.message});
+				res.status(500).send({status: 'ERROR', data: err.message});
 			} else {
-				res.send(200, {status: 'OK', data: data.sort()});
+				res.status(200).send({status: 'OK', data: data.sort()});
 			}
 		});
 	}
@@ -856,12 +829,12 @@ module.exports = function(app, io, log) {
 
 						postData = JSON.parse(postData);
 					} catch (errParsing){
-						var strBody = util.format("Error: Parsing JSON: [%s], JSON:%s", errParsing.toString(), postData);
+						var strBody = util.format("Parsing JSON: [%s], JSON:%s", errParsing.toString(), postData);
 						var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
 						log.logger.error(strBody);
 						var mailer = new mail.mail(config.email);
 						mailer.send(usr.email, strSubject, strBody);
-						res.send(500, {status:"ERROR", data: strBody} );
+						res.status(500).send({status:"ERROR", data: strBody} );
 						return;
 					}
 
@@ -966,7 +939,7 @@ module.exports = function(app, io, log) {
 							subTotalCheck += item.impTot;
 						});
 					} else {
-						var errMsg = util.format("Error Invoice INS: %s", "El contenedor no posee items.");
+						var errMsg = util.format("Invoice INS: %s", "El contenedor no posee items.");
 						log.logger.error(errMsg);
 						callback(500, {status:"ERROR", data: errMsg});
 						return;
@@ -975,7 +948,7 @@ module.exports = function(app, io, log) {
 				});
 
 			} else {
-				var errMsg = util.format("Error Invoice INS: %s - %s. - %j", "El comprobante no posee detalles.", usr.terminal, postData);
+				var errMsg = util.format("Invoice INS: %s - %s. - %j", "El comprobante no posee detalles.", usr.terminal, postData);
 				log.logger.error(errMsg);
 				callback(500, {status:"ERROR", data: errMsg});
 			}
@@ -1068,7 +1041,7 @@ module.exports = function(app, io, log) {
 					});
 				} else {
 					var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
-					var strError = util.format('Error INS: %s -\n%s - %s', errSave, JSON.stringify(postData), usr.terminal);
+					var strError = util.format('Invoice INS: %s -\n%s - %s', errSave, JSON.stringify(postData), usr.terminal);
 					log.logger.error(strError);
 
 					var mailer = new mail.mail(config.email);
@@ -1088,11 +1061,11 @@ module.exports = function(app, io, log) {
 		var param = {_id: req.params._id, terminal: paramTerminal};
 		Invoice.findOneAndUpdate(param, { $set: req.body}, null, function (err, data) {
 			if  (err) {
-				var errMsg = util.format("Error: %s", err.error);
+				var errMsg = util.format("%s", err.error);
 				log.logger.error(errMsg);
-				res.send(500, {status: "ERROR", data: errMsg});
+				res.status(500).send({status: "ERROR", data: errMsg});
 			} else {
-				res.send(200, {"status": "OK", "data": data})
+				res.status(200).send({"status": "OK", "data": data})
 			}
 		});
 	}
@@ -1100,13 +1073,13 @@ module.exports = function(app, io, log) {
 	function setState (req, res) {
 		var usr = req.usr;
 
-		var invoice = Invoice.update({_id: req.params._id, 'estado.grupo': usr.group},
+		Invoice.update({_id: req.params._id, 'estado.grupo': usr.group},
 			{$set: {'estado.$.estado' : req.body.estado}},
 			function (err, rowAffected, data){
 				if (err) {
 					var errMsg = 'Error en cambio de estado. %s';
 					log.logger.error(errMsg, err.message);
-					res.send(500, {status:'ERROR', data: 'Error en cambio de estado.'});
+					res.status(500).send({status:'ERROR', data: 'Error en cambio de estado.'});
 				} else  {
 
 					if (rowAffected === 0){
@@ -1117,13 +1090,13 @@ module.exports = function(app, io, log) {
 								if (err) {
 									var errMsg = 'Error en cambio de estado. %s';
 									log.logger.error(errMsg, err.message);
-									res.send(500, {status:'ERROR', data: 'Error en cambio de estado.'});
+									res.status(500).send({status:'ERROR', data: 'Error en cambio de estado.'});
 								} else {
-									res.send(200, {status:'OK', data: data});
+									res.status(200).send({status:'OK', data: data});
 								}
 							});
 					} else {
-						res.send(200, {status:'OK', data: data});
+						res.status(200).send({status:'OK', data: data});
 					}
 				}
 			});
@@ -1134,9 +1107,9 @@ module.exports = function(app, io, log) {
 		Invoice.remove({_id: req.params._id}, function (err){
 			if (!err){
 				log.logger.info('Invoice Removed %s', req.params._id);
-				res.send({"response": "OK"});
+				res.status(200).send({status:'OK', data: "OK"});
 			} else {
-				res.send({"error": "Error al intentar eliminar"});
+				res.status(500).send({status:'ERROR', data: "Error al intentar eliminar"});
 			}
 		});
 	}
@@ -1235,13 +1208,13 @@ module.exports = function(app, io, log) {
 		var usr = req.usr;
 		var distinct = '';
 
-		if (req.route.path === '/invoices/:terminal/ships')
+		if (req.route.path === '/:terminal/ships')
 			distinct = 'detalle.buque.nombre';
 
-		if (req.route.path === '/invoices/:terminal/containers')
+		if (req.route.path === '/:terminal/containers')
 			distinct = 'detalle.contenedor';
 
-		if (req.route.path === '/invoices/:terminal/clients')
+		if (req.route.path === '/:terminal/clients')
 			distinct = 'razon';
 
 		var param = {};
@@ -1252,14 +1225,14 @@ module.exports = function(app, io, log) {
 
 		Invoice.distinct(distinct, param, function (err, data){
 			if (err){
-				res.send(500, {status: 'ERROR', data: err.message});
+				res.status(500).send({status: 'ERROR', data: err.message});
 			} else {
-				res.send(200,	{
+				res.status(200)
+					.send({
 						status: 'OK',
 						totalCount: data.length,
 						data: data.sort()
-					}
-				);
+					});
 			}
 		});
 	}
@@ -1268,44 +1241,37 @@ module.exports = function(app, io, log) {
 		var usr = req.usr;
 		var paramTerminal = req.params.terminal;
 
-		if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
-			var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-			log.logger.error(errMsg);
-			res.send(500, {status:"ERROR", data: errMsg});
-		} else {
+		var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
+		var param = {terminal:	ter, 'detalle.buque.nombre':{$ne:null}};
 
-			var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
-			var param = {terminal:	ter, 'detalle.buque.nombre':{$ne:null}};
+		Invoice.aggregate([
+			{ $match: param },
+			{ $unwind : '$detalle'},
+			{ $group: {_id: {buque: '$detalle.buque.nombre', viaje: '$detalle.buque.viaje'} } },
+			{ $sort: { '_id.buque': 1, '_id.viaje': 1} },
+			{ $project : {buque: '$_id.buque', viaje: '$_id.viaje', _id:false}}
+		], function (err, data){
+			if (err) {
+				res.send(500, {status: 'ERROR', data: err.message});
+			} else {
+				var Enumerable = require('linq');
+				var result = Enumerable.from(data)
+					.groupBy("$.buque" , null,
+						function (key, g) {
+							var prop = g.getSource();
+							var ter = {buque: key, viajes: []};
+							prop.forEach(function (item){
+								for (var pro in item){
+									if (pro !== 'buque')
+										ter.viajes.push(item[pro]);
+								}
+							});
+							return (ter);
+						}).toArray();
 
-			Invoice.aggregate([
-				{ $match: param },
-				{ $unwind : '$detalle'},
-				{ $group: {_id: {buque: '$detalle.buque.nombre', viaje: '$detalle.buque.viaje'} } },
-				{ $sort: { '_id.buque': 1, '_id.viaje': 1} },
-				{ $project : {buque: '$_id.buque', viaje: '$_id.viaje', _id:false}}
-			], function (err, data){
-				if (err) {
-					res.send(500, {status: 'ERROR', data: err.message});
-				} else {
-					var Enumerable = require('linq');
-					var result = Enumerable.from(data)
-						.groupBy("$.buque" , null,
-							function (key, g) {
-								var prop = g.getSource();
-								var ter = {buque: key, viajes: []};
-								prop.forEach(function (item){
-									for (var pro in item){
-										if (pro !== 'buque')
-											ter.viajes.push(item[pro]);
-									}
-								});
-								return (ter);
-							}).toArray();
-
-					res.send(200, {status: 'OK', data: result});
-				}
-			});
-		}
+				res.status(200).send({status: 'OK', data: result});
+			}
+		});
 	}
 
 	function getShipContainers (req, res) {
@@ -1314,58 +1280,51 @@ module.exports = function(app, io, log) {
 
 		var paramTerminal = req.params.terminal;
 
-		if (usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
-			var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-			log.logger.error(errMsg);
-			res.send(500, {status:"ERROR", data: errMsg});
-		} else {
+		var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
+		var param = {terminal:	ter};
 
-			var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
-			var param = {terminal:	ter};
+		var buque = req.query.buqueNombre;
+		var viaje = req.query.viaje;
 
-			var buque = req.query.buqueNombre;
-			var viaje = req.query.viaje;
+		Invoice.aggregate([
+			{ $match: param },
+			{ $unwind : '$detalle'},
+			{ $match: {'detalle.buque.nombre': buque, "detalle.buque.viaje" : viaje} },
+			{ $group: {_id: {buque: '$detalle.buque.nombre', viaje: "$detalle.buque.viaje", contenedor: '$detalle.contenedor'} } },
+			{ $project: {contenedor: '$_id.contenedor', _id: false}},
+			{ $sort: {contenedor: 1} }
+		], function (err, dataContainers){
+			if (err) {
+				res.status(500).send({status: 'ERROR', data: err.message});
+			} else {
+				Gate.find({buque: buque, viaje: viaje}, function (err, dataGates){
+					if (err) {
+						res.status(500).send({status: 'ERROR', data: err.message});
+					} else {
+						var Enumerable = require('linq');
 
-			Invoice.aggregate([
-				{ $match: param },
-				{ $unwind : '$detalle'},
-				{ $match: {'detalle.buque.nombre': buque, "detalle.buque.viaje" : viaje} },
-				{ $group: {_id: {buque: '$detalle.buque.nombre', viaje: "$detalle.buque.viaje", contenedor: '$detalle.contenedor'} } },
-				{ $project: {contenedor: '$_id.contenedor', _id: false}},
-				{ $sort: {contenedor: 1} }
-			], function (err, dataContainers){
-				if (err) {
-					res.send(500, {status: 'ERROR', data: err.message});
-				} else {
-					Gate.find({buque: buque, viaje: viaje}, function (err, dataGates){
-						if (err) {
-							res.send(500, {status: 'ERROR', data: err.message});
-						} else {
-							var Enumerable = require('linq');
+						var response = Enumerable.from(dataContainers)
+							.groupJoin(dataGates, '$.contenedor', '$.contenedor', function (inner,outer){
+								var result = {
+									contenedor:'',
+									gates: []
+								};
+								if (outer.getSource !== undefined)
+									result.gates =outer.getSource();
 
-							var response = Enumerable.from(dataContainers)
-								.groupJoin(dataGates, '$.contenedor', '$.contenedor', function (inner,outer){
-									var result = {
-										contenedor:'',
-										gates: []
-									};
-									if (outer.getSource !== undefined)
-										result.gates =outer.getSource();
+								result.contenedor = inner;
+								return result;
+							}).toArray();
 
-									result.contenedor = inner;
-									return result;
-								}).toArray();
-
-							res.send(200, {
-								status: 'OK',
-								elapsed: log.getElapsed(),
-								data: response}
-							);
-						}
-					});
-				}
-			});
-		}
+						res.status(200)
+							.send({
+							status: 'OK',
+							elapsed: log.getElapsed(),
+							data: response});
+					}
+				});
+			}
+		});
 	}
 
 	function getContainersNoRates (req, res) {
@@ -1421,46 +1380,90 @@ module.exports = function(app, io, log) {
 							return {contenedor: {contenedor: item}};})
 						.toArray();
 
-					res.send(200, {status: 'OK', totalCount: dife.length, data: dife});
+					res.status(200).send({status: 'OK', totalCount: dife.length, data: dife});
 				});
 
 			});
 		});
 	}
 
-	app.get('/invoices/:terminal/:skip/:limit', isValidToken, getInvoices);
-	app.get('/invoice/:id', isValidToken, getInvoice);
-	app.get('/invoices/counts', isValidToken, getCounts);
-	app.get('/invoices/countsByDate/:currency', isValidToken, getCountByDate);
-	app.get('/invoices/countsByMonth/:currency', isValidToken, getCountByMonth);
-	app.get('/invoices/noRates/:terminal/:skip/:limit', isValidToken, getNoRates);
-	app.get('/invoices/ratesTotal/:currency', isValidToken, getRatesTotal);
-	app.get('/invoices/rates/:terminal/:container/:currency', isValidToken, getRatesByContainer);
-	app.get('/invoices/noMatches/:terminal/:skip/:limit', isValidToken, getNoMatches);
-	app.get('/invoices/correlative/:terminal', isValidToken, getCorrelative);
-	app.get('/invoices/cashbox/:terminal', isValidToken, getCashbox);
-	app.post('/invoice', isValidToken, addInvoice);
-	app.put('/invoice/:terminal/:_id', isValidToken, updateInvoice);
-	app.put('/invoice/setState/:terminal/:_id', isValidToken, setState);
-	app.delete('/invoices/:_id', isValidToken, removeInvoices);
-	app.get('/invoices/:terminal/ships', isValidToken, getDistincts);
-	app.get('/invoices/:terminal/containers', isValidToken, getDistincts);
-	app.get('/invoices/:terminal/clients', isValidToken, getDistincts);
-	app.get('/invoices/:terminal/shipTrips', isValidToken, getShipTrips);
-	app.get('/invoices/:terminal/shipContainers', isValidToken, getShipContainers);
-	app.post('/invoices/byRates', isValidToken, getInvoicesByRates);
-	app.get('/invoices/containersNoRates/:terminal', isValidToken, getContainersNoRates);
 
-	app.get('/invoices/log/:seconds', function( req, res) {
-		logInvoiceBody = 1;
-		log.logger.info("Loguear invoiceBody en insert Habilitado.")
+	router.use(function timeLog(req, res, next){
+		log.logger.info('Time: %s', Date.now());
+		next();
+	});
 
-		setTimeout(function(){
-			log.logger.info("Loguear invoiceBody en insert Deshabilitado.")
-			logInvoiceBody = 0;
-		}, req.params.seconds);
+	router.param('terminal', function (req, res, next, terminal){
+		var usr = req.usr;
+		console.log('Terminal: %s', terminal);
 
-		res.send(200);
-	})
+		if (usr.terminal !== 'AGP' && usr.terminal !== terminal) {
+			var errMsg = util.format('%s', 'La terminal recibida por parámetro es inválida para el token.');
+			log.logger.error(errMsg);
+			res.status(500).send({status: 'ERROR', data: errMsg});
+		} else {
+			next();
+		}
+	});
 
+	router.get('/:terminal/:skip/:limit', getInvoices);
+	router.get('/invoice/:id', getInvoice);
+	router.get('/counts', getCounts);
+	router.get('/countsByDate/:currency', getCountByDate);
+	router.get('/countsByMonth/:currency', getCountByMonth);
+	router.get('/noRates/:terminal/:skip/:limit', getNoRates);
+	router.get('/ratesTotal/:currency', getRatesTotal);
+	router.get('/rates/:terminal/:container/:currency', getRatesByContainer);
+	router.get('/noMatches/:terminal/:skip/:limit', getNoMatches);
+	router.get('/correlative/:terminal', getCorrelative);
+	router.get('/cashbox/:terminal', getCashbox);
+	router.post('/invoice', addInvoice);
+	router.put('/invoice/:terminal/:_id', updateInvoice);
+	router.put('/setState/:terminal/:_id', setState);
+	router.delete('/:_id', removeInvoices);
+	router.get('/:terminal/ships', getDistincts);
+	router.get('/:terminal/containers', getDistincts);
+	router.get('/:terminal/clients', getDistincts);
+	router.get('/:terminal/shipTrips', getShipTrips);
+	router.get('/:terminal/shipContainers', getShipContainers);
+	router.post('/byRates', getInvoicesByRates);
+	router.get('/containersNoRates/:terminal', getContainersNoRates);
+
+	//	app.get('/invoices/:terminal/:skip/:limit', isValidToken, getInvoices);
+	//	app.get('/invoice/:id', isValidToken, getInvoice);
+	//	app.get('/invoices/counts', isValidToken, getCounts);
+	//	app.get('/invoices/countsByDate/:currency', isValidToken, getCountByDate);
+	//	app.get('/invoices/countsByMonth/:currency', isValidToken, getCountByMonth);
+	//	app.get('/invoices/noRates/:terminal/:skip/:limit', isValidToken, getNoRates);
+	//	app.get('/invoices/ratesTotal/:currency', isValidToken, getRatesTotal);
+	//	app.get('/invoices/rates/:terminal/:container/:currency', isValidToken, getRatesByContainer);
+	//	app.get('/invoices/noMatches/:terminal/:skip/:limit', isValidToken, getNoMatches);
+	//	app.get('/invoices/correlative/:terminal', isValidToken, getCorrelative);
+	//	app.get('/invoices/cashbox/:terminal', isValidToken, getCashbox);
+	//	app.post('/invoice', isValidToken, addInvoice);
+	//	app.put('/invoice/:terminal/:_id', isValidToken, updateInvoice);
+	//	app.put('/invoice/setState/:terminal/:_id', isValidToken, setState);
+	//	app.delete('/invoices/:_id', isValidToken, removeInvoices);
+	//	app.get('/invoices/:terminal/ships', isValidToken, getDistincts);
+	//	app.get('/invoices/:terminal/containers', isValidToken, getDistincts);
+	//	app.get('/invoices/:terminal/clients', isValidToken, getDistincts);
+	//	app.get('/invoices/:terminal/shipTrips', isValidToken, getShipTrips);
+	//	app.get('/invoices/:terminal/shipContainers', isValidToken, getShipContainers);
+
+//	app.post('/invoices/byRates', isValidToken, getInvoicesByRates);
+//	app.get('/invoices/containersNoRates/:terminal', isValidToken, getContainersNoRates);
+//
+//	app.get('/invoices/log/:seconds', function( req, res) {
+//		logInvoiceBody = 1;
+//		log.logger.info("Loguear invoiceBody en insert Habilitado.")
+//
+//		setTimeout(function(){
+//			log.logger.info("Loguear invoiceBody en insert Deshabilitado.")
+//			logInvoiceBody = 0;
+//		}, req.params.seconds);
+//
+//		res.send(200);
+//	})
+
+	return router;
 };

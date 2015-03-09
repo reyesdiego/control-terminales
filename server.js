@@ -188,8 +188,6 @@ app.get('/log2', function(req, res) {
 			}
 		});
 	}
-
-
 });
 
 server.listen(port, function() {

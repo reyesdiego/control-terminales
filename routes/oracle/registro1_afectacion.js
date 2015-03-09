@@ -2,7 +2,11 @@
  * Created by diego on 11/19/14.
  */
 
-module.exports = function (app, log, pool){
+module.exports = function (log, pool){
+	'use strict'
+
+	var express = require('express');
+	var router = express.Router();
 
 	function getRegistro1Afectacion( req, res){
 
@@ -64,7 +68,7 @@ module.exports = function (app, log, pool){
 			connection.execute(strSql, [skip+1, skip+limit], function (err, data){
 				if (err) {
 					pool.destroy(connection);
-					res.send(500, { status:'ERROR', data: err.message });
+					res.status(500).json({ status:'ERROR', data: err.message });
 
 					// Simply releasing this connection back to the pool means a potentially
 					// corrupt connection may get reused.
@@ -78,7 +82,7 @@ module.exports = function (app, log, pool){
 				connection.execute(strSql, [], function (err, dataCount){
 					pool.release(connection);
 					if (err){
-						res.send(500, { status:'ERROR', data: err.message });
+						res.status(500).json({ status:'ERROR', data: err.message });
 					} else {
 						var total = dataCount[0].TOTAL;
 						var result = {
@@ -86,14 +90,20 @@ module.exports = function (app, log, pool){
 							totalCount : total,
 							pageCount : (limit > total) ? total : limit,
 							data: data };
-						res.send(200, result);
+						res.status(200).send(result);
 					}
 				});
 			});
 		});
-
 	}
 
-	app.get('/afip/registro1_afectacion/:skip/:limit', getRegistro1Afectacion)
+	router.use(function timeLog(req, res, next){
+		log.logger.info('Time registro1_afectacion: %s', Date.now());
+		next();
+	});
+	router.get('/registro1_afectacion/:skip/:limit', getRegistro1Afectacion);
 
+//	app.get('/afip/registro1_afectacion/:skip/:limit', getRegistro1Afectacion)
+
+	return router;
 };

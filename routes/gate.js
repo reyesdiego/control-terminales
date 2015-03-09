@@ -2,8 +2,10 @@
  * Created by Diego Reyes on 3/21/14.
  */
 
+module.exports = function (log, io) {
 
-module.exports = function (app, io, log) {
+	var express = require('express');
+	var router = express.Router();
 
 	var dateTime = require('../include/moment');
 	var moment = require('moment');
@@ -13,31 +15,6 @@ module.exports = function (app, io, log) {
 	var mail = require("../include/emailjs");
 	var config = require('../config/config.js');
 	var linq = require('linq');
-
-	function isValidToken (req, res, next){
-		'use strict';
-
-		var Account = require('../models/account.js');
-
-		var incomingToken = req.headers.token;
-		var paramTerminal = req.params.terminal;
-		Account.verifyToken(incomingToken, function(err, usr) {
-			if (err){
-				log.logger.error(err);
-				res.send(500, {status:'ERROR', data: err});
-			} else {
-
-				if (paramTerminal !== undefined && usr.terminal !== 'AGP' && usr.terminal !== paramTerminal) {
-					var errMsg = util.format('%s - Error: %s', dateTime.getDatetime(), 'La terminal recibida por parámetro es inválida para el token.');
-					log.logger.error(errMsg);
-					res.send(500, {status:"ERROR", data: errMsg});
-				} else {
-					req.usr = usr;
-					next();
-				}
-			}
-		});
-	}
 
 	function getGates(req, res){
 		'use strict';
@@ -84,8 +61,8 @@ module.exports = function (app, io, log) {
 
 		gates.exec( function( err, gates){
 			if (err){
-				log.logger.error("Error: %s", err.error);
-				res.send(500 , {status: "ERROR", data: err});
+				log.logger.error("%s", err.error);
+				res.status(500).send({status: "ERROR", data: err});
 			} else {
 				Gate.count(param, function (err, cnt){
 					var pageCount = gates.length;
@@ -96,7 +73,7 @@ module.exports = function (app, io, log) {
 						page: skip,
 						data: gates
 					};
-					res.send(200, result);
+					res.status(500).send(result);
 				});
 			}
 		})
@@ -137,7 +114,7 @@ module.exports = function (app, io, log) {
 				status : 'OK',
 				data : data
 			};
-			res.send(200, result);
+			res.status(200).send(result);
 		});
 
 	}
@@ -175,7 +152,7 @@ module.exports = function (app, io, log) {
 				status : 'OK',
 				data : data
 			};
-			res.send(200, result);
+			res.status(200).send(result);
 		});
 	}
 
@@ -200,14 +177,13 @@ module.exports = function (app, io, log) {
 
 		Gate.distinct(distinct, param, function (err, data){
 			if (err){
-				res.send(500, {status: 'ERROR', data: err.message});
+				res.status(500).send({status: 'ERROR', data: err.message});
 			} else {
-				res.send(200,	{
+				res.status(200).send({
 									status: 'OK',
 									totalCount: data.length,
 									data: data.sort()
-								}
-				);
+								});
 			}
 		});
 	}
@@ -244,21 +220,21 @@ module.exports = function (app, io, log) {
 
 				invoices.exec(function (err, dataInvoices){
 				if (err)
-					res.send(500, {status: 'ERROR', data: err.message});
+					res.status(500).send({status: 'ERROR', data: err.message});
 				else {
 					var gates = Gate.find({terminal: terminal, carga:"LL"}, {contenedor:1});
 					gates.exec(function (err, dataGates){
 						if (err)
-							res.send(500, {status: 'ERROR', data: err.message});
+							res.status(500).send({status: 'ERROR', data: err.message});
 						else {
 							var invoicesWoGates = linq.from(dataInvoices)
 								.except(dataGates, "$.contenedor").toArray();
 
-							res.send(200, {	status:'OK',
+							res.status(200)
+								.send({	status:'OK',
 									totalCount: invoicesWoGates.length,
 									data: invoicesWoGates
-								}
-							);
+								});
 						}
 					});
 				}
@@ -289,7 +265,7 @@ module.exports = function (app, io, log) {
 			}
 			gates.exec(function (err, dataGates){
 				if (err)
-					res.send(500, {status: 'ERROR', data: err.message});
+					res.status(500).send({status: 'ERROR', data: err.message});
 				else {
 
 					var invoices = Invoice.aggregate([
@@ -303,19 +279,18 @@ module.exports = function (app, io, log) {
 					invoices.exec(function (err, dataInvoices){
 
 						if (err)
-							res.send(500, {status: 'ERROR', data: err.message});
+							res.status(500).send({status: 'ERROR', data: err.message});
 						else {
 							var gatesWoGates = linq.from(dataGates)
 								.except(dataInvoices, "$.contenedor").toArray();
 
-							res.send(200, {	status:'OK',
+							res.status(200)
+								.send({
+									status:'OK',
 									totalCount: gatesWoGates.length,
 									data: gatesWoGates
-								}
-							);
+								});
 						}
-
-
 					});
 				}
 			});
@@ -330,7 +305,7 @@ module.exports = function (app, io, log) {
 		var gate2insert = req.body;
 
 		if (gate2insert.gateTimestamp === undefined || gate2insert.gateTimestamp == null || gate2insert.gateTimestamp === ''){
-			res.send(500, {status:"ERROR", data:"El Gate debe tener una Fecha Hora válida."});
+			res.status(500).send({status:"ERROR", data:"El Gate debe tener una Fecha Hora válida."});
 			return;
 		}
 
@@ -370,7 +345,7 @@ module.exports = function (app, io, log) {
 					log.logger.insert('Gate INS: %s - %s - %s', data._id, usr.terminal, moment(gate2insert.gateTimestamp).format("YYYY-MM-DD hh:mm:ss"));
 					var socketMsg = {status:'OK', datetime: dateTime.getDatetime(), terminal: usr.terminal};
 					io.sockets.emit('gate', socketMsg);
-					res.send(200, {status: "OK", data: data});
+					res.status(200).send({status: "OK", data: data});
 				} else {
 
 					var errMsg = util.format('%s - ERROR: %s.-%s- \n%s', dateTime.getDatetime(), errSave.toString(), usr.terminal, JSON.stringify(req.body));
@@ -381,19 +356,33 @@ module.exports = function (app, io, log) {
 					mailer.send(usr.email, strSubject, errMsg, function(){
 					});
 
-					res.send(500, {status:"ERROR", data: errMsg});
+					res.status(500).send({status:"ERROR", data: errMsg});
 				}
 			});
 		}
 	}
 
-	app.get('/gates/:terminal/:skip/:limit', isValidToken, getGates);
-	app.get('/gatesByHour', isValidToken, getGatesByHour);
-	app.get('/gatesByMonth', isValidToken, getGatesByMonth);
-	app.get('/gates/:terminal/missingGates', isValidToken, getMissingGates);
-	app.get('/gates/:terminal/missingInvoices', isValidToken, getMissingInvoices);
-	app.get('/gates/:terminal/ships', isValidToken, getDistincts);
-	app.get('/gates/:terminal/containers', isValidToken, getDistincts);
-	app.post('/gate', isValidToken, addGate);
+	router.use(function timeLog(req, res, next){
+		log.logger.info('Time: %s', Date.now());
+		next();
+	});
+	router.get('/:terminal/:skip/:limit', getGates);
+	router.get('/ByHour', getGatesByHour);
+	router.get('/ByMonth', getGatesByMonth);
+	router.get('/:terminal/missingGates', getMissingGates);
+	router.get('/:terminal/missingInvoices', getMissingInvoices);
+	router.get('/:terminal/ships', getDistincts);
+	router.get('/:terminal/containers', getDistincts);
+	router.post('/gate', addGate);
 
+//	app.get('/gates/:terminal/:skip/:limit', isValidToken, getGates);
+//	app.get('/gatesByHour', isValidToken, getGatesByHour);
+//	app.get('/gatesByMonth', isValidToken, getGatesByMonth);
+//	app.get('/gates/:terminal/missingGates', isValidToken, getMissingGates);
+//	app.get('/gates/:terminal/missingInvoices', isValidToken, getMissingInvoices);
+//	app.get('/gates/:terminal/ships', isValidToken, getDistincts);
+//	app.get('/gates/:terminal/containers', isValidToken, getDistincts);
+//	app.post('/gate', isValidToken, addGate);
+
+	return router;
 };

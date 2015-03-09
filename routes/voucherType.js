@@ -2,14 +2,17 @@
  * Created by diego on 6/3/14.
  */
 
-module.exports = function (app){
+module.exports = function (log){
 
-	function getVoucherTypes(req, res, next){
+	var express = require('express');
+	var router = express.Router();
+
+	function getVoucherTypes(req, res){
 		var Voucher = require('../models/voucherType.js');
 
 		Voucher.find({}, function (err, data){
 			if (err){
-				res.send(500, {status:"ERROR", data: err.message});
+				res.status(500).send({status:"ERROR", data: err.message});
 			} else {
 				var result = data;
 				if (req.query.type === 'array'){
@@ -23,11 +26,18 @@ module.exports = function (app){
 					totalCount:	data.length,
 					data: result
 				};
-				res.send(200, response);
+				res.status(200).send(response);
 			}
 		});
 	}
 
-	app.get('/voucherTypes', getVoucherTypes);
+	router.use(function timeLog(req, res, next){
+		log.logger.info('Time: %s', Date.now());
+		next();
+	});
+	router.get('/', getVoucherTypes);
 
+	//app.get('/voucherTypes', getVoucherTypes);
+
+	return router;
 }
