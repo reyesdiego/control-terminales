@@ -450,6 +450,51 @@ module.exports = function(log, io) {
 
 	}
 
+	function getRatesLiquidacion (req, res) {
+
+		var moment = require('moment');
+
+		var today = moment(moment().format('YYYY-MM-DD')).toDate();
+		var tomorrow = moment(moment().format('YYYY-MM-DD')).add('days',1).toDate();
+		if (req.query.fecha !== undefined){
+			today = moment(moment(req.query.fecha).format('YYYY-MM-DD')).toDate();
+			tomorrow = moment(moment(req.query.fecha).format('YYYY-MM-DD')).add('days',1).toDate();
+		}
+		console.log(today, tomorrow);
+
+		var invoice = Invoice.aggregate([
+			{ $match : {
+				'fecha.emision': today,
+				codTipoComprob : {$in : [1]}
+			}
+			},
+			{ $unwind : '$detalle'},
+			{ $unwind : '$detalle.items'},
+			{ $match : {
+				'detalle.items.id' : { $in : ['NAGPI', 'NAGPE', '1465', '1466', 'TASAI', 'TASAE']}
+			}
+			},
+			{ $group : {
+				_id : {
+						code : '$detalle.items.id',
+						terminal : '$terminal',
+						fecha : '$fecha.emision'
+					},
+				ton : {$sum : '$detalle.items.cnt'},
+				total : {$sum: '$detalle.items.impTot'}}
+			}
+		]);
+		invoice.exec (function (err, data) {
+			if (err) {
+
+			} else {
+				res.status(200).send({status: 'OK', data : data});
+			}
+		});
+
+
+	}
+
 	function getRatesByContainer (req, res){
 		var usr = req.usr;
 		var paramTerminal = req.params.terminal;
@@ -931,10 +976,10 @@ module.exports = function(log, io) {
 							cont.items.push(
 								{
 									id:			item.id,
-									cnt:		item.cnt,
+									cnt:		Match.abs(item.cnt),
 									uniMed:		item.uniMed,
 									impUnit:	item.impUnit,
-									impTot:		item.impTot
+									impTot:		Math.abs(item.impTot)
 								});
 							subTotalCheck += item.impTot;
 						});
@@ -1413,6 +1458,7 @@ module.exports = function(log, io) {
 	router.get('/countsByMonth/:currency', getCountByMonth);
 	router.get('/noRates/:terminal/:skip/:limit', getNoRates);
 	router.get('/ratesTotal/:currency', getRatesTotal);
+	router.get('/rates', getRatesLiquidacion);
 	router.get('/rates/:terminal/:container/:currency', getRatesByContainer);
 	router.get('/noMatches/:terminal/:skip/:limit', getNoMatches);
 	router.get('/correlative/:terminal', getCorrelative);
@@ -1429,30 +1475,6 @@ module.exports = function(log, io) {
 	router.post('/byRates', getInvoicesByRates);
 	router.get('/containersNoRates/:terminal', getContainersNoRates);
 
-	//	app.get('/invoices/:terminal/:skip/:limit', isValidToken, getInvoices);
-	//	app.get('/invoice/:id', isValidToken, getInvoice);
-	//	app.get('/invoices/counts', isValidToken, getCounts);
-	//	app.get('/invoices/countsByDate/:currency', isValidToken, getCountByDate);
-	//	app.get('/invoices/countsByMonth/:currency', isValidToken, getCountByMonth);
-	//	app.get('/invoices/noRates/:terminal/:skip/:limit', isValidToken, getNoRates);
-	//	app.get('/invoices/ratesTotal/:currency', isValidToken, getRatesTotal);
-	//	app.get('/invoices/rates/:terminal/:container/:currency', isValidToken, getRatesByContainer);
-	//	app.get('/invoices/noMatches/:terminal/:skip/:limit', isValidToken, getNoMatches);
-	//	app.get('/invoices/correlative/:terminal', isValidToken, getCorrelative);
-	//	app.get('/invoices/cashbox/:terminal', isValidToken, getCashbox);
-	//	app.post('/invoice', isValidToken, addInvoice);
-	//	app.put('/invoice/:terminal/:_id', isValidToken, updateInvoice);
-	//	app.put('/invoice/setState/:terminal/:_id', isValidToken, setState);
-	//	app.delete('/invoices/:_id', isValidToken, removeInvoices);
-	//	app.get('/invoices/:terminal/ships', isValidToken, getDistincts);
-	//	app.get('/invoices/:terminal/containers', isValidToken, getDistincts);
-	//	app.get('/invoices/:terminal/clients', isValidToken, getDistincts);
-	//	app.get('/invoices/:terminal/shipTrips', isValidToken, getShipTrips);
-	//	app.get('/invoices/:terminal/shipContainers', isValidToken, getShipContainers);
-
-//	app.post('/invoices/byRates', isValidToken, getInvoicesByRates);
-//	app.get('/invoices/containersNoRates/:terminal', isValidToken, getContainersNoRates);
-//
 //	app.get('/invoices/log/:seconds', function( req, res) {
 //		logInvoiceBody = 1;
 //		log.logger.info("Loguear invoiceBody en insert Habilitado.")

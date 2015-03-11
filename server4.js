@@ -12,13 +12,11 @@ var favicon = require('serve-favicon'),
 	errorHandler = require('errorhandler');
 // Express configuracion END
 
-var fs = require('fs');
-var mail = require("./include/emailjs");
-var path = require('path');
-
-
 var http = require('http');
 var socketio = require('socket.io');
+
+var mail = require("./include/emailjs");
+var path = require('path');
 
 http.globalAgent.maxSockets = 100;
 var server = http.createServer(app);
