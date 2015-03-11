@@ -167,10 +167,10 @@ module.exports = function (log, io) {
 		var usr = req.usr;
 		var distinct = '';
 
-		if (req.route.path === '/appointments/:terminal/containers')
+		if (req.route.path === '/:terminal/containers')
 			distinct = 'contenedor';
 
-		if (req.route.path === '/appointments/:terminal/ships')
+		if (req.route.path === '/:terminal/ships')
 			distinct = 'buque';
 
 		var param = {};

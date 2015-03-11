@@ -73,7 +73,7 @@ module.exports = function (log, io) {
 						page: skip,
 						data: gates
 					};
-					res.status(500).send(result);
+					res.status(200).send(result);
 				});
 			}
 		})
@@ -163,10 +163,10 @@ module.exports = function (log, io) {
 
 		var distinct = '';
 
-		if (req.route.path === '/gates/:terminal/ships')
+		if (req.route.path === '/:terminal/ships')
 			distinct = 'buque';
 
-		if (req.route.path === '/gates/:terminal/containers')
+		if (req.route.path === '/:terminal/containers')
 			distinct = 'contenedor';
 
 		var param = {};
