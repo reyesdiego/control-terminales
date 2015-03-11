@@ -7,7 +7,7 @@ module.exports = function (app, log, io, mongoose, pool){
 
 	function isValidToken (req, res, next){
 
-		var Account = require('./models/account.js');
+		var Account = require('../models/account.js');
 
 		var incomingToken = req.headers.token;
 		Account.verifyToken(incomingToken, function(err, usr) {
