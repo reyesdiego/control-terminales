@@ -54,7 +54,7 @@ module.exports = function (app, passport, log) {
 					message = flash("ERROR", 'Ha ocurrido un error en la llamada.');
 				}
 
-				res.send(500, message);
+				res.status(500).send(message);
 			} else {
 				//Successfully registered user
 				var mailer = new mail.mail(config.email);
@@ -69,7 +69,7 @@ module.exports = function (app, passport, log) {
 					});
 					account.password = '';
 					message = flash('OK', account);
-					res.send(200, message);
+					res.status(200).send(message);
 				});
 
 			}
@@ -81,7 +81,7 @@ module.exports = function (app, passport, log) {
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
 				log.logger.error(usr);
-				res.send(403, {status:'ERROR', data: err});
+				res.status(403).json({status:'ERROR', data: err});
 			} else {
 				if (usr.terminal === 'AGP' && usr.group === 'ADMIN'){
 					var project = {
@@ -101,13 +101,13 @@ module.exports = function (app, passport, log) {
 
 					Account.findAll({}, project, function (err, data){
 						if (err){
-							res.send(500, {status:"ERROR", data: err.message});
+							res.status(500).json({status:"ERROR", data: err.message});
 						} else {
-							res.send(200, {status:'OK', data: data});
+							res.status(200).json({status:'OK', data: data});
 						}
 					});
 				} else {
-					res.send(403, {status:"ERROR", data: "No posee permisos para requerir estos datos"});
+					res.status(403).json({status:"ERROR", data: "No posee permisos para requerir estos datos"});
 				}
 			}
 		})
@@ -129,12 +129,12 @@ module.exports = function (app, passport, log) {
 					var mailer = new mail.mail(config.email);
 					mailer.send(user.email, "Usuario aprobado", html, function(messageBack){
 						log.logger.update('Account ENABLE: %s, se envió mail a %s', user.email, JSON.stringify(messageBack));
-						res.send(200, message);
+						res.status(200).send(message);
 					});
 				});
 			} else {
 				log.logger.update('Account ENABLE: %s', user.email);
-				res.send(200, message);
+				res.status(200).send(message);
 			}
 		});
 	});
@@ -142,7 +142,7 @@ module.exports = function (app, passport, log) {
 	app.put('/agp/account/:id/disable', function (req, res){
 		enableAccount(req, res, false, function (user){
 			log.logger.update('Account DISABLED: %s', user.email);
-			res.send(200, {status:'OK', data: user});
+			res.status(200).json({status:'OK', data: user});
 		});
 	});
 
@@ -210,7 +210,7 @@ module.exports = function (app, passport, log) {
 //					}
 					errMsg = err.message;
 					log.logger.error(errMsg);
-					res.send(403, {status:"ERROR", data: errMsg});
+					res.status(403).json({status:"ERROR", data: errMsg});
 
 				} else {
 					if (usersToken.status){
@@ -218,19 +218,19 @@ module.exports = function (app, passport, log) {
 							loggedUser.lastLogin = new Date();
 							loggedUser.save(function (err, userSaved){
 								log.logger.info("User '%s' has logged in From: %s", json.email, req.socket.remoteAddress);
-								res.send(200, {status:"OK", data: usersToken});
+								res.status(200).json({status:"OK", data: usersToken});
 							});
 						});
 					} else {
 						errMsg = util.format("El usuario %s no se encuentra habilitado para utilizar el sistema. Debe contactar al administrador.", usersToken.email);
-						res.send(403, {status:"ERROR", data: errMsg});
+						res.status(403).json({status:"ERROR", data: errMsg});
 					}
 				}
 			});
 		} else {
 			errMsg = util.format("Debe proveerse un usuario o email");
 			log.logger.error(errMsg);
-			res.send(403, {status:"ERROR", data: errMsg});
+			res.status(403).json({status:"ERROR", data: errMsg});
 		}
 	});
 
@@ -240,14 +240,14 @@ module.exports = function (app, passport, log) {
 
 				if (err) {
 					log.logger.error("El password de %s ha producido un error: %s.", req.body.email, err.message);
-					res.send(500, {status:"ERROR", data: err.message});
+					res.status(500).json({status:"ERROR", data: err.message});
 				} else {
 					log.logger.info("El password de %s ha cambiado satisfactoriamente.", req.body.email);
-					res.send(200, {status:"OK", data: result});
+					res.status(200).json({status:"OK", data: result});
 				}
 			});
 		} else {
-			res.send({error: 'AuthError'});
+			res.status(200).json({error: 'AuthError'});
 		}
 	});
 
@@ -259,7 +259,7 @@ module.exports = function (app, passport, log) {
 				var user = data[0];
 				Account.createUserToken(user.email, function(err, html) {
 					if (err) {
-						res.send(500, {status: "ERROR", data: 'Hubo un problema al generar el token'});
+						res.status(500).json({status: "ERROR", data: 'Hubo un problema al generar el token'});
 					} else {
 						res.render('tokenUser.jade', {full_name: user.full_name, user: user.user, password: user.password}, function(err, html) {
 							var mailer = new mail.mail(config.email);
@@ -269,7 +269,7 @@ module.exports = function (app, passport, log) {
 							};
 							mailer.send("dreyes@puertobuenosaires.gob.ar", "Nuevo usuario para IIT", htmlMail, function(messageBack){
 							});
-							res.send(200, html);
+							res.status(200).send(html);
 						});
 
 					}
@@ -301,7 +301,7 @@ module.exports = function (app, passport, log) {
 			});
 		} else {
 			console.log('Whoa! Couldn\'t even decode incoming token!');
-			res.json({error: 'Issue decoding incoming token.'});
+			res.status(500).json({error: 'Issue decoding incoming token.'});
 		}
 	});
 
@@ -317,7 +317,7 @@ module.exports = function (app, passport, log) {
 				if (err) {
 					var msg = util.format('Ha ocurrido un error al intentar resetar el password: %s', err.message);
 					message = flash("ERROR", msg);
-					res.send(500, message);
+					res.status(500).json(message);
 				} else {
 
 					if (user != null){
@@ -346,12 +346,12 @@ module.exports = function (app, passport, log) {
 							});
 							var result = {email: userUpd.email, full_name: userUpd.full_name, terminal: userUpd.terminal}
 							var message = flash('OK', result);
-							res.send(200, message);
+							res.status(200).send(message);
 						});
 					} else {
 						var msg = util.format('La cuenta de correo %s no ha sido registrada.', req.params.email);
 						message = flash("ERROR", msg);
-						res.send(500, message);
+						res.status(500).json(message);
 					}
 
 				}
@@ -384,7 +384,7 @@ module.exports = function (app, passport, log) {
 		Account.verifyToken(incomingToken, function(err, usr) {
 			if (err){
 				log.logger.error(usr);
-				res.send(403, {status:'ERROR', data: err});
+				res.status(403).json({status:'ERROR', data: err});
 			} else {
 				if (usr.terminal === 'AGP' && usr.group === 'ADMIN'){
 					Account.findOne({_id: req.params.id}, function (err, user){
@@ -392,10 +392,10 @@ module.exports = function (app, passport, log) {
 
 						}else{
 							user.status = enable;
-							user.save(function (err, userUpd, rowsAffected){
+							user.save(function (err, userUpd){
 								if (err != null){
 									log.logger.error("Error en Enable/Disable Account %s", err.message);
-									res.send(500, {status:'ERROR', data: err.message});
+									res.status(500).json({status:'ERROR', data: err.message});
 								} else {
 									callback(userUpd);
 								}

@@ -99,12 +99,36 @@ if ('development' == app.get('env')) {
 	app.use(errorHandler());
 }
 
+app.all('/*', function(req, res, next) {
+	res.header("Access-Control-Allow-Origin", "*");
+	res.header("Access-Control-Allow-Headers", 'X-Requested-With, Content-Type, token');
+	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+//	res.header('Access-Control-Request-Method', 'GET');
+	res.header('Access-Control-Request-Headers', 'Content-Type, token');
+
+	res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+	res.header('Expires', '-1');
+	res.header('Pragma', 'no-cache');
+
+
+	if ('OPTIONS' == req.method) {
+		res.status(200).send();
+	}
+	else {
+		next();
+	}
+//	next();
+});
+
+
+
 server.listen( app.get('port'), function() {
 	log.logger.info("Nodejs server Version: %s", process.version);
 	log.logger.info("Running on %s://localhost:%s", 'http', app.get('port'));
 	log.logger.info("Process Id (pid): %s", process.pid);
 });
 
+require('./routes/accounts')(app, null, log);
 require('./routes/routesLoader')(app, log, io, mongoose, pool);
 
 
