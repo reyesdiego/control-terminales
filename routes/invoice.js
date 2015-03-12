@@ -460,39 +460,44 @@ module.exports = function(log, io) {
 			today = moment(moment(req.query.fecha).format('YYYY-MM-DD')).toDate();
 			tomorrow = moment(moment(req.query.fecha).format('YYYY-MM-DD')).add('days',1).toDate();
 		}
-		console.log(today, tomorrow);
 
-		var invoice = Invoice.aggregate([
-			{ $match : {
-				'fecha.emision': today,
-				codTipoComprob : {$in : [1]}
-			}
-			},
-			{ $unwind : '$detalle'},
-			{ $unwind : '$detalle.items'},
-			{ $match : {
-				'detalle.items.id' : { $in : ['NAGPI', 'NAGPE', '1465', '1466', 'TASAI', 'TASAE']}
-			}
-			},
-			{ $group : {
-				_id : {
-						code : '$detalle.items.id',
-						terminal : '$terminal',
-						fecha : '$fecha.emision'
-					},
-				ton : {$sum : '$detalle.items.cnt'},
-				total : {$sum: '$detalle.items.impTot'}}
-			}
-		]);
-		invoice.exec (function (err, data) {
+		var _price = require('../include/price.js');
+		var _rates = new _price.price();
+		_rates.rates(function (err, rates){
 			if (err) {
-
+				res.status(500).send({status: 'ERROR', data : err.message});
 			} else {
-				res.status(200).send({status: 'OK', data : data});
+				var invoice = Invoice.aggregate([
+					{ $match : {
+						'fecha.emision': today,
+						codTipoComprob : {$in : [1]}
+					}
+					},
+					{ $unwind : '$detalle'},
+					{ $unwind : '$detalle.items'},
+					{ $match : {
+						'detalle.items.id' : { $in : rates}
+					}
+					},
+					{ $group : {
+						_id : {
+							code : '$detalle.items.id',
+							terminal : '$terminal',
+							fecha : '$fecha.emision'
+						},
+						ton : {$sum : '$detalle.items.cnt'},
+						total : {$sum: '$detalle.items.impTot'}}
+					}
+				]);
+				invoice.exec (function (err, data) {
+					if (err) {
+						res.status(500).send({status: 'ERROR', data : err.message});
+					} else {
+						res.status(200).send({status: 'OK', data : data});
+					}
+				});
 			}
 		});
-
-
 	}
 
 	function getRatesByContainer (req, res){
@@ -1292,9 +1297,9 @@ module.exports = function(log, io) {
 		Invoice.aggregate([
 			{ $match: param },
 			{ $unwind : '$detalle'},
-			{ $group: {_id: {buque: '$detalle.buque.nombre', viaje: '$detalle.buque.viaje'} } },
+			{ $group: {_id: {buque: '$detalle.buque.nombre', viaje: '$detalle.buque.viaje', fecha: '$detalle.buque.fecha'} } },
 			{ $sort: { '_id.buque': 1, '_id.viaje': 1} },
-			{ $project : {buque: '$_id.buque', viaje: '$_id.viaje', _id:false}}
+			{ $project : {buque: '$_id.buque', viaje: '$_id.viaje', fecha: '$_id.fecha', _id:false}}
 		], function (err, data){
 			if (err) {
 				res.send(500, {status: 'ERROR', data: err.message});
@@ -1306,10 +1311,15 @@ module.exports = function(log, io) {
 							var prop = g.getSource();
 							var ter = {buque: key, viajes: []};
 							prop.forEach(function (item){
-								for (var pro in item){
-									if (pro !== 'buque')
-										ter.viajes.push(item[pro]);
+								var viaje = {
+									viaje : item.viaje,
+									fecha : item.fecha
 								}
+								ter.viajes.push(viaje);
+//								for (var pro in item){
+//									if (pro !== 'buque')
+//										ter.viajes.push(item[pro]);
+//								}
 							});
 							return (ter);
 						}).toArray();
@@ -1331,14 +1341,15 @@ module.exports = function(log, io) {
 		var buque = req.query.buqueNombre;
 		var viaje = req.query.viaje;
 
-		Invoice.aggregate([
+		var query = [
 			{ $match: param },
 			{ $unwind : '$detalle'},
 			{ $match: {'detalle.buque.nombre': buque, "detalle.buque.viaje" : viaje} },
-			{ $group: {_id: {buque: '$detalle.buque.nombre', viaje: "$detalle.buque.viaje", contenedor: '$detalle.contenedor'} } },
+			{ $group: {_id: {buque: '$detalle.buque.nombre', viaje: "$detalle.buque.viaje",contenedor: '$detalle.contenedor'} } },
 			{ $project: {contenedor: '$_id.contenedor', _id: false}},
 			{ $sort: {contenedor: 1} }
-		], function (err, dataContainers){
+		];
+		Invoice.aggregate(query , function (err, dataContainers){
 			if (err) {
 				res.status(500).send({status: 'ERROR', data: err.message});
 			} else {
