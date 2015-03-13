@@ -1217,7 +1217,7 @@ module.exports = function(log, io) {
 				rates.exec( function (err, ratesData){
 					if (err){
 						log.logger.error(err);
-						res.send(500, {status:"ERROR", data: err.message});
+						res.status(500).json({status:"ERROR", data: err.message});
 					}
 					else {
 						var response = Enumerable.from(ratesData)
@@ -1246,7 +1246,7 @@ module.exports = function(log, io) {
 								});
 								return (ter);
 							}).toArray();
-						res.send(200, {status:'OK', data: result2});
+						res.status(200).json({status:'OK', data: result2});
 					}
 				});
 			});
@@ -1302,7 +1302,7 @@ module.exports = function(log, io) {
 			{ $project : {buque: '$_id.buque', viaje: '$_id.viaje', fecha: '$_id.fecha', _id:false}}
 		], function (err, data){
 			if (err) {
-				res.send(500, {status: 'ERROR', data: err.message});
+				res.status(500).json({status: 'ERROR', data: err.message});
 			} else {
 				var Enumerable = require('linq');
 				var result = Enumerable.from(data)
@@ -1436,7 +1436,7 @@ module.exports = function(log, io) {
 							return {contenedor: {contenedor: item}};})
 						.toArray();
 
-					res.status(200).send({status: 'OK', totalCount: dife.length, data: dife});
+					res.status(200).json({status: 'OK', totalCount: dife.length, data: dife});
 				});
 
 			});
