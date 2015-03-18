@@ -72,10 +72,12 @@ module.exports = function (log, pool){
 						if (strWhere !== '')
 							strSql += util.format(" %s", strWhere);
 						connection.execute(strSql, [], function (err, dataCount){
-							pool.release(connection);
 							if (err){
+								pool.destroy(connection);
 								res.status(500).json({ status:'ERROR', data: err.message });
 							} else {
+								pool.release(connection);
+
 								var total = dataCount[0].TOTAL;
 								var result = {
 									status:'OK',
@@ -151,7 +153,7 @@ module.exports = function (log, pool){
 				console.log(err, "Error acquiring from pool.");
 				res.status(500).json({ status:'ERROR', data: err });
 			} else {
-				var strSql = "select nombrebuque, fechaarribo, count(*) cnt " +
+				var strSql = "select nombrebuque buque, fechaarribo fecha, count(*) cnt " +
 							"	from registro1_sumimpomani " +
 							"	group by nombrebuque, fechaarribo " +
 							"	order by nombrebuque,fechaarribo";
@@ -161,9 +163,16 @@ module.exports = function (log, pool){
 						pool.destroy(connection);
 						res.send(500, { status:'ERROR', data: err });
 					} else {
+						pool.release(connection);
+
 						var Enumerate = require("linq");
 						var dataQ = Enumerate.from(data);
-						var result = dataQ.toArray();
+
+						var result = dataQ.select(function (item){
+							return { "buque": item.BUQUE, fecha: item.FECHA};
+						}).toArray();
+						result = {status:"OK", totalCount : result.lenght, data : result};
+
 						res.status(200).json(result);
 					}
 				});

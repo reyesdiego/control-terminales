@@ -61,9 +61,9 @@ var genericPool = require('generic-pool');
 var oracle = require('oracle');
 
 var pool = genericPool.Pool({
-	name: 'testpool 0',
+	name: 'testpool',
 	log: false,
-	max: 10,
+	max: 15,
 	create: function(callback) {
 		var settings = {
 			hostname: config.oracle.hostname,

@@ -51,7 +51,7 @@ module.exports = function (app, log, io, mongoose, pool){
 	var gate = require('./gate')(log, io);
 	app.use('/gates', isValidToken, gate);
 
-	var invoice = require('./invoice')(log, io);
+	var invoice = require('./invoice')(log, io, pool);
 	app.use('/invoices', isValidToken, invoice);
 
 	var registro1_afectacion = require('./oracle/registro1_afectacion')(log, pool);

@@ -3,7 +3,7 @@
  *
  * @module Routes
  */
-module.exports = function(log, io) {
+module.exports = function(log, io, pool) {
 	'use strict';
 
 	var express = require('express');
@@ -1305,7 +1305,7 @@ module.exports = function(log, io) {
 				res.status(500).json({status: 'ERROR', data: err.message});
 			} else {
 				var Enumerable = require('linq');
-				var result = Enumerable.from(data)
+				var resultTer = Enumerable.from(data)
 					.groupBy("$.buque" , null,
 						function (key, g) {
 							var prop = g.getSource();
@@ -1324,7 +1324,46 @@ module.exports = function(log, io) {
 							return (ter);
 						}).toArray();
 
-				res.status(200).send({status: 'OK', data: result});
+				pool.acquire(function(err, connection) {
+					if (err) {
+						console.log(err, "Error acquiring from pool, but returns data from mongo.");
+						res.status(200).send({status: 'OK', data: resultTer});
+					} else {
+
+						var strSql = "select nombrebuque buque, fechaarribo fecha, count(*) cnt " +
+							"	from registro1_sumimpomani " +
+							"	group by nombrebuque, fechaarribo " +
+							"	order by nombrebuque,fechaarribo";
+
+						connection.execute(strSql, [],function (err, dataOra){
+							if (err){
+								pool.destroy(connection);
+								res.send(500, { status:'ERROR', data: err });
+							} else {
+								pool.release(connection);
+
+								var dataOra = Enumerable.from(dataOra).select(function (item){
+									return { "buque": item.BUQUE, fecha: item.FECHA};
+								}).toArray();
+								var dataQ = Enumerable.from(resultTer).groupJoin(dataOra, '$.buque', '$.buque', function (item, g){
+									var both = false;
+									if (g.getSource !==undefined)
+										both = true;
+									return {
+										buque: item.buque,
+										viajes: item.viajes,
+										both : both
+									};
+								}).toArray();
+
+								res.status(200).send({status: 'OK', data: dataQ});
+
+							}
+						});
+					}
+				});
+
+
 			}
 		});
 	}
@@ -1443,12 +1482,12 @@ module.exports = function(log, io) {
 		});
 	}
 
-
+/*
 	router.use(function timeLog(req, res, next){
 		log.logger.info('Time: %s', Date.now());
 		next();
 	});
-
+*/
 	router.param('terminal', function (req, res, next, terminal){
 		var usr = req.usr;
 		console.log('Terminal: %s', terminal);

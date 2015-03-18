@@ -13,67 +13,70 @@ module.exports = function (log, pool){
 		pool.acquire(function(err, connection) {
 			if (err) {
 				console.log(err, "Error acquiring from pool.");
-				return;
+				pool.destroy(connection);
+				res.status(500).json({ status:'ERROR', data: err });
+			} else {
+				var oracleUtils = require('../../include/oracle.js')
+				oracleUtils = new oracleUtils();
+				var orderBy = oracleUtils.orderBy(req.query.order);
+
+				var skip = parseInt(req.params.skip, 10);
+				var limit = parseInt(req.params.limit, 10);
+				var strSql = "SELECT * FROM " +
+					" (SELECT " +
+					"		ID, " +
+					"		TIPOREGISTRO, " +
+					"		DETALLADA, " +
+					"		DET_ANIO, " +
+					"		DET_ADUANA, " +
+					"		DET_TIPO, " +
+					"		DET_NRO, " +
+					"		DET_LETRA_CTRL, " +
+					"		IMPO_EXPO, " +
+					"		DIVISAFOB, " +
+					"		MONTOFOB, " +
+					"		DIVISAFLETE, " +
+					"		MONTOFLETE, " +
+					"		DIVISASEGURO, " +
+					"		MONTOSEGURO, " +
+					"		ADUANASALIDA, " +
+					"		PAISDESTINO, " +
+					"		FECOFI, " +
+					"		FECHA_CUMPLIDO, " +
+					"		FECOFIPOSTEMBARQUE, " +
+					"		CODIGOLIQUIDADO, " +
+					"		TOTALDERECHOSEXPO, " +
+					"		REGISTRADO_POR, " +
+					"		REGISTRADO_EN, " +
+					"		ROW_NUMBER() OVER (ORDER BY " + orderBy + ") R " +
+					"	FROM V_REGISTRO1_DETEXPO) " +
+					"WHERE R BETWEEN :1 and :2";
+				connection.execute(strSql,[skip+1, skip+limit], function (err, data){
+					if (err){
+						pool.destroy(connection);
+						res.status(500).json({ status:'ERROR', data: err.message });
+					} else {
+						strSql = "SELECT COUNT(*) AS TOTAL FROM REGISTRO1_DETEXPO";
+						connection.execute(strSql, [], function (err, dataCount){
+							if (err){
+								pool.destroy(connection);
+
+								res.send(500, { status:'ERROR', data: err.message });
+							} else {
+								pool.release(connection);
+
+								var total = dataCount[0].TOTAL;
+								var result = {
+									status:'OK',
+									totalCount : total,
+									pageCount : (limit > total) ? total : limit,
+									data: data };
+								res.status(200).json(result);
+							}
+						});
+					}
+				});
 			}
-
-			var oracleUtils = require('../../include/oracle.js')
-			oracleUtils = new oracleUtils();
-			var orderBy = oracleUtils.orderBy(req.query.order);
-
-			var skip = parseInt(req.params.skip, 10);
-			var limit = parseInt(req.params.limit, 10);
-			var strSql = "SELECT * FROM " +
-				" (SELECT " +
-				"		ID, " +
-				"		TIPOREGISTRO, " +
-				"		DETALLADA, " +
-				"		DET_ANIO, " +
-				"		DET_ADUANA, " +
-				"		DET_TIPO, " +
-				"		DET_NRO, " +
-				"		DET_LETRA_CTRL, " +
-				"		IMPO_EXPO, " +
-				"		DIVISAFOB, " +
-				"		MONTOFOB, " +
-				"		DIVISAFLETE, " +
-				"		MONTOFLETE, " +
-				"		DIVISASEGURO, " +
-				"		MONTOSEGURO, " +
-				"		ADUANASALIDA, " +
-				"		PAISDESTINO, " +
-				"		FECOFI, " +
-				"		FECHA_CUMPLIDO, " +
-				"		FECOFIPOSTEMBARQUE, " +
-				"		CODIGOLIQUIDADO, " +
-				"		TOTALDERECHOSEXPO, " +
-				"		REGISTRADO_POR, " +
-				"		REGISTRADO_EN, " +
-				"		ROW_NUMBER() OVER (ORDER BY " + orderBy + ") R " +
-				"	FROM V_REGISTRO1_DETEXPO) " +
-				"WHERE R BETWEEN :1 and :2";
-			connection.execute(strSql,[skip+1, skip+limit], function (err, data){
-				if (err){
-					pool.destroy(connection);
-					res.status(500).json({ status:'ERROR', data: err.message });
-				} else {
-					strSql = "SELECT COUNT(*) AS TOTAL FROM REGISTRO1_DETEXPO";
-					connection.execute(strSql, [], function (err, dataCount){
-						pool.release(connection);
-						if (err){
-							res.send(500, { status:'ERROR', data: err.message });
-						} else {
-							var total = dataCount[0].TOTAL;
-							var result = {
-								status:'OK',
-								totalCount : total,
-								pageCount : (limit > total) ? total : limit,
-								data: data };
-							res.status(200).json(result);
-						}
-					});
-				}
-			});
-
 		});
 	}
 
@@ -83,8 +86,6 @@ module.exports = function (log, pool){
 		next();
 	});
 	router.get('/registro1_detexpo/:skip/:limit', getRegistro1DetExpo);
-
-	//app.get('/afip/registro1_detexpo/:skip/:limit', getRegistro1DetExpo)
 
 	return router;
 };
