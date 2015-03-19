@@ -13,7 +13,6 @@ module.exports = function (log, pool){
 		pool.acquire(function(err, connection) {
 			if (err) {
 				console.log(err, "Error acquiring from pool.");
-				pool.destroy(connection);
 				res.status(500).json({ status:'ERROR', data: err });
 			} else {
 				var oracleUtils = require('../../include/oracle.js')
