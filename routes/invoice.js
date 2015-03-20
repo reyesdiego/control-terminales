@@ -789,7 +789,7 @@ module.exports = function(log, io, pool) {
 				totalCount: contadorFaltantesTotal,
 				data: results
 			};
-			res.send(200, response);
+			res.status(200).send(response);
 		});
 
 	}
@@ -833,6 +833,12 @@ module.exports = function(log, io, pool) {
 		if (req.query.contenedor)
 			param['detalle.contenedor'] = req.query.contenedor;
 
+		if (req.query.buqueNombre)
+			param['detalle.buque.nombre'] = req.query.buqueNombre;
+
+		if (req.query.viaje)
+			param['detalle.buque.viaje'] = req.query.viaje;
+
 		if (req.query.code)
 			param['detalle.items.id'] = req.query.code;
 
@@ -843,7 +849,6 @@ module.exports = function(log, io, pool) {
 				{ 'estado.1': { $exists: true } , estado: {$elemMatch: {estado: {$in: states}, grupo: usr.group} } }
 			]
 		}
-
 
 		Invoice.distinct('nroPtoVenta', param, function (err, data){
 			if (err){
@@ -1490,7 +1495,6 @@ module.exports = function(log, io, pool) {
 */
 	router.param('terminal', function (req, res, next, terminal){
 		var usr = req.usr;
-		console.log('Terminal: %s', terminal);
 
 		if (usr.terminal !== 'AGP' && usr.terminal !== terminal) {
 			var errMsg = util.format('%s', 'La terminal recibida por parámetro es inválida para el token.');
