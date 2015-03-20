@@ -101,18 +101,27 @@ module.exports = function (log) {
 
 		var paramTerminal = req.params.terminal;
 
-		var param = [
-			{
-				$match: {terminal:	paramTerminal }
-			},
-			{	$unwind: '$match' }
-		];
+		var paramMatchPrice, paramPrice;
+		if (paramTerminal.toLowerCase() === 'all'){
+			paramMatchPrice = [
+				{	$unwind: '$match' }
+			];
+			paramPrice = {};
+		} else {
+			paramMatchPrice = [
+				{
+					$match: {terminal:	paramTerminal }
+				},
+				{	$unwind: '$match' }
+			];
+			paramPrice = {$or: [{terminal:"AGP"}, {terminal: paramTerminal }]};
+		}
 
-		var s = MatchPrice.aggregate(param);
+		var s = MatchPrice.aggregate(paramMatchPrice);
 		s.exec(function (err, matches) {
 			if(!err) {
 
-				Price.find({$or: [{terminal:"AGP"}, {terminal: paramTerminal }]})
+				Price.find(paramPrice)
 					.exec(function (err, prices) {
 						if(!err) {
 							var result = {};
@@ -254,24 +263,20 @@ module.exports = function (log) {
 
 	}
 
+/*
 	router.use(function timeLog(req, res, next){
 		log.logger.info('Time: %s', Date.now());
 		next();
 	});
+*/
 	router.get('/:terminal', getMatchPrices);
 	router.get('/price/:terminal', getMatchPricesPrice);
 	router.get('/matches/:terminal', getMatches);
+	router.get('/matches/all', getMatches);
 	router.get('/noMatches/:terminal', getNoMatches);
 	router.post('/matchprice', addMatchPrice);
 	router.put('/matchprice', addMatchPrice);
 
 	return router;
-
-//	app.get('/matchprices/:terminal', isValidToken, getMatchPrices);
-//	app.get('/matchprices/price/:terminal', isValidToken, getMatchPricesPrice);
-//	app.get('/matches/:terminal', isValidToken, getMatches);
-//	app.get('/noMatches/:terminal', isValidToken, getNoMatches);
-//	app.post('/matchprice', isValidToken, addMatchPrice);
-//	app.put('/matchprice', isValidToken, addMatchPrice);
 
 };
