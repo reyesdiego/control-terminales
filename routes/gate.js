@@ -362,10 +362,12 @@ module.exports = function (log, io) {
 		}
 	}
 
+/*
 	router.use(function timeLog(req, res, next){
 		log.logger.info('Time: %s', Date.now());
 		next();
 	});
+*/
 	router.get('/:terminal/:skip/:limit', getGates);
 	router.get('/ByHour', getGatesByHour);
 	router.get('/ByMonth', getGatesByMonth);
@@ -374,15 +376,6 @@ module.exports = function (log, io) {
 	router.get('/:terminal/ships', getDistincts);
 	router.get('/:terminal/containers', getDistincts);
 	router.post('/gate', addGate);
-
-//	app.get('/gates/:terminal/:skip/:limit', isValidToken, getGates);
-//	app.get('/gatesByHour', isValidToken, getGatesByHour);
-//	app.get('/gatesByMonth', isValidToken, getGatesByMonth);
-//	app.get('/gates/:terminal/missingGates', isValidToken, getMissingGates);
-//	app.get('/gates/:terminal/missingInvoices', isValidToken, getMissingInvoices);
-//	app.get('/gates/:terminal/ships', isValidToken, getDistincts);
-//	app.get('/gates/:terminal/containers', isValidToken, getDistincts);
-//	app.post('/gate', isValidToken, addGate);
 
 	return router;
 };
