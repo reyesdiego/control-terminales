@@ -100,6 +100,20 @@ module.exports = function (log){
 			});
 	}
 
+	function getRates2 (req, res){
+
+		if (req.usr.terminal !== 'AGP'){
+			res.status(403).send({status:"ERROR", data:"No posee permisos para acceder a estos datos."});
+		}
+		var pri = require('../include/price.js');
+
+		var priz = new pri.price();
+		priz.rates(true,function (err, data){
+			res.status(200).send(data);
+		});
+
+	};
+
 	function addPrice (req, res){
 		var usr = req.usr;
 		var _price;
@@ -178,24 +192,20 @@ module.exports = function (log){
 		});
 	}
 
+/*
 	router.use(function timeLog(req, res, next){
 		log.logger.info('Time: %s', Date.now());
 		next();
 	});
+*/
 	router.get('/:terminal', getPrices);
 	router.get('/:id/:terminal', getPrice);
-	router.get('/rates', getRates);
+	router.get('/rates/1/codes', getRates);
+	router.get('/rates/1/all', getRates2);
 	router.post('/price', addPrice);
 	router.put('/price/:id', addPrice);
 	router.delete('/price/:id', deletePrice);
 
 	return router;
-
-//	app.get('/prices/:terminal', isValidToken, getPrices);
-//	app.get('/price/:id/:terminal', isValidToken, getPrice);
-//	app.get('/rates', isValidToken, getRates);
-//	app.post('/price', isValidToken, addPrice);
-//	app.put('/price/:id', isValidToken, addPrice);
-//	app.delete('/price/:id', isValidToken, deletePrice);
 
 };
