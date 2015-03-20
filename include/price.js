@@ -7,13 +7,20 @@ var price = function (terminal){
 	this.Price = require("../models/price.js");
 	this.matchPrice = require("../models/matchPrice.js");
 	this.terminal = terminal;
+
 }
 
 price.prototype = {
-	rates: function (callback){
+	rates: function (withDescription, callback){
+
+		if (typeof withDescription === 'function'){
+			callback = withDescription;
+		}
+
+		var Enumerable = require('linq');
 		var self = this;
 		if (callback !== undefined){
-			var selfPrice =this.matchPrice;
+			var selfMatchPrice =this.matchPrice;
 
 			var params = [];
 			if (self.terminal !== undefined)
@@ -23,15 +30,32 @@ price.prototype = {
 
 			params.push({ $project: {match:1, price:1}});
 			params.push({$unwind:'$match'});
-			selfPrice.aggregate( params, function(err, data){
-					selfPrice.populate(data, [{path:'price', match:{rate:{$exists:1}}}], function (err, data){
-						var result = [];
-						data.forEach(function (item){
-							if (item.price != null){
-								result.push(item.match);
+			selfMatchPrice.aggregate( params, function(err, data){
+				selfMatchPrice.populate(data, [{ path:'price', match:{rate:{$exists:1}} }], function (err, matchprices){
+						if (err) {
+							if (typeof callback === 'function')
+								callback(err);
+						} else {
+							var ratesDesc = {};
+							var result = Enumerable.from(matchprices)
+								.where(function (item){
+									return item.price != null;
+								});
+
+							if (withDescription === true){
+								var a = result.select(function(item){
+									ratesDesc[item.match] = item.price.description;
+									return item;
+								}).toArray();
+								result = ratesDesc;
+							} else {
+								result = result.select(function(item){
+									return item.match;
+								}).toArray();
 							}
-						});
-						callback( undefined, result);
+							if (typeof callback === 'function')
+								callback( undefined, result);
+						}
 					});
 			});
 		}
