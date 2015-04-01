@@ -22,6 +22,8 @@ module.exports = function(log, io, pool) {
 	var MatchPrice = require('../models/matchPrice.js');
 	var Comment = require('../models/comment.js');
 
+	var Enumerable = require('linq');
+
 	var logInvoiceBody = false;
 
 	//GET - Return all invoice in the DB
@@ -452,8 +454,6 @@ module.exports = function(log, io, pool) {
 
 	function getRatesLiquidacion (req, res) {
 
-		var moment = require('moment');
-
 		var today = moment(moment().format('YYYY-MM-DD')).toDate();
 		var tomorrow = moment(moment().format('YYYY-MM-DD')).add('days',1).toDate();
 		if (req.query.fecha !== undefined){
@@ -493,7 +493,29 @@ module.exports = function(log, io, pool) {
 					if (err) {
 						res.status(500).send({status: 'ERROR', data : err.message});
 					} else {
-						res.status(200).send({status: 'OK', data : data});
+
+						var mp = MatchPrice.find({match: {$in: rates}}, {price:true, match : true});
+						mp.populate({path: 'price', match:{rate:{$exists:1}}});
+						mp.exec(function (err, dataMatch){
+
+							mp = Enumerable.from(dataMatch)
+								.select(function (item){
+									return {code: item.match[0], rate: item.price.toObject().rate};
+								}).toArray();
+							mp = Enumerable.from(data)
+								.join(Enumerable.from(mp), '$._id.code','$.code', function (left, right){
+									return {
+										code : right.code,
+										rate: right.rate,
+										terminal: left._id.terminal,
+										fecha: left._id.fecha,
+									ton: left.ton,
+									total: left.total};
+								}).toArray();
+
+							res.status(200).send({status: 'OK', data : mp});
+						});
+
 					}
 				});
 			}
@@ -1175,8 +1197,6 @@ module.exports = function(log, io, pool) {
 		if (ratesParam.length<1){
 
 		} else {
-
-			var Enumerable = require('linq');
 
 			var dateIni = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD')).toDate();
 			var dateFin = moment(moment(req.query.fechaFin).format('YYYY-MM-DD')).toDate();
