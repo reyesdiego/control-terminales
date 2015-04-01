@@ -3,13 +3,13 @@
 var express = require('express');
 var app = express();
 
-var favicon = require('serve-favicon'),
-	logger = require('morgan'),
-	methodOverride = require('method-override'),
-	session = require('express-session'),
-	bodyParser = require('body-parser'),
-	multer = require('multer'),
-	errorHandler = require('errorhandler');
+//var favicon = require('serve-favicon');
+var logger = require('morgan');
+var methodOverride = require('method-override');
+//var session = require('express-session');
+var bodyParser = require('body-parser');
+var multer = require('multer');
+var errorHandler = require('errorhandler');
 // Express configuracion END
 
 var http = require('http');
@@ -22,7 +22,7 @@ http.globalAgent.maxSockets = 100;
 var server = http.createServer(app);
 
 var	config = require('./config/config.js');
-var log4n		=	require('./include/log/log4node.js');
+var log4n = require('./include/log/log4node.js');
 var logOptions = {
 	path: config.log.path,
 	filename: config.log.filename,
@@ -42,7 +42,7 @@ io.on('connection', function (socket){
 
 });
 
-var mongoose	=	require('mongoose');
+var mongoose = require('mongoose');
 //	Database configuration
 mongoose.connect(config.mongo_url, config.mongo_opts);
 
