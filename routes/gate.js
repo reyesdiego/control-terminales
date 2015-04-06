@@ -2,7 +2,7 @@
  * Created by Diego Reyes on 3/21/14.
  */
 
-module.exports = function (log, io) {
+module.exports = function (log, io, app) {
 
 	var express = require('express');
 	var router = express.Router();
@@ -368,6 +368,26 @@ module.exports = function (log, io) {
 		next();
 	});
 */
+
+
+	function isValidToken (req, res, next){
+
+		var Account = require('../models/account.js');
+
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (err){
+				log.logger.error(err);
+				res.status(500).send({status:'ERROR', data: err});
+			} else {
+				req.usr = usr;
+				next();
+			}
+		});
+	}
+
+
+
 	router.get('/:terminal/:skip/:limit', getGates);
 	router.get('/ByHour', getGatesByHour);
 	router.get('/ByMonth', getGatesByMonth);
@@ -375,7 +395,7 @@ module.exports = function (log, io) {
 	router.get('/:terminal/missingInvoices', getMissingInvoices);
 	router.get('/:terminal/ships', getDistincts);
 	router.get('/:terminal/containers', getDistincts);
-	router.post('/gate', addGate);
+	app.post('/gate', isValidToken, addGate);
 
 	return router;
 };

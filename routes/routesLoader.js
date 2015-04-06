@@ -36,7 +36,7 @@ module.exports = function (app, log, io, mongoose, pool){
 	var comment = require('./comment')(log);
 	app.use('/comments', isValidToken, comment);
 
-	var appointment = require('./appointment')(log);
+	var appointment = require('./appointment')(log, io, app);
 	app.use('/appointments', isValidToken, appointment);
 
 	var docType = require('./docType')(log);
@@ -48,10 +48,10 @@ module.exports = function (app, log, io, mongoose, pool){
 	var voucherType = require('./voucherType')(log);
 	app.use('/voucherTypes', voucherType);
 
-	var gate = require('./gate')(log, io);
+	var gate = require('./gate')(log, io, app);
 	app.use('/gates', isValidToken, gate);
 
-	var invoice = require('./invoice')(log, io, pool);
+	var invoice = require('./invoice')(log, io, pool, app);
 	app.use('/invoices', isValidToken, invoice);
 
 	var registro1_afectacion = require('./oracle/registro1_afectacion')(log, pool);

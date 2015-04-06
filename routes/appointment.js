@@ -2,7 +2,7 @@
  * Created by Diego Reyes on 3/21/14.
  */
 
-module.exports = function (log, io) {
+module.exports = function (log, io, app) {
 
 	var express = require('express');
 	var router = express.Router();
@@ -26,8 +26,8 @@ module.exports = function (log, io) {
 		if (req.query.contenedor)
 			param.contenedor = req.query.contenedor;
 
-		if (req.query.buque)
-			param.buque = req.query.buque;
+		if (req.query.buqueNombre)
+			param.buque = req.query.buqueNombre;
 
 		if (req.query.viaje)
 			param.viaje = req.query.viaje;
@@ -188,6 +188,22 @@ module.exports = function (log, io) {
 		});
 	}
 
+	function isValidToken (req, res, next){
+
+		var Account = require('../models/account.js');
+
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (err){
+				log.logger.error(err);
+				res.status(500).send({status:'ERROR', data: err});
+			} else {
+				req.usr = usr;
+				next();
+			}
+		});
+	}
+
 	router.use(function timeLog(req, res, next){
 		log.logger.info('Time: %s', Date.now());
 		next();
@@ -197,7 +213,7 @@ module.exports = function (log, io) {
 	router.get('/:terminal/:skip/:limit', getAppointments);
 	router.get('/:terminal/containers', getDistincts);
 	router.get('/:terminal/ships', getDistincts);
-	router.post('/appointment', addAppointment);
+	app.post('/appointment', isValidToken, addAppointment);
 
 	return router;
 //	app.get('/appointmentsByHour', isValidToken, getAppointmentsByHour);

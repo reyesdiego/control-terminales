@@ -3,7 +3,7 @@
  *
  * @module Routes
  */
-module.exports = function(log, io, pool) {
+module.exports = function(log, io, pool, app) {
 	'use strict';
 
 	var express = require('express');
@@ -1008,7 +1008,7 @@ module.exports = function(log, io, pool) {
 							cont.items.push(
 								{
 									id:			item.id,
-									cnt:		Match.abs(item.cnt),
+									cnt:		Math.abs(item.cnt),
 									uniMed:		item.uniMed,
 									impUnit:	item.impUnit,
 									impTot:		Math.abs(item.impTot)
@@ -1513,6 +1513,23 @@ module.exports = function(log, io, pool) {
 		next();
 	});
 */
+
+	function isValidToken (req, res, next){
+
+		var Account = require('../models/account.js');
+
+		var incomingToken = req.headers.token;
+		Account.verifyToken(incomingToken, function(err, usr) {
+			if (err){
+				log.logger.error(err);
+				res.status(500).send({status:'ERROR', data: err});
+			} else {
+				req.usr = usr;
+				next();
+			}
+		});
+	}
+
 	router.param('terminal', function (req, res, next, terminal){
 		var usr = req.usr;
 
@@ -1537,7 +1554,7 @@ module.exports = function(log, io, pool) {
 	router.get('/noMatches/:terminal/:skip/:limit', getNoMatches);
 	router.get('/correlative/:terminal', getCorrelative);
 	router.get('/cashbox/:terminal', getCashbox);
-	router.post('/invoice', addInvoice);
+	app.post('/invoice', isValidToken, addInvoice);
 	router.put('/invoice/:terminal/:_id', updateInvoice);
 	router.put('/setState/:terminal/:_id', setState);
 	router.delete('/:_id', removeInvoices);
