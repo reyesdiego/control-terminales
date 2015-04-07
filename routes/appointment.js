@@ -204,15 +204,19 @@ module.exports = function (log, io, app) {
 		});
 	}
 
+/*
 	router.use(function timeLog(req, res, next){
 		log.logger.info('Time: %s', Date.now());
 		next();
 	});
+*/
+
 	router.get('/ByHour', getAppointmentsByHour);
 	router.get('/ByMonth', getAppointmentsByMonth);
 	router.get('/:terminal/:skip/:limit', getAppointments);
 	router.get('/:terminal/containers', getDistincts);
 	router.get('/:terminal/ships', getDistincts);
+	router.post('/appointment', addAppointment);
 	app.post('/appointment', isValidToken, addAppointment);
 
 	return router;

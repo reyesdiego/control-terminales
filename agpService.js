@@ -32,9 +32,9 @@ terminals.forEach(function (item){
 					var user = data[0];
 
 					var optionsget = {
-						host : 'www.puertobuenosaires.gob.ar', // here only the domain name (no http/https !)
+						host : '10.1.0.51', // here only the domain name (no http/https !)
 						port : 8080,
-						path : '/noMatches/'+user.terminal,
+						path : '/matchPrices/noMatches/'+user.terminal,
 						method : 'GET',
 						headers : {token: user.token.token}
 					};
@@ -54,7 +54,8 @@ terminals.forEach(function (item){
 
 									callback();
 
-								mailer.send(user.email,
+								//mailer.send(user.email,
+								mailer.send("dreyes@puertobuenosaires.gob.ar",
 										result.data.length.toString() + " CÓDIGOS SIN ASOCIAR AL " + date,
 										user.terminal + '\n\n' + result.data,
 									function(){
@@ -79,8 +80,7 @@ terminals.forEach(function (item){
 
 });
 
-async.parallel(asyncParallel, function(data){
-	console.log(data);
+async.parallel(asyncParallel, function(){
 	process.exit(code=0);
 });
 

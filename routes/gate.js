@@ -386,8 +386,6 @@ module.exports = function (log, io, app) {
 		});
 	}
 
-
-
 	router.get('/:terminal/:skip/:limit', getGates);
 	router.get('/ByHour', getGatesByHour);
 	router.get('/ByMonth', getGatesByMonth);
@@ -395,6 +393,7 @@ module.exports = function (log, io, app) {
 	router.get('/:terminal/missingInvoices', getMissingInvoices);
 	router.get('/:terminal/ships', getDistincts);
 	router.get('/:terminal/containers', getDistincts);
+	router.post('/gate', addGate);
 	app.post('/gate', isValidToken, addGate);
 
 	return router;
