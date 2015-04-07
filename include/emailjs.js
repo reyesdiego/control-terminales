@@ -14,10 +14,43 @@ var mail = function (status){
 		domain: "puertobuenosaires.gov.ar",
 		ssl:     false
 	});
+
+	this.emailSimpleValidate = function (email) {
+		var reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/
+		if (reg.test(email)){
+			return true; }
+		else{
+			return false;
+		}
+	};
+
+	this.emailCaseSensitiveValidate = function (email) {
+		var reg = /^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/;
+		if (reg.test(email)){
+			return true;
+		}
+		else{
+			return false;
+		}
+	};
+
+	this.emailFreeValidate = function (email) {
+		var reg = /^([\w-\.]+@(?!gmail.com)(?!yahoo.com)(?!hotmail.com)([\w-]+\.)+[\w-]{2,4})?$/
+		if (reg.test(email)){
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
+
 };
 
 mail.prototype = {
 	send : function (to, subject, text, attachment, callback){
+
+		var self = this;
+		var tos = [];
 
 		if (typeof text === 'object'){
 			if (typeof attachment === 'function'){
@@ -31,12 +64,29 @@ mail.prototype = {
 			}
 		}
 
+		if (typeof to === 'string'){
+			if (!this.emailSimpleValidate(to)){
+				callback ({status:"ERROR", data:"La cuenta de email es inválida"});
+			} else {
+				tos.push(to);
+			}
+		} else if (typeof to === 'object') {
+			to.forEach(function (item){
+				if (!self.emailSimpleValidate(item)){
+					callback ({status:"ERROR", data:"La cuenta de email es inválida"});
+				}
+			});
+			tos = to;
+		}
+
+
+
 		if (this.status === true){
 			this.server.send(
 				{
 					text:		text,
 					from:		"A.G.P. <noreply@puertobuenosaires.gob.ar>",
-					to:			to,
+					to:			tos.join(','),
 					bcc:		"A.G.P. <noreply@puertobuenosaires.gob.ar>",
 					subject:	subject,
 					attachment: (attachment) ? attachment : []

@@ -37,19 +37,19 @@ var html = {
 	alternative: true
 };
 
-mailer.send("reyesdiego@hotmail.com", "Nuevo Usuario", null, html, function(messageBack){
-	console.log('Se envio un mail a %j', messageBack);
-});
+//mailer.send("reyesdiego@hotmail.com", "Nuevo Usuario", null, html, function(messageBack){
+//	console.log('Se envio un mail a %j', messageBack);
+//});
 
-mailer.send("reyesdiego@hotmail.com", "Nuevo Usuario", html, function(messageBack){
-	console.log('Se envio un mail a %j', messageBack);
-});
+//mailer.send("reyesdiego@hotmail.com", "Nuevo Usuario", html, function(messageBack){
+//	console.log('Se envio un mail a %j', messageBack);
+//});
 
-mailer.send("reyesdiego@hotmail.com", "Con html sin callback", html);
+//mailer.send("reyesdiego@hotmail.com", "Con html sin callback", html);
 
+//mailer.send(["reyesdiego@hotmail.com", "dreyes@puertobuenosaires.gob.ar"], "Con text sin callback sin html", "TESTING");
 mailer.send("reyesdiego@hotmail.com", "Con text sin callback sin html", "TESTING");
 
-
-mailer.send("reyesdiego@hotmail.com", "Nuevo Usuario", "TESTING SOLO TEXTO SIN HTML CON CALLBACK", function(messageBack){
-	console.log('Se envio un mail a %j', messageBack);
-});
+//mailer.send("reyesdiego@hotmail.com", "Nuevo Usuario", "TESTING SOLO TEXTO SIN HTML CON CALLBACK", function(messageBack){
+//	console.log('Se envio un mail a %j', messageBack);
+//});
