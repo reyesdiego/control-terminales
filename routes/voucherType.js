@@ -30,14 +30,13 @@ module.exports = function (log){
 			}
 		});
 	}
-
+/*
 	router.use(function timeLog(req, res, next){
 		log.logger.info('Time: %s', Date.now());
 		next();
 	});
+*/
 	router.get('/', getVoucherTypes);
-
-	//app.get('/voucherTypes', getVoucherTypes);
 
 	return router;
 }

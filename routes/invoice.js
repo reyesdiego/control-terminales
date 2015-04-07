@@ -1554,6 +1554,7 @@ module.exports = function(log, io, pool, app) {
 	router.get('/noMatches/:terminal/:skip/:limit', getNoMatches);
 	router.get('/correlative/:terminal', getCorrelative);
 	router.get('/cashbox/:terminal', getCashbox);
+	router.post('/invoice', addInvoice);
 	app.post('/invoice', isValidToken, addInvoice);
 	router.put('/invoice/:terminal/:_id', updateInvoice);
 	router.put('/setState/:terminal/:_id', setState);

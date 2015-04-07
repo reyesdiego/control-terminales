@@ -34,15 +34,13 @@ module.exports = function (log){
 			}
 		});
 	}
-
+/*
 	router.all(function (req, res, next){
 		log.logger.info('Time: %s', Date.now());
 		next();
 	});
-
+*/
 	router.get('/', getStates);
 	return router;
 
-
-	//app.get('/states', getStates);
 }

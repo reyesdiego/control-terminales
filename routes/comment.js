@@ -65,11 +65,13 @@ module.exports = function (log) {
 			}
 		});
 	}
-
+/*
 	router.use(function timeLog(req, res, next){
 		log.logger.info('Time: %s', Date.now());
 		next();
 	});
+*/
+
 	router.get('/:invoice', getComments);
 	router.post('/comment', addComment);
 
