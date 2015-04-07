@@ -53,17 +53,16 @@ function request(){
 			errorCount=0;
 
 			var mailer = new mail.mail(allowSending);
-			mailer.send("dreyes@puertobuenosaires.gob.ar", "AGP Service is down", JSON.stringify(optionsget), function(){
+			mailer.send(["reyesdiego@hotmail.com", "dreyes@puertobuenosaires.gob.ar"], "Servicio AGP detenido.", JSON.stringify(optionsget), function(){
 				emailSent++;
 				console.log('emailSent: %s', emailSent);
 				if (emailSent === 2){
 					console.log("\nque no mande mas mail\n")
 					allowSending = false;
+					process.exit(code=0);
 				}
 
 			});
-
-//			process.exit(code=0);
 		}
 
 	});
