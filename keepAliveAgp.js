@@ -6,7 +6,6 @@ var http = require('http');
 var mail = require('./include/emailjs');
 
 var interval = 5 * 60 * 1000; // 5 minutos
-interval = 10000;
 var emailSent = 0;
 var allowSending = true;
 
