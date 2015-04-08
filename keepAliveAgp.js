@@ -39,7 +39,7 @@ function request(){
 			var to = ["reyesdiego@hotmail.com", "dreyes@puertobuenosaires.gob.ar"];
 			mailer.send(to, "Servicio AGP detenido (testing)", JSON.stringify(optionsget), function(err, message){
 				if (err) {
-					console.log("Error enviando email.")
+					console.log("Error enviando email. %s, %s", err, new Date());
 				} else {
 					emailSent++;
 					console.log('emailSent %s a %s - %s', emailSent, message.header.to, new Date());
