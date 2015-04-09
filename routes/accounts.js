@@ -267,7 +267,7 @@ module.exports = function (app, passport, log) {
 								data : "<html><body><p>El usuario "+user.user+" ha solicitado ingreso al sistema.</p></body></html>",
 								alternative: true
 							};
-							mailer.send("dreyes@puertobuenosaires.gob.ar", "Nuevo usuario para IIT", htmlMail, function(messageBack){
+							mailer.send("dreyes@puertobuenosaires.gob.ar", "Nuevo usuario para IIT", htmlMail, function(){
 							});
 							res.status(200).send(html);
 						});
@@ -341,7 +341,7 @@ module.exports = function (app, passport, log) {
 								data : "<html><body><p>Ud. a solicitado el cambio de Clave en la página de Control de Información de Terminales portuarias.</p><p>El nuevo password temporal es: <span color=blue><b>"+newPass+"</b></span></p></body></html>",
 								alternative: true
 							};
-							mailer.send(user.email, "Cambio de Clave", html, function(messageBack){
+							mailer.send(user.email, "Cambio de Clave", html, function(){
 								log.logger.update('Account UPD: %s, se envío el cambio de clave correctamente.', user.email);
 							});
 							var result = {email: userUpd.email, full_name: userUpd.full_name, terminal: userUpd.terminal}

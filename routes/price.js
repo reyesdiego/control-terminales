@@ -138,7 +138,8 @@ module.exports = function (log){
 						var strSubject = util.format("AGP - %s - Tarifa Nueva", usr.terminal);
 						var strMsg = util.format('Se dio de alta una Tarifa nueva: %s', data);
 						var mailer = new mail.mail(config.email);
-						mailer.send("dreyes@puertobuenosaires.gob.ar", strSubject, strMsg, function(){
+						var to = ["dreyes@puertobuenosaires.gob.ar", "rwohlers@puertobuenosaires.gob.ar"];
+						mailer.send(to, strSubject, strMsg, function(){
 						});
 
 						res.status(200).send({"status": "OK", "data": _price});
