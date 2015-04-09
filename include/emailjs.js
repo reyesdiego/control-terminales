@@ -79,8 +79,6 @@ mail.prototype = {
 			tos = to;
 		}
 
-
-
 		if (this.status === true){
 			this.server.send(
 				{
@@ -91,9 +89,15 @@ mail.prototype = {
 					subject:	subject,
 					attachment: (attachment) ? attachment : []
 				}, function(err, message) {
-					console.log(err || message);
-					if (typeof callback === 'function')
-						callback(message);
+					if (err) {
+						if (typeof callback === 'function')
+							callback(err);
+
+					} else {
+						if (typeof callback === 'function')
+							callback(null, message);
+
+					}
 				});
 		}
 	}
