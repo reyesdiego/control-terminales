@@ -138,6 +138,9 @@ module.exports = function (log, io, app) {
 		appointment2insert.inicio = moment(appointment2insert.inicio);
 		appointment2insert.fin = moment(appointment2insert.fin);
 		appointment2insert.terminal = usr.terminal;
+		if (appointment2insert.alta !== undefined && appointment2insert.alta != null)
+			appointment2insert.alta = moment(appointment2insert.alta);
+
 
 		if (appointment2insert) {
 			Appointment.insert(appointment2insert, function (errData, data){
