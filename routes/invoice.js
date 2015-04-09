@@ -1108,9 +1108,10 @@ module.exports = function(log, io, pool, app) {
 							var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
 							log.logger.error(errMsg, { data: postData});
 
-							var mailer = new mail.mail(config.email);
-							mailer.send(usr.email, strSubject, errMsg, function(){
-							});
+//  Envia email cuando recibe duplicado, por ahora comentado
+//							var mailer = new mail.mail(config.email);
+//							mailer.send(usr.email, strSubject, errMsg, function(){
+//							});
 
 							callback(500, {status: "ERROR", data: errMsg});
 						}
