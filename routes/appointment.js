@@ -145,7 +145,7 @@ module.exports = function (log, io, app) {
 		if (appointment2insert) {
 			Appointment.insert(appointment2insert, function (errData, data){
 				if (!errData){
-					var str = util.format('Appointment INS: %s - %s - Inicio: %s, Fin: %s', data._id, usr.terminal, data.inicio, data.fin);
+					var str = util.format('Appointment INS: %s - %s - Inicio: %s, Fin: %s, Alta: %s', data._id, usr.terminal, data.inicio, data.fin, data.alta);
 					log.logger.insert(str);
 					var socketMsg = {status:'OK', terminal: usr.terminal};
 					io.sockets.emit('appointment', socketMsg);
