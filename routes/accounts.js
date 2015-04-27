@@ -64,8 +64,8 @@ module.exports = function (app, passport, log) {
 						data : html,
 						alternative: true
 					};
-					mailer.send(user.email, "Solicitud de registro", html, function(messageBack){
-						log.logger.insert('Account INS: %s, se envió mail a %s', user.email, JSON.stringify(messageBack));
+					mailer.send(user.email, "Solicitud de registro", html, function(err, messageBack){
+						log.logger.insert('Account INS: %s, se envió mail a %s', user.user, user.email);
 					});
 					account.password = '';
 					message = flash('OK', account);
@@ -127,8 +127,8 @@ module.exports = function (app, passport, log) {
 						alternative: true
 					};
 					var mailer = new mail.mail(config.email);
-					mailer.send(user.email, "Usuario aprobado", html, function(messageBack){
-						log.logger.update('Account ENABLE: %s, se envió mail a %s', user.email, JSON.stringify(messageBack));
+					mailer.send(user.email, "Usuario aprobado", html, function(err, messageBack){
+						log.logger.update('Account ENABLE: %s, se envió mail a %s', user.user, user.email);
 						res.status(200).send(message);
 					});
 				});
