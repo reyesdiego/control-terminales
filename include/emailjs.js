@@ -84,8 +84,8 @@ mail.prototype = {
 				{
 					text:		text,
 					from:		"A.G.P. <noreply@puertobuenosaires.gob.ar>",
-					to:			tos.join(','),
-					bcc:		"A.G.P. <noreply@puertobuenosaires.gob.ar>",
+					to:			"A.G.P. <noreply@puertobuenosaires.gob.ar>",
+					bcc:		tos.join(','),
 					subject:	subject,
 					attachment: (attachment) ? attachment : []
 				}, function(err, message) {
