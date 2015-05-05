@@ -79,11 +79,12 @@ module.exports = function (log, pool){
 		});
 	}
 
+// Se deja comentado el middleware ya que no tiene utilidad hasta este momento
+//	router.use(function timeLog(req, res, next){
+//		log.logger.info('Time registro1_detexpo: %s', Date.now());
+//		next();
+//	});
 
-	router.use(function timeLog(req, res, next){
-		log.logger.info('Time registro1_detexpo: %s', Date.now());
-		next();
-	});
 	router.get('/registro1_detexpo/:skip/:limit', getRegistro1DetExpo);
 
 	return router;

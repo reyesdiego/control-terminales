@@ -78,10 +78,12 @@ module.exports = function (log, pool){
 		});
 	}
 
-	router.use(function timeLog(req, res, next){
-		log.logger.info('Time registro3_sumimpomani: %s', Date.now());
-		next();
-	});
+// Se deja comentado el middleware ya que no tiene utilidad hasta este momento
+//	router.use(function timeLog(req, res, next){
+//		log.logger.info('Time registro3_sumimpomani: %s', Date.now());
+//		next();
+//	});
+
 	router.get('/registro3_sumimpomani/:skip/:limit', getRegistro3SumImpoMani);
 
 	return router;
