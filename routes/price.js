@@ -117,7 +117,13 @@ module.exports = function (log){
 	function addPrice (req, res){
 		var usr = req.usr;
 		var _price;
+		var Account = require('../models/account');
+
 		try {
+			if (req.body.topPrices === undefined || req.body.topPrices.length < 1) {
+				res.status(403).send({status:"ERROR", data: "Debe proveer un precio válido."});
+				return;
+			}
 			req.body.topPrices.forEach(function (item){
 				item.from = moment(item.from).format("YYYY-MM-DD 00:00:00 Z");
 			});
@@ -131,20 +137,31 @@ module.exports = function (log){
 					topPrices:	req.body.topPrices,
 					matches:	null
 				});
-				_price.save(function (errSave, data){
+				_price.save(function (errSave, priceAdded){
 					if(!errSave) {
-						log.logger.insert("Price INS:%s - %s", data._id, usr.terminal);
+						log.logger.insert("Price INS:%s - %s", priceAdded._id, usr.terminal);
 
-						var strSubject = util.format("AGP - %s - Tarifa Nueva", usr.terminal);
-						var strMsg = util.format('Se dio de alta una Tarifa nueva: %s', data);
-						var mailer = new mail.mail(config.email);
-						var to = ["dreyes@puertobuenosaires.gob.ar", "rwohlers@puertobuenosaires.gob.ar"];
-						mailer.send(to, strSubject, strMsg, function(){
-						});
+						Account.findEmailToApp('price', function ( err, emails) {
+							if (!err) {
+
+								if (emails.data.length > 0){
+									res.render('priceAdd.jade', {code: priceAdded.code, description: priceAdded.description, terminal: usr.terminal, price: priceAdded.topPrices[0].price}, function(err, html) {
+										html = {
+											data : html,
+											alternative: true
+										};
+										var strSubject = util.format("AGP - %s - Tarifa Nueva", usr.terminal);
+										var mailer = new mail.mail(config.email);
+										var to = emails.data;
+										mailer.send(to, strSubject, html);
+									});
+								}
+							}
+						} );
 
 						res.status(200).send({"status": "OK", "data": _price});
 					} else {
-						log.logger.error('Error: %s', errSave.message);
+						log.logger.error(errSave.message);
 						res.status(500).send({"status":"ERROR", "data": errSave.message});
 					}
 				});
@@ -167,8 +184,7 @@ module.exports = function (log){
 				});
 			}
 		} catch (error){
-			res.send(500, {"status":"ERROR", "data": "Error en addPrice " + error.message});
-			return;
+			res.status(500).send({"status":"ERROR", "data": "Error en addPrice " + error.message});
 		}
 	}
 

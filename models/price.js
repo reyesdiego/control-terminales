@@ -4,9 +4,9 @@
 var mongoose = require('mongoose');
 
 var price = new mongoose.Schema({
-	terminal:		{type: String},
-	code:			{type: String},
-	description:	{type: String},
+	terminal:		{type: String, required: true},
+	code:			{type: String, required: true},
+	description:	{type: String, required: true},
 	unit:			{type: String},
 	matches:		[{ type: mongoose.Schema.ObjectId, ref: 'matchprices' }],
 	topPrices:		[{
