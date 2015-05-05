@@ -190,7 +190,7 @@ Account.statics.findAll = function (param, project, cb) {
 	});
 }
 
-Account.statics.findUserByEmailOnly = function(email, cb) {
+Account.statics.findUserByEmailOnly = function (email, cb) {
     var self = this;
     this.findOne({email: email}, function(err, usr) {
         if(err) {
@@ -201,7 +201,7 @@ Account.statics.findUserByEmailOnly = function(email, cb) {
     });
 };
 
-Account.statics.createUserToken = function(email, cb) {
+Account.statics.createUserToken = function (email, cb) {
     var self = this;
     this.findOne({email: email}, function(err, usr) {
         if(err || !usr) {
@@ -221,7 +221,7 @@ Account.statics.createUserToken = function(email, cb) {
     });
 };
 
-Account.statics.generateResetToken = function(email, cb) {
+Account.statics.generateResetToken = function (email, cb) {
 	console.log("in generateResetToken....");
 	this.findUserByEmailOnly(email, function(err, user) {
 		if (err) {
@@ -237,6 +237,26 @@ Account.statics.generateResetToken = function(email, cb) {
 		} else {
 			//TODO: This is not really robust and we should probably return an error code or something here
 			cb(new Error('No user with that email found.'), null);
+		}
+	});
+};
+
+Account.statics.findEmailToApp = function (app, cb) {
+
+	var result = [];
+
+	var accounts = this.find({emailToApp : app}, {_id:0,email:1});
+	accounts.exec(function (err, data){
+		if (err) {
+			cb(err);
+		} else {
+
+			for (var i = 0, len = data.length; i < len; i++) {
+				result.push(data[i].email);
+			}
+			if (typeof cb  === 'function'){
+				cb(null, {status: 'OK' , data: result});
+			}
 		}
 	});
 };
