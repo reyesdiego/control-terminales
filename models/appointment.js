@@ -12,7 +12,7 @@ var appointment = new mongoose.Schema({
 		fin:			{type: Date},
 		mov:			{type: String, enum:['IMPO', 'EXPO']},
 		alta:			{type: Date},
-		user:			{type: String},
+		user:			{type: String, uppercase: true},
 		disponibles_t1:	{type: Number}
 });
 
