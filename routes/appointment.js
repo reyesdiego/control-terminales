@@ -46,7 +46,19 @@ module.exports = function (log, io, app) {
 		else
 			param.terminal= usr.terminal;
 
+		if (req.query.mov)
+			param.mov = req.query.mov;
+
 		var appointment = Appointment.find(param).limit(limit).skip(skip);
+
+		if (req.query.order){
+			var order = JSON.parse(req.query.order);
+			appointment.sort(order[0]);
+		} else {
+			appointment.sort({inicio:-1});
+		}
+
+
 		appointment.exec( function( err, appointments){
 			if (err){
 				log.logger.error("Error: %s", err.error);
@@ -70,18 +82,25 @@ module.exports = function (log, io, app) {
 	function getAppointmentsByHour(req, res){
 		'use strict';
 		var usr = req.usr;
+		var fechaInicio, fechaFin;
+
+		if (req.query.fechaInicio)
+			fechaInicio = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD')).toDate();
+
+		if (req.query.fechaFin)
+			fechaFin = moment(moment(req.query.fechaFin).format('YYYY-MM-DD')).toDate();
 
 		var date = moment(moment().format('YYYY-MM-DD')).toDate();
 		if (req.query.fecha !== undefined){
-			date = moment(moment(req.query.fecha).format('YYYY-MM-DD')).toDate();
+			fechaInicio = moment(moment(req.query.fecha).format('YYYY-MM-DD')).toDate();
+			fechaFin = moment(date).add('days',1).toDate();
 		}
-		var tomorrow = moment(date).add('days',1).toDate();
 
 		var param = {};
 		param.terminal= usr.terminal;
 
 		var jsonParam = [
-			{$match: { 'inicio': {$gte: date, $lt: tomorrow} }},
+			{$match: { 'inicio': {$gte: fechaInicio, $lt: fechaFin} }},
 			{ $project: {'accessDate':'$inicio', terminal: '$terminal'} },
 			{ $group : {
 				_id : { terminal: '$terminal',
@@ -108,11 +127,17 @@ module.exports = function (log, io, app) {
 		if (req.query.fecha !== undefined){
 			date = moment(req.query.fecha, 'YYYY-MM-DD').subtract('days', moment(req.query.fecha).date()-1);
 		}
-		var month5Ago = moment(date).subtract('months',4).toDate();
+		var monthsAgo = 4;
+		if (req.query.monthsAgo)
+			monthsAgo = req.query.monthsAgo;
+
+		var date5MonthsAgo = moment(date).subtract('months', monthsAgo).toDate();
 		var nextMonth = moment(date).add('months',1).toDate();
 
+
+
 		var jsonParam = [
-			{$match: { 'inicio': {$gte: month5Ago, $lt: nextMonth} }},
+			{$match: { 'inicio': {$gte: date5MonthsAgo, $lt: nextMonth} }},
 			{ $project: {'accessDate':'$inicio', terminal: '$terminal'} },
 			{ $group : {
 				_id : { terminal: '$terminal',
@@ -147,9 +172,9 @@ module.exports = function (log, io, app) {
 				if (!errData){
 					var str = util.format('Appointment INS: %s - %s - Inicio: %s, Fin: %s, Alta: %s', data._id, usr.terminal, data.inicio, data.fin, data.alta);
 					log.logger.insert(str);
-					var socketMsg = {status:'OK', terminal: usr.terminal};
-					io.sockets.emit('appointment', socketMsg);
-					res.status(200).send({status: 'OK', data: data});
+					var result = {status: 'OK', data: data};
+					io.sockets.emit('appointment', result);
+					res.status(200).send(result);
 				} else {
 					var errMsg = util.format('%s.-%s- \n%s', errData.toString(), usr.terminal, JSON.stringify(req.body));
 					log.logger.error(errMsg);
