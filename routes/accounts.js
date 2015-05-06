@@ -95,6 +95,7 @@ module.exports = function (app, passport, log) {
 						group: true,
 						terminal: true,
 						status: true,
+						date_created: true,
 						'token.date_created': true,
 						'lastLogin' : true
 					};
