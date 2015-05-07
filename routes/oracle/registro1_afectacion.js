@@ -8,6 +8,8 @@ module.exports = function (log, pool){
 	var express = require('express');
 	var router = express.Router();
 
+	var util = require("util");
+
 	function getRegistro1Afectacion( req, res){
 
 		pool.acquire(function(err, connection) {
@@ -99,12 +101,43 @@ module.exports = function (log, pool){
 		});
 	}
 
+	function getDistinct (req, res) {
+
+		var distinct = '';
+
+		if (req.route.path === '/registro1_afectacion/buques')
+			distinct = 'NOMBREBUQUE';
+
+		pool.acquire(function (err, connection){
+			if (err) {
+				console.log(err, "Error acquiring from pool.");
+				res.status(500).json({ status:'ERROR', data: err });
+			} else {
+				var strSql = util.format("SELECT DISTINCT %s as D FROM REGISTRO1_AFECTACION ORDER BY %s", distinct, distinct);
+			}
+
+			connection.execute(strSql, [], function (err, data){
+				if (err){
+					pool.destroy(connection);
+					res.status(500).send({ status:'ERROR', data: err.message });
+				} else {
+					pool.release(connection);
+					var result = {status: 'OK', totalCount: data.length, data: data};
+					res.status(200).json(result);
+				}
+			});
+
+		});
+
+	}
+
 // Se deja comentado el middleware ya que no tiene utilidad hasta este momento
 //	router.use(function timeLog(req, res, next){
 //		log.logger.info('Time registro1_afectacion: %s', Date.now());
 //		next();
 //	});
 	router.get('/registro1_afectacion/:skip/:limit', getRegistro1Afectacion);
+	router.get('/registro1_afectacion/buques', getDistinct);
 
 	return router;
 };

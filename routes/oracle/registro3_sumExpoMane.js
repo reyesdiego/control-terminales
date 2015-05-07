@@ -68,7 +68,7 @@ module.exports = function (log, pool){
 									totalCount : total,
 									pageCount : (limit > total) ? total : limit,
 									data: data };
-								res.status(500).json(200, result);
+								res.status(500).json(result);
 							}
 						});
 					}

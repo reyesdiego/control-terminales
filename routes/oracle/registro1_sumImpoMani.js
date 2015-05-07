@@ -95,6 +95,36 @@ module.exports = function (log, pool){
 		});
 	}
 
+	function getDistinct (req, res) {
+
+		var distinct = '';
+
+		if (req.route.path === '/registro1_sumimpomani/buques')
+			distinct = 'NOMBREBUQUE';
+
+		pool.acquire(function (err, connection){
+			if (err) {
+				console.log(err, "Error acquiring from pool.");
+				res.status(500).json({ status:'ERROR', data: err });
+			} else {
+				var strSql = util.format("SELECT DISTINCT %s as D FROM REGISTRO1_SUMIMPOMANI ORDER BY %s", distinct, distinct);
+			}
+
+			connection.execute(strSql, [], function (err, data){
+				if (err){
+					pool.destroy(connection);
+					res.status(500).send({ status:'ERROR', data: err.message });
+				} else {
+					pool.release(connection);
+					var result = {status: 'OK', totalCount: data.length, data: data};
+					res.status(200).json(result);
+				}
+			});
+
+		});
+
+	}
+
 	function getByContenedor (req, res) {
 		pool.acquire(function(err, connection) {
 			if (err) {
@@ -109,7 +139,7 @@ module.exports = function (log, pool){
 				connection.execute(strSql,[req.params.contenedor], function (err, dataSum){
 					if (err){
 						pool.destroy(connection);
-						res.send(500, { status:'ERROR', data: err.message });
+						res.status(500).send({ status:'ERROR', data: err.message });
 					} else {
 						strSql = 'SELECT r1.SUMARIA, ' +
 							'SUBSTR( r1.SUMARIA, 0, 2) as SUM_ANIO, ' +
@@ -161,7 +191,7 @@ module.exports = function (log, pool){
 				connection.execute(strSql, [],function (err, data){
 					if (err){
 						pool.destroy(connection);
-						res.send(500, { status:'ERROR', data: err });
+						res.status(500).send({ status:'ERROR', data: err });
 					} else {
 						pool.release(connection);
 
@@ -180,6 +210,7 @@ module.exports = function (log, pool){
 		});
 	}
 
+
 // Se deja comentado el middleware ya que no tiene utilidad hasta este momento
 //	router.use(function timeLog(req, res, next){
 //		log.logger.info('Time registro1_sumimpomani: %s', Date.now());
@@ -189,6 +220,6 @@ module.exports = function (log, pool){
 	router.get('/registro1_sumimpomani/:skip/:limit', getRegistro1_sumimpomani);
 	router.get('/sumariaImpo/:contenedor', getByContenedor);
 	router.get('/registro1_sumimpomani/shipstrips', getShipsTrips);
-
+	router.get('/registro1_sumimpomani/buques', getDistinct);
 	return router;
 };
