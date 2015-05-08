@@ -8,6 +8,8 @@ module.exports = function (log, pool){
 	var express = require('express');
 	var router = express.Router();
 
+	var util = require("util");
+
 	function getRegistro1DetImpo( req, res){
 
 		pool.acquire(function(err, connection) {
@@ -19,6 +21,7 @@ module.exports = function (log, pool){
 				oracleUtils = new oracleUtils();
 				var orderBy = oracleUtils.orderBy(req.query.order);
 
+				var strWhere = '';
 				var skip = parseInt(req.params.skip, 10);
 				var limit = parseInt(req.params.limit, 10);
 				var strSql = "SELECT * FROM " +
@@ -53,14 +56,39 @@ module.exports = function (log, pool){
 					"		REGISTRADO_POR, " +
 					"		REGISTRADO_EN, " +
 					"		ROW_NUMBER() OVER (ORDER BY " + orderBy + ") R " +
-					"	FROM V_REGISTRO1_DETIMPO) " +
+					"	FROM V_REGISTRO1_DETIMPO %s) " +
 					"WHERE R BETWEEN :1 and :2";
+
+				if (req.query.detallada || req.query.fechaInicio || req.query.fechaFin || req.query.sumaria || req.query.conocimiento)
+					strWhere += " WHERE ";
+
+				if (req.query.fechaInicio)
+					strWhere += util.format(" FECOFI >= TO_DATE('%s', 'RRRR-MM-DD') AND ", req.query.fechaInicio);
+
+				if (req.query.fechaFin)
+					strWhere += util.format(" FECOFI <= TO_DATE('%s', 'RRRR-MM-DD') AND ", req.query.fechaFin);
+
+				if (req.query.sumaria)
+					strWhere += util.format(" SUMARIA = '%s' AND ", req.query.sumaria);
+
+				if (req.query.conocimiento)
+					strWhere += util.format(" CONOCIMIENTO = '%s' AND ", req.query.conocimiento);
+
+				if (req.query.detallada)
+					strWhere += util.format(" DETALLADA = '%s' AND ", req.query.detallada);
+
+				strWhere = strWhere.substr(0, strWhere.length - 4);
+				strSql = util.format(strSql, strWhere);
+
 				connection.execute(strSql,[skip+1, skip+limit], function (err, data){
 					if (err){
 						pool.destroy(connection);
 						res.status(500).json({ status:'ERROR', data: err.message });
 					} else {
 						strSql = "SELECT COUNT(*) AS TOTAL FROM REGISTRO1_DETIMPO";
+						if (strWhere !== '')
+							strSql += util.format(" %s", strWhere);
+
 						connection.execute(strSql, [], function (err, dataCount){
 							if (err){
 								pool.destroy(connection);

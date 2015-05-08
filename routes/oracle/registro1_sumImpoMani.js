@@ -55,14 +55,28 @@ module.exports = function (log, pool){
 					"		NOMBREBUQUE, " +
 					"		REGISTRADO_POR, " +
 					"		REGISTRADO_EN, " +
-					"		ROW_NUMBER() OVER (ORDER BY " + orderBy + ") R " +
-					"	FROM V_REGISTRO1_SUMIMPOMANI %s) " +
+					"		ROW_NUMBER() OVER ( ORDER BY " + orderBy + " ) R " +
+					"	FROM V_REGISTRO1_SUMIMPOMANI %s ) " +
 					"WHERE R BETWEEN :1 and :2	";
 
-				if (req.query.buque)
-					strWhere += util.format(" NOMBREBUQUE = '%s' ", req.query.buque);
+				if (req.query.buqueNombre || req.query.fechaInicio || req.query.fechaFin || req.query.sumaria)
+					strWhere += " WHERE ";
 
+				if (req.query.buqueNombre)
+					strWhere += util.format(" NOMBREBUQUE = '%s' AND ", req.query.buqueNombre);
+
+				if (req.query.fechaInicio)
+					strWhere += util.format(" FECHAREGISTRO >= TO_DATE('%s', 'RRRR-MM-DD') AND ", req.query.fechaInicio);
+
+				if (req.query.fechaFin)
+					strWhere += util.format(" FECHAREGISTRO <= TO_DATE('%s', 'RRRR-MM-DD') AND ", req.query.fechaFin);
+
+				if (req.query.sumaria)
+					strWhere += util.format(" SUMARIA = '%s' AND ", req.query.sumaria);
+
+				strWhere = strWhere.substr(0, strWhere.length - 4);
 				strSql = util.format(strSql, strWhere);
+
 				connection.execute(strSql,[skip+1, skip+limit], function (err, data){
 					if (err){
 						pool.destroy(connection);
@@ -71,6 +85,7 @@ module.exports = function (log, pool){
 						strSql = "SELECT COUNT(*) AS TOTAL FROM REGISTRO1_SUMIMPOMANI ";
 						if (strWhere !== '')
 							strSql += util.format(" %s", strWhere);
+
 						connection.execute(strSql, [], function (err, dataCount){
 							if (err){
 								pool.destroy(connection);

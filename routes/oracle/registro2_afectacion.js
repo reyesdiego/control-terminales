@@ -8,6 +8,8 @@ module.exports = function (log, pool){
 	var express = require('express');
 	var router = express.Router();
 
+	var util = require("util");
+
 	function getRegistro2Afectacion( req, res){
 
 		pool.acquire(function(err, connection) {
@@ -19,6 +21,7 @@ module.exports = function (log, pool){
 				oracleUtils = new oracleUtils();
 				var orderBy = oracleUtils.orderBy(req.query.order);
 
+				var strWhere = '';
 				var skip = parseInt(req.params.skip, 10);
 				var limit = parseInt(req.params.limit, 10);
 
@@ -46,8 +49,18 @@ module.exports = function (log, pool){
 					"		REGISTRADO_POR, " +
 					"		REGISTRADO_EN, " +
 					"		ROW_NUMBER() OVER (ORDER BY " + orderBy + ") R " +
-					"	FROM V_REGISTRO2_AFECTACION ) " +
+					"	FROM V_REGISTRO2_AFECTACION %s ) " +
 					"WHERE R BETWEEN :1 and :2";
+
+				if (req.query.afectacion)
+					strWhere += " WHERE ";
+
+				if (req.query.afectacion)
+					strWhere += util.format(" AFECTACION = '%s' AND ", req.query.afectacion);
+
+				strWhere = strWhere.substr(0, strWhere.length - 4);
+				strSql = util.format(strSql, strWhere);
+
 				if (connection){
 					connection.execute(strSql,[skip+1, skip+limit], function (err, data){
 						if (err){
@@ -55,6 +68,9 @@ module.exports = function (log, pool){
 							res.status(500).json({ status:'ERROR', data: err.message });
 						} else {
 							strSql = "SELECT COUNT(*) AS TOTAL FROM REGISTRO2_AFECTACION";
+							if (strWhere !== '')
+								strSql += util.format(" %s", strWhere);
+
 							connection.execute(strSql, [], function (err, dataCount){
 								if (err){
 									pool.destroy(connection);
