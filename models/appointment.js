@@ -20,9 +20,9 @@ appointment.statics.insert = function(appointment, cb){
 	if (appointment!==undefined){
 		this.create(appointment, function(err, data){
 			if (!err){
-				cb(false, data);
+				return cb(false, data);
 			} else {
-				cb(err);
+				return cb(err);
 			}
 		})
 	}

@@ -53,25 +53,25 @@ Account.statics.verifyToken = function(incomingToken, cb) {
 			var decoded = jwt.decode(incomingToken, tokenSecret);
 		} catch (e){
 			err = {error: 'Token decoding error.' + e.message};
-			cb(err);
+			return cb(err);
 		}
 		//Now do a lookup on that email in mongodb ... if exists it's a real user
 		if (decoded && decoded.email) {
 			this.findOne({email: decoded.email}, function(err, usr) {
 				if(err || !usr) {
 					err = {error: 'Issue finding user.'};
-					cb(err);
+					return cb(err);
 				} else if (incomingToken === usr.token.token) {
 					if (cb !== undefined){
-						cb(false, {
-							terminal: usr.terminal,
-							email: usr.email,
-							user: usr.user,
-							group: usr.group,
-							token: usr.token,
-							date_created: usr.date_created,
-							full_name: usr.full_name,
-							role: usr.role
+						return cb(false, {
+										terminal: usr.terminal,
+										email: usr.email,
+										user: usr.user,
+										group: usr.group,
+										token: usr.token,
+										date_created: usr.date_created,
+										full_name: usr.full_name,
+										role: usr.role
 						});
 					}
 				} else {
@@ -80,11 +80,11 @@ Account.statics.verifyToken = function(incomingToken, cb) {
 			});
 		} else {
 			err = {error: 'Issue decoding incoming token.'};
-			cb(err);
+			return cb(err);
 		}
 	} else {
 		var err = {error: 'Invalid or missing Token'};
-		cb(err);
+		return cb(err);
 	}
 }
 
@@ -96,7 +96,7 @@ Account.statics.login = function (username, password, cb) {
 			password: password
 		}, function(err, user){
 			if (err){
-				cb(err, null);
+				return cb(err, null);
 			} else if (user) {
 
 				if (user.token !== undefined){
@@ -104,31 +104,31 @@ Account.statics.login = function (username, password, cb) {
 					//Por ahora solo acceso a terminales
 					var rutasAcceso = ['matches.search','tarifario', 'invoices', 'invoices.result', 'invoices.search', 'matches', 'control', 'cfacturas', 'cfacturas.result', 'gates', 'gates.invoices', 'gates.invoices.result', 'gates.result.container', 'turnos', 'turnos.result'];
 
-					cb(false, {
-						_id : user._id,
-						acceso: rutasAcceso,
-						role: user.role,
-						email: user.email,
-						user: user.user,
-						group: user.group,
-						terminal: user.terminal,
-						token: user.token,
-						date_created: user.date_created,
-						full_name: user.full_name,
-						status: user.status
+					return cb(false, {
+									_id : user._id,
+									acceso: rutasAcceso,
+									role: user.role,
+									email: user.email,
+									user: user.user,
+									group: user.group,
+									terminal: user.terminal,
+									token: user.token,
+									date_created: user.date_created,
+									full_name: user.full_name,
+									status: user.status
 					});
 				} else {
 					var errMsg = 'El usuario no ha validado su cuenta para ingresar el sistema. Verifique su cuenta de correo.';
-					cb({message: errMsg});
+					return cb({message: errMsg});
 				}
 			} else {
 				var errMsg = 'Usuario o Contraseña incorrectos';
-				cb({message: errMsg});
+				return cb({message: errMsg});
 			}
 		});
 	} else {
 		var errMsg = 'Usuario o Contraseña incorrectos';
-		cb({message: errMsg});
+		return cb({message: errMsg});
 	}
 
 }
@@ -143,19 +143,19 @@ Account.statics.password = function (email, password, newPassword, cb) {
 						$set: { password: newPassword }
 					}, null, function (err, rowsAffected, user){
 			if (err){
-				cb(err, null);
+				return cb(err, null);
 			} else {
 				if (rowsAffected === 1){
-					cb(null, "El cambio de Contraseña ha sido exitoso.");
+					return cb(null, "El cambio de Contraseña ha sido exitoso.");
 				} else {
-					cb({message: "Usuario o Contraseña incorrectos."});
+					return cb({message: "Usuario o Contraseña incorrectos."});
 				}
 			}
 		});
 	} else {
 		var errMsg = 'Usuario o Contraseña incorrectos.';
 		console.log(errMsg);
-		cb({error: errMsg});
+		return cb({error: errMsg});
 	}
 }
 
@@ -165,9 +165,9 @@ Account.statics.findUser = function(email, token, cb) {
 		if(err || !usr) {
 			cb(err, null);
 		} else if (token === usr.token.token) {
-			cb(false, {email: usr.email, user: usr.user, token: usr.token, date_created: usr.date_created, full_name: usr.full_name});
+			return cb(false, {email: usr.email, user: usr.user, token: usr.token, date_created: usr.date_created, full_name: usr.full_name});
 		} else {
-			cb(new Error('Token does not match.'), null);
+			return cb(new Error('Token does not match.'), null);
 		}
 	});
 };
@@ -184,7 +184,7 @@ Account.statics.findAll = function (param, project, cb) {
 	r.exec(function(err, data){
 		if (!err){
 			if (typeof cb === 'function'){
-				cb(err, data);
+				return cb(err, data);
 			}
 		}
 	});
@@ -194,9 +194,9 @@ Account.statics.findUserByEmailOnly = function (email, cb) {
     var self = this;
     this.findOne({email: email}, function(err, usr) {
         if(err) {
-            cb(err, null);
+            return cb(err, null);
         } else {
-            cb(null, usr);
+            return cb(null, usr);
         }
     });
 };
@@ -212,10 +212,10 @@ Account.statics.createUserToken = function (email, cb) {
         usr.token = new TokenModel({token:token});
         usr.save(function(err, usr) {
             if (err) {
-                cb(err, null);
+                return cb(err, null);
             } else {
                 console.log("about to cb with usr.token.token: " + usr.token.token);
-                cb(false, usr.token.token);//token object, in turn, has a token property :)
+                return cb(false, usr.token.token);//token object, in turn, has a token property :)
             }
         });
     });
@@ -225,7 +225,7 @@ Account.statics.generateResetToken = function (email, cb) {
 	console.log("in generateResetToken....");
 	this.findUserByEmailOnly(email, function(err, user) {
 		if (err) {
-			cb(err, null);
+			return cb(err, null);
 		} else if (user) {
 			//Generate reset token and URL link; also, create expiry for reset token
 			user.reset_token = require('crypto').randomBytes(32).toString('hex');
@@ -233,10 +233,12 @@ Account.statics.generateResetToken = function (email, cb) {
 			var expires = new Date(now.getTime() + (config.resetTokenExpiresMinutes * 60 * 1000)).getTime();
 			user.reset_token_expires_millis = expires;
 			user.save();
-			cb(false, user);
+			if (typeof cb  === 'function')
+				return cb(false, user);
 		} else {
 			//TODO: This is not really robust and we should probably return an error code or something here
-			cb(new Error('No user with that email found.'), null);
+			if (typeof cb  === 'function')
+				return cb(new Error('No user with that email found.'), null);
 		}
 	});
 };
@@ -248,15 +250,15 @@ Account.statics.findEmailToApp = function (app, cb) {
 	var accounts = this.find({emailToApp : app}, {_id:0,email:1});
 	accounts.exec(function (err, data){
 		if (err) {
-			cb(err);
+			if (typeof cb  === 'function')
+				return cb(err);
 		} else {
 
 			for (var i = 0, len = data.length; i < len; i++) {
 				result.push(data[i].email);
 			}
-			if (typeof cb  === 'function'){
-				cb(null, {status: 'OK' , data: result});
-			}
+			if (typeof cb  === 'function')
+				return cb(null, {status: 'OK' , data: result});
 		}
 	});
 };

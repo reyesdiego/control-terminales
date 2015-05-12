@@ -398,7 +398,8 @@ module.exports = function (app, passport, log) {
 									log.logger.error("Error en Enable/Disable Account %s", err.message);
 									res.status(500).json({status:'ERROR', data: err.message});
 								} else {
-									callback(userUpd);
+									if (typeof callback === 'function')
+										return callback(userUpd);
 								}
 							});
 						}
