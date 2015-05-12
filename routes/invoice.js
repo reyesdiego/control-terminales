@@ -257,13 +257,16 @@ module.exports = function(log, io, pool, app) {
 			{ $sort: {'_id.date': 1, '_id.terminal': 1 }}
 		];
 
-		Invoice.aggregate(jsonParam, function (err, data){
+		var result = Invoice.aggregate(jsonParam);
+
+		result.exec(function (err, data){
 			if (err){
 				res.status(500).send({status:"ERROR", data: err.message});
 			} else {
 				res.status(200).send({status: 'OK', data: data});
 			}
 		});
+
 
 	}
 
