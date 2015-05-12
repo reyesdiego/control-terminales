@@ -90,7 +90,7 @@ var log4njs = function (options) {
 						return 1;
 					return 0;
 				});
-				callback(logFiles);
+				return callback(logFiles);
 			});
 		}
 	}

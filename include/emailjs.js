@@ -66,14 +66,14 @@ mail.prototype = {
 
 		if (typeof to === 'string'){
 			if (!this.emailSimpleValidate(to)){
-				callback ({status:"ERROR", data:"La cuenta de email es inválida"});
+				return callback ({status:"ERROR", data:"La cuenta de email es inválida"});
 			} else {
 				tos.push(to);
 			}
 		} else if (typeof to === 'object') {
 			to.forEach(function (item){
 				if (!self.emailSimpleValidate(item)){
-					callback ({status:"ERROR", data:"La cuenta de email es inválida"});
+					return callback ({status:"ERROR", data:"La cuenta de email es inválida"});
 				}
 			});
 			tos = to;
@@ -91,11 +91,11 @@ mail.prototype = {
 				}, function(err, message) {
 					if (err) {
 						if (typeof callback === 'function')
-							callback(err);
+							return callback(err);
 
 					} else {
 						if (typeof callback === 'function')
-							callback(null, message);
+							return callback(null, message);
 
 					}
 				});

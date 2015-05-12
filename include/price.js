@@ -34,7 +34,7 @@ price.prototype = {
 				selfMatchPrice.populate(data, [{ path:'price', match:{rate:{$exists:1}} }], function (err, matchprices){
 						if (err) {
 							if (typeof callback === 'function')
-								callback(err);
+								return callback(err);
 						} else {
 							var ratesDesc = {};
 							var result = Enumerable.from(matchprices)
@@ -54,7 +54,7 @@ price.prototype = {
 								}).toArray();
 							}
 							if (typeof callback === 'function')
-								callback( undefined, result);
+								return callback( undefined, result);
 						}
 					});
 			});
