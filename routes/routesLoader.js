@@ -45,6 +45,9 @@ module.exports = function (app, log, io, mongoose, pool){
 	var unitType = require('./unitType')(log);
 	app.use('/unitTypes', unitType);
 
+    var task = require('./task')(log);
+    app.use('/tasks', task);
+
 	var voucherType = require('./voucherType')(log);
 	app.use('/voucherTypes', voucherType);
 
