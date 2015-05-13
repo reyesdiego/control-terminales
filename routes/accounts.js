@@ -26,12 +26,13 @@ module.exports = function (app, passport, log) {
                         } else {
                             user.status = enable;
                             user.save(function (err, userUpd) {
-                                if (err != null) {
+                                if (err !== null) {
                                     log.logger.error("Error en Enable/Disable Account %s", err.message);
                                     res.status(500).json({status: 'ERROR', data: err.message});
                                 } else {
-                                    if (typeof callback === 'function')
+                                    if (typeof callback === 'function') {
                                         return callback(userUpd);
+                                    }
                                 }
                             });
                         }
@@ -120,7 +121,8 @@ module.exports = function (app, passport, log) {
                         status: true,
                         date_created: true,
                         'token.date_created': true,
-                        'lastLogin' : true
+                        lastLogin : true,
+                        acceso: true
                     };
 
                     Account.findAll({}, project, function (err, data) {
@@ -151,7 +153,7 @@ module.exports = function (app, passport, log) {
                         alternative: true
                     };
                     var mailer = new mail.mail(config.email);
-                    mailer.send(user.email, "Usuario aprobado", html, function(err, messageBack) {
+                    mailer.send(user.email, "Usuario aprobado", html, function (err, messageBack) {
                         log.logger.update('Account ENABLE: %s, se envió mail a %s', user.user, user.email);
                         res.status(200).send(message);
                     });
@@ -185,88 +187,90 @@ module.exports = function (app, passport, log) {
         if (json.email !== undefined) {
             Account.login(json.email, json.password, function (err, usersToken) {
                 if (err) {
-    //					if (req.socket.remoteAddress !== '127.0.0.1' && req.socket.remoteAddress !== 'localhost'){
-    //						var ActiveDirectory = require('activedirectory');
-    //						var ad = new ActiveDirectory(	{	url: 'ldap://10.0.0.56:389',
-    //															baseDN: 'dc=ptobaires,dc=gov,dc=ar'
-    //														});
-    //						var user = util.format('%s@ptobaires.gov.ar', json.email);
-    //						ad.authenticate(user, json.password, function(err, auth) {
-    //
-    //							if (auth) {
-    //								Account.findOne({user:"agp"}, function (err, userAgp){
-    //									var msg = util.format("%s - User '%s' has logged in From: %s", dateTime.getDatetime(), json.email, req.socket.remoteAddress);
-    //									console.log(msg);
-    //									//TODO
-    //									//Por ahora solo acceso a terminales
-    //									var rutasAcceso = ['matches.search','tarifario', 'invoices', 'invoices.result', 'invoices.search', 'matches', 'control', 'cfacturas', 'cfacturas.result', 'gates', 'gates.invoices', 'gates.invoices.result', 'gates.result.container', 'turnos', 'turnos.result'];
-    //
-    //									var result = {
-    //										acceso: rutasAcceso,
-    //										role: userAgp.role,
-    //										email: json.email,
-    //										user: json.email,
-    //										terminal: userAgp.terminal,
-    //										token: userAgp.token,
-    //										date_created: userAgp.date_created,
-    //										full_name: userAgp.full_name
-    //									};
-    //									res.send(200, result);
-    //								});
-    //							}
-    //							else {
-    //								if (err) {
-    //									var errMsg = util.format("%s - ERROR: Authentication Failed -  %s. From: %s", dateTime.getDatetime(), JSON.stringify(err), req.socket.remoteAddress);
-    //									console.error(errMsg);
-    //									res.send(403, errMsg);
-    //									return;
-    //								}
-    //								var errMsg = util.format("%s - ERROR: Authentication Failed - %s. From: %s", dateTime.getDatetime(), err.error, req.socket.remoteAddress);
-    //								console.error(errMsg);
-    //								res.send(403, errMsg);
-    //							}
-    //						});
-    //					} else {
-    //						var errMsg = util.format("%s - ERROR: Authentication Failed - %s. From: %s", dateTime.getDatetime(), err.error, req.socket.remoteAddress);
-    //						console.error(errMsg);
-    //						res.send(403, errMsg);
-    //					}
+
+//                        if (req.socket.remoteAddress !== '127.0.0.1' && req.socket.remoteAddress !== 'localhost'){
+//                            var ActiveDirectory = require('activedirectory');
+//                            var ad = new ActiveDirectory({url: 'ldap://10.0.0.56:389',
+//                                                                baseDN: 'dc=ptobaires,dc=gov,dc=ar'
+//                                                            });
+//                            var user = util.format('%s@ptobaires.gov.ar', json.email);
+//                            ad.authenticate(user, json.password, function(err, auth) {
+
+//                                if (auth) {
+//                                    Account.findOne({user:"agp"}, function (err, userAgp){
+//                                        var msg = util.format("%s - User '%s' has logged in From: %s", dateTime.getDatetime(), json.email, req.socket.remoteAddress);
+//                                        console.log(msg);
+
+//                                        //Por ahora solo acceso a terminales
+//                                        var rutasAcceso = ['matches.search','tarifario', 'invoices', 'invoices.result', 'invoices.search', 'matches', 'control', 'cfacturas', 'cfacturas.result', 'gates', 'gates.invoices', 'gates.invoices.result', 'gates.result.container', 'turnos', 'turnos.result'];
+//
+//                                        var result = {
+//                                            acceso: rutasAcceso,
+//                                            role: userAgp.role,
+//                                            email: json.email,
+//                                            user: json.email,
+//                                            terminal: userAgp.terminal,
+//                                            token: userAgp.token,
+//                                            date_created: userAgp.date_created,
+//                                            full_name: userAgp.full_name
+//                                        };
+//                                        res.send(200, result);
+//                                    });
+//                                }
+//                                else {
+//                                    if (err) {
+//                                        var errMsg = util.format("%s - ERROR: Authentication Failed -  %s. From: %s", dateTime.getDatetime(), JSON.stringify(err), req.socket.remoteAddress);
+//                                        console.error(errMsg);
+//                                        res.send(403, errMsg);
+//                                        return;
+//                                    }
+//                                    var errMsg = util.format("%s - ERROR: Authentication Failed - %s. From: %s", dateTime.getDatetime(), err.error, req.socket.remoteAddress);
+//                                    console.error(errMsg);
+//                                    res.send(403, errMsg);
+//                                }
+//                            });
+//                        } else {
+//                            var errMsg = util.format("%s - ERROR: Authentication Failed - %s. From: %s", dateTime.getDatetime(), err.error, req.socket.remoteAddress);
+//                            console.error(errMsg);
+//                            res.send(403, errMsg);
+//                        }
+
                     errMsg = err.message;
                     log.logger.error(errMsg);
-                    res.status(403).json({status:"ERROR", data: errMsg});
+                    res.status(403).json({status: "ERROR", data: errMsg});
 
                 } else {
-                    if (usersToken.status){
-                        Account.findOne({_id: usersToken._id}, function (err, loggedUser){
+                    if (usersToken.status) {
+                        Account.findOne({_id: usersToken._id}, function (err, loggedUser) {
                             loggedUser.lastLogin = new Date();
-                            loggedUser.save(function (err, userSaved){
+                            loggedUser.save(function (err, userSaved) {
                                 log.logger.info("User '%s' has logged in From: %s", json.email, req.socket.remoteAddress);
-                                res.status(200).json({status:"OK", data: usersToken});
+                                res.status(200).json({status: "OK", data: usersToken});
                             });
                         });
                     } else {
                         errMsg = util.format("El usuario %s no se encuentra habilitado para utilizar el sistema. Debe contactar al administrador.", usersToken.email);
-                        res.status(403).json({status:"ERROR", data: errMsg});
+                        res.status(403).json({status: "ERROR", data: errMsg});
                     }
                 }
             });
         } else {
             errMsg = util.format("Debe proveerse un usuario o email");
             log.logger.error(errMsg);
-            res.status(403).json({status:"ERROR", data: errMsg});
+            res.status(403).json({status: "ERROR", data: errMsg});
         }
     });
 
     app.post('/agp/password', function (req, res) {
         if (req.body.email !== undefined) {
-            Account.password(req.body.email, req.body.password, req.body.newPass, function(err, result) {
+            Account.password(req.body.email, req.body.password, req.body.newPass, function (err, result) {
 
                 if (err) {
                     log.logger.error("El password de %s ha producido un error: %s.", req.body.email, err.message);
-                    res.status(500).json({status:"ERROR", data: err.message});
+                    res.status(500).json({status: "ERROR", data: err.message});
                 } else {
                     log.logger.info("El password de %s ha cambiado satisfactoriamente.", req.body.email);
-                    res.status(200).json({status:"OK", data: result});
+                    res.status(200).json({status: "OK", data: result});
                 }
             });
         } else {
@@ -274,23 +278,23 @@ module.exports = function (app, passport, log) {
         }
     });
 
-    //	app.post('/token/', passport.authenticate('local', {session: false}), function(req, res) {
-    app.get('/agp/token', function(req, res) {
+    //app.post('/token/', passport.authenticate('local', {session: false}), function(req, res) {
+    app.get('/agp/token', function (req, res) {
 
-        if (req.query.salt !== undefined){
-            Account.findAll({salt: req.query.salt}, function (err, data){
+        if (req.query.salt !== undefined) {
+            Account.findAll({salt: req.query.salt}, function (err, data) {
                 var user = data[0];
-                Account.createUserToken(user.email, function(err, html) {
+                Account.createUserToken(user.email, function (err, html) {
                     if (err) {
                         res.status(500).json({status: "ERROR", data: 'Hubo un problema al generar el token'});
                     } else {
                         res.render('tokenUser.jade', {full_name: user.full_name, user: user.user, password: user.password}, function(err, html) {
-                            var mailer = new mail.mail(config.email);
-                            var htmlMail = {
-                                data : "<html><body><p>El usuario "+user.user+" ha solicitado ingreso al sistema.</p></body></html>",
-                                alternative: true
-                            };
-                            mailer.send("dreyes@puertobuenosaires.gob.ar", "Nuevo usuario para IIT", htmlMail, function(){
+                            var mailer = new mail.mail(config.email),
+                                htmlMail = {
+                                    data : "<html><body><p>El usuario " + user.user + " ha solicitado ingreso al sistema.</p></body></html>",
+                                    alternative: true
+                                };
+                            mailer.send("dreyes@puertobuenosaires.gob.ar", "Nuevo usuario para IIT", htmlMail, function () {
                             });
                             res.status(200).send(html);
                         });
@@ -302,50 +306,26 @@ module.exports = function (app, passport, log) {
 
     });
 
-    app.get('/apitest', function(req, res) {
-        var incomingToken = req.headers.token;
-        console.log('incomingToken: ' + incomingToken);
-        var decoded = Account.decode(incomingToken);
-        //Now do a lookup on that email in mongodb ... if exists it's a real user
-        if (decoded && decoded.email) {
-            Account.findUser(decoded.email, incomingToken, function(err, user) {
-                if (err) {
-                    console.log(err);
-                    res.json({error: 'Issue finding user.'});
-                } else {
-                    res.json({
-                        user: {
-                            email: user.email,
-                            full_name: user.full_name,
-                            token: user.token.token
-                        }
-                    });
-                }
-            });
-        } else {
-            console.log('Whoa! Couldn\'t even decode incoming token!');
-            res.status(500).json({error: 'Issue decoding incoming token.'});
-        }
-    });
-
-    app.get('/logout', function(req, res) {
+    app.get('/logout', function (req, res) {
         req.logout();
     });
 
-    app.post('/agp/resetPassword/:email', function (req, res){
+    app.post('/agp/resetPassword/:email', function (req, res) {
 
-        if (req.params.email != null && req.params.email !== ''){
+        if (req.params.email !== null && req.params.email !== '') {
             Account.findUserByEmailOnly(req.params.email, function (err, user) {
-                var message='';
+                var message = '',
+                    msg = '',
+                    newPass = '';
+
                 if (err) {
-                    var msg = util.format('Ha ocurrido un error al intentar resetar el password: %s', err.message);
+                    msg = util.format('Ha ocurrido un error al intentar resetar el password: %s', err.message);
                     message = flash("ERROR", msg);
                     res.status(500).json(message);
                 } else {
 
-                    if (user != null){
+                    if (user !== null) {
 
-                        var newPass = '';
                         //genero random de 8 letras
                         for (var i=0; i<9; i++){
                             var ascii = Math.random();
@@ -361,18 +341,18 @@ module.exports = function (app, passport, log) {
                         user.save (function (err, userUpd, rowAffected){
                             var mailer = new mail.mail(config.email);
                             var html = {
-                                data : "<html><body><p>Ud. a solicitado el cambio de Clave en la página de Control de Información de Terminales portuarias.</p><p>El nuevo password temporal es: <span color=blue><b>"+newPass+"</b></span></p></body></html>",
-                                alternative: true
-                            };
+                                    data : "<html><body><p>Ud. a solicitado el cambio de Clave en la página de Control de Información de Terminales portuarias.</p><p>El nuevo password temporal es: <span color=blue><b>" + newPass + "</b></span></p></body></html>",
+                                    alternative: true
+                                };
                             mailer.send(user.email, "Cambio de Clave", html, function(){
                                 log.logger.update('Account UPD: %s, se envío el cambio de clave correctamente.', user.email);
                             });
-                            var result = {email: userUpd.email, full_name: userUpd.full_name, terminal: userUpd.terminal}
+                            var result = {email: userUpd.email, full_name: userUpd.full_name, terminal: userUpd.terminal};
                             var message = flash('OK', result);
                             res.status(200).send(message);
                         });
                     } else {
-                        var msg = util.format('La cuenta de correo %s no ha sido registrada.', req.params.email);
+                        msg = util.format('La cuenta de correo %s no ha sido registrada.', req.params.email);
                         message = flash("ERROR", msg);
                         res.status(500).json(message);
                     }
@@ -382,19 +362,18 @@ module.exports = function (app, passport, log) {
         }
     });
 
-    app.get('/reset/:id', function(req, res) {
+    app.get('/reset/:id', function (req, res) {
         console.log('GOT IN /reset/:id...');
         var token = req.params.id,
             messages = flash(null, null);
 
         if (!token) {
             console.log('Issue getting reset :id');
-            //TODO: Error response...
         }
         else {
             console.log('In ELSE ... good to go.');
             //TODO
-            //
+
             //1. find user with reset_token == token .. no match THEN error
             //2. check now.getTime() < reset_link_expires_millis
             //3. if not expired, present reset password page/form
