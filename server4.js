@@ -51,7 +51,7 @@ mongoose.connection.on('connected', function () {
     log.logger.info("Mongoose version: %s", mongoose.version);
     log.logger.info("Connected to Database. %s", config.mongo_url);
 });
-mongoose.connection.on('error',function (err) {
+mongoose.connection.on('error', function (err) {
     'use strict';
     log.logger.error("Database or Mongoose error. %s", err.toString());
 });
@@ -76,7 +76,7 @@ var pool = genericPool.Pool({
                     user: config.oracle.user,
                     password: config.oracle.password
                 };
-            new oracle.connect(settings, function(err, connection) {
+            new oracle.connect(settings, function (err, connection) {
                 callback(err, connection);
             });
         },
@@ -84,8 +84,7 @@ var pool = genericPool.Pool({
             'use strict';
             connection.close();
         }
-});
-
+    });
 
 app.set('runtime', new Date());
 app.set('port', process.env.PORT || config.server_port);
@@ -102,7 +101,7 @@ if ('development' === app.get('env')) {
     app.use(errorHandler());
 }
 
-app.all('/*', function(req, res, next) {
+app.all('/*', function (req, res, next) {
     'use strict';
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", 'X-Requested-With, Content-Type, token');
@@ -140,7 +139,7 @@ process.on('SIGINT', function () {
         log.logger.info("process.env.NODE_ENV %s", process.env.NODE_ENV);
         if (process.env.NODE_ENV === 'production') {
             var mailer = new mail.mail(config.email);
-            mailer.send('noreply@puertobuenosaires.gob.ar', 'AGP-TERAPI - ERROR', 'Mongoose default connection disconnected', function() {
+            mailer.send('noreply@puertobuenosaires.gob.ar', 'AGP-TERAPI - ERROR', 'Mongoose default connection disconnected', function () {
                 process.exit(0);
             });
         } else {
