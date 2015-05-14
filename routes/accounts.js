@@ -172,6 +172,33 @@ module.exports = function (app, passport, log) {
         });
     });
 
+    app.put('/agp/account/:id/tasks', function (req, res) {
+        var incomingToken = req.headers.token;
+        Account.verifyToken(incomingToken, function (err, usr) {
+            if (err) {
+                log.logger.error(usr);
+                res.status(403).json({status: 'ERROR', data: err});
+            } else {
+                if (usr.terminal === 'AGP' && usr.group === 'ADMIN') {
+                    Account.findOne({_id: req.params.id}, function (err, user) {
+                        if (err) {
+                            res.status(403).json({status: 'ERROR', data: err.message});
+                        } else {
+                            user.acceso = req.body.acceso;
+                            user.save(function (err, userUpd) {
+                                if (err !== null) {
+                                    log.logger.error("Error en seteo de tareas para la cuenta. %s", err.message);
+                                    res.status(500).json({status: 'ERROR', data: err.message});
+                                } else {
+                                    res.status(200).json({status: 'OK', data: userUpd});
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+        });
+    });
 
     /**
      * Login method
