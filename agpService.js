@@ -52,17 +52,17 @@ terminals.forEach(function (item){
 									console.log("ya esta %s", item);
 									console.log(result.data);
 
-									callback();
-
 								//mailer.send(user.email,
 								mailer.send("dreyes@puertobuenosaires.gob.ar",
 										result.data.length.toString() + " CÓDIGOS SIN ASOCIAR AL " + date,
 										user.terminal + '\n\n' + result.data,
 									function(){
-										callback();
+										return callback();
 										//process.exit(code=0);
 									}
 								);
+
+								return callback();
 
 								}
 							}
@@ -70,7 +70,7 @@ terminals.forEach(function (item){
 					});
 					reqGet.end();
 				} else {
-					callback();
+					return callback();
 				}
 			}
 

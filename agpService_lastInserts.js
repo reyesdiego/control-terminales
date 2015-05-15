@@ -18,6 +18,20 @@ var async = require("async");
 var config = require('./config/config.js');
 mongoose.connect(config.mongo_url, config.mongo_opts);
 
+mongoose.connection.on('connected', function () {
+	console.log("Mongoose version: %s", mongoose.version);
+	console.log("Connected to Database. %s",config.mongo_url);
+});
+
+mongoose.connection.on('error',function (err) {
+	console.log("Database or Mongoose error. %s", err.toString());
+});
+
+mongoose.connection.on('disconnected', function () {
+	console.log("Mongoose default connection disconnected");
+});
+
+
 var lastInvoices = Invoice.aggregate([
 	{ $group : {
 		_id : '$terminal',
@@ -42,12 +56,13 @@ lastInvoices.exec(function (err, dataLastInvoices){
 						var a = moment();
 						var diff = a.diff(momentApi.getDateTimeFromObjectId(item.lastId), 'hours');
 						if (diff > 36){
-							var subject = util.format("Terminal: %s, último envío: %s", item._id, momentApi.getDateTimeFromObjectId(item.lastId));
+							var subject = util.format("Envío de Comprobantes terminal: %s", item._id);
+							var body = util.format("Terminal: %s, su último envío: %s", item._id, momentApi.getDateTimeFromObjectId(item.lastId));
 							mailer.send(usersToSend.data,
 								subject,
-								subject,
+								body,
 								function (){
-									console.log("%s, envió de mail. %s", new Date(), subject);
+									console.log("%s, envió de mail. %s", new Date(), body);
 									callback();
 								}
 							);
@@ -67,3 +82,6 @@ lastInvoices.exec(function (err, dataLastInvoices){
 
 });
 
+process.on('uncaughtException', function(err) {
+	log.logger.info("Caught exception: " + err);
+});

@@ -16,10 +16,10 @@ module.exports = function (log, pool) {
                 console.log(err, "Error acquiring from pool.");
                 res.status(500).json({ status: 'ERROR', data: err });
             } else {
-                var oracleUtils = require('../../include/oracle.js'),
-                    orderBy = oracleUtils.orderBy(req.query.order);
-
+                var oracleUtils = require('../../include/oracle.js');
                 oracleUtils = new oracleUtils();
+                var orderBy = oracleUtils.orderBy(req.query.order);
+
 
                 var strWhere = '',
                     skip = parseInt(req.params.skip, 10),
