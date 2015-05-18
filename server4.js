@@ -152,3 +152,20 @@ process.on('uncaughtException', function (err) {
     'use strict';
     log.logger.info("Caught exception: " + err);
 });
+
+/*
+app.get('/lo', function (req, res) {
+
+    var appointment2insert = {email: "dreyes@puertobuenosaires.gob.ar"};
+    var data = {terminal: "BACTSSA"};
+    var appointmentEmail = {
+        terminal: "BACTSSA",
+        inicio: "18/08/2015 12:12:00",
+        fin: "18/08/2015 12:12:00",
+        contenedor: "CAXU3223456",
+        buque: "TERMINATOR IV",
+        viaje: "23N"
+    };
+    res.render('comprobanteTurno', appointmentEmail);
+
+});*/

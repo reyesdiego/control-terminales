@@ -183,11 +183,34 @@ module.exports = function (log, io, app) {
 
         if (appointment2insert) {
             Appointment.insert(appointment2insert, function (errData, data) {
+                var appointmentEmail = {},
+                    str,
+                    result;
                 if (!errData) {
-                    var str = util.format('Appointment INS: %s - %s - Inicio: %s, Fin: %s, Alta: %s', data._id, usr.terminal, data.inicio, data.fin, data.alta),
-                        result = {status: 'OK', data: data};
+                    str = util.format('Appointment INS: %s - %s - Inicio: %s, Fin: %s, Alta: %s', data._id, usr.terminal, data.inicio, data.fin, data.alta);
                     log.logger.insert(str);
-
+                    appointmentEmail = {
+                        terminal: data.terminal,
+                        inicio: data.inicio,
+                        fin: data.fin,
+                        contenedor: data.contenedor,
+                        buque: data.buque,
+                        viaje: data.viaje
+                    };
+                    res.render('comprobanteTurno.jade', appointmentEmail, function (err, html) {
+                        html = {
+                            data : html,
+                            alternative: true
+                        };
+                        if (appointment2insert.email !== undefined && appointment2insert.email !== '' && appointment2insert.email !== null) {
+                            //Successfully appointment inserted
+                            var mailer = new mail.mail(config.email);
+                            mailer.send(appointment2insert.email, "Confirmación de Turno.", html, function (err, messageBack) {
+                                log.logger.insert('Confirmación enviada correctamente, %s, se envió mail a %s', data.terminal, appointment2insert.email);
+                            });
+                        }
+                    });
+                    result = {status: 'OK', data: data};
                     io.sockets.emit('appointment', result);
                     res.status(200).send(result);
                 } else {
@@ -196,8 +219,8 @@ module.exports = function (log, io, app) {
                     mailer = new mail.mail(config.email);
 
                     log.logger.error(errMsg);
-                    mailer.send(usr.email, strSubject, errMsg, function () {
-                    });
+//                    mailer.send(usr.email, strSubject, errMsg, function () {
+//                    });
 
                     res.status(500).send({status: 'ERROR', data: errMsg});
                 }

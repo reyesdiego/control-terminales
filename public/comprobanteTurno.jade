@@ -2,8 +2,32 @@ doctype html
 html(lang='fr')
     head
         title Servicio Terminales Portuarias
-    body
-        h1 Comprobante de coordinación
-        p Administración General de Puertos
-        p Fecha: #{inicio}
-        p Contenedor: #{contenedor}
+    body(style="font-family: 'Open Sans',sans-serif; font-size: 12px")
+        table
+            tr
+                td
+                    img(src="http://terminales.puertobuenosaires.gob.ar/images/logo.png")
+                td
+                    h1(style="font-family: inherit; font-weight: 400; font-size: 30px; line-height: 1.1; color: #0099d7;") &nbsp;Comprobante de Coordinación
+        br
+        br
+        p La Administración General de Puerto pone en conocimiento que el turno solicitado ha sido generado satisfactoriamente.
+        table
+            tr
+                td(style="font-weight:bolder;text-align:right") Terminal:
+                td #{terminal}
+            tr
+                td(style="font-weight:bolder;text-align:right") Fecha:
+                td #{inicio}
+            tr
+                td(style="font-weight:bolder;text-align:right") Fin turno:
+                td #{fin}
+            tr
+                td(style="font-weight:bolder;text-align:right") Contenedor:
+                td #{contenedor}
+            tr
+                td(style="font-weight:bolder;text-align:right") Buque:
+                td #{buque}
+            tr
+                td(style="font-weight:bolder;text-align:right") Viaje:
+                td #{viaje}
