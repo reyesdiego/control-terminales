@@ -16,7 +16,16 @@ module.exports = {
     'ttl': 3600000, //1 hour
     'resetTokenExpiresMinutes': 20, //20 minutes later
     'url': "http://10.10.0.223:8080",
-    'email': false,
+    'email': {
+        user:    "noreply",
+        password: "desarrollo",
+        host:    "10.10.0.170",
+        port: "25",
+        domain: "puertobuenosaires.gov.ar",
+        ssl:     false,
+        status: true,
+        throughBcc: true
+    },
     'log': {
         path: 'log/',
         filename: 'nohup.out',

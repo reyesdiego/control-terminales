@@ -176,12 +176,15 @@ module.exports = function (log, io, app) {
             };
             if (appointmentEmail.email !== undefined && appointmentEmail.email !== '' && appointmentEmail.email !== null) {
                 //Successfully appointment inserted
-                var mailer = new mail.mail(config.email);
-                mailer.send(appointmentEmail.email, "Confirmación de Turno.", html, function (err, messageBack) {
+                var emailConfig = config.email;
+                emailConfig.throughBcc = false;
+                var mailer = new mail.mail(config.email),
+                    subject = util.format("Coordinación %s para %s.", appointmentEmail.contenedor, appointmentEmail.full_name);
+                mailer.send(appointmentEmail.email, subject, html, function (err, messageBack) {
                     if (err) {
                         log.logger.error(err);
                     } else {
-                        log.logger.insert('Confirmación enviada correctamente, %s, se envió mail a %s', appointmentEmail.terminal, appointmentEmail.email);
+                        log.logger.insert('Confirmación enviada correctamente, %s, se envió mail a %s', appointmentEmail.full_name, appointmentEmail.email);
                     }
                 });
             }

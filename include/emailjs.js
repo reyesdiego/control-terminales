@@ -3,17 +3,14 @@
  */
 var email = require("emailjs");
 
-var mail = function (status) {
+var mail = function (options) {
     'use strict';
-    this.status = status;
-    this.server = email.server.connect({
-        user:    "noreply",
-        password: "desarrollo",
-        host:    "10.10.0.170",
-        port: "25",
-        domain: "puertobuenosaires.gov.ar",
-        ssl:     false
-    });
+    this.status = options.status;
+    delete options.status;
+    this.throughBcc = options.throughBcc;
+    delete options.throughBcc;
+
+    this.server = email.server.connect(options);
 
     this.emailSimpleValidate = function (email) {
         var response = false,
@@ -45,17 +42,22 @@ var mail = function (status) {
 };
 
 mail.prototype = {
-    send : function (to, subject, text, attachment, callback){
+    send : function (to, subject, text, attachment, callback) {
         'use strict';
         var self = this,
+            config = {
+                from: "A.G.P. <noreply@puertobuenosaires.gob.ar>",
+                to: "A.G.P. <noreply@puertobuenosaires.gob.ar>",
+                subject: subject
+            },
             tos = [];
 
         if (typeof text === 'object') {
             if (typeof attachment === 'function') {
                 callback = attachment;
             }
-            attachment = text;
-            text = '';
+            config.attachment = text;
+            config.text = '';
         } else {
             if (typeof attachment === 'function') {
                 callback = attachment;
@@ -78,25 +80,22 @@ mail.prototype = {
         }
 
         if (this.status === true) {
-            attachment = (attachment) ? attachment : [];
-            this.server.send(
-                {
-                    text: text,
-                    from: "A.G.P. <noreply@puertobuenosaires.gob.ar>",
-                    to: "A.G.P. <noreply@puertobuenosaires.gob.ar>",
-                    bcc: tos.join(','),
-                    subject: subject,
-                    attachment: attachment
-                }, function (err, message) {
-                    if (err) {
-                        if (typeof callback === 'function')
-                            return callback(err);
-                    } else {
-                        if (typeof callback === 'function')
-                            return callback(null, message);
+            if (this.throughBcc) {
+                config.bcc = tos.join(',');
+            } else {
+                config.to = tos.join(',');
+            }
+            this.server.send(config, function (err, message) {
+                if (err) {
+                    if (typeof callback === 'function') {
+                        return callback(err);
+                    }
+                } else {
+                    if (typeof callback === 'function') {
+                        return callback(null, message);
                     }
                 }
-            );
+            });
         }
     }
 };
