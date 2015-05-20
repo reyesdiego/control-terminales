@@ -10,7 +10,11 @@ html(lang='fr')
                 td
                     h1(style="font-family: inherit; font-weight: 400; font-size: 30px; line-height: 1.1; color: #0099d7;") &nbsp;Comprobante de Coordinación
         br
-        p Solicitad generada en #{full_name} el día #{alta}. Se contaba con #{disponibles_t1} turnos disponibles dentro los 5 días sin costo al momento del alta.
+        p Solicitad generada en&nbsp
+            b #{full_name}
+            | &nbspel día #{alta}. Se contaba con&nbsp
+            b #{disponibles_t1}
+            | &nbspturnos disponibles dentro los 5 días sin costo al momento del alta.
         table
             tr
                 td(style="font-weight:bolder;text-align:right") Terminal:

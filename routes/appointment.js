@@ -178,7 +178,11 @@ module.exports = function (log, io, app) {
                 //Successfully appointment inserted
                 var mailer = new mail.mail(config.email);
                 mailer.send(appointmentEmail.email, "Confirmación de Turno.", html, function (err, messageBack) {
-                    log.logger.insert('Confirmación enviada correctamente, %s, se envió mail a %s', appointmentEmail.terminal, appointmentEmail.email);
+                    if (err) {
+                        log.logger.error(err);
+                    } else {
+                        log.logger.insert('Confirmación enviada correctamente, %s, se envió mail a %s', appointmentEmail.terminal, appointmentEmail.email);
+                    }
                 });
             }
         });
@@ -203,7 +207,8 @@ module.exports = function (log, io, app) {
         if (appointment2insert) {
             Appointment.insert(appointment2insert, function (errData, data) {
                 var str,
-                    result;
+                    result,
+                    appointmentToMail = {};
                 if (!errData) {
                     str = util.format('Appointment INS: %s - Inicio: %s, Alta: %s. %s', usr.terminal, data.inicio, data.alta, data._id);
                     log.logger.insert(str);
@@ -216,7 +221,16 @@ module.exports = function (log, io, app) {
                         if (!err) {
 
                             if (emails.data.length > 0) {
-                                req.appointment = data;
+                                appointmentToMail.full_name = usr.full_name;
+                                appointmentToMail.inicio = moment(data.inicio).format("DD-MM-YYYY HH:mm") + " hs.";
+                                appointmentToMail.fin = moment(data.fin).format("DD-MM-YYYY HH:mm") + " hs.";
+                                appointmentToMail.alta = moment(data.alta).format("DD-MM-YYYY HH:mm") + " hs.";
+                                appointmentToMail.contenedor = data.contenedor;
+                                appointmentToMail.buque = data.buque;
+                                appointmentToMail.viaje = data.viaje;
+                                appointmentToMail.disponibles_t1 = data.disponibles_t1;
+                                appointmentToMail.email = data.email;
+                                req.appointment = appointmentToMail;
                                 next();
                             }
                         }
