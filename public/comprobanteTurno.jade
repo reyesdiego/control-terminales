@@ -10,17 +10,16 @@ html(lang='fr')
                 td
                     h1(style="font-family: inherit; font-weight: 400; font-size: 30px; line-height: 1.1; color: #0099d7;") &nbsp;Comprobante de Coordinación
         br
-        br
-        p La Administración General de Puerto pone en conocimiento que el turno solicitado ha sido generado satisfactoriamente.
+        p Solicitad generada en #{full_name} el día #{alta}. Se contaba con #{disponibles_t1} turnos disponibles dentro los 5 días sin costo al momento del alta.
         table
             tr
                 td(style="font-weight:bolder;text-align:right") Terminal:
-                td #{terminal}
+                td #{full_name}
             tr
                 td(style="font-weight:bolder;text-align:right") Fecha:
                 td #{inicio}
             tr
-                td(style="font-weight:bolder;text-align:right") Fin turno:
+                td(style="font-weight:bolder;text-align:right") Fin del Turno:
                 td #{fin}
             tr
                 td(style="font-weight:bolder;text-align:right") Contenedor:
@@ -31,3 +30,5 @@ html(lang='fr')
             tr
                 td(style="font-weight:bolder;text-align:right") Viaje:
                 td #{viaje}
+        p
+        p Administración General de Puertos pone en conocimiento que el Turno solicitado ha sido generado correctamente.
