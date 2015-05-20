@@ -260,10 +260,10 @@ Account.statics.generateResetToken = function (email, cb) {
     });
 };
 
-Account.statics.findEmailToApp = function (app, cb) {
+function getEmailToAppList(self, param, cb) {
     'use strict';
     var result = [],
-        accounts = this.find({emailToApp : app}, {_id: 0, email: 1});
+        accounts = self.find(param, {_id: 0, email: 1});
     accounts.exec(function (err, data) {
         if (err) {
             if (typeof cb  === 'function') {
@@ -277,6 +277,20 @@ Account.statics.findEmailToApp = function (app, cb) {
                 return cb(null, {status: 'OK' , data: result});
             }
         }
+    });
+}
+
+Account.statics.findEmailToApp = function (app, cb) {
+    'use strict';
+    getEmailToAppList(this, {emailToApp: app}, function (err, data) {
+        cb(err, data);
+    });
+};
+
+Account.statics.findEmailToAppByUser = function (user, app, cb) {
+    'use strict';
+    getEmailToAppList(this, {user: user, emailToApp: app}, function (err, data) {
+        cb(err, data);
     });
 };
 

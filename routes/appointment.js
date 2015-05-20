@@ -166,12 +166,31 @@ module.exports = function (log, io, app) {
         });
     }
 
-    function addAppointment(req, res) {
+    function reportClient(req, res) {
+        var appointmentEmail = req.appointment;
+
+        res.render('comprobanteTurno.jade', appointmentEmail, function (err, html) {
+            html = {
+                data : html,
+                alternative: true
+            };
+            if (appointmentEmail.email !== undefined && appointmentEmail.email !== '' && appointmentEmail.email !== null) {
+                //Successfully appointment inserted
+                var mailer = new mail.mail(config.email);
+                mailer.send(appointmentEmail.email, "Confirmación de Turno.", html, function (err, messageBack) {
+                    log.logger.insert('Confirmación enviada correctamente, %s, se envió mail a %s', appointmentEmail.terminal, appointmentEmail.email);
+                });
+            }
+        });
+    }
+
+    function addAppointment(req, res, next) {
         var usr = req.usr,
             appointment2insert = req.body,
             errMsg,
             strSubject,
-            mailer;
+            mailer,
+            Account = require('../models/account');
 
         appointment2insert.inicio = moment(appointment2insert.inicio);
         appointment2insert.fin = moment(appointment2insert.fin);
@@ -183,36 +202,26 @@ module.exports = function (log, io, app) {
 
         if (appointment2insert) {
             Appointment.insert(appointment2insert, function (errData, data) {
-                var appointmentEmail = {},
-                    str,
+                var str,
                     result;
                 if (!errData) {
-                    str = util.format('Appointment INS: %s - %s - Inicio: %s, Fin: %s, Alta: %s', data._id, usr.terminal, data.inicio, data.fin, data.alta);
+                    str = util.format('Appointment INS: %s - Inicio: %s, Alta: %s. %s', usr.terminal, data.inicio, data.alta, data._id);
                     log.logger.insert(str);
-                    appointmentEmail = {
-                        terminal: data.terminal,
-                        inicio: data.inicio,
-                        fin: data.fin,
-                        contenedor: data.contenedor,
-                        buque: data.buque,
-                        viaje: data.viaje
-                    };
-                    res.render('comprobanteTurno.jade', appointmentEmail, function (err, html) {
-                        html = {
-                            data : html,
-                            alternative: true
-                        };
-                        if (appointment2insert.email !== undefined && appointment2insert.email !== '' && appointment2insert.email !== null) {
-                            //Successfully appointment inserted
-                            var mailer = new mail.mail(config.email);
-                            mailer.send(appointment2insert.email, "Confirmación de Turno.", html, function (err, messageBack) {
-                                log.logger.insert('Confirmación enviada correctamente, %s, se envió mail a %s', data.terminal, appointment2insert.email);
-                            });
-                        }
-                    });
+
                     result = {status: 'OK', data: data};
                     io.sockets.emit('appointment', result);
                     res.status(200).send(result);
+
+                    Account.findEmailToAppByUser(usr.user, 'emailAppointmentToApp', function (err, emails) {
+                        if (!err) {
+
+                            if (emails.data.length > 0) {
+                                req.appointment = data;
+                                next();
+                            }
+                        }
+                    });
+
                 } else {
                     errMsg = util.format('%s.-%s- \n%s', errData.toString(), usr.terminal, JSON.stringify(req.body));
                     strSubject = util.format("AGP - %s - ERROR", usr.terminal);
@@ -286,8 +295,8 @@ module.exports = function (log, io, app) {
     router.get('/:terminal/:skip/:limit', getAppointments);
     router.get('/:terminal/containers', getDistincts);
     router.get('/:terminal/ships', getDistincts);
-    router.post('/appointment', addAppointment);
-    app.post('/appointment', isValidToken, addAppointment);
+//    router.post('/appointment', addAppointment, reportClient);
+    app.post('/appointment', isValidToken, addAppointment, reportClient);
 
     return router;
 };
