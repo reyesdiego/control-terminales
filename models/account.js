@@ -35,7 +35,8 @@ var TokenModel = mongoose.model('Token', Token),
         reset_token_expires_millis: {type: Number},
         status: {type: Boolean},
         acceso: [{type: String}],
-        lastLogin: {type: Date}
+        lastLogin: {type: Date},
+        emailToApp: [{type: String}]
     });
 
 Account.plugin(passportLocalMongoose, {usernameField: 'email'});
