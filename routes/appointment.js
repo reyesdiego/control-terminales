@@ -176,15 +176,15 @@ module.exports = function (log, io, app) {
             };
             if (appointmentEmail.email !== undefined && appointmentEmail.email !== '' && appointmentEmail.email !== null) {
                 //Successfully appointment inserted
-                var emailConfig = config.email;
+                var emailConfig = Object.create(config.email);
                 emailConfig.throughBcc = false;
-                var mailer = new mail.mail(config.email),
+                var mailer = new mail.mail(emailConfig),
                     subject = util.format("Coordinación %s para %s.", appointmentEmail.contenedor, appointmentEmail.full_name);
                 mailer.send(appointmentEmail.email, subject, html, function (err, messageBack) {
                     if (err) {
                         log.logger.error(err);
                     } else {
-                        log.logger.insert('Confirmación enviada correctamente, %s, se envió mail a %s', appointmentEmail.full_name, appointmentEmail.email);
+                        log.logger.info('Confirmación enviada correctamente, %s, se envió mail a %s', appointmentEmail.full_name, appointmentEmail.email);
                     }
                 });
             }
@@ -225,14 +225,15 @@ module.exports = function (log, io, app) {
 
                             if (emails.data.length > 0) {
                                 appointmentToMail.full_name = usr.full_name;
-                                appointmentToMail.inicio = moment(data.inicio).format("DD-MM-YYYY HH:mm") + " hs.";
-                                appointmentToMail.fin = moment(data.fin).format("DD-MM-YYYY HH:mm") + " hs.";
+                                appointmentToMail.fecha = moment(data.inicio).format("DD-MM-YYYY");
+                                appointmentToMail.horario = moment(data.inicio).format("HH:mm") + 'hs. a ' + moment(data.fin).format("HH:mm") + "hs.";
                                 appointmentToMail.alta = moment(data.alta).format("DD-MM-YYYY HH:mm") + " hs.";
                                 appointmentToMail.contenedor = data.contenedor;
                                 appointmentToMail.buque = data.buque;
                                 appointmentToMail.viaje = data.viaje;
                                 appointmentToMail.disponibles_t1 = data.disponibles_t1;
                                 appointmentToMail.email = data.email;
+                                appointmentToMail.tipo = data.tipo;
                                 req.appointment = appointmentToMail;
                                 next();
                             }

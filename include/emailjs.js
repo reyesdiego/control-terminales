@@ -6,11 +6,17 @@ var email = require("emailjs");
 var mail = function (options) {
     'use strict';
     this.status = options.status;
-    delete options.status;
     this.throughBcc = options.throughBcc;
-    delete options.throughBcc;
 
-    this.server = email.server.connect(options);
+    var conf = {
+        user: options.user,
+        password: options.password,
+        host: options.host,
+        port: options.port,
+        domain: options.domain,
+        ssl: options.ssl
+    };
+    this.server = email.server.connect(conf);
 
     this.emailSimpleValidate = function (email) {
         var response = false,

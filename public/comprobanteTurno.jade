@@ -2,7 +2,7 @@ doctype html
 html(lang='fr')
     head
         title Servicio Terminales Portuarias
-    body(style="font-family: 'Open Sans',sans-serif; font-size: 12px")
+    body(style="font-family: 'Open Sans',sans-serif; font-size: 12px, background-color:white")
         table
             tr
                 td
@@ -14,17 +14,17 @@ html(lang='fr')
             b #{full_name}
             | &nbspel día #{alta}. Se contaba con&nbsp
             b #{disponibles_t1}
-            | &nbspturnos disponibles dentro los 5 días sin costo al momento del alta.
+            | &nbspturnos disponibles dentro del período de la Tarifa 1.
         table
             tr
                 td(style="font-weight:bolder;text-align:right") Terminal:
                 td #{full_name}
             tr
                 td(style="font-weight:bolder;text-align:right") Fecha:
-                td #{inicio}
+                td #{fecha}
             tr
-                td(style="font-weight:bolder;text-align:right") Fin del Turno:
-                td #{fin}
+                td(style="font-weight:bolder;text-align:right") Horario:
+                td #{horario}
             tr
                 td(style="font-weight:bolder;text-align:right") Contenedor:
                 td #{contenedor}
@@ -34,5 +34,11 @@ html(lang='fr')
             tr
                 td(style="font-weight:bolder;text-align:right") Viaje:
                 td #{viaje}
+            tr
+                td(style="font-weight:bolder;text-align:right") Tipo:
+                if tipo == "IMPO"
+                    td Importación
+                else
+                    td Exportación
         p
         p Administración General de Puertos pone en conocimiento que el Turno solicitado ha sido generado correctamente.

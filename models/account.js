@@ -119,6 +119,7 @@ Account.statics.login = function (username, password, cb) {
                         token: user.token,
                         date_created: user.date_created,
                         full_name: user.full_name,
+                        emailToApp: user.emailToApp,
                         status: user.status
                     });
                 } else {

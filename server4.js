@@ -153,19 +153,22 @@ process.on('uncaughtException', function (err) {
     log.logger.info("Caught exception: " + err);
 });
 
-/*
-app.get('/lo', function (req, res) {
 
-    var appointment2insert = {email: "dreyes@puertobuenosaires.gob.ar"};
-    var data = {terminal: "BACTSSA"};
-    var appointmentEmail = {
-        terminal: "BACTSSA",
-        inicio: "18/08/2015 12:12:00",
-        fin: "18/08/2015 12:12:00",
-        contenedor: "CAXU3223456",
-        buque: "TERMINATOR IV",
-        viaje: "23N"
-    };
-    res.render('comprobanteTurno', appointmentEmail);
+app.get('/kk', function (req, res) {
+    'use strict';
+    var moment = require("moment");
+    var param = {"buque": "SE LA BANCO",
+        "viaje": "x1",
+        "contenedor": "CAXU1234567",
+        "fecha": moment("2015-05-20T20:00:00.000Z").format("DD-MM-YYYY"),
+        "horario": moment("2015-05-20T20:00:00.000Z").format("HH:mm") + " hs. a " + moment("2015-05-20T20:00:00.000Z").format("HH:mm") + " hs.",
+        "tipo": "EXPO",
+        "email": "reyesdiego@hotmail.com",
+        "full_name": "B.A.C.T.S.S.A. (Terminal 5)",
+        "alta": moment("2015-05-20T20:00:00.000Z").format("DD-MM-YYYY HH:mm") + " hs.",
+        "disponibles_t1": 14
+        };
+    res.render('comprobanteTurno', param);
 
-});*/
+});
+
