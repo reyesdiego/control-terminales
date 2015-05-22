@@ -202,8 +202,11 @@ module.exports = function (log, io, app) {
         appointment2insert.inicio = moment(appointment2insert.inicio);
         appointment2insert.fin = moment(appointment2insert.fin);
         appointment2insert.terminal = usr.terminal;
-        if (appointment2insert.alta !== undefined && appointment2insert.alta !== null) {
+        if (appointment2insert.alta !== undefined && appointment2insert.alta !== null && appointment2insert.alta !== "") {
             appointment2insert.alta = moment(appointment2insert.alta);
+        }
+        if (appointment2insert.verifica !== undefined && appointment2insert.verifica !== null && appointment2insert.verifica !== "") {
+            appointment2insert.verifica = moment(appointment2insert.verifica);
         }
 
 
@@ -234,6 +237,9 @@ module.exports = function (log, io, app) {
                                 appointmentToMail.disponibles_t1 = data.disponibles_t1;
                                 appointmentToMail.email = data.email;
                                 appointmentToMail.tipo = data.tipo;
+                                appointmentToMail.verifica = moment(data.verifica).format("DD-MM-YYYY");
+                                appointmentToMail.verifica_turno = data.verifica_turno;
+                                appointmentToMail.verifica_tipo = data.verifica_tipo;
                                 req.appointment = appointmentToMail;
                                 next();
                             }

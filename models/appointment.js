@@ -15,7 +15,9 @@ var appointment = new mongoose.Schema({
         user: {type: String, uppercase: true},
         disponibles_t1: {type: Number},
         email: {type: String},
-        verifica: {type: Date}
+        verifica: {type: Date},
+        verifica_turno: {type: String, enum: ['MA', 'TA']},
+        verifica_tipo: {type: String, enum: ['PISO', 'CAMION']}
     });
 
 appointment.statics.insert = function (appointment, cb) {
