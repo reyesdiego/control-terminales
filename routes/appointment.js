@@ -187,7 +187,7 @@ module.exports = function (log, io, app) {
                 var subject = util.format("Coordinación %s para %s.", appointmentEmail.contenedor, appointmentEmail.full_name);
                 mailer.send(appointmentEmail.email, subject, html, function (err, messageBack) {
                     if (err) {
-                        log.logger.error(err);
+                        log.logger.error('Error en envío de email a cliente: %s', err);
                     } else {
                         log.logger.info('Confirmación enviada correctamente, %s, se envió mail a %s', appointmentEmail.full_name, appointmentEmail.email);
                     }
@@ -242,7 +242,7 @@ module.exports = function (log, io, app) {
                                 appointmentToMail.disponibles_t1 = data.disponibles_t1;
                                 appointmentToMail.email = data.email;
                                 appointmentToMail.tipo = data.tipo;
-                                appointmentToMail.verifica = moment(data.verifica).format("DD-MM-YYYY");
+                                appointmentToMail.verifica = (data.verifica !== undefined) ? moment(data.verifica).format("DD-MM-YYYY") : data.verifica;
                                 appointmentToMail.verifica_turno = data.verifica_turno;
                                 appointmentToMail.verifica_tipo = data.verifica_tipo;
                                 req.appointment = appointmentToMail;
@@ -253,12 +253,7 @@ module.exports = function (log, io, app) {
 
                 } else {
                     errMsg = util.format('%s.-%s- \n%s', errData.toString(), usr.terminal, JSON.stringify(req.body));
-                    strSubject = util.format("AGP - %s - ERROR", usr.terminal);
-                    mailer = new mail.mail(config.email);
-
                     log.logger.error(errMsg);
-//                    mailer.send(usr.email, strSubject, errMsg, function () {
-//                    });
 
                     res.status(500).send({status: 'ERROR', data: errMsg});
                 }
