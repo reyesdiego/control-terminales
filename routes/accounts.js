@@ -71,6 +71,9 @@ module.exports = function (app, passport, log) {
 
         /*Passport method injection*/
         Account.register(user, password, function (error, account) {
+            var mailer,
+                emailConfig;
+
             if (error) {
                 if (error.name === 'BadRequestError' && error.message && error.message.indexOf('exists') > -1) {
                     message = flash("ERROR", 'El email ya existe.');
@@ -82,7 +85,9 @@ module.exports = function (app, passport, log) {
                 res.status(500).send(message);
             } else {
                 //Successfully registered user
-                var mailer = new mail.mail(config.email);
+                emailConfig = Object.create(config.email);
+                emailConfig.throughBcc = false;
+                mailer = new mail.mail(emailConfig);
 
                 res.render('registerUser.jade', {url: config.url, salt: user.salt, full_name: user.full_name, user: user.user, password: user.password}, function (err, html) {
                     html = {
@@ -141,7 +146,10 @@ module.exports = function (app, passport, log) {
     });
 
     app.put('/agp/account/:id/enable', function (req, res) {
-        var message = '';
+        var message = '',
+            mailer,
+            emailConfig;
+
         enableAccount(req, res, true, function (user) {
             var sendMail = config.email;
 
@@ -153,7 +161,10 @@ module.exports = function (app, passport, log) {
                         data : html,
                         alternative: true
                     };
-                    var mailer = new mail.mail(config.email);
+                    emailConfig = Object.create(config.email);
+                    emailConfig.throughBcc = false;
+                    mailer = new mail.mail(emailConfig);
+
                     mailer.send(user.email, "Usuario aprobado", html, function (err, messageBack) {
                         log.logger.update('Account ENABLE: %s, se envió mail a %s', user.user, user.email);
                         res.status(200).send(message);

@@ -1,25 +1,27 @@
 doctype html
 html(lang='fr')
-	head
-		title Servicio Terminales
-	body(style="font-family:arial")
-		p(style="font-size:24px")
-			b Servicio Terminales Portuarias
-		p(style="font-size:18px")
-			b Administración General de Puertos
-		p Usted a ha sido aprobado para ingresar a la página de Control de Información de Terminales Portuarias.
-		p
-			b Nombre y Apellido:
-			span #{full_name}
-		p
-			b Usuario:
-			span #{user}
-		p
-			b Clave:
-			span #{password}
-		br
-		p
-			span(style="color:GREEN; text-size:18px") Usuario Aprobado
-		br
-		p Puede acceder directamente desde el siguiente link&nbsp;
-			a(href="http://terminales.puertobuenosaires.gob.ar") http://terminales.puertobuenosaires.gob.ar
+    head
+        title Servicio Terminales
+    body(style="font-family: 'Open Sans',sans-serif; font-size: 12px, background-color:white")
+        table
+            tr
+                td
+                    img(src="http://terminales.puertobuenosaires.gob.ar/images/logo.png")
+                td
+                    h1(style="font-family: inherit; font-weight: 400; font-size: 30px; line-height: 1.1; color: #0099d7;") &nbsp;Servicio Terminales Portuarias
+        p Usted a ha sido aprobado para ingresar a la página de Control de Información de Terminales Portuarias.
+        p
+            b Nombre y Apellido:&nbsp
+            span #{full_name}
+        p
+            b Usuario:&nbsp
+            span #{user}
+        p
+            b Clave:&nbsp
+            span #{password}
+        br
+        p
+            span(style="color:GREEN; text-size:18px") Usuario Aprobado
+        br
+        p Puede acceder directamente desde el siguiente link&nbsp;
+            a(href="http://terminales.puertobuenosaires.gob.ar") http://terminales.puertobuenosaires.gob.ar

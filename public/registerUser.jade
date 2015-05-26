@@ -1,25 +1,27 @@
 doctype html
 html(lang='fr')
-	head
-		title Servicio Terminales
-	body(style="font-family:arial")
-		p(style="font-size:24px")
-			b Servicio Terminales Portuarias
-		p(style="font-size:18px")
-			b Administración General de Puertos
-		p Ud. a solicitado un usuario para ingresar a la página de Control de Información de Terminales Portuarias.
-		p
-			b Nombre y Apellido:
-			span #{full_name}
-		p
-			b Usuario:
-			span #{user}
-		p
-			b Clave:
-			span #{password}
-		p Para proceder a la aprobación de la cuenta haga click &nbsp;
-			a(href="#{url}/agp/token?salt=#{salt}") aquí
-		br
-		p
-			span(style="color:red") Importante:
-			span &nbsp;La cuenta solo podrá se utilizada luego de ser aprobada por el Administrador del sistema. Usted recibirá un correo electrónico una vez aprobada la misma.
+    head
+        title Servicio Terminales
+    body(style="font-family: 'Open Sans',sans-serif; font-size: 12px, background-color:white")
+        table
+            tr
+                td
+                    img(src="http://terminales.puertobuenosaires.gob.ar/images/logo.png")
+                td
+                    h1(style="font-family: inherit; font-weight: 400; font-size: 30px; line-height: 1.1; color: #0099d7;") &nbsp;Servicio Terminales Portuarias
+        p Ud. a solicitado un usuario para ingresar a la página de Control de Información de Terminales Portuarias.
+        p
+            b Nombre y Apellido:&nbsp;
+            span #{full_name}
+        p
+            b Usuario:&nbsp;
+            span #{user}
+        p
+            b Clave:&nbsp;
+            span #{password}
+        p Para proceder a la aprobación de la cuenta haga click &nbsp;
+            a(href="#{url}/agp/token?salt=#{salt}") aquí
+        br
+        p
+            span(style="color:red") Importante:&nbsp;
+            span &nbsp;La cuenta solo podrá se utilizada luego de ser aprobada por el Administrador del sistema. Usted recibirá un correo electrónico una vez aprobada la misma.
