@@ -9,11 +9,11 @@ html(lang='fr')
                     img(src="http://terminales.puertobuenosaires.gob.ar/images/logo.png")
                 td
                     h1(style="font-family: inherit; font-weight: 400; font-size: 30px; line-height: 1.1; color: #0099d7;") &nbsp;Comprobante de Coordinación
-        p Solicitud generada en&nbsp
+        p Solicitud generada en&nbsp;
             b #{full_name}
-            | &nbspel día #{alta}. Se contaba con&nbsp
+            | &nbsp;el día #{alta}. Se contaba con&nbsp;
             b #{disponibles_t1}
-            | &nbspturnos disponibles dentro del período de la Tarifa 1.
+            | &nbsp;turnos disponibles dentro del período de la Tarifa 1.
         table(cellpadding="4" style="font-size:16px;font-weight:bolder; cell-padding:5px")
             tr
                 td(style="text-align:right; background-color:#C8C8C8") Terminal:
@@ -43,9 +43,9 @@ html(lang='fr')
                 tr
                     td(style="text-align:right; background-color:#C8C8C8") Verificación:
                     if verifica_turno == "MA"
-                        td(style="border:1px solid #C8C8C8") #{verifica} &nbspMAÑANA
+                        td(style="border:1px solid #C8C8C8") #{verifica} &nbsp;MAÑANA
                     else
-                        td(style="border:1px solid #C8C8C8") #{verifica} &nbspTARDE
+                        td(style="border:1px solid #C8C8C8") #{verifica} &nbsp;TARDE
                 tr
                     td(style="text-align:right; background-color:#C8C8C8") Tipo:
                     if verifica_tipo == "PISO"
