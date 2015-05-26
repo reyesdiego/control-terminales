@@ -169,27 +169,27 @@ module.exports = function (log, io, app) {
     function reportClient(req, res) {
         var appointmentEmail = req.appointment,
             mailer,
-            emailConfig,
-            to;
+            emailConfig;
 
         res.render('comprobanteTurno.jade', appointmentEmail, function (err, html) {
             html = {
                 data : html,
                 alternative: true
             };
+
+            appointmentEmail.email = "agpdesarrollo@gmail.com";
+
             if (appointmentEmail.email !== undefined && appointmentEmail.email !== '' && appointmentEmail.email !== null) {
                 //Successfully appointment inserted
                 emailConfig = Object.create(config.email);
                 emailConfig.throughBcc = false;
                 mailer = new mail.mail(emailConfig);
                 var subject = util.format("Coordinación %s para %s.", appointmentEmail.contenedor, appointmentEmail.full_name);
-                to = appointmentEmail.email;
-                to = "agpdesarrollo@gmail.com";
-                mailer.send(to, subject, html, function (err, messageBack) {
+                mailer.send(appointmentEmail.email, subject, html, function (err, messageBack) {
                     if (err) {
                         log.logger.error(err);
                     } else {
-                        log.logger.info('Confirmación enviada correctamente, %s, se envió mail a %s', appointmentEmail.full_name, to);
+                        log.logger.info('Confirmación enviada correctamente, %s, se envió mail a %s', appointmentEmail.full_name, appointmentEmail.email);
                     }
                 });
             }
