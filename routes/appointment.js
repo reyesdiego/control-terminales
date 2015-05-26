@@ -167,7 +167,10 @@ module.exports = function (log, io, app) {
     }
 
     function reportClient(req, res) {
-        var appointmentEmail = req.appointment;
+        var appointmentEmail = req.appointment,
+            mailer,
+            emailConfig,
+            to;
 
         res.render('comprobanteTurno.jade', appointmentEmail, function (err, html) {
             html = {
@@ -176,15 +179,17 @@ module.exports = function (log, io, app) {
             };
             if (appointmentEmail.email !== undefined && appointmentEmail.email !== '' && appointmentEmail.email !== null) {
                 //Successfully appointment inserted
-                var emailConfig = Object.create(config.email);
+                emailConfig = Object.create(config.email);
                 emailConfig.throughBcc = false;
-                var mailer = new mail.mail(emailConfig),
-                    subject = util.format("Coordinación %s para %s.", appointmentEmail.contenedor, appointmentEmail.full_name);
-                mailer.send(appointmentEmail.email, subject, html, function (err, messageBack) {
+                mailer = new mail.mail(emailConfig);
+                var subject = util.format("Coordinación %s para %s.", appointmentEmail.contenedor, appointmentEmail.full_name);
+                to = appointmentEmail.email;
+                to = "agpdesarrollo@gmail.com";
+                mailer.send(to, subject, html, function (err, messageBack) {
                     if (err) {
                         log.logger.error(err);
                     } else {
-                        log.logger.info('Confirmación enviada correctamente, %s, se envió mail a %s', appointmentEmail.full_name, appointmentEmail.email);
+                        log.logger.info('Confirmación enviada correctamente, %s, se envió mail a %s', appointmentEmail.full_name, to);
                     }
                 });
             }
@@ -241,7 +246,7 @@ module.exports = function (log, io, app) {
                                 appointmentToMail.verifica_turno = data.verifica_turno;
                                 appointmentToMail.verifica_tipo = data.verifica_tipo;
                                 req.appointment = appointmentToMail;
-                                next();
+                                next(); // en reportClient function se enviará email
                             }
                         }
                     });
