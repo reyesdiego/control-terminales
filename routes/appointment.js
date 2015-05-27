@@ -185,20 +185,21 @@ module.exports = function (log, io, app) {
                 emailConfig.throughBcc = false;
                 mailer = new mail.mail(emailConfig);
                 var subject = util.format("Coordinación %s para %s.", appointmentEmail.contenedor, appointmentEmail.full_name);
-                mailer.send(appointmentEmail.email, subject, html, function (err, messageBack) {
-                    if (err) {
+                mailer.send(appointmentEmail.email, "-" + subject, html, function (err1, messageBack1) {
+                    if (err1) {
 
-                        log.logger.error('Error en envío de email a cliente :' + appointmentEmail.email + err + JSON.stringify(err));
-                        mailer.send(appointmentEmail.email, subject, html, function (err, messageBack) {
-                            if (err) {
-                                log.logger.error('REENVIO - Error en envío de email a cliente :' + appointmentEmail.email + err + JSON.stringify(err));
+                        log.logger.error('Envío de email a cliente : %s, %j, %s', appointmentEmail.email, err1, JSON.stringify(err1));
+
+                        mailer.send(appointmentEmail.email, subject, html, function (err2, messageBack2) {
+                            if (err2) {
+                                log.logger.error('REENVIO - Envío de email a cliente : %s, %j, %s', appointmentEmail.email, err2, JSON.stringify(err2));
                             } else {
                                 log.logger.info('REENVIO - Confirmación enviada correctamente, %s, se envió mail a %s', appointmentEmail.full_name, appointmentEmail.email);
                             }
                         });
 
                     } else {
-                        log.logger.info('Confirmación enviada correctamente, %s, se envió mail a %s', appointmentEmail.full_name, appointmentEmail.email);
+                        log.logger.info('Confirmación enviada correctamente, %s, se envió mail a %s - %s', appointmentEmail.full_name, appointmentEmail.email, appointmentEmail.contenedor);
                     }
                 });
             }
