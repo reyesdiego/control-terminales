@@ -187,7 +187,16 @@ module.exports = function (log, io, app) {
                 var subject = util.format("Coordinación %s para %s.", appointmentEmail.contenedor, appointmentEmail.full_name);
                 mailer.send(appointmentEmail.email, subject, html, function (err, messageBack) {
                     if (err) {
-                        log.logger.error('Error en envío de email a cliente: %s', err);
+
+                        log.logger.error('Error en envío de email a cliente :' + appointmentEmail.email + err + JSON.stringify(err));
+                        mailer.send(appointmentEmail.email, subject, html, function (err, messageBack) {
+                            if (err) {
+                                log.logger.error('REENVIO - Error en envío de email a cliente :' + appointmentEmail.email + err + JSON.stringify(err));
+                            } else {
+                                log.logger.info('REENVIO - Confirmación enviada correctamente, %s, se envió mail a %s', appointmentEmail.full_name, appointmentEmail.email);
+                            }
+                        });
+
                     } else {
                         log.logger.info('Confirmación enviada correctamente, %s, se envió mail a %s', appointmentEmail.full_name, appointmentEmail.email);
                     }
@@ -200,8 +209,6 @@ module.exports = function (log, io, app) {
         var usr = req.usr,
             appointment2insert = req.body,
             errMsg,
-            strSubject,
-            mailer,
             Account = require('../models/account');
 
         appointment2insert.inicio = moment(appointment2insert.inicio);
@@ -214,14 +221,13 @@ module.exports = function (log, io, app) {
             appointment2insert.verifica = moment(appointment2insert.verifica);
         }
 
-
         if (appointment2insert) {
             Appointment.insert(appointment2insert, function (errData, data) {
                 var str,
                     result,
                     appointmentToMail = {};
                 if (!errData) {
-                    str = util.format('Appointment INS: %s - Inicio: %s, Alta: %s. %s', usr.terminal, data.inicio, data.alta, data._id);
+                    str = util.format('Appointment INS: %s - Inicio: %s - Alta: %s - %s - %s', usr.terminal, data.inicio, data.alta, data._id, data.contenedor);
                     log.logger.insert(str);
 
                     result = {status: 'OK', data: data};
