@@ -161,7 +161,7 @@ module.exports = function (log, io, app) {
         });
     }
 
-    function getDistincts( req, res) {
+    function getDistincts(req, res) {
 
         var usr = req.usr,
             distinct = '',
