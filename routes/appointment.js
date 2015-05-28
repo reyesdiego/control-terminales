@@ -252,7 +252,7 @@ module.exports = function (log, io, app) {
                                 appointmentToMail.disponibles_t1 = data.disponibles_t1;
                                 appointmentToMail.email = data.email;
                                 appointmentToMail.tipo = data.tipo;
-                                appointmentToMail.verifica = (data.verifica !== undefined) ? moment(data.verifica).format("DD-MM-YYYY") : data.verifica;
+                                appointmentToMail.verifica = (data.verifica !== undefined && data.verifica !== null && data.verifica !== "") ? moment(data.verifica).format("DD-MM-YYYY") : data.verifica;
                                 appointmentToMail.verifica_turno = data.verifica_turno;
                                 appointmentToMail.verifica_tipo = data.verifica_tipo;
                                 req.appointment = appointmentToMail;

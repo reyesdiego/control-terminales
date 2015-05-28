@@ -42,10 +42,12 @@ html(lang='fr')
             if verifica != "" && verifica != null
                 tr
                     td(style="text-align:right; background-color:#C8C8C8") Verificación:
-                    if verifica_turno == "MA"
-                        td(style="border:1px solid #C8C8C8") #{verifica} &nbsp;MAÑANA
-                    if verifica_turno == "TA"
-                        td(style="border:1px solid #C8C8C8") #{verifica} &nbsp;TARDE
+                    td(style="border:1px solid #C8C8C8")
+                        span #{verifica}
+                        if verifica_turno == "MA"
+                            | &nbsp;MAÑANA
+                        if verifica_turno == "TA"
+                            | &nbsp;TARDE
                 tr
                     td(style="text-align:right; background-color:#C8C8C8") Tipo:
                     if verifica_tipo == "PISO"
