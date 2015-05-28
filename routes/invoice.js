@@ -174,38 +174,36 @@ module.exports = function(log, io, pool, app) {
             }
         });
         jsonParam.push({$project : {_id: false, terminal: '$_id.terminal', codTipoComprob: '$_id.codTipoComprob', cnt : '$cnt'}});
-        jsonParam.push({$sort: {'terminal':1, 'codTipoComprob': 1}});
+        jsonParam.push({$sort: {'terminal': 1, 'codTipoComprob': 1}});
 
-        Invoice.aggregate(jsonParam, function(err, data){
+        Invoice.aggregate(jsonParam, function (err, data) {
             if (!err) {
 
                 Enumerable = require('linq');
                 response = Enumerable.from(data)
-                    .groupBy(
-                    function (item) {
+                    .groupBy(function (item) {
                         return item.codTipoComprob;
                     },
-                    function (item) {
-                        return item;
-                    },
-                    function (job, grouping) {
-                        var grupo = grouping.getSource(),
-                            tot = grouping.sum(function (item) {
-                                return item.cnt;
-                            }),
-                            grupoItem = {
-                                codTipoComprob: job,
-                                total: tot
-                            };
+                        function (item) {
+                            return item;
+                        },
+                        function (job, grouping) {
+                            var grupo = grouping.getSource(),
+                                tot = grouping.sum(function (item) {
+                                    return item.cnt;
+                                }),
+                                grupoItem = {
+                                    codTipoComprob: job,
+                                    total: tot
+                                };
 
-                        grupo.forEach(function (item) {
-                            var porcen = item.cnt * 100 / tot;
-                            grupoItem[item.terminal] = [item.cnt, porcen];
-                        });
+                            grupo.forEach(function (item) {
+                                var porcen = item.cnt * 100 / tot;
+                                grupoItem[item.terminal] = [item.cnt, porcen];
+                            });
 
-                        return grupoItem;
-                    }
-                ).toArray();
+                            return grupoItem;
+                        }).toArray();
 
                 res.status(200).send({status: "OK", data: response});
             } else {
@@ -621,7 +619,12 @@ module.exports = function(log, io, pool, app) {
                 {$project: {match: '$match', _id: 0}}
             ],
             s,
-            parametro;
+            parametro,
+            fecha,
+            match = {
+                terminal: paramTerminal
+            },
+            inv;
 
         s = MatchPrice.aggregate(param);
         s.exec(function (err, noMatches) {
@@ -631,11 +634,7 @@ module.exports = function(log, io, pool, app) {
                     arrResult.push(item.match);
                 });
 
-                var fecha,
-                    match = {
-                        terminal: paramTerminal
-                    };
-                if (req.query.fechaInicio || req.query.fechaFin){
+                if (req.query.fechaInicio || req.query.fechaFin) {
                     match["fecha.emision"] = {};
                     if (req.query.fechaInicio) {
                         fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z')).toDate();
@@ -653,12 +652,12 @@ module.exports = function(log, io, pool, app) {
                     { $unwind: "$detalle.items"},
                     { $project: { code: '$detalle.items.id'}},
                     { $match: {code: {$nin: arrResult}}},
-                    { $group: {_id:{ _id: "$_id"}}},
+                    { $group: {_id: { _id: "$_id"}}},
                     { $skip : skip},
                     { $limit : limit}
                 ];
 
-                var inv = Invoice.aggregate(parametro);
+                inv = Invoice.aggregate(parametro);
 
                 inv.exec(function (err, data) {
                     var ids = [];
@@ -890,7 +889,7 @@ module.exports = function(log, io, pool, app) {
             if (contentTypeExists === -1){
                 var errMsg = util.format("El content-type:%s es incorrecto. Debe enviar text/plain. %s", req.headers["content-type"], usr.terminal);
                 log.logger.error(errMsg);
-                res.send(400, errMsg);
+                res.status(400).send(errMsg);
                 return;
             }
 
@@ -910,7 +909,7 @@ module.exports = function(log, io, pool, app) {
             }
 
             _addInvoice(res, postData, usr, function(statusHttp, object){
-                res.send(statusHttp, object);
+                res.status(statusHttp).send(object);
             });
         });
     }
@@ -1109,7 +1108,7 @@ module.exports = function(log, io, pool, app) {
 //							mailer.send(usr.email, strSubject, errMsg, function(){
 //							});
 
-                            callback(500, {status: "ERROR", data: errMsg});
+                            return callback(500, {status: "ERROR", data: errMsg});
                         }
 
                     });
@@ -1122,7 +1121,7 @@ module.exports = function(log, io, pool, app) {
                     mailer.send(usr.email, strSubject, strError, function(){
                     });
 
-                    callback(500, {status: "ERROR", data: strError});
+                    return callback(500, {status: "ERROR", data: strError});
                 }
             }
         });
