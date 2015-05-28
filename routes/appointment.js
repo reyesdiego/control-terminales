@@ -11,7 +11,15 @@ module.exports = function (log, io, app) {
         Appointment = require('../models/appointment.js'),
         util = require('util'),
         mail = require("../include/emailjs"),
-        config = require('../config/config.js');
+        config = require('../config/config.js'),
+        verifica_tipo = {
+            PISO: "PISO",
+            CAMION: "CAMION"
+        },
+        verifica_turno = {
+            MANANA: "MA",
+            TARDE: "TA"
+        };
 
     function getAppointments(req, res) {
 
@@ -224,6 +232,12 @@ module.exports = function (log, io, app) {
         if (appointment2insert.verifica !== undefined && appointment2insert.verifica !== null && appointment2insert.verifica !== "") {
             appointment2insert.verifica = moment(appointment2insert.verifica);
         }
+        if (appointment2insert.verifica_tipo !== verifica_tipo.PISO && appointment2insert.verifica_tipo !== verifica_tipo.CAMION) {
+            delete appointment2insert.verifica_tipo;
+        }
+        if (appointment2insert.verifica_turno !== verifica_turno.MANANA && appointment2insert.verifica_turno !== verifica_turno.TARDE) {
+            delete appointment2insert.verifica_turno;
+        }
 
         if (appointment2insert) {
             Appointment.insert(appointment2insert, function (errData, data) {
@@ -251,7 +265,7 @@ module.exports = function (log, io, app) {
                                 appointmentToMail.viaje = data.viaje;
                                 appointmentToMail.disponibles_t1 = data.disponibles_t1;
                                 appointmentToMail.email = data.email;
-                                appointmentToMail.tipo = data.tipo;
+                                appointmentToMail.mov = data.mov;
                                 appointmentToMail.verifica = (data.verifica !== undefined && data.verifica !== null && data.verifica !== "") ? moment(data.verifica).format("DD-MM-YYYY") : data.verifica;
                                 appointmentToMail.verifica_turno = data.verifica_turno;
                                 appointmentToMail.verifica_tipo = data.verifica_tipo;

@@ -35,9 +35,9 @@ html(lang='fr')
                 td(style="border:1px solid #C8C8C8") #{viaje}
             tr
                 td(style="text-align:right; background-color:#C8C8C8") Movimiento:
-                if tipo == "IMPO"
+                if mov == "IMPO"
                     td(style="border:1px solid #C8C8C8")  Importación
-                else
+                if mov == "EXPO"
                     td(style="border:1px solid #C8C8C8")  Exportación
             if verifica != "" && verifica != null
                 tr
