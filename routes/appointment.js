@@ -197,7 +197,7 @@ module.exports = function (log, io, app) {
                     if (err1) {
 
                         log.logger.error('Envío de email a cliente : %s, %j, %s', appointmentEmail.email, err1, err1);
-
+                        mailer = new mail.mail(emailConfig);
                         mailer.send(appointmentEmail.email, subject, html, function (err2, messageBack2) {
                             if (err2) {
                                 log.logger.error('REENVIO - Envío de email a cliente : %s, %j, %s', appointmentEmail.email, err2, err2);
