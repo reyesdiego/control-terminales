@@ -31,7 +31,18 @@ email.server.send(
 
 var mail = require("../include/emailjs");
 
-var mailer = new mail.mail(true);
+var options = {
+	user:    "noreply",
+	password: "desarrollo",
+	host:    "10.10.0.170",
+	port: "25",
+	domain: "puertobuenosaires.gov.ar",
+	ssl:     false,
+	status: true,
+	throughBcc: true
+}
+
+var mailer = new mail.mail(options);
 var html = {
     data : "<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link http://terminales.puertobuenosaires.gob.ar:8080/unitTypes?key=TEST</p></body></html>",
     alternative: true
@@ -55,7 +66,17 @@ var html = {
 //});
 
 mailer.send('reyesdiego@hotmail.com', 'jola', 'Primero', function (err, messageBack) {
-    console.log(err);
-    console.log(messageBack);
+	if (err) {
+		console.log(err);
+		mailer = new mail.mail(options);
+		mailer.send('reyesdiego@hotmail.com', 'jola', 'Primero', function (err2, messageBack2) {
+			if (err2) {
+				console.log(err2);
+			}
+		});
+
+	} else {
+		console.log(messageBack);
+	}
 });
 

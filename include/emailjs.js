@@ -65,6 +65,7 @@ mail.prototype = {
             config.attachment = text;
             config.text = '';
         } else {
+			config.text = text;
             if (typeof attachment === 'function') {
                 callback = attachment;
             }
