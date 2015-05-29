@@ -196,11 +196,11 @@ module.exports = function (log, io, app) {
                 mailer.send(appointmentEmail.email, subject, html, function (err1, messageBack1) {
                     if (err1) {
 
-                        log.logger.error('Envío de email a cliente : %s, %j, %s', appointmentEmail.email, err1, JSON.stringify(err1));
+                        log.logger.error('Envío de email a cliente : %s, %j, %s', appointmentEmail.email, err1, err1);
 
                         mailer.send(appointmentEmail.email, subject, html, function (err2, messageBack2) {
                             if (err2) {
-                                log.logger.error('REENVIO - Envío de email a cliente : %s, %j, %s', appointmentEmail.email, err2, JSON.stringify(err2));
+                                log.logger.error('REENVIO - Envío de email a cliente : %s, %j, %s', appointmentEmail.email, err2, err2);
                             } else {
                                 log.logger.info('REENVIO - Confirmación enviada correctamente, %s, se envió mail a %s - %s', appointmentEmail.full_name, appointmentEmail.email, appointmentEmail.contenedor);
                             }
