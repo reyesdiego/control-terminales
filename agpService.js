@@ -33,7 +33,6 @@ terminals.forEach(function (item) {
             } else {
                 if (accountData.length > 0) {
                     user = accountData[0];
-
                     optionsget = {
                         host : '10.1.0.51', // here only the domain name (no http/https !)
                         port : 8080,
@@ -56,6 +55,7 @@ terminals.forEach(function (item) {
                                 console.log('%s, %s', item, result.data);
                                 if (result.data.length > 0) {
                                     mailer = new mail.mail(sendMail);
+                                    user.email = "dreyes@puertobuenosaires.gob.ar";
                                     mailer.send( user.email,
                                         result.data.length.toString() + " CÓDIGOS SIN ASOCIAR AL " + date,
                                         user.terminal + '\n\n' + result.data,
@@ -85,6 +85,7 @@ terminals.forEach(function (item) {
     });
 });
 
+console.log('--------------%s----------------', moment().format("DD-MM-YYYY"));
 async.parallel(asyncParallel, function () {
     process.exit(code=0);
 });
