@@ -16,71 +16,75 @@ mongoose.connect(config.mongo_url, config.mongo_opts);
 var date = moment().format('DD-MM-YYYY');
 
 var asyncParallel = [];
-var terminals = ['BACTSSA', 'TERMINAL4', 'TRP'];
-//var terminals = ['BACTSSA'];
-var sendMail = false;
+var terminals = ['bactssa', 't4', 'trp'];
+var sendMail = config.email;
 
-terminals.forEach(function (item){
+terminals.forEach(function (item) {
+    'use strict';
 
-	asyncParallel.push(function (callback){
-		Account.findAll({terminal: item}, function (err, data) {
+    asyncParallel.push(function (callback) {
+        var user,
+            optionsget,
+            reqGet;
+        Account.findAll({user: item}, {terminal: 1, token: 1, email: 1}, function (err, accountData) {
 
-			if (err)
-				console.error(err);
-			else {
-				if (data.length>0){
-					var user = data[0];
+            if (err) {
+                console.error(err);
+            } else {
+                if (accountData.length > 0) {
+                    user = accountData[0];
 
-					var optionsget = {
-						host : '10.1.0.51', // here only the domain name (no http/https !)
-						port : 8080,
-						path : '/matchPrices/noMatches/'+user.terminal,
-						method : 'GET',
-						headers : {token: user.token.token}
-					};
+                    optionsget = {
+                        host : '10.1.0.51', // here only the domain name (no http/https !)
+                        port : 8080,
+                        path : '/matchPrices/noMatches/' + user.terminal,
+                        method : 'GET',
+                        headers : {token: user.token.token}
+                    };
 
-					var reqGet = http.request(optionsget, function(res) {
+                    reqGet = http.request(optionsget, function (res) {
+                        var resData = '';
+                        res.on('data', function (d) {
+                            resData += d;
+                        });
 
-						res.on('data', function(d) {
+                        res.on('end', function () {
+                            var result = JSON.parse(resData),
+                                mailer;
 
-							var result = JSON.parse(d);
+                            if (result.status === 'OK') {
+                                console.log('%s, %s', item, result.data);
+                                if (result.data.length > 0) {
+                                    mailer = new mail.mail(sendMail);
+                                    mailer.send( user.email,
+                                        result.data.length.toString() + " CÓDIGOS SIN ASOCIAR AL " + date,
+                                        user.terminal + '\n\n' + result.data,
+                                        function () {
+                                            console.log('Se envió mail a %s, con %s', user.email, result.data);
+                                        });
 
-							if (result.status === 'OK'){
-								if (result.data.length>0){
-									var mailer = new mail.mail(sendMail);
+                                    return callback();
+                                } else {
+                                    return callback();
+                                }
+                            } else {
+                                return callback();
+                            }
+                        });
+                    });
 
-									console.log("ya esta %s", item);
-									console.log(result.data);
+                    reqGet.end(); // ejecuta el request
 
-								//mailer.send(user.email,
-								mailer.send("dreyes@puertobuenosaires.gob.ar",
-										result.data.length.toString() + " CÓDIGOS SIN ASOCIAR AL " + date,
-										user.terminal + '\n\n' + result.data,
-									function(){
-										return callback();
-										//process.exit(code=0);
-									}
-								);
+                } else {
+                    return callback();
+                }
+            }
 
-								return callback();
+        });
 
-								}
-							}
-						});
-					});
-					reqGet.end();
-				} else {
-					return callback();
-				}
-			}
-
-		});
-
-	});
-
+    });
 });
 
-async.parallel(asyncParallel, function(){
-	process.exit(code=0);
+async.parallel(asyncParallel, function () {
+    process.exit(code=0);
 });
-
