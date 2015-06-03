@@ -9,6 +9,7 @@ module.exports = function (log, io, app) {
         router = express.Router(),
         moment = require('moment'),
         Appointment = require('../models/appointment.js'),
+        AppointmentEmailQueue = require('../models/appointmentEmailQueue.js'),
         util = require('util'),
         mail = require("../include/emailjs"),
         config = require('../config/config.js'),
@@ -61,6 +62,10 @@ module.exports = function (log, io, app) {
 
         if (req.query.mov) {
             param.mov = req.query.mov;
+        }
+
+        if (req.query.email) {
+            param.email = req.query.email;
         }
 
         appointment = Appointment.find(param).limit(limit).skip(skip);
@@ -174,10 +179,27 @@ module.exports = function (log, io, app) {
         });
     }
 
+    function addAppointmentEmailQueue(appointmentEmail, callback) {
+
+        var appo = {};
+
+        appo.date = new Date();
+        appo.status = 1;
+        appo.appointment = appointmentEmail._id;
+        AppointmentEmailQueue.create(appo, function (err, data) {
+            if (err) {
+                callback(err);
+            } else {
+                callback(null, data);
+            }
+        });
+    }
+
     function reportClient(req, res) {
         var appointmentEmail = req.appointment,
             mailer,
-            emailConfig;
+            emailConfig,
+            subject;
 
         res.render('comprobanteTurno.jade', appointmentEmail, function (err, html) {
             html = {
@@ -191,16 +213,22 @@ module.exports = function (log, io, app) {
                 //Successfully appointment inserted
                 emailConfig = Object.create(config.email);
                 emailConfig.throughBcc = false;
-                mailer = new mail.mail(emailConfig);
-                var subject = util.format("Coordinación %s para %s.", appointmentEmail.contenedor, appointmentEmail.full_name);
-                mailer.send(appointmentEmail.email, subject, html, function (err1, messageBack1) {
-                    if (err1) {
 
-                        log.logger.error('Envío de email a cliente : %s, %j, %s', appointmentEmail.email, err1, err1);
+                mailer = new mail.mail(emailConfig);
+                subject = util.format("Coordinación %s para %s.", appointmentEmail.contenedor, appointmentEmail.full_name);
+                mailer.send(appointmentEmail.email, subject, html, function (err1) {
+                    if (err1) {
+                        log.logger.error('Envío de email a cliente : %s, %s, %j, %s', appointmentEmail.email, appointmentEmail.contenedor, err1, err1);
                         mailer = new mail.mail(emailConfig);
-                        mailer.send(appointmentEmail.email, subject, html, function (err2, messageBack2) {
+                        mailer.send(appointmentEmail.email, subject, html, function (err2) {
                             if (err2) {
-                                log.logger.error('REENVIO - Envío de email a cliente : %s, %j, %s', appointmentEmail.email, err2, err2);
+                                addAppointmentEmailQueue(appointmentEmail, function (err) {
+                                    if (err) {
+                                        log.logger.error('REENVIO - a: %s, No ha sido encolado, no se reenviara nuevamente. %s, %j, %s', appointmentEmail.email, appointmentEmail.contenedor, err2, err2);
+                                    } else {
+                                        log.logger.error('REENVIO - a: %s, se encola en base de datos. - %s, %j, %s', appointmentEmail.email, appointmentEmail.contenedor, err2, err2);
+                                    }
+                                });
                             } else {
                                 log.logger.info('REENVIO - Confirmación enviada correctamente, %s, se envió mail a %s - %s', appointmentEmail.full_name, appointmentEmail.email, appointmentEmail.contenedor);
                             }
@@ -256,6 +284,7 @@ module.exports = function (log, io, app) {
                         if (!err) {
 
                             if (emails.data.length > 0) {
+                                appointmentToMail._id = data._id;
                                 appointmentToMail.full_name = usr.full_name;
                                 appointmentToMail.fecha = moment(data.inicio).format("DD-MM-YYYY");
                                 appointmentToMail.horario = moment(data.inicio).format("HH:mm") + 'hs. a ' + moment(data.fin).format("HH:mm") + "hs.";
@@ -280,6 +309,27 @@ module.exports = function (log, io, app) {
                     log.logger.error(errMsg);
 
                     res.status(500).send({status: 'ERROR', data: errMsg});
+                }
+            });
+        }
+    }
+
+    function getByContainer(req, res) {
+        var param = {},
+            appointments;
+
+        if (req.query.email === undefined || req.query.email === '') {
+            res.status(403).send({status: 'ERROR', data: 'Debe proveer el dato del email para obtener el/los turnos.'});
+        } else {
+            param.contenedor = req.params.container;
+            param.email = req.query.email;
+
+            appointments = Appointment.find(param);
+            appointments.exec(function (err, data) {
+                if (err) {
+                    res.status(500).send({status: 'ERROR', data: err.message});
+                } else {
+                    res.status(200).send({status: 'OK', data: data});
                 }
             });
         }
@@ -343,8 +393,9 @@ module.exports = function (log, io, app) {
     router.get('/:terminal/:skip/:limit', getAppointments);
     router.get('/:terminal/containers', getDistincts);
     router.get('/:terminal/ships', getDistincts);
-//    router.post('/appointment', addAppointment, reportClient);
+
     app.post('/appointment', isValidToken, addAppointment, reportClient);
+    app.get('/appointments/:container', getByContainer);
 
     return router;
 };
