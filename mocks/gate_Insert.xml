@@ -1,7 +1,7 @@
 <RestClientRequest>
   <option name="httpMethod" value="POST" />
-  <option name="urlBase" value="http://localhost:3101" />
-  <option name="urlPath" value="invoiceHeader" />
+  <option name="urlBase" value="http://10.10.0.223:8080" />
+  <option name="urlPath" value="/gate" />
   <option name="headers">
     <list>
       <KeyValuePair>
@@ -16,6 +16,10 @@
         <option name="key" value="Content-Type" />
         <option name="value" value="application/json" />
       </KeyValuePair>
+      <KeyValuePair>
+        <option name="key" value="token" />
+        <option name="value" value="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNvcG9ydGVfY3RzQGJhY3Rzc2EuY29tLmFyIn0.bBSqdwesWimlT8rFGA7sKLKbPdxauY8HdrTTt7BLpBU" />
+      </KeyValuePair>
     </list>
   </option>
   <option name="parameters">
@@ -25,6 +29,6 @@
   <option name="haveTextToSend" value="true" />
   <option name="haveFileToSend" value="false" />
   <option name="isFileUpload" value="false" />
-  <option name="textToSend" value="{ &quot;codigoTipoDocumento&quot;: 80, &quot;numeroDocumento&quot;: 30702086279, &quot;importeGravado&quot;: 4184.34, &quot;importeNoGravado&quot;: 0, &quot;importeExento&quot;: 0, &quot;importeSubtotal&quot;: 4184.34, &quot;importeOtrosTributos&quot;: 116.49, &quot;importeTotal&quot;: 5179.54, &quot;codigoMoneda&quot;: &quot;PES&quot;, &quot;cotizacionMoneda&quot;: 1, &quot;observaciones&quot;: &quot;Sin observacion&quot;, &quot;codigoConcepto&quot;:2 }" />
+  <option name="textToSend" value="{ &quot;buque&quot;: &quot;x&quot;, &quot;viaje&quot;: &quot;x1&quot;, &quot;contenedor&quot;: &quot;CAXU1234567&quot;, &quot;mov&quot;: &quot;IMPO&quot;, &quot;tipo&quot;: &quot;OUT&quot;, &quot;carga&quot;: &quot;LL&quot;, &quot;patenteCamion&quot;: &quot;WWW333&quot;, &quot;gateTimestamp&quot;:&quot;2014-03-17T07:00:00.000Z&quot;, &quot;turnoInicio&quot;: &quot;2014-03-17T07:00:00.000Z&quot;, &quot;turnoFin&quot;: &quot;2014-03-17T09:00:00.000Z&quot; }" />
   <option name="filesToSend" value="" />
 </RestClientRequest>
