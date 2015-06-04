@@ -23,11 +23,8 @@ function iterator(item, callback) {
         subject;
 
     appointment = item.appointment;
-    appointment.full_name = appointment.full_name;
-    appointment.fecha = moment(appointment.inicio).format("DD-MM-YYYY");
-    appointment.horario = moment(appointment.inicio).format("HH:mm") + 'hs. a ' + moment(appointment.fin).format("HH:mm") + "hs.";
-    appointment.alta = moment(appointment.alta).format("DD-MM-YYYY HH:mm") + " hs.";
-    appointment.verifica = (appointment.verifica !== undefined && appointment.verifica !== null && appointment.verifica !== "") ? moment(appointment.verifica).format("DD-MM-YYYY") : appointment.verifica;
+    appointment.full_name = item.terminal.description;
+    appointment.moment = require('moment');
 
     html = jade.renderFile('./public/comprobanteTurno.jade', appointment);
     mailer = new mail.mail(config.email);
