@@ -1,9 +1,13 @@
 doctype html
-html(lang='fr')
+html(lang='es')
     head
         title Servicio Terminales Portuarias
     body(style="font-family: 'Open Sans',sans-serif; font-size: 12px, background-color:white")
-        table
+        - var fecha = moment(inicio).format("DD-MM-YYYY")
+        - var horario = moment(inicio).format("HH:mm") + 'hs. a ' + moment(fin).format("HH:mm") + "hs.";
+        - var alta = moment(alta).format("DD-MM-YYYY HH:mm") + " hs.";
+        - verifica = (verifica !== undefined && verifica !== null && verifica !== "") ? moment(verifica).format("DD-MM-YYYY") : verifica;
+    table
             tr
                 td
                     img(src="http://terminales.puertobuenosaires.gob.ar/images/logo.png")
@@ -11,7 +15,9 @@ html(lang='fr')
                     h1(style="font-family: inherit; font-weight: 400; font-size: 30px; line-height: 1.1; color: #0099d7;") &nbsp;Comprobante de Coordinación
         p Solicitud generada en&nbsp;
             b #{full_name}
-            | &nbsp;el día #{alta}. Se contaba con&nbsp;
+            | &nbsp;el día
+            b &nbsp;#{alta}
+            |. Se contaba con&nbsp;
             b #{disponibles_t1}
             | &nbsp;turnos disponibles dentro del período de la Tarifa 1.
         table(cellpadding="4" style="font-size:16px;font-weight:bolder; cell-padding:5px")

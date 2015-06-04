@@ -186,6 +186,9 @@ module.exports = function (log, io, app) {
         appo.date = new Date();
         appo.status = 1;
         appo.appointment = appointmentEmail._id;
+        appo.terminal = {
+            description: appointmentEmail.full_name
+        };
         AppointmentEmailQueue.create(appo, function (err, data) {
             if (err) {
                 callback(err);
@@ -284,21 +287,22 @@ module.exports = function (log, io, app) {
                         if (!err) {
 
                             if (emails.data.length > 0) {
-                                appointmentToMail._id = data._id;
-                                appointmentToMail.full_name = usr.full_name;
-                                appointmentToMail.fecha = moment(data.inicio).format("DD-MM-YYYY");
-                                appointmentToMail.horario = moment(data.inicio).format("HH:mm") + 'hs. a ' + moment(data.fin).format("HH:mm") + "hs.";
-                                appointmentToMail.alta = moment(data.alta).format("DD-MM-YYYY HH:mm") + " hs.";
-                                appointmentToMail.contenedor = data.contenedor;
-                                appointmentToMail.buque = data.buque;
-                                appointmentToMail.viaje = data.viaje;
-                                appointmentToMail.disponibles_t1 = data.disponibles_t1;
-                                appointmentToMail.email = data.email;
-                                appointmentToMail.mov = data.mov;
-                                appointmentToMail.verifica = (data.verifica !== undefined && data.verifica !== null && data.verifica !== "") ? moment(data.verifica).format("DD-MM-YYYY") : data.verifica;
-                                appointmentToMail.verifica_turno = data.verifica_turno;
-                                appointmentToMail.verifica_tipo = data.verifica_tipo;
-                                req.appointment = appointmentToMail;
+                                data.full_name = usr.full_name;
+//                                appointmentToMail._id = data._id;
+//                                appointmentToMail.full_name = usr.full_name;
+//                                appointmentToMail.fecha = moment(data.inicio).format("DD-MM-YYYY");
+//                                appointmentToMail.horario = moment(data.inicio).format("HH:mm") + 'hs. a ' + moment(data.fin).format("HH:mm") + "hs.";
+//                                appointmentToMail.alta = moment(data.alta).format("DD-MM-YYYY HH:mm") + " hs.";
+//                                appointmentToMail.contenedor = data.contenedor;
+//                                appointmentToMail.buque = data.buque;
+//                                appointmentToMail.viaje = data.viaje;
+//                                appointmentToMail.disponibles_t1 = data.disponibles_t1;
+//                                appointmentToMail.email = data.email;
+//                                appointmentToMail.mov = data.mov;
+//                                appointmentToMail.verifica = (data.verifica !== undefined && data.verifica !== null && data.verifica !== "") ? moment(data.verifica).format("DD-MM-YYYY") : data.verifica;
+//                                appointmentToMail.verifica_turno = data.verifica_turno;
+//                                appointmentToMail.verifica_tipo = data.verifica_tipo;
+                                req.appointment = data;
                                 next(); // en reportClient function se enviará email
                             }
                         }
@@ -395,7 +399,7 @@ module.exports = function (log, io, app) {
     router.get('/:terminal/ships', getDistincts);
 
     app.post('/appointment', isValidToken, addAppointment, reportClient);
-    app.get('/appointments/:container', getByContainer);
+    app.get('/appointments/container/:container', getByContainer);
 
     return router;
 };

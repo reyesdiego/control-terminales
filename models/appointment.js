@@ -33,4 +33,6 @@ appointment.statics.insert = function (appointment, cb) {
     }
 }
 
+appointment.statics
+
 module.exports = mongoose.model('appointments', appointment);

@@ -8,6 +8,9 @@ var mongoose = require('mongoose'),
 appointmentEmailQueue = new mongoose.Schema({
     status: {type: Number, require: true},
     date: {type: Date},
+    terminal: {
+        description: {type: String}
+    },
     appointment: {type: mongoose.Schema.ObjectId, ref: 'appointments'}
 });
 
