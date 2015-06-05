@@ -915,9 +915,10 @@ module.exports = function(log, io, pool, app) {
     }
 
     function _addInvoice(res, postData, usr, callback) {
+        var invoice;
 
         try {
-            var invoice = {
+            invoice = {
                 terminal: usr.terminal,
 
                 nroPtoVenta: postData.nroPtoVenta,
@@ -1448,6 +1449,7 @@ module.exports = function(log, io, pool, app) {
         var paramTerminal = req.params.terminal,
             _price = require('../include/price.js'),
             _rates = new _price.price(paramTerminal),
+            paramTotal,
             Enumerable = require("linq");
 
         _rates.rates(function (err, rates){
@@ -1458,22 +1460,11 @@ module.exports = function(log, io, pool, app) {
                 },
                 fecha='';
 
-            if (req.query.fechaInicio || req.query.fechaFin) {
-                param["fecha.emision"] = {};
-                if (req.query.fechaInicio) {
-                    fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD 00:00:00 Z')).toDate();
-                    param["fecha.emision"]['$gte'] = fecha;
-                }
-                if (req.query.fechaFin) {
-                    fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD 00:00:00 Z')).toDate();
-                    param["fecha.emision"]['$lte'] = fecha;
-                }
-            }
             if (req.query.razonSocial) {
                 param.razon = {$regex:req.query.razonSocial}
             }
 
-            var paramTotal = [
+            paramTotal = [
                 { $match: param },
                 { $project : {'detalle.items.id': 1, 'detalle.contenedor': 1, _id: 0}},
                 { $unwind: '$detalle' },
@@ -1484,6 +1475,18 @@ module.exports = function(log, io, pool, app) {
 
             var inv = Invoice.aggregate(paramTotal);
             inv.exec(function (err, data1){
+                //Solo filtra fecha de este lado, en el aggregate trae todas las tasas a las cargas de contenedor históricas.
+                if (req.query.fechaInicio || req.query.fechaFin) {
+                    param["fecha.emision"] = {};
+                    if (req.query.fechaInicio) {
+                        fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD 00:00:00 Z')).toDate();
+                        param["fecha.emision"]['$gte'] = fecha;
+                    }
+                    if (req.query.fechaFin) {
+                        fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD 00:00:00 Z')).toDate();
+                        param["fecha.emision"]['$lte'] = fecha;
+                    }
+                }
 
                 Invoice.distinct('detalle.contenedor', param, function (err, data2){
 
