@@ -221,23 +221,27 @@ module.exports = function (log, io, app) {
                 subject = util.format("Coordinación %s para %s.", appointmentEmail.contenedor, appointmentEmail.full_name);
                 mailer.send(appointmentEmail.email, subject, html, function (err1) {
                     if (err1) {
-                        log.logger.error('Envío de email a cliente : %s, %s, %j, %s', appointmentEmail.email, appointmentEmail.contenedor, err1, err1);
-                        mailer = new mail.mail(emailConfig);
-                        mailer.send(appointmentEmail.email, subject, html, function (err2) {
-                            if (err2) {
-                                addAppointmentEmailQueue(appointmentEmail, function (err) {
-                                    if (err) {
-                                        log.logger.error('REENVIO - a: %s, No ha sido encolado, no se reenviara nuevamente. %s, %j, %s', appointmentEmail.email, appointmentEmail.contenedor, err2, err2);
-                                    } else {
-                                        log.logger.error('REENVIO - a: %s, se encola en base de datos. - %s, %j, %s', appointmentEmail.email, appointmentEmail.contenedor, err2, err2);
-                                    }
-                                });
-                            } else {
-                                log.logger.info('REENVIO - Confirmación enviada correctamente, %s, se envió mail a %s - %s', appointmentEmail.full_name, appointmentEmail.email, appointmentEmail.contenedor);
-                            }
+                        if (err1.status === 'ERROR' && err1.code === 'AGP-0001') {
+                            log.logger.error('Envío de email a cliente %s, la cuenta no valida. %s, %s', appointmentEmail.email, appointmentEmail.contenedor, err1.data);
                             res.end();
-                        });
-
+                        } else {
+                            log.logger.error('Envío de email a cliente : %s, %s, %j, %s', appointmentEmail.email, appointmentEmail.contenedor, err1, err1);
+                            mailer = new mail.mail(emailConfig);
+                            mailer.send(appointmentEmail.email, subject, html, function (err2) {
+                                if (err2) {
+                                    addAppointmentEmailQueue(appointmentEmail, function (err) {
+                                        if (err) {
+                                            log.logger.error('REENVIO - a: %s, No ha sido encolado, no se reenviara nuevamente. %s, %j, %s', appointmentEmail.email, appointmentEmail.contenedor, err2, err2);
+                                        } else {
+                                            log.logger.error('REENVIO - a: %s, se encola en base de datos. - %s, %j, %s', appointmentEmail.email, appointmentEmail.contenedor, err2, err2);
+                                        }
+                                    });
+                                } else {
+                                    log.logger.info('REENVIO - Confirmación enviada correctamente, %s, se envió mail a %s - %s', appointmentEmail.full_name, appointmentEmail.email, appointmentEmail.contenedor);
+                                }
+                                res.end();
+                            });
+                        }
                     } else {
                         log.logger.info('Confirmación enviada correctamente, %s, se envió mail a %s - %s', appointmentEmail.full_name, appointmentEmail.email, appointmentEmail.contenedor);
                         res.end();

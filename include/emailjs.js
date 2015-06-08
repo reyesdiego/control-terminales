@@ -25,8 +25,6 @@ var mail = function (options) {
         var response = false,
             reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
 
-        email = email.trim();
-
         if (reg.test(email)) {
             response = true;
         }
@@ -37,8 +35,6 @@ var mail = function (options) {
         var reg = /^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/,
             response = false;
 
-        email = email.trim();
-
         if (reg.test(email)) {
             response = true;
         }
@@ -48,8 +44,6 @@ var mail = function (options) {
     this.emailFreeValidate = function (email) {
         var reg = /^([\w-\.]+@(?!gmail.com)(?!yahoo.com)(?!hotmail.com)([\w-]+\.)+[\w-]{2,4})?$/,
             response = false;
-
-        email = email.trim();
 
         if (reg.test(email)) {
             response = true;
@@ -85,9 +79,8 @@ mail.prototype = {
 
         if (typeof to === 'string') {
             to = to.trim();
-
             if (!this.emailSimpleValidate(to)) {
-                return callback({status: "ERROR", data: "La cuenta de email es inválida"});
+                return callback({status: "ERROR", code: "AGP-0001", data: "La cuenta de email es inválida"});
             } else {
                 tos.push(to);
             }
@@ -95,7 +88,7 @@ mail.prototype = {
             to.forEach(function (item) {
                 item = item.trim();
                 if (!self.emailSimpleValidate(item)) {
-                    return callback({status: "ERROR", data: "La cuenta de email es inválida"});
+                    return callback({status: "ERROR", code: "AGP-0001", data: "La cuenta de email es inválida"});
                 }
             });
             tos = to;
@@ -110,11 +103,11 @@ mail.prototype = {
             this.server.send(config, function (err, message) {
                 if (err) {
                     if (typeof callback === 'function') {
-                        return callback(err);
+                        return callback({status: "ERROR", code: "AGP-0002", data: err});
                     }
                 } else {
                     if (typeof callback === 'function') {
-                        return callback(null, message);
+                        return callback(null, {status: "OK", data: message});
                     }
                 }
             });
