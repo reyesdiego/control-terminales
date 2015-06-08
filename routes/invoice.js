@@ -1323,11 +1323,13 @@ module.exports = function(log, io, pool, app) {
             { $sort: { '_id.buque': 1, '_id.viaje': 1} },
             { $project : {buque: '$_id.buque', viaje: '$_id.viaje', fecha: '$_id.fecha', _id:false}}
         ], function (err, data){
+            var Enumerable,
+                resultTer;
             if (err) {
                 res.status(500).json({status: 'ERROR', data: err.message});
             } else {
-                var Enumerable = require('linq');
-                var resultTer = Enumerable.from(data)
+                Enumerable = require('linq');
+                resultTer = Enumerable.from(data)
                     .groupBy("$.buque" , null,
                     function (key, g) {
                         var prop = g.getSource();
@@ -1347,27 +1349,30 @@ module.exports = function(log, io, pool, app) {
                     }).toArray();
 
                 pool.acquire(function(err, connection) {
+                    var strSql;
                     if (err) {
                         console.log(err, "Error acquiring from pool, but returns data from mongo.");
                         res.status(200).send({status: 'OK', data: resultTer});
                     } else {
 
-                        var strSql = "select nombrebuque buque, fechaarribo fecha, count(*) cnt " +
+                        strSql = "select nombrebuque buque, fechaarribo fecha, count(*) cnt " +
                             "	from registro1_sumimpomani " +
                             "	group by nombrebuque, fechaarribo " +
                             "	order by nombrebuque,fechaarribo";
 
                         connection.execute(strSql, [],function (err, dataOra){
+                            var dataOra,
+                                dataQ;
                             if (err){
                                 pool.destroy(connection);
                                 res.send(500, { status:'ERROR', data: err });
                             } else {
                                 pool.release(connection);
 
-                                var dataOra = Enumerable.from(dataOra).select(function (item){
+                                dataOra = Enumerable.from(dataOra).select(function (item){
                                     return { "buque": item.BUQUE, fecha: item.FECHA};
                                 }).toArray();
-                                var dataQ = Enumerable.from(resultTer).groupJoin(dataOra, '$.buque', '$.buque', function (item, g){
+                                dataQ = Enumerable.from(resultTer).groupJoin(dataOra, '$.buque', '$.buque', function (item, g) {
                                     var both = false;
                                     if (g.getSource !==undefined)
                                         both = true;
