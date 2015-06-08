@@ -319,7 +319,8 @@ module.exports = function (log, io, app) {
             fin,
             errMsg,
             strSubject,
-            mailer;
+            mailer,
+            socketMsg;
 
         if (gate2insert.gateTimestamp === undefined || gate2insert.gateTimestamp === null || gate2insert.gateTimestamp === '') {
             res.status(500).send({status: "ERROR", data: "El Gate debe tener una Fecha Hora válida."});
@@ -362,13 +363,8 @@ module.exports = function (log, io, app) {
         }
 
         if (gate2insert) {
-            Gate.insert(gate2insert, function (errSave, data) {
-                if (!errSave) {
-                    log.logger.insert('Gate INS: %s - %s - %s', data._id, usr.terminal, moment(gate2insert.gateTimestamp).format("YYYY-MM-DD hh:mm:ss"));
-                    var socketMsg = {status: 'OK', datetime: dateTime.getDatetime(), terminal: usr.terminal};
-                    io.sockets.emit('gate', socketMsg);
-                    res.status(200).send({status: "OK", data: data});
-                } else {
+            Gate.insert(gate2insert, function (errSave, gateNew) {
+                if (errSave) {
 
                     errMsg = util.format('%s - ERROR: %s.-%s- \n%s', dateTime.getDatetime(), errSave.toString(), usr.terminal, JSON.stringify(req.body));
                     log.logger.error(errMsg);
@@ -378,6 +374,14 @@ module.exports = function (log, io, app) {
                     mailer.send(usr.email, strSubject, errMsg);
 
                     res.status(500).send({status: "ERROR", data: errMsg});
+                } else {
+                    log.logger.insert('Gate INS: %s - %s - %s', gateNew._id, usr.terminal, moment(gateNew.gateTimestamp).format("YYYY-MM-DD hh:mm:ss"));
+                    socketMsg = {
+                        status: 'OK',
+                        data: gateNew
+                    };
+                    io.sockets.emit('gate', socketMsg);
+                    res.status(200).send(socketMsg);
                 }
             });
         }

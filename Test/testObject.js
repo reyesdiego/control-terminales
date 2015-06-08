@@ -10,7 +10,15 @@
 //console.log(persona.getName());
 
 
+    var os = require('os');
+console.log(os.cpus());
+console.log(os.platform());
+console.log(os.type());
+console.log(os.hostname());
+console.log(os.release());
+console.log(os.networkInterfaces());
 
+/*
 var container = require("./include/container.js");
 
 // constructor call
@@ -19,3 +27,4 @@ console.log(object);
 console.log(object.number);
 //console.log(object.check());
 console.log(object.isValid);
+*/

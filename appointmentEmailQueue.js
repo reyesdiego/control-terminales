@@ -52,12 +52,14 @@ function iterator(item, callback) {
 
 function done() {
     console.log("El proceso finalizo correctamente.");
+    console.log("----------------------------------");
     process.exit(code=1);
 }
 
 var appointmentQueue = AppointmentQueue.find();
 appointmentQueue.populate({path: 'appointment'});
 
+console.log("Proceso de reenvío de Emails. -> %s", new Date());
 appointmentQueue.exec(function (err, data) {
     'use strict';
     if (err) {

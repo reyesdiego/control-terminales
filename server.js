@@ -3,7 +3,7 @@
  */
 var	config = require('./config/config.js'),
 	dateTime = require('./include/moment'),
-	express		=	require('express'),
+    express = require('express'),
 	fs			=	require('fs'),
 	LocalStrategy =	require('passport-local').Strategy,
 	log4n		=	require('./include/log/log4node.js'),
@@ -16,6 +16,7 @@ var	config = require('./config/config.js'),
 
 var server, port, protocol;
 var app = express();
+
 
 var logOptions = {
 	path: config.log.path,
