@@ -5,10 +5,12 @@ var email = require("emailjs");
 
 var mail = function (options) {
     'use strict';
+    var conf;
+
     this.status = options.status;
     this.throughBcc = options.throughBcc;
 
-    var conf = {
+    conf = {
         user: options.user,
         password: options.password,
         host: options.host,
@@ -16,11 +18,15 @@ var mail = function (options) {
         domain: options.domain,
         ssl: options.ssl
     };
+
     this.server = email.server.connect(conf);
 
     this.emailSimpleValidate = function (email) {
         var response = false,
             reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+
+        email = email.trim();
+
         if (reg.test(email)) {
             response = true;
         }
@@ -30,6 +36,9 @@ var mail = function (options) {
     this.emailCaseSensitiveValidate = function (email) {
         var reg = /^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/,
             response = false;
+
+        email = email.trim();
+
         if (reg.test(email)) {
             response = true;
         }
@@ -39,6 +48,9 @@ var mail = function (options) {
     this.emailFreeValidate = function (email) {
         var reg = /^([\w-\.]+@(?!gmail.com)(?!yahoo.com)(?!hotmail.com)([\w-]+\.)+[\w-]{2,4})?$/,
             response = false;
+
+        email = email.trim();
+
         if (reg.test(email)) {
             response = true;
         }
@@ -72,6 +84,8 @@ mail.prototype = {
         }
 
         if (typeof to === 'string') {
+            to = to.trim();
+
             if (!this.emailSimpleValidate(to)) {
                 return callback({status: "ERROR", data: "La cuenta de email es inválida"});
             } else {
@@ -79,6 +93,7 @@ mail.prototype = {
             }
         } else if (typeof to === 'object') {
             to.forEach(function (item) {
+                item = item.trim();
                 if (!self.emailSimpleValidate(item)) {
                     return callback({status: "ERROR", data: "La cuenta de email es inválida"});
                 }
