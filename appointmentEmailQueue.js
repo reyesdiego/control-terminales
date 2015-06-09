@@ -9,8 +9,10 @@ var mongoose = require('mongoose'),
     moment = require('moment'),
     jade = require('jade');
 
-var Appointment = require('./models/appointment.js');
-var AppointmentQueue = require('./models/appointmentEmailQueue.js');
+var Appointment = require('./models/appointment.js'),
+	AppointmentQueue = require('./models/appointmentEmailQueue.js');
+
+var interval = 5 * 60 * 1000; // 5 minutos
 
 mongoose.connect(config.mongo_url, config.mongo_opts);
 
@@ -53,19 +55,24 @@ function iterator(item, callback) {
 function done() {
     console.log("El proceso finalizo correctamente.");
     console.log("----------------------------------");
-    process.exit(code=1);
+//    process.exit(code=1);
 }
 
-var appointmentQueue = AppointmentQueue.find();
-appointmentQueue.populate({path: 'appointment'});
+function job() {
+	var appointmentQueue = AppointmentQueue.find();
+	appointmentQueue.populate({path: 'appointment'});
 
-console.log("Proceso de reenvío de Emails. -> %s", new Date());
-appointmentQueue.exec(function (err, data) {
-    'use strict';
-    if (err) {
-        console.log("Ha ocurrido un error consultando AppointmentEmailQueue. %s", err.message);
-        process.exit();
-    } else {
-        async.each(data, iterator, done);
-    }
-});
+	console.log("Proceso de reenvío de Emails. -> %s", new Date());
+	appointmentQueue.exec(function (err, data) {
+		'use strict';
+		if (err) {
+			console.log("Ha ocurrido un error consultando AppointmentEmailQueue. %s", err.message);
+			process.exit();
+		} else {
+			async.each(data, iterator, done);
+		}
+	});
+}
+
+
+setInterval(job, interval);
