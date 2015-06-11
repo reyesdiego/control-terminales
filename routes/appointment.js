@@ -8,6 +8,7 @@ module.exports = function (log, io, app) {
     var express = require('express'),
         router = express.Router(),
         moment = require('moment'),
+        Account = require('../models/account'),
         Appointment = require('../models/appointment.js'),
         AppointmentEmailQueue = require('../models/appointmentEmailQueue.js'),
         util = require('util'),
@@ -336,8 +337,11 @@ module.exports = function (log, io, app) {
                     res.status(500).send({status: 'ERROR', data: err.message});
                 } else {
                     if (data.length === 1) {
-                        res.render('comprobanteTurno.jade', data[0], function (err, html) {
-                            res.status(200).send(html);
+                        Account.findOne({terminal: data[0].terminal}, function (err, account) {
+                            data[0].full_name = account.full_name;
+                            res.render('comprobanteTurno.jade', data[0], function (err, html) {
+                                res.status(200).send(html);
+                            });
                         });
                     } else {
                         res.status(200).send({status: 'OK', data: data});
