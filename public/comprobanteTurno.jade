@@ -2,63 +2,63 @@ doctype html
 html(lang='es')
     head
         title Servicio Terminales Portuarias
-    body(style="font-family: 'Open Sans',sans-serif; font-size: 12px, background-color:white")
+    body(style="font-family: 'Open Sans',sans-serif; font-size: 12px; background-color:white !important")
         - var fecha = moment(inicio).format("DD-MM-YYYY")
         - var horario = moment(inicio).format("HH:mm") + 'hs. a ' + moment(fin).format("HH:mm") + "hs.";
         - var alta = moment(alta).format("DD-MM-YYYY HH:mm") + " hs.";
         - verifica = (verifica !== undefined && verifica !== null && verifica !== "") ? moment(verifica).format("DD-MM-YYYY") : verifica;
-    table
-            tr
-                td
-                    img(src="http://terminales.puertobuenosaires.gob.ar/images/logo.png")
-                td
-                    h1(style="font-family: inherit; font-weight: 400; font-size: 30px; line-height: 1.1; color: #0099d7;") &nbsp;Comprobante de Coordinación
-        p Solicitud generada en&nbsp;
-            b #{full_name}
-            | &nbsp;el día
-            b &nbsp;#{alta}
-            |. Se contaba con&nbsp;
-            b #{disponibles_t1}
-            | &nbsp;turnos disponibles dentro del período de la Tarifa 1.
-        table(cellpadding="4" style="font-size:16px;font-weight:bolder; cell-padding:5px")
-            tr
-                td(style="text-align:right; background-color:#C8C8C8") Terminal:
-                td(style="border:1px solid #C8C8C8") #{full_name}
-            tr
-                td(style="text-align:right; background-color:#C8C8C8") Fecha:
-                td(style="border:1px solid #C8C8C8") #{fecha}
-            tr
-                td(style="text-align:right; background-color:#C8C8C8") Horario:
-                td(style="border:1px solid #C8C8C8") #{horario}
-            tr
-                td(style="text-align:right; background-color:#C8C8C8") Contenedor:
-                td(style="border:1px solid #C8C8C8") #{contenedor}
-            tr
-                td(style="text-align:right; background-color:#C8C8C8") Buque:
-                td(style="border:1px solid #C8C8C8") #{buque}
-            tr
-                td(style="text-align:right; background-color:#C8C8C8") Viaje:
-                td(style="border:1px solid #C8C8C8") #{viaje}
-            tr
-                td(style="text-align:right; background-color:#C8C8C8") Movimiento:
-                if mov == "IMPO"
-                    td(style="border:1px solid #C8C8C8")  Importación
-                if mov == "EXPO"
-                    td(style="border:1px solid #C8C8C8")  Exportación
-            if verifica != "" && verifica != null
+        table
+                tr(style="background-color: white !important;")
+                    td
+                        img(src="http://terminales.puertobuenosaires.gob.ar/images/logo.png")
+                    td
+                        h1(style="font-family: inherit; font-weight: 400; font-size: 30px; line-height: 1.1; background-color:white !important; color: #0099d7;") &nbsp;Comprobante de Coordinación
+            p(style="text-align: left") Solicitud generada en&nbsp;
+                b #{full_name}
+                | &nbsp;el día
+                b &nbsp;#{alta}
+                |. Se contaba con&nbsp;
+                b #{disponibles_t1}
+                | &nbsp;turnos disponibles dentro del período de la Tarifa 1.
+            table(style="background-color: #ffffff; border-collapse: separate; border-spacing: 2px !important; border-color: gray !important; font-size: 16px; font-weight:bolder; color: #000000")
                 tr
-                    td(style="text-align:right; background-color:#C8C8C8") Verificación:
-                    td(style="border:1px solid #C8C8C8")
-                        span #{verifica}
-                        if verifica_turno == "MA"
-                            | &nbsp;MAÑANA
-                        if verifica_turno == "TA"
-                            | &nbsp;TARDE
+                    td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Terminal:
+                    td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{full_name}
                 tr
-                    td(style="text-align:right; background-color:#C8C8C8") Tipo:
-                    if verifica_tipo == "PISO"
-                        td(style="border:1px solid #C8C8C8") PISO
-                    if verifica_tipo == "CAMION"
-                        td(style="border:1px solid #C8C8C8") CAMIÓN
-        p
-        p Administración General de Puertos pone en conocimiento que el Turno solicitado ha sido generado correctamente. Este comprobante deberá ser presentado ante cualquier reclamo.
+                    td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Fecha:
+                    td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{fecha}
+                tr
+                    td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Horario:
+                    td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{horario}
+                tr
+                    td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Contenedor:
+                    td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{contenedor}
+                tr
+                    td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Buque:
+                    td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{buque}
+                tr
+                    td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Viaje:
+                    td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{viaje}
+                tr
+                    td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Movimiento:
+                    if mov == "IMPO"
+                        td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left")  Importación
+                    if mov == "EXPO"
+                        td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left")  Exportación
+                if verifica != "" && verifica != null
+                    tr
+                        td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Verificación:
+                        td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left")
+                            span #{verifica}
+                            if verifica_turno == "MA"
+                                | &nbsp;MAÑANA
+                            if verifica_turno == "TA"
+                                | &nbsp;TARDE
+                    tr
+                        td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Tipo:
+                        if verifica_tipo == "PISO"
+                            td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") PISO
+                        if verifica_tipo == "CAMION"
+                            td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") CAMIÓN
+            p
+            p(style="text-align: left") Administración General de Puertos pone en conocimiento que el Turno solicitado ha sido generado correctamente. Este comprobante deberá ser presentado ante cualquier reclamo.
