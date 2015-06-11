@@ -27,7 +27,7 @@ function iterator(item, callback) {
     appointment.moment = require('moment');
 
     html = jade.renderFile('./public/comprobanteTurno.jade', appointment);
-    mailer = new mail.mail(config.email);
+    mailer = new mail.mail(config.emailTurnos);
     html = {
         data : html,
         alternative: true
@@ -43,7 +43,9 @@ function iterator(item, callback) {
         } else {
             console.log('REENVIO - Confirmación enviada correctamente, %s, se envió mail a %s - %s', appointment.full_name, appointment.email, appointment.contenedor);
             AppointmentQueue.remove({_id: item._id}, function (err) {
-                callback();
+                Appointment.update({_id: appointment._id}, {$set: {emailStatus: true}}, function (err, data) {
+                    callback();
+                });
             });
         }
     });
