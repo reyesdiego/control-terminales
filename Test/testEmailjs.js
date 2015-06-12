@@ -32,7 +32,7 @@ email.server.send(
 var mail = require("../include/emailjs");
 
 var options = {
-	user:    "noreply",
+	user:    "turnos",
 	password: "desarrollo",
 	host:    "10.10.0.170",
 	port: "25",
@@ -66,17 +66,11 @@ var html = {
 //});
 
 mailer.send('reyesdiego@hotmail.com', 'jola', 'Primero', function (err, messageBack) {
-	if (err) {
-		console.log(err);
-		mailer = new mail.mail(options);
-		mailer.send('reyesdiego@hotmail.com', 'jola', 'Primero', function (err2, messageBack2) {
-			if (err2) {
-				console.log(err2);
-			}
-		});
-
-	} else {
-		console.log(messageBack);
-	}
+    'use strict';
+    if (err) {
+        console.log(err);
+    } else {
+        console.log(messageBack);
+    }
 });
 
