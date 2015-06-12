@@ -7,23 +7,29 @@ module.exports = function (log, pool) {
 
     var express = require('express'),
         router = express.Router(),
-        util = require("util");
+        util = require("util"),
+        oracledb = require('oracledb');
 
     function getRegistro1_sumimpomani(req, res) {
 
-        pool.acquire(function (err, connection) {
+        pool.getConnection(function (err, connection) {
+            var strWhere = '',
+                skip,
+                limit,
+                strSql,
+                oracleUtils,
+                orderBy;
+
             if (err) {
                 console.log(err, "Error acquiring from pool.");
                 res.status(500).json({ status: 'ERROR', data: err });
             } else {
-                var oracleUtils = require('../../include/oracle.js');
+                oracleUtils = require('../../include/oracle.js');
                 oracleUtils = new oracleUtils();
-                var orderBy = oracleUtils.orderBy(req.query.order);
+                orderBy = oracleUtils.orderBy(req.query.order);
 
-
-                var strWhere = '',
-                    skip = parseInt(req.params.skip, 10),
-                    limit = parseInt(req.params.limit, 10),
+                    skip = parseInt(req.params.skip, 10);
+                    limit = parseInt(req.params.limit, 10);
                     strSql = "SELECT * FROM " +
                             " (SELECT " +
                             "   ID, " +
@@ -82,9 +88,15 @@ module.exports = function (log, pool) {
                 strWhere = strWhere.substr(0, strWhere.length - 4);
                 strSql = util.format(strSql, strWhere);
 
-                connection.execute(strSql, [skip + 1, skip + limit], function (err, data) {
+                connection.execute(strSql, [skip + 1, skip + limit], {outFormat: oracledb.OBJECT}, function (err, data) {
                     if (err) {
-                        pool.destroy(connection);
+                        connection.release(
+                            function (err) {
+                                if (err) {
+                                    console.error(err.message);
+                                }
+                            }
+                        );
                         res.status(500).json({ status: 'ERROR', data: err.message });
                     } else {
                         strSql = "SELECT COUNT(*) AS TOTAL FROM REGISTRO1_SUMIMPOMANI ";
@@ -92,21 +104,34 @@ module.exports = function (log, pool) {
                             strSql += util.format(" %s", strWhere);
                         }
 
-                        connection.execute(strSql, [], function (err, dataCount) {
+                        connection.execute(strSql, [], {outFormat: oracledb.OBJECT}, function (err, dataCount) {
+                            var total,
+                                result;
                             if (err) {
-                                pool.destroy(connection);
+                                connection.release(
+                                    function (err) {
+                                        if (err) {
+                                            console.error(err.message);
+                                        }
+                                    }
+                                );
                                 res.status(500).json({ status: 'ERROR', data: err.message });
                             } else {
-                                pool.release(connection);
-
-                                var total = dataCount[0].TOTAL,
-                                    result = {
-                                        status: 'OK',
-                                        totalCount : total,
-                                        page: skip,
-                                        pageCount : (limit > total) ? total : limit,
-                                        data: data
-                                    };
+                                connection.release(
+                                    function (err) {
+                                        if (err) {
+                                            console.error(err.message);
+                                        }
+                                    }
+                                );
+                                total = dataCount.rows[0].TOTAL;
+                                result = {
+                                    status: 'OK',
+                                    totalCount: total,
+                                    page: skip,
+                                    pageCount: (limit > total) ? total : limit,
+                                    data: data.rows
+                                };
                                 res.status(200).json(result);
                             }
                         });
@@ -125,7 +150,7 @@ module.exports = function (log, pool) {
             distinct = 'NOMBREBUQUE';
         }
 
-        pool.acquire(function (err, connection) {
+        pool.getConnection(function (err, connection) {
             var strSql = '';
             if (err) {
                 console.log(err, "Error acquiring from pool.");
@@ -134,13 +159,25 @@ module.exports = function (log, pool) {
                 strSql = util.format("SELECT DISTINCT %s as D FROM REGISTRO1_SUMIMPOMANI ORDER BY %s", distinct, distinct);
             }
 
-            connection.execute(strSql, [], function (err, data) {
+            connection.execute(strSql, [], {outFormat: oracledb.OBJECT}, function (err, data) {
                 if (err) {
-                    pool.destroy(connection);
+                    connection.release(
+                        function (err) {
+                            if (err) {
+                                console.error(err.message);
+                            }
+                        }
+                    );
                     res.status(500).send({ status: 'ERROR', data: err.message });
                 } else {
-                    pool.release(connection);
-                    var result = {status: 'OK', totalCount: data.length, data: data};
+                    connection.release(
+                        function (err) {
+                            if (err) {
+                                console.error(err.message);
+                            }
+                        }
+                    );
+                    var result = {status: 'OK', totalCount: data.rows.length, data: data.rows};
                     res.status(200).json(result);
                 }
             });
@@ -151,17 +188,24 @@ module.exports = function (log, pool) {
 
     function getByContenedor(req, res) {
         pool.acquire(function (err, connection) {
+            var strSql;
             if (err) {
                 console.log(err, "Error acquiring from pool.");
                 res.status(500).json({ status: 'ERROR', data: err });
             } else {
-                var strSql = "select sumaria, conocimiento " +
+                strSql = "select sumaria, conocimiento " +
                     "   from registro4_sumimpomani " +
                     "   where contenedor = :1";
 
                 connection.execute(strSql, [req.params.contenedor], function (err, dataSum) {
                     if (err) {
-                        pool.destroy(connection);
+                        connection.release(
+                            function (err) {
+                                if (err) {
+                                    console.error(err.message);
+                                }
+                            }
+                        );
                         res.status(500).send({ status: 'ERROR', data: err.message });
                     } else {
                         strSql = 'SELECT r1.SUMARIA, ' +
@@ -180,11 +224,17 @@ module.exports = function (log, pool) {
 
                         var result;
                         if (dataSum.length > 0) {
-                            connection.execute(strSql, [dataSum[0].CONOCIMIENTO], function (err, data) {
-                                pool.release(connection);
+                            connection.execute(strSql, [dataSum[0].CONOCIMIENTO], {outFormat: oracledb.OBJECT}, function (err, data) {
+                                connection.release(
+                                    function (err) {
+                                        if (err) {
+                                            console.error(err.message);
+                                        }
+                                    }
+                                );
                                 result = {
                                     status: 'OK',
-                                    data: data
+                                    data: data.rows
                                 };
                                 res.status(200).json(result);
                             });
@@ -202,7 +252,7 @@ module.exports = function (log, pool) {
     }
 
     function getShipsTrips(req, res) {
-        pool.acquire(function (err, connection) {
+        pool.getConnection(function (err, connection) {
             if (err) {
                 console.log(err, "Error acquiring from pool.");
                 res.status(500).json({ status: 'ERROR', data: err });
@@ -212,15 +262,26 @@ module.exports = function (log, pool) {
                             "    group by nombrebuque, fechaarribo " +
                             "    order by nombrebuque,fechaarribo";
 
-                connection.execute(strSql, [], function (err, data) {
+                connection.execute(strSql, [], {outFormat: oracledb.OBJECT}, function (err, data) {
                     if (err) {
-                        pool.destroy(connection);
+                        connection.release(
+                            function (err) {
+                                if (err) {
+                                    console.error(err.message);
+                                }
+                            }
+                        );
                         res.status(500).send({ status: 'ERROR', data: err });
                     } else {
-                        pool.release(connection);
-
+                        connection.release(
+                            function (err) {
+                                if (err) {
+                                    console.error(err.message);
+                                }
+                            }
+                        );
                         var Enumerate = require("linq"),
-                            dataQ = Enumerate.from(data),
+                            dataQ = Enumerate.from(data.rows),
                             result = dataQ.select(function (item) {
                                 return { "buque": item.BUQUE, fecha: item.FECHA};
                             }).toArray();
