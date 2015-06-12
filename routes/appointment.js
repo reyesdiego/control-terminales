@@ -325,11 +325,18 @@ module.exports = function (log, io, app) {
         var param = {},
             appointments;
 
-        if (req.query.email === undefined || req.query.email === '') {
-            res.status(403).send({status: 'ERROR', data: 'Debe proveer el dato del email para obtener el/los turnos.'});
+        if ( (req.query.email === undefined || req.query.email === '') && req.query._id === undefined) {
+            res.status(400).send({status: 'ERROR', data: 'Debe proveer el dato del email para obtener el/los turnos.'});
         } else {
             param.contenedor = req.params.container;
-            param.email = req.query.email;
+
+            if (req.query.email) {
+                param.email = req.query.email;
+            }
+
+            if (req.query._id) {
+                param._id = req.query._id;
+            }
 
             appointments = Appointment.find(param);
             appointments.exec(function (err, data) {
