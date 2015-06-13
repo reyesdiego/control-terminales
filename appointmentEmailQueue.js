@@ -10,7 +10,7 @@ var mongoose = require('mongoose'),
     jade = require('jade');
 
 var Appointment = require('./models/appointment.js'),
-	AppointmentQueue = require('./models/appointmentEmailQueue.js');
+    AppointmentQueue = require('./models/appointmentEmailQueue.js');
 
 var interval = 5 * 60 * 1000; // 5 minutos
 
@@ -29,7 +29,7 @@ function iterator(item, callback) {
     appointment.moment = require('moment');
 
     html = jade.renderFile('./public/comprobanteTurno.jade', appointment);
-    mailer = new mail.mail(config.email);
+    mailer = new mail.mail(config.emailTurnos);
     html = {
         data : html,
         alternative: true
@@ -45,7 +45,9 @@ function iterator(item, callback) {
         } else {
             console.log('REENVIO - Confirmación enviada correctamente, %s, se envió mail a %s - %s', appointment.full_name, appointment.email, appointment.contenedor);
             AppointmentQueue.remove({_id: item._id}, function (err) {
-                callback();
+                Appointment.update({_id: appointment._id}, {$set: {emailStatus: true}}, function (err, data) {
+                    callback();
+                });
             });
         }
     });
@@ -59,20 +61,19 @@ function done() {
 }
 
 function job() {
-	var appointmentQueue = AppointmentQueue.find();
-	appointmentQueue.populate({path: 'appointment'});
+    'use strict';
+    var appointmentQueue = AppointmentQueue.find();
+    appointmentQueue.populate({path: 'appointment'});
 
-	console.log("Proceso de reenvío de Emails. -> %s", new Date());
-	appointmentQueue.exec(function (err, data) {
-		'use strict';
-		if (err) {
-			console.log("Ha ocurrido un error consultando AppointmentEmailQueue. %s", err.message);
-			process.exit();
-		} else {
-			async.each(data, iterator, done);
-		}
-	});
+    console.log("Proceso de reenvío de Emails. -> %s", new Date());
+    appointmentQueue.exec(function (err, data) {
+        if (err) {
+            console.log("Ha ocurrido un error consultando AppointmentEmailQueue. %s", err.message);
+            process.exit();
+        } else {
+            async.each(data, iterator, done);
+        }
+    });
 }
-
 
 setInterval(job, interval);

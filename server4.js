@@ -77,6 +77,7 @@ var pool = genericPool.Pool({
                     password: config.oracle.password
                 };
             new oracle.connect(settings, function (err, connection) {
+                console.log('paso por aca');
                 callback(err, connection);
             });
         },
@@ -128,7 +129,29 @@ server.listen(app.get('port'), function () {
 });
 
 require('./routes/accounts')(app, null, log);
-require('./routes/routesLoader')(app, log, io, mongoose, pool);
+
+var oracledb = require('oracledb');
+oracledb.createPool(
+    {
+        user          : "HR",
+        password      : "oracle_4U",
+        connectString : "(DESCRIPTION = " +
+            "(ADDRESS = (PROTOCOL = TCP)(HOST = 10.10.0.226)(PORT = 1521)) " +
+            "(CONNECT_DATA = " +
+            "        (SID = ORCL) " +
+            ") " +
+            ")",
+        poolMax       : 44,
+        poolMin       : 2,
+        poolIncrement : 5,
+        poolTimeout   : 4
+    },
+    function (err, pool) {
+        'use strict';
+        require('./routes/oracle/routes')(app, log, io, pool);
+        require('./routes/routesLoader')(app, log, io, mongoose, pool);
+    }
+);
 
 
 // If the Node process ends, close the Mongoose connection
@@ -155,3 +178,37 @@ process.on('uncaughtException', function (err) {
 
 
 app.locals.moment = require('moment');
+
+
+app.get('/mail/:user', function (req, res) {
+    'use strict';
+    var mail = require("./include/emailjs");
+
+    var options = {
+        user:    req.params.user,
+        password: "desarrollo",
+        host:    "10.10.0.170",
+        port: "25",
+        domain: "puertobuenosaires.gob.ar",
+        ssl:     false,
+        status: true,
+        throughBcc: false
+    }
+
+    var mailer = new mail.mail(options);
+    var html = {
+        data : "<html><body><p>Ud. a solicitado un usario para ingresar a la página de Control de Información de Terminales portuarias. Para activar el mismo deberá hacer click al siguiente link http://terminales.puertobuenosaires.gob.ar:8080/unitTypes?key=TEST</p></body></html>",
+        alternative: true
+    };
+
+    mailer.send('reyesdiego@hotmail.com', 'Hola', 'Primero', function (err, messageBack) {
+        if (err) {
+            console.log(err);
+            res.status(500).send(err);
+        } else {
+            console.log(messageBack);
+            res.status(200).send(messageBack);
+        }
+    });
+
+});

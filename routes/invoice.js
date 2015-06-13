@@ -18,7 +18,8 @@ module.exports = function(log, io, pool, app) {
         MatchPrice = require('../models/matchPrice.js'),
         Comment = require('../models/comment.js'),
         Enumerable = require('linq'),
-        logInvoiceBody = false;
+        logInvoiceBody = false,
+        oracledb = require('oracledb');
 
     //GET - Return all invoice in the DB
     function getInvoices(req, res) {
@@ -1348,7 +1349,7 @@ module.exports = function(log, io, pool, app) {
                         return (ter);
                     }).toArray();
 
-                pool.acquire(function(err, connection) {
+                pool.getConnection(function(err, connection) {
                     var strSql;
                     if (err) {
                         console.log(err, "Error acquiring from pool, but returns data from mongo.");
@@ -1360,9 +1361,8 @@ module.exports = function(log, io, pool, app) {
                             "	group by nombrebuque, fechaarribo " +
                             "	order by nombrebuque,fechaarribo";
 
-                        connection.execute(strSql, [],function (err, dataOra){
-                            var dataOra,
-                                dataQ;
+                        connection.execute(strSql, [], {outFormat: oracledb.OBJECT},function (err, dataOra){
+                            var dataQ;
                             if (err){
                                 pool.destroy(connection);
                                 res.send(500, { status:'ERROR', data: err });

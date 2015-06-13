@@ -16,12 +16,22 @@ module.exports = {
     'ttl': 3600000, //1 hour
     'resetTokenExpiresMinutes': 20, //20 minutes later
     'url': "http://10.10.0.223:8080",
+    'emailTurnos': {
+        user:    "noreply",
+        password: "desarrollo",
+        host:    "10.10.0.170",
+        port: "25",
+        domain: "puertobuenosaires.gob.ar",
+        ssl:     false,
+        status: true,
+        throughBcc: true
+    },
     'email': {
         user:    "noreply",
         password: "desarrollo",
         host:    "10.10.0.170",
         port: "25",
-        domain: "puertobuenosaires.gov.ar",
+        domain: "puertobuenosaires.gob.ar",
         ssl:     false,
         status: true,
         throughBcc: true

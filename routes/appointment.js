@@ -8,6 +8,7 @@ module.exports = function (log, io, app) {
     var express = require('express'),
         router = express.Router(),
         moment = require('moment'),
+        Account = require('../models/account'),
         Appointment = require('../models/appointment.js'),
         AppointmentEmailQueue = require('../models/appointmentEmailQueue.js'),
         util = require('util'),
@@ -214,13 +215,14 @@ module.exports = function (log, io, app) {
 
             if (appointmentEmail.email !== undefined && appointmentEmail.email !== '' && appointmentEmail.email !== null) {
                 //Successfully appointment inserted
-                emailConfig = Object.create(config.email);
+                emailConfig = Object.create(config.emailTurnos);
                 emailConfig.throughBcc = false;
 
                 mailer = new mail.mail(emailConfig);
                 subject = util.format("Coordinación %s para %s.", appointmentEmail.contenedor, appointmentEmail.full_name);
                 mailer.send(appointmentEmail.email, subject, html, function (err1) {
                     if (err1) {
+
                         if (err1.status === 'ERROR' && err1.code === 'AGP-0001') {
                             log.logger.error('Envío de email a cliente %s, la cuenta no valida. %s, %s', appointmentEmail.email, appointmentEmail.contenedor, err1.data);
                             res.end();
@@ -238,13 +240,19 @@ module.exports = function (log, io, app) {
                                     });
                                 } else {
                                     log.logger.info('REENVIO - Confirmación enviada correctamente, %s, se envió mail a %s - %s', appointmentEmail.full_name, appointmentEmail.email, appointmentEmail.contenedor);
+                                    Appointment.update({_id: appointmentEmail._id}, {$set: {emailStatus: true}}, function (err, data) {
+                                        res.end();
+                                    });
                                 }
                                 res.end();
                             });
                         }
                     } else {
-                        log.logger.info('Confirmación enviada correctamente, %s, se envió mail a %s - %s', appointmentEmail.full_name, appointmentEmail.email, appointmentEmail.contenedor);
-                        res.end();
+
+                        log.logger.info('Confirmación enviada correctamente, %s, se envió mail a %s - %s - %s', appointmentEmail.full_name, appointmentEmail.email, appointmentEmail.contenedor, appointmentEmail._id.toString());
+                        Appointment.update({_id: appointmentEmail._id}, {$set: {emailStatus: true}}, function (err, data) {
+                            res.end();
+                        });
                     }
                 });
             }
@@ -317,18 +325,35 @@ module.exports = function (log, io, app) {
         var param = {},
             appointments;
 
-        if (req.query.email === undefined || req.query.email === '') {
-            res.status(403).send({status: 'ERROR', data: 'Debe proveer el dato del email para obtener el/los turnos.'});
+        if ( (req.query.email === undefined || req.query.email === '') && req.query._id === undefined) {
+            res.status(400).send({status: 'ERROR', data: 'Debe proveer el dato del email para obtener el/los turnos.'});
         } else {
             param.contenedor = req.params.container;
-            param.email = req.query.email;
+
+            if (req.query.email) {
+                param.email = req.query.email;
+            }
+
+            if (req.query._id) {
+                param._id = req.query._id;
+            }
 
             appointments = Appointment.find(param);
             appointments.exec(function (err, data) {
                 if (err) {
                     res.status(500).send({status: 'ERROR', data: err.message});
                 } else {
-                    res.status(200).send({status: 'OK', data: data});
+                    if (data.length === 1) {
+                        Account.findOne({terminal: data[0].terminal}, function (err, account) {
+                            data[0].full_name = account.full_name;
+                            res.render('comprobanteTurno.jade', data[0], function (err, html) {
+                                res.status(200).send(html);
+                            });
+                        });
+                    } else {
+                        res.status(200).send({status: 'OK', data: data});
+                    }
+
                 }
             });
         }
@@ -392,9 +417,9 @@ module.exports = function (log, io, app) {
     router.get('/:terminal/:skip/:limit', getAppointments);
     router.get('/:terminal/containers', getDistincts);
     router.get('/:terminal/ships', getDistincts);
+    router.get('/container/:container', getByContainer);
 
     app.post('/appointment', isValidToken, addAppointment, reportClient);
-    app.get('/appointments/container/:container', getByContainer);
 
     return router;
 };

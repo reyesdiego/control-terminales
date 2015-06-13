@@ -2,167 +2,185 @@
  * Created by diego on 11/19/14.
  */
 
-module.exports = function (log, pool){
-	'use strict'
+module.exports = function (log, pool) {
+    'use strict';
 
-	var express = require('express');
-	var router = express.Router();
+    var express = require('express'),
+        router = express.Router(),
+        util = require("util"),
+        oracledb = require('oracledb');
 
-	var util = require("util");
+    function getRegistro1Afectacion(req, res) {
 
-	function getRegistro1Afectacion( req, res){
+        var oracleUtils = require('../../include/oracle.js');
 
-		pool.acquire(function(err, connection) {
-			if (err) {
-				console.log(err, "Error acquiring from pool.");
-				res.status(500).json({ status:'ERROR', data: err });
-			} else {
-				var oracleUtils = require('../../include/oracle.js')
-				oracleUtils = new oracleUtils();
-				var orderBy = oracleUtils.orderBy(req.query.order);
+        oracleUtils = new oracleUtils();
 
-				var strWhere = '';
-				var skip = parseInt(req.params.skip, 10);
-				var limit = parseInt(req.params.limit, 10);
+        pool.getConnection(function (err, connection) {
 
-				var strSql = "SELECT * FROM " +
-					" (SELECT " +
-					"		ID, " +
-					"		TIPOREGISTRO, " +
-					"		AFECTACION, " +
-					"		AFE_ANIO, " +
-					"		AFE_ADUANA, " +
-					"		AFE_TIPO, " +
-					"		AFE_NRO, " +
-					"		AFE_LETRA_CTRL, " +
-					"		CUITATA, " +
-					"		NOMBREATA, " +
-					"		ESTADO, " +
-					"		PROCESO, " +
-					"		FECHA_REGISTRO, " +
-					"		CUITIMPO, " +
-					"		ADUANA_LLEGADA_SALIDA, " +
-					"		PAISDESTINO, " +
-					"		DIASPLAZOTRANSPORTE, " +
-					"		TRANSPORTISTA, " +
-					"		PAISTRANSPORTISTA, " +
-					"		MOTIVOAFECTACION, " +
-					"		IDENTIFICADORMOTIVOMICDTA, " +
-					"		SUMARIA, " +
-					"		SUM_ANIO, " +
-					"		SUM_ADUANA, " +
-					"		SUM_TIPO, " +
-					"		SUM_NRO, " +
-					"		SUM_LETRA_CTRL, " +
-					"		MEDIOTRANSPORTEINTERNO, " +
-					"		NACMEDIOTRANSPINTERNO, " +
-					"		MATRICULAMEDIOTRANSPINTERNO, " +
-					"		LUGAROPERATIVO, " +
-					"		LUGARDEGIRO, " +
-					"		NOMBREBUQUE, " +
-					"		COMENTARIO, " +
-					"		REGISTRADO_POR, " +
-					"		REGISTRADO_EN, " +
-					"		ROW_NUMBER() OVER (ORDER BY " + orderBy + ") R " +
-					"	FROM V_REGISTRO1_AFECTACION %s ) " +
-					"WHERE R BETWEEN :1 and :2";
+            var strWhere = '',
+                skip = parseInt(req.params.skip, 10),
+                limit = parseInt(req.params.limit, 10),
+                orderBy,
+                strSql;
 
-				if (req.query.buqueNombre || req.query.fechaInicio || req.query.fechaFin || req.query.sumaria || req.query.afectacion)
-					strWhere += " WHERE ";
+            if (err) {
+                console.log(err, "Error acquiring from pool.");
+                res.status(500).json({ status: 'ERROR', data: err });
+            } else {
 
-				if (req.query.buqueNombre)
-					strWhere += util.format(" NOMBREBUQUE = '%s' AND ", req.query.buqueNombre);
+                orderBy = oracleUtils.orderBy(req.query.order);
 
-				if (req.query.fechaInicio)
-					strWhere += util.format(" FECHA_REGISTRO >= TO_DATE('%s', 'RRRR-MM-DD') AND ", req.query.fechaInicio);
+                strSql = "SELECT * FROM " +
+                    " (SELECT " +
+                    "      ID, " +
+                    "      TIPOREGISTRO, " +
+                    "      AFECTACION, " +
+                    "      AFE_ANIO, " +
+                    "      AFE_ADUANA, " +
+                    "      AFE_TIPO, " +
+                    "      AFE_NRO, " +
+                    "      AFE_LETRA_CTRL, " +
+                    "      CUITATA, " +
+                    "      NOMBREATA, " +
+                    "      ESTADO, " +
+                    "      PROCESO, " +
+                    "      FECHA_REGISTRO, " +
+                    "      CUITIMPO, " +
+                    "      ADUANA_LLEGADA_SALIDA, " +
+                    "      PAISDESTINO, " +
+                    "      DIASPLAZOTRANSPORTE, " +
+                    "      TRANSPORTISTA, " +
+                    "      PAISTRANSPORTISTA, " +
+                    "      MOTIVOAFECTACION, " +
+                    "      IDENTIFICADORMOTIVOMICDTA, " +
+                    "      SUMARIA, " +
+                    "      SUM_ANIO, " +
+                    "      SUM_ADUANA, " +
+                    "      SUM_TIPO, " +
+                    "      SUM_NRO, " +
+                    "      SUM_LETRA_CTRL, " +
+                    "      MEDIOTRANSPORTEINTERNO, " +
+                    "      NACMEDIOTRANSPINTERNO, " +
+                    "      MATRICULAMEDIOTRANSPINTERNO, " +
+                    "      LUGAROPERATIVO, " +
+                    "      LUGARDEGIRO, " +
+                    "      NOMBREBUQUE, " +
+                    "      COMENTARIO, " +
+                    "      REGISTRADO_POR, " +
+                    "      REGISTRADO_EN, " +
+                    "      ROW_NUMBER() OVER (ORDER BY " + orderBy + ") R " +
+                    "   FROM V_REGISTRO1_AFECTACION %s ) " +
+                    "WHERE R BETWEEN :1 and :2";
 
-				if (req.query.fechaFin)
-					strWhere += util.format(" FECHA_REGISTRO <= TO_DATE('%s', 'RRRR-MM-DD') AND ", req.query.fechaFin);
+                strWhere = strWhere.substr(0, strWhere.length - 4);
+                strSql = util.format(strSql, strWhere);
 
-				if (req.query.afectacion)
-					strWhere += util.format(" AFECTACION = '%s' AND ", req.query.afectacion);
+                connection.execute(strSql, [skip, limit], {outFormat: oracledb.OBJECT}, function (err, data) {
+                    if (err) {
+                        connection.release(
+                            function (err) {
+                                if (err) {
+                                    console.error(err.message);
+                                }
+                            }
+                        );
+                        res.status(500).json({ status: 'ERROR', data: err.message });
+                    } else {
+                        strSql = "SELECT COUNT(*) AS TOTAL FROM REGISTRO1_AFECTACION";
+                        if (strWhere !== '') {
+                            strSql += util.format(" %s", strWhere);
+                        }
 
-				if (req.query.sumaria)
-					strWhere += util.format(" SUMARIA = '%s' AND ", req.query.sumaria);
+                        connection.execute(strSql, [], {outFormat: oracledb.OBJECT}, function (err, dataCount) {
+                            var result,
+                                total;
+                            if (err) {
+                                connection.release(
+                                    function (err) {
+                                        if (err) {
+                                            console.error(err.message);
+                                        }
+                                    }
+                                );
+                                res.status(500).json({ status: 'ERROR', data: err.message });
+                            } else {
+                                connection.release(
+                                    function (err) {
+                                        if (err) {
+                                            console.error(err.message);
+                                        }
+                                    }
+                                );
 
-				strWhere = strWhere.substr(0, strWhere.length - 4);
-				strSql = util.format(strSql, strWhere);
+                                total = dataCount.rows[0].TOTAL;
+                                result = {
+                                    status: 'OK',
+                                    totalCount: total,
+                                    pageCount: (limit > total) ? total : limit,
+                                    data: data.rows
+                                };
+                                res.status(200).json(result);
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
 
-				connection.execute(strSql, [skip+1, skip+limit], function (err, data){
-					if (err) {
-						pool.destroy(connection);
-						res.status(500).json({ status:'ERROR', data: err.message });
+    function getDistinct(req, res) {
 
-						// Simply releasing this connection back to the pool means a potentially
-						// corrupt connection may get reused.
-//					pool.release(connection)
-						// This solves the issue
-//					pool.destroy(connection);
-					} else {
-						strSql = "SELECT COUNT(*) AS TOTAL FROM REGISTRO1_AFECTACION";
-						if (strWhere !== '')
-							strSql += util.format(" %s", strWhere);
+        var distinct = '';
 
-						connection.execute(strSql, [], function (err, dataCount){
-							if (err){
-								pool.destroy(connection);
+        if (req.route.path === '/registro1_afectacion/buques') {
+            distinct = 'NOMBREBUQUE';
+        }
 
-								res.status(500).json({ status:'ERROR', data: err.message });
-							} else {
-								pool.release(connection);
+        pool.getConnection(function (err, connection) {
+            var strSql = '',
+                result;
 
-								var total = dataCount[0].TOTAL;
-								var result = {
-									status:'OK',
-									totalCount : total,
-									pageCount : (limit > total) ? total : limit,
-									data: data };
-								res.status(200).send(result);
-							}
-						});
-					}
-				});
-			}
-		});
-	}
+            if (err) {
+                console.log(err, "Error acquiring from pool.");
+                res.status(500).json({ status: 'ERROR', data: err });
+            } else {
+                strSql = util.format("SELECT DISTINCT %s as D FROM REGISTRO1_AFECTACION ORDER BY %s", distinct, distinct);
 
-	function getDistinct (req, res) {
+                connection.execute(strSql, [], {outFormat: oracledb.OBJECT}, function (err, data) {
+                    if (err) {
+                        connection.release(
+                            function (err) {
+                                if (err) {
+                                    console.error(err.message);
+                                }
+                            }
+                        );
+                        res.status(500).send({ status: 'ERROR', data: err.message });
+                    } else {
+                        connection.release(
+                            function (err) {
+                                if (err) {
+                                    console.error(err.message);
+                                }
+                            }
+                        );
+                        result = {status: 'OK', totalCount: data.length, data: data.rows};
+                        res.status(200).json(result);
+                    }
+                });
+            }
+        });
 
-		var distinct = '';
+    }
 
-		if (req.route.path === '/registro1_afectacion/buques')
-			distinct = 'NOMBREBUQUE';
+    // Se deja comentado el middleware ya que no tiene utilidad hasta este momento
+    //router.use(function timeLog(req, res, next){
+    //  log.logger.info('Time registro1_afectacion: %s', Date.now());
+    //  next();
+    //});
+    router.get('/registro1_afectacion/:skip/:limit', getRegistro1Afectacion);
+    router.get('/registro1_afectacion/buques', getDistinct);
 
-		pool.acquire(function (err, connection){
-			if (err) {
-				console.log(err, "Error acquiring from pool.");
-				res.status(500).json({ status:'ERROR', data: err });
-			} else {
-				var strSql = util.format("SELECT DISTINCT %s as D FROM REGISTRO1_AFECTACION ORDER BY %s", distinct, distinct);
-			}
-
-			connection.execute(strSql, [], function (err, data){
-				if (err){
-					pool.destroy(connection);
-					res.status(500).send({ status:'ERROR', data: err.message });
-				} else {
-					pool.release(connection);
-					var result = {status: 'OK', totalCount: data.length, data: data};
-					res.status(200).json(result);
-				}
-			});
-
-		});
-
-	}
-
-// Se deja comentado el middleware ya que no tiene utilidad hasta este momento
-//	router.use(function timeLog(req, res, next){
-//		log.logger.info('Time registro1_afectacion: %s', Date.now());
-//		next();
-//	});
-	router.get('/registro1_afectacion/:skip/:limit', getRegistro1Afectacion);
-	router.get('/registro1_afectacion/buques', getDistinct);
-
-	return router;
+    return router;
 };
