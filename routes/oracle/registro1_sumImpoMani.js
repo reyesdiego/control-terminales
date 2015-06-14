@@ -28,9 +28,9 @@ module.exports = function (log, pool) {
                 oracleUtils = new oracleUtils();
                 orderBy = oracleUtils.orderBy(req.query.order);
 
-                    skip = parseInt(req.params.skip, 10);
-                    limit = parseInt(req.params.limit, 10);
-                    strSql = "SELECT * FROM " +
+                skip = parseInt(req.params.skip, 10);
+                limit = parseInt(req.params.limit, 10);
+                strSql = "SELECT * FROM " +
                             " (SELECT " +
                             "   ID, " +
                             "   TIPOREGISTRO, " +
