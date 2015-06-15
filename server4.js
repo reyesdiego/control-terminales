@@ -60,33 +60,6 @@ mongoose.connection.on('disconnected', function () {
     log.logger.error("Mongoose default connection disconnected");
 });
 
-var genericPool = require('generic-pool');
-var oracle = require('oracle');
-
-var pool = genericPool.Pool({
-        name: 'testpool',
-        log: false,
-        max: 15,
-        create: function (callback) {
-            'use strict';
-            var settings = {
-                    hostname: config.oracle.hostname,
-                    port: config.oracle.port,
-                    database: config.oracle.database,
-                    user: config.oracle.user,
-                    password: config.oracle.password
-                };
-            new oracle.connect(settings, function (err, connection) {
-                console.log('paso por aca');
-                callback(err, connection);
-            });
-        },
-        destroy: function (connection) {
-            'use strict';
-            connection.close();
-        }
-    });
-
 app.set('runtime', new Date());
 app.set('port', process.env.PORT || config.server_port);
 app.set('views', __dirname + '/public');
