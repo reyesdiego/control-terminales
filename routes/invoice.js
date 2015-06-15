@@ -1364,11 +1364,22 @@ module.exports = function(log, io, pool, app) {
                         connection.execute(strSql, [], {outFormat: oracledb.OBJECT},function (err, dataOra){
                             var dataQ;
                             if (err){
-                                pool.destroy(connection);
+                                connection.release(
+                                    function (err) {
+                                        if (err) {
+                                            console.error(err.message);
+                                        }
+                                    }
+                                );
                                 res.send(500, { status:'ERROR', data: err });
                             } else {
-                                pool.release(connection);
-
+                                connection.release(
+                                    function (err) {
+                                        if (err) {
+                                            console.error(err.message);
+                                        }
+                                    }
+                                );
                                 dataOra = Enumerable.from(dataOra).select(function (item){
                                     return { "buque": item.BUQUE, fecha: item.FECHA};
                                 }).toArray();
