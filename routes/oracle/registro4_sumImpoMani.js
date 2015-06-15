@@ -18,7 +18,7 @@ module.exports = function (log, pool) {
             limit,
             strSql;
 
-        pool.acquire(function(err, connection) {
+        pool.getConnection(function (err, connection) {
             if (err) {
                 console.log(err, "Error acquiring from pool.");
                 res.status(500).json({ status: 'ERROR', data: err });
@@ -85,7 +85,7 @@ module.exports = function (log, pool) {
                             strSql += util.format(" %s", strWhere);
                         }
 
-                        connection.execute(strSql, [], {outFormat: oracledb.OBJECT}, function (err, dataCount){
+                        connection.execute(strSql, [], {outFormat: oracledb.OBJECT}, function (err, dataCount) {
                             var total,
                                 result;
 

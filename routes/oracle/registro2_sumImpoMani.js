@@ -113,7 +113,7 @@ module.exports = function (log, pool) {
                                     status: 'OK',
                                     totalCount: total,
                                     pageCount: (limit > total) ? total : limit,
-                                    data: data
+                                    data: data.rows
                                 };
                                 res.status(200).json(result);
                             }
