@@ -205,6 +205,7 @@ module.exports = function (log, io, app) {
             emailConfig,
             subject;
 
+        appointmentEmail.emailPagina = 'email';
         res.render('comprobanteTurno.jade', appointmentEmail, function (err, html) {
             html = {
                 data : html,
