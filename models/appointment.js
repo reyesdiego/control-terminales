@@ -7,14 +7,14 @@ var appointment = new mongoose.Schema({
         terminal: {type: String, require: true},
         buque: {type: String},
         viaje: {type: String},
-        contenedor: {type: String},
+        contenedor: {type: String, uppercase: true},
         inicio: {type: Date, require: true},
         fin: {type: Date},
         mov: {type: String, enum: ['IMPO', 'EXPO']},
         alta: {type: Date},
         user: {type: String, uppercase: true},
         disponibles_t1: {type: Number},
-        email: {type: String},
+        email: {type: String, lowercase: true},
         emailStatus: {type: Boolean, default: false},
         verifica: {type: Date},
         verifica_turno: {type: String, enum: ['MA', 'TA']},
@@ -33,7 +33,5 @@ appointment.statics.insert = function (appointment, cb) {
         });
     }
 }
-
-appointment.statics
 
 module.exports = mongoose.model('appointments', appointment);
