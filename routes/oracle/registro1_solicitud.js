@@ -145,6 +145,51 @@ module.exports = function (log, pool) {
         });
     }
 
+    function getDistinct(req, res) {
+
+        var distinct = '';
+
+        if (req.route.path === '/registro1_solicitud/buques') {
+            distinct = 'NOMBREBUQUE';
+        }
+
+        pool.getConnection(function (err, connection) {
+            var strSql = '',
+                result;
+
+            if (err) {
+                console.log(err, "Error acquiring from pool.");
+                res.status(500).json({ status: 'ERROR', data: err });
+            } else {
+                strSql = util.format("SELECT DISTINCT %s as D FROM registro1_solicitud WHERE %s is not null ORDER BY %s", distinct, distinct, distinct);
+
+                connection.execute(strSql, [], {outFormat: oracledb.OBJECT}, function (err, data) {
+                    if (err) {
+                        connection.release(
+                            function (err) {
+                                if (err) {
+                                    console.error(err.message);
+                                }
+                            }
+                        );
+                        res.status(500).send({ status: 'ERROR', data: err.message });
+                    } else {
+                        connection.release(
+                            function (err) {
+                                if (err) {
+                                    console.error(err.message);
+                                }
+                            }
+                        );
+                        result = {status: 'OK', totalCount: data.length, data: data.rows};
+                        res.status(200).json(result);
+                    }
+                });
+            }
+        });
+
+    }
+
     // Se deja comentado el middleware ya que no tiene utilidad hasta este momento
     //router.use(function timeLog(req, res, next){
     //  log.logger.info('Time registro1_solicitud: %s', Date.now());
@@ -152,6 +197,7 @@ module.exports = function (log, pool) {
     //});
 
     router.get('/registro1_solicitud/:skip/:limit', getRegistro1Solicitud);
+    router.get('/registro1_solicitud/buques', getDistinct);
 
     return router;
 };

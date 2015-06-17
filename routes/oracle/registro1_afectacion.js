@@ -73,6 +73,31 @@ module.exports = function (log, pool) {
                     "   FROM V_REGISTRO1_AFECTACION %s ) " +
                     "WHERE R BETWEEN :1 and :2";
 
+                if (req.query.afectacion || req.query.sumaria || req.query.buqueNombre || req.query.fechaInicio || req.query.fechaFin) {
+                    strWhere += " WHERE ";
+                }
+
+                if (req.query.afectacion) {
+                    strWhere += util.format(" AFECTACION = '%s' AND ", req.query.afectacion);
+                }
+
+                if (req.query.sumaria) {
+                    strWhere += util.format(" SUMARIA = '%s' AND ", req.query.sumaria);
+                }
+
+                if (req.query.buqueNombre) {
+                    strWhere += util.format(" NOMBREBUQUE = '%s' AND ", req.query.buqueNombre);
+                }
+
+                if (req.query.fechaInicio) {
+                    strWhere += util.format(" FECHA_REGISTRO >= TO_DATE('%s', 'RRRR-MM-DD') AND ", req.query.fechaInicio);
+                }
+
+                if (req.query.fechaFin) {
+                    strWhere += util.format(" FECHA_REGISTRO <= TO_DATE('%s', 'RRRR-MM-DD') AND ", req.query.fechaFin);
+                }
+
+
                 strWhere = strWhere.substr(0, strWhere.length - 4);
                 strSql = util.format(strSql, strWhere);
 
