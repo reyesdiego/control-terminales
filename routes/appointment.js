@@ -329,10 +329,10 @@ module.exports = function (log, io, app) {
         if ( (req.query.email === undefined || req.query.email === '') && req.query._id === undefined) {
             res.status(400).send({status: 'ERROR', data: 'Debe proveer el dato del email para obtener el/los turnos.'});
         } else {
-            param.contenedor = req.params.container;
+            param.contenedor = req.params.container.toUpperCase();
 
             if (req.query.email) {
-                param.email = req.query.email;
+                param.email = req.query.email.toLowerCase();
             }
 
             if (req.query._id) {
