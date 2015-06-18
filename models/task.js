@@ -6,7 +6,8 @@ var mongoose = require('mongoose');
 
 var Task = new mongoose.Schema({
     description : {type: String, require: true},
-    route: {type: String, require: true}
+    route: {type: String, require: true},
+    role: {type: String}
 });
 
 module.exports = mongoose.model('tasks', Task);
