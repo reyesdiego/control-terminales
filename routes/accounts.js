@@ -106,14 +106,15 @@ module.exports = function (app, passport, log) {
     });
 
     app.get('/agp/accounts', function (req, res) {
-        var incomingToken = req.headers.token;
+        var incomingToken = req.headers.token,
+            project;
         Account.verifyToken(incomingToken, function (err, usr) {
             if (err) {
-                log.logger.error(usr);
+                log.logger.error(err);
                 res.status(403).json({status: 'ERROR', data: err});
             } else {
                 if (usr.terminal === 'AGP' && usr.group === 'ADMIN') {
-                    var project = {
+                    project = {
                         firstname : true,
                         lastname : true,
                         full_name: true,
