@@ -26,7 +26,7 @@ module.exports = function (app, log, io, mongoose, pool) {
         Account.verifyToken(incomingToken, function (err, usr) {
             if (err) {
                 log.logger.error(err);
-                res.status(500).send({status: 'ERROR', data: err});
+                res.status(403).send({status: 'ERROR', data: err});
             } else {
                 req.usr = usr;
                 next();
