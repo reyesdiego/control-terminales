@@ -393,6 +393,17 @@ router.use(function timeLog(req, res, next){
     next();
 });
 */
+    router.param('terminal', function (req, res, next, terminal) {
+        var usr = req.usr;
+
+        if (usr.terminal !== 'AGP' && usr.terminal !== terminal) {
+            var errMsg = util.format('%s', 'La terminal recibida por parámetro es inválida para el token.');
+            log.logger.error(errMsg);
+            res.status(403).send({status: 'ERROR', data: errMsg});
+        } else {
+            next();
+        }
+    });
 
 
     function isValidToken(req, res, next) {
@@ -418,7 +429,7 @@ router.use(function timeLog(req, res, next){
     router.get('/:terminal/missingInvoices', getMissingInvoices);
     router.get('/:terminal/ships', getDistincts);
     router.get('/:terminal/containers', getDistincts);
-    router.post('/gate', addGate);
+
     app.post('/gate', isValidToken, addGate);
 
     return router;
