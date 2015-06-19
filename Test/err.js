@@ -31,7 +31,6 @@ if (cluster.isMaster) {
 		app.use(express.methodOverride());
 		app.use(app.router);
 //	app.use(passport.initialize());
-
 	});
 
 	app.all('/*', function(req, res, next) {
