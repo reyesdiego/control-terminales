@@ -16,6 +16,9 @@ var interval = 5 * 60 * 1000; // 5 minutos
 
 mongoose.connect(config.mongo_url, config.mongo_opts);
 
+var emailConfig = Object.create(config.emailTurnos);
+emailConfig.throughBcc = false;
+
 function iterator(item, callback) {
     'use strict';
     var html,
@@ -29,7 +32,7 @@ function iterator(item, callback) {
     appointment.moment = require('moment');
 
     html = jade.renderFile('./public/comprobanteTurno.jade', appointment);
-    mailer = new mail.mail(config.emailTurnos);
+    mailer = new mail.mail(emailConfig);
     html = {
         data : html,
         alternative: true
@@ -43,7 +46,7 @@ function iterator(item, callback) {
                 callback();
             });
         } else {
-            console.log('REENVIO - Confirmación enviada correctamente, %s, se envió mail a %s - %s', appointment.full_name, appointment.email, appointment.contenedor);
+            console.log('Confirmación enviada correctamente, %s, se envió mail a %s - %s', appointment.full_name, appointment.email, appointment.contenedor);
             AppointmentQueue.remove({_id: item._id}, function (err) {
                 Appointment.update({_id: appointment._id}, {$set: {emailStatus: true}}, function (err, data) {
                     callback();
@@ -55,7 +58,7 @@ function iterator(item, callback) {
 }
 
 function done() {
-    console.log("El proceso finalizo correctamente.");
+    console.log("El proceso finalizo correctamente. -> %s", new Date());
     console.log("----------------------------------");
 //    process.exit(code=1);
 }
