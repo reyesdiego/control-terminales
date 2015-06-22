@@ -5,8 +5,8 @@
 var mongoose = require('mongoose');
 
 var Task = new mongoose.Schema({
-    description : {type: String, require: true},
-    route: {type: String, require: true},
+    description : {type: String, required: true},
+    route: {type: String, required: true},
     role: {type: String}
 });
 
