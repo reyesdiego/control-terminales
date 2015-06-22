@@ -750,11 +750,15 @@ module.exports = function(log, io, pool, app) {
                     invoices.sort({nroComprob: 1});
                 }
                 invoices.exec(function (err, invoices) {
-                    if (!err) {
-                        var faltantes = [],
-                            control = 0,
-                            contadorFaltantes = 0;
+                    var faltantes = [],
+                        control = 0,
+                        contadorFaltantes = 0,
+                        result;
 
+                    if (!err) {
+                        if (invoices.length > 0) {
+                            console.log(invoices[0].nroComprob, invoices[invoices.length-1].nroComprob);
+                        }
                         invoices.forEach(function (invoice) {
                             if (control === 0) {
                                 control = invoice.nroComprob;
@@ -778,7 +782,7 @@ module.exports = function(log, io, pool, app) {
                         });
                         contadorFaltantesTotal += contadorFaltantes;
 
-                        var result = {
+                        result = {
                             status: 'OK',
                             nroPtoVenta: cash,
                             totalCount: contadorFaltantes,
@@ -786,7 +790,6 @@ module.exports = function(log, io, pool, app) {
                         };
                         //io.sockets.emit('correlative', result);
                         io.sockets.emit('correlative_'+req.query.x, result);
-
                         return callback(null, result);
                     } else {
                         log.logger.error("%s", err.message);
