@@ -167,7 +167,7 @@ module.exports = function (log, pool) {
     //});
 
     router.get('/registro3_solicitud/:skip/:limit', getRegistro3Solicitud);
-    router.get('/registro3_solicitud/contenedores', getDistinct);
+    router.get('/registro3_solicitud/contenedores', getDistinct); //TODO ver porque devuelve solo 100 registros
 
     return router;
 };
