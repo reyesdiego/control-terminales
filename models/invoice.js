@@ -56,7 +56,7 @@ var invoiceSchema = new Schema({
         vctoPago: { type: Date }
     },
     detalle: [ detalleSchema ],
-    otrosTributos:[{
+    otrosTributos: [{
         id: {type: String},
         desc: {type: String},
         imponible: {type: Number},
