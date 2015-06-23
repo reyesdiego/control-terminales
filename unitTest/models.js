@@ -8,15 +8,18 @@ var should = require('should'),
 
 var Account = require('../models/account.js'),
     Appointment = require('../models/appointment.js'),
+    AppointmentEmailQueue = require('../models/appointmentEmailQueue.js'),
     Comment = require('../models/comment.js'),
     DocType = require('../models/docType.js'),
     Gate = require('../models/gate.js'),
+    Invoice = require('../models/invoice.js'),
     MatchPrice = require('../models/matchPrice.js'),
     Price = require('../models/price.js'),
     Role = require('../models/role.js'),
     State = require('../models/state.js'),
     Task = require('../models/task.js'),
-    UnitType = require('../models/unitType.js');
+    UnitType = require('../models/unitType.js'),
+    VoucherType = require('../models/voucherType.js');
 
 describe('Models', function () {
     'use strict';
@@ -54,6 +57,15 @@ describe('Models', function () {
 
             done();
         });
+        it('should not return any error on find', function (done) {
+            var account = Account.find({}).limit(1);
+            account.exec(function (err, data) {
+                should.not.exist(err);
+
+                done();
+            });
+        });
+
     });
 
     describe('# Appointments', function () {
@@ -78,6 +90,36 @@ describe('Models', function () {
             Object.keys(Appointment.schema.paths).length.should.equal(17);
             done();
 
+        });
+        it('should not return any error on find', function (done) {
+            var appointment = Appointment.find({}).limit(1);
+            appointment.exec(function (err, data) {
+                should.not.exist(err);
+
+                done();
+            });
+        });
+    });
+
+    describe('# AppointmentsEmailQueue', function () {
+        it('should have all properties', function (done) {
+
+            AppointmentEmailQueue.schema.paths.should.have.property("status");
+            AppointmentEmailQueue.schema.paths.should.have.property("date");
+            AppointmentEmailQueue.schema.paths.should.have.property("terminal.description");
+            AppointmentEmailQueue.schema.paths.should.have.property("appointment");
+
+            Object.keys(AppointmentEmailQueue.schema.paths).length.should.equal(6);
+
+            done();
+        });
+        it('should not return any error on find', function (done) {
+            var appointmentEmailQueue = AppointmentEmailQueue.find({}).limit(1);
+            appointmentEmailQueue.exec(function (err, data) {
+                should.not.exist(err);
+
+                done();
+            });
         });
     });
 
@@ -110,7 +152,6 @@ describe('Models', function () {
                 done();
             });
         });
-
     });
 
     describe('# DocTypes', function () {
@@ -136,7 +177,6 @@ describe('Models', function () {
                 done();
             });
         });
-
     });
 
     describe('# Gates', function () {
@@ -159,6 +199,62 @@ describe('Models', function () {
 
             done();
         });
+        it('should not return any error on find', function (done) {
+            var gate = Gate.find().limit(1);
+            gate.exec(function (err, data) {
+                should.not.exist(err);
+
+                done();
+            });
+        });
+    });
+
+    describe('# Invoices', function () {
+        it('should have all properties', function (done) {
+
+            Invoice.schema.paths.should.have.property("terminal");
+            Invoice.schema.paths.should.have.property("codTipoComprob");
+            Invoice.schema.paths.should.have.property("nroPtoVenta");
+            Invoice.schema.paths.should.have.property("nroComprob");
+            Invoice.schema.paths.should.have.property("codTipoAutoriz");
+            Invoice.schema.paths.should.have.property("codAutoriz");
+            Invoice.schema.paths.should.have.property("codTipoDoc");
+            Invoice.schema.paths.should.have.property("nroDoc");
+            Invoice.schema.paths.should.have.property("clientId");
+            Invoice.schema.paths.should.have.property("razon");
+            Invoice.schema.paths.should.have.property("importe.gravado");
+            Invoice.schema.paths.should.have.property("importe.noGravado");
+            Invoice.schema.paths.should.have.property("importe.exento");
+            Invoice.schema.paths.should.have.property("importe.iva");
+            Invoice.schema.paths.should.have.property("importe.subtotal");
+            Invoice.schema.paths.should.have.property("importe.otrosTributos");
+            Invoice.schema.paths.should.have.property("importe.total");
+            Invoice.schema.paths.should.have.property("codMoneda");
+            Invoice.schema.paths.should.have.property("cotiMoneda");
+            Invoice.schema.paths.should.have.property("observa");
+            Invoice.schema.paths.should.have.property("codConcepto");
+            Invoice.schema.paths.should.have.property("fecha.emision");
+            Invoice.schema.paths.should.have.property("fecha.vcto");
+            Invoice.schema.paths.should.have.property("fecha.desde");
+            Invoice.schema.paths.should.have.property("fecha.hasta");
+            Invoice.schema.paths.should.have.property("fecha.vctoPago");
+            Invoice.schema.paths.should.have.property("detalle");
+            Invoice.schema.paths.should.have.property("otrosTributos");
+            Invoice.schema.paths.should.have.property("estado");
+            Invoice.schema.paths.should.have.property("comment");
+
+            Object.keys(Invoice.schema.paths).length.should.equal(32);
+
+            done();
+        });
+        it('should not return any error on find', function (done) {
+            var invoice = Invoice.find().limit(1);
+            invoice.exec(function (err, data) {
+                should.not.exist(err);
+
+                done();
+            });
+        });
     });
 
     describe('# MatchPrices', function () {
@@ -172,6 +268,14 @@ describe('Models', function () {
             Object.keys(MatchPrice.schema.paths).length.should.equal(6);
 
             done();
+        });
+        it('should not return any error on find', function (done) {
+            var matchPrice = MatchPrice.find().limit(1);
+            matchPrice.exec(function (err, data) {
+                should.not.exist(err);
+
+                done();
+            });
         });
     });
 
@@ -191,7 +295,15 @@ describe('Models', function () {
             Object.keys(Price.schema.paths).length.should.equal(8);
 
            done();
-       });
+        });
+        it('should not return any error on find', function (done) {
+            var price = Price.find().limit(1);
+            price.exec(function (err, data) {
+                should.not.exist(err);
+
+                done();
+            });
+        });
     });
 
     describe('# Roles', function () {
@@ -204,6 +316,14 @@ describe('Models', function () {
             Object.keys(Role.schema.paths).length.should.equal(5);
 
             done();
+        });
+        it('should not return any error on find', function (done) {
+            var role = Role.find().limit(1);
+            role.exec(function (err, data) {
+                should.not.exist(err);
+
+                done();
+            });
         });
     });
 
@@ -218,6 +338,14 @@ describe('Models', function () {
 
             done();
        });
+        it('should not return any error on find', function (done) {
+            var state = State.find().limit(1);
+            state.exec(function (err, data) {
+                should.not.exist(err);
+
+                done();
+            });
+        });
     });
 
     describe('# Tasks', function () {
@@ -244,7 +372,6 @@ describe('Models', function () {
                 done();
             });
         });
-
     });
 
     describe('# UnitTypes', function () {
@@ -255,6 +382,32 @@ describe('Models', function () {
             Object.keys(UnitType.schema.paths).length.should.equal(3);
 
             done();
+        });
+        it('should not return any error on find', function (done) {
+            var unitType = UnitType.find().limit(1);
+            unitType.exec(function (err, data) {
+                should.not.exist(err);
+
+                done();
+            });
+        });
+    });
+
+    describe('# VoucherTypes', function () {
+       it('should have all properties', function (done) {
+
+           VoucherType.schema.paths.should.have.property("description");
+
+           Object.keys(VoucherType.schema.paths).length.should.equal(3);
+           done();
+       });
+        it('should not return any error on find', function (done) {
+            var voucherType = VoucherType.find().limit(1);
+            voucherType.exec(function (err, data) {
+                should.not.exist(err);
+
+                done();
+            });
         });
     });
 
