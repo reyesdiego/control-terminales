@@ -6,11 +6,17 @@ var should = require('should'),
     mongoose = require('mongoose'),
     config = require('../config/config.js');
 
-var Account = require('../models/account.js');
-var Appointment = require('../models/appointment.js');
-var Comment = require('../models/comment.js');
-var Task = require('../models/task.js');
-var DocType = require('../models/docType.js');
+var Account = require('../models/account.js'),
+    Appointment = require('../models/appointment.js'),
+    Comment = require('../models/comment.js'),
+    DocType = require('../models/docType.js'),
+    Gate = require('../models/gate.js'),
+    MatchPrice = require('../models/matchPrice.js'),
+    Price = require('../models/price.js'),
+    Role = require('../models/role.js'),
+    State = require('../models/state.js'),
+    Task = require('../models/task.js'),
+    UnitType = require('../models/unitType.js');
 
 describe('Models', function () {
     'use strict';
@@ -24,7 +30,7 @@ describe('Models', function () {
         });
     });
 
-    describe('# Accounts', function (){
+    describe('# Accounts', function () {
         it('should have all properties', function (done) {
 
             Account.schema.paths.should.have.property("email");
@@ -107,6 +113,113 @@ describe('Models', function () {
 
     });
 
+    describe('# DocTypes', function () {
+
+        it('should have all properties', function (done) {
+            DocType.schema.paths.should.have.property("description");
+
+            Object.keys(DocType.schema.paths).length.should.equal(3);
+
+            done();
+        });
+        it('should have all validations', function (done) {
+            DocType.schema.paths.description.options.should.have.property("required");
+            DocType.schema.paths.description.options.required.should.equal(true);
+
+            done();
+        });
+        it('should not return any error on find', function (done) {
+            var doType = DocType.find().limit(1);
+            doType.exec(function (err, data) {
+                should.not.exist(err);
+
+                done();
+            });
+        });
+
+    });
+
+    describe('# Gates', function () {
+        it('should have all properties', function (done) {
+
+            Gate.schema.paths.should.have.property("terminal");
+            Gate.schema.paths.should.have.property("buque");
+            Gate.schema.paths.should.have.property("viaje");
+            Gate.schema.paths.should.have.property("contenedor");
+            Gate.schema.paths.should.have.property("mov");
+            Gate.schema.paths.should.have.property("tipo");
+            Gate.schema.paths.should.have.property("carga");
+            Gate.schema.paths.should.have.property("patenteCamion");
+            Gate.schema.paths.should.have.property("tren");
+            Gate.schema.paths.should.have.property("gateTimestamp");
+            Gate.schema.paths.should.have.property("turnoInicio");
+            Gate.schema.paths.should.have.property("turnoFin");
+
+            Object.keys(Gate.schema.paths).length.should.equal(14);
+
+            done();
+        });
+    });
+
+    describe('# MatchPrices', function () {
+        it('Should have all properties', function (done) {
+
+            MatchPrice.schema.paths.should.have.property("terminal");
+            MatchPrice.schema.paths.should.have.property("code");
+            MatchPrice.schema.paths.should.have.property("match");
+            MatchPrice.schema.paths.should.have.property("price");
+
+            Object.keys(MatchPrice.schema.paths).length.should.equal(6);
+
+            done();
+        });
+    });
+
+    describe('# Prices', function () {
+        it('Should have all properties', function (done) {
+
+            Price.schema.paths.should.have.property("terminal");
+            Price.schema.paths.should.have.property("code");
+            Price.schema.paths.should.have.property("description");
+            Price.schema.paths.should.have.property("unit");
+            Price.schema.paths.should.have.property("matches");
+            Price.schema.paths.should.have.property("topPrices");
+
+            var topPrices = (Price.schema.paths.topPrices instanceof mongoose.Types.DocumentArray);
+            topPrices.should.be.true;
+
+            Object.keys(Price.schema.paths).length.should.equal(8);
+
+           done();
+       });
+    });
+
+    describe('# Roles', function () {
+        it('Should have all properties', function (done) {
+
+            Role.schema.paths.should.have.property("name");
+            Role.schema.paths.should.have.property("level");
+            Role.schema.paths.should.have.property("tasks");
+
+            Object.keys(Role.schema.paths).length.should.equal(5);
+
+            done();
+        });
+    });
+
+    describe('# States', function () {
+        it('should have all properties', function (done) {
+
+            State.schema.paths.should.have.property("name");
+            State.schema.paths.should.have.property("description");
+            State.schema.paths.should.have.property("type");
+
+            Object.keys(State.schema.paths).length.should.equal(5);
+
+            done();
+       });
+    });
+
     describe('# Tasks', function () {
         it('should have all properties', function (done) {
             Task.schema.paths.should.have.property("description");
@@ -134,31 +247,17 @@ describe('Models', function () {
 
     });
 
-    describe('# DocTypes', function () {
-
+    describe('# UnitTypes', function () {
         it('should have all properties', function (done) {
-            DocType.schema.paths.should.have.property("description");
 
-            Object.keys(DocType.schema.paths).length.should.equal(3);
+            UnitType.schema.paths.should.have.property("description");
 
-            done();
-        });
-        it('should have all validations', function (done) {
-            DocType.schema.paths.description.options.should.have.property("required");
-            DocType.schema.paths.description.options.required.should.equal(true);
+            Object.keys(UnitType.schema.paths).length.should.equal(3);
 
             done();
         });
-        it('should not return any error on find', function (done) {
-            var doType = DocType.find().limit(1);
-            doType.exec(function (err, data) {
-                should.not.exist(err);
-
-                done();
-            });
-        });
-
     });
+
 
 
 });
