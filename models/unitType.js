@@ -5,8 +5,8 @@
 var mongoose = require("mongoose");
 
 var unit = new mongoose.Schema({
-	_id:		{type: Number},
-	description:{type: String, required:true}
+    _id: {type: Number},
+    description: {type: String, required: true}
 });
 
 module.exports = mongoose.model('unittypes', unit);
