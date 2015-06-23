@@ -7,11 +7,11 @@ var mongoose = require('mongoose'),
 var detalleSchema = new Schema({
     contenedor: {type: String},
     IMO: {type: Number},
-    buque:{
-        codigo: { type: String },
-        nombre: { type: String },
-        viaje: { type: String },
-        fecha: { type: Date}
+    buque: {
+        codigo: {type: String},
+        nombre: {type: String},
+        viaje: {type: String},
+        fecha: {type: Date}
     },
     items: [
         {
@@ -25,37 +25,37 @@ var detalleSchema = new Schema({
 });
 
 var invoiceSchema = new Schema({
-    terminal: { type: String, required: true },
-    codTipoComprob: { type: Number, required: true },
-    nroPtoVenta: { type: Number },
-    nroComprob: { type: Number, required: true },
-    codTipoAutoriz: { type: String },
-    codAutoriz: { type: Number },
-    codTipoDoc: { type: Number },
-    nroDoc: { type: Number },
-    clientId: { type: String },
-    razon: { type: String, required: true },
+    terminal: {type: String, required: true},
+    codTipoComprob: {type: Number, required: true},
+    nroPtoVenta: {type: Number},
+    nroComprob: {type: Number, required: true},
+    codTipoAutoriz: {type: String},
+    codAutoriz: {type: Number},
+    codTipoDoc: {type: Number},
+    nroDoc: {type: Number},
+    clientId: {type: String},
+    razon: {type: String, required: true},
     importe: {
-        gravado: { type: Number },
-        noGravado: { type: Number },
-        exento: { type: Number },
-        iva: { type: Number },
-        subtotal: { type: Number },
-        otrosTributos: { type: Number },
-        total: { type: Number, required: true }
+        gravado: {type: Number},
+        noGravado: {type: Number},
+        exento: {type: Number},
+        iva: {type: Number},
+        subtotal: {type: Number},
+        otrosTributos: {type: Number},
+        total: {type: Number, required: true}
     },
-    codMoneda: { type: String, required: true, enum: ['PES', 'DOL', 'EUR'] },
-    cotiMoneda: { type: Number, required: true, min: 1 },
-    observa: { type: String },
-    codConcepto: { type: Number },
+    codMoneda: {type: String, required: true, enum: ['PES', 'DOL', 'EUR']},
+    cotiMoneda: {type: Number, required: true, min: 1},
+    observa: {type: String },
+    codConcepto: {type: Number },
     fecha: {
-        emision: { type: Date, required: true },
-        vcto: { type: Date },
-        desde: { type: Date },
-        hasta: { type: Date },
-        vctoPago: { type: Date }
+        emision: {type: Date, required: true},
+        vcto: {type: Date},
+        desde: {type: Date},
+        hasta: {type: Date},
+        vctoPago: {type: Date}
     },
-    detalle: [ detalleSchema ],
+    detalle: [detalleSchema],
     otrosTributos: [{
         id: {type: String},
         desc: {type: String},
@@ -64,17 +64,18 @@ var invoiceSchema = new Schema({
     }],
     estado : [
         {
-            estado : {type: String, default: 'Y', enum: ['R', 'Y', 'G', 'C', 'T', 'E'] },
-            grupo : { type: String },
-            user : { type: String}
+            estado : {type: String, default: 'Y', enum: ['R', 'Y', 'G', 'C', 'T', 'E']},
+            grupo : {type: String },
+            user : {type: String}
         }
     ],
-    comment: [{ type: mongoose.Schema.ObjectId, ref: 'comments' }]
+    comment: [{type: mongoose.Schema.ObjectId, ref: 'comments' }],
+    invoiced: {type: Boolean, default: false}
 });
 
 invoiceSchema.index({nroPtoVenta: 1, codTipoComprob: 1, nroComprob: 1, terminal: 1}, {unique: true});
 
-invoiceSchema.pre('save', function (next, done){
+invoiceSchema.pre('save', function (next, done) {
 /*
 if (this.cotiMoneda && this.codMoneda){
     if ( this.codMoneda === 'DOL' && this.cotiMoneda <= 1 ){
