@@ -1,0 +1,34 @@
+<RestClientRequest>
+  <option name="httpMethod" value="POST" />
+  <option name="urlBase" value="http://10.10.0.223:8080" />
+  <option name="urlPath" value="/appointment" />
+  <option name="headers">
+    <list>
+      <KeyValuePair>
+        <option name="key" value="Accept" />
+        <option name="value" value="*/*" />
+      </KeyValuePair>
+      <KeyValuePair>
+        <option name="key" value="Cache-Control" />
+        <option name="value" value="no-cache" />
+      </KeyValuePair>
+      <KeyValuePair>
+        <option name="key" value="Content-Type" />
+        <option name="value" value="application/json" />
+      </KeyValuePair>
+      <KeyValuePair>
+        <option name="key" value="token" />
+        <option name="value" value="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNvcG9ydGVfY3RzQGJhY3Rzc2EuY29tLmFyIn0.bBSqdwesWimlT8rFGA7sKLKbPdxauY8HdrTTt7BLpBU" />
+      </KeyValuePair>
+    </list>
+  </option>
+  <option name="parameters">
+    <list />
+  </option>
+  <option name="parametersEnabled" value="true" />
+  <option name="haveTextToSend" value="true" />
+  <option name="haveFileToSend" value="false" />
+  <option name="isFileUpload" value="false" />
+  <option name="textToSend" value="{ &#9;&quot;buque&quot;:&quot;x&quot;, &#9;&quot;viaje&quot;:&quot;x1&quot;, &#9;&quot;contenedor&quot;:&quot;CAXU1234567&quot;, &#9;&quot;inicio&quot;:&quot;2015-06-02T10:00:00Z&quot;, &#9;&quot;fin&quot;:&quot;2015-06-02T12:00:00Z&quot;, &#9;&quot;mov&quot;: &quot;IMPO&quot;, &quot;alta&quot;: &quot;2015-06-02T08:00:00Z&quot;, &#9;&quot;email&quot;:&quot;dreyes@puertobuenosaires.gob.ar&quot; }" />
+  <option name="filesToSend" value="" />
+</RestClientRequest>

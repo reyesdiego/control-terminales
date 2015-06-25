@@ -1,0 +1,37 @@
+<RestClientRequest>
+  <option name="biscuits">
+    <list />
+  </option>
+  <option name="httpMethod" value="POST" />
+  <option name="urlBase" value="http://10.10.0.223:8080" />
+  <option name="urlPath" value="/agp/register" />
+  <option name="headers">
+    <list>
+      <KeyValuePair>
+        <option name="key" value="Accept" />
+        <option name="value" value="*/*" />
+      </KeyValuePair>
+      <KeyValuePair>
+        <option name="key" value="Cache-Control" />
+        <option name="value" value="no-cache" />
+      </KeyValuePair>
+      <KeyValuePair>
+        <option name="key" value="Content-Type" />
+        <option name="value" value="application/json" />
+      </KeyValuePair>
+      <KeyValuePair>
+        <option name="key" value="token" />
+        <option name="value" value="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InQ0c3lzQGFwbXRlcm1pbmFscy5jb20ifQ.80iWX9diUFwfLigj_Y-jEiEIMfLPCar1ydCP_eFL2cs" />
+      </KeyValuePair>
+    </list>
+  </option>
+  <option name="parameters">
+    <list />
+  </option>
+  <option name="parametersEnabled" value="true" />
+  <option name="haveTextToSend" value="true" />
+  <option name="haveFileToSend" value="false" />
+  <option name="isFileUpload" value="false" />
+  <option name="textToSend" value="{ &#9;&quot;full_name&quot; : &quot;Diego Reyes&quot;, &#9;&quot;email&quot; : &quot;reyesdiego@hotmail.com&quot;, &#9;&quot;terminal&quot; : &quot;AGP&quot;, &#9;&quot;date_created&quot; : &quot;2015-01-28T14:51:46.655-03:00&quot;, &#9;&quot;role&quot; : &quot;agp&quot;, &#9;&quot;user&quot; : &quot;reyes-d&quot;, &#9;&quot;password&quot; : &quot;123456&quot; }" />
+  <option name="filesToSend" value="" />
+</RestClientRequest>
