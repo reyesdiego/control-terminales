@@ -34,7 +34,7 @@ module.exports = function (app, log, io, mongoose, pool) {
         });
     }
 
-    serverMain = require('./server')(log, app, mongoose);
+    serverMain = require('./server')(log, app, mongoose, pool);
     app.use('/', serverMain);
 
     state = require('./state')(log);

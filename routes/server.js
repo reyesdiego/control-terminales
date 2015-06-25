@@ -2,7 +2,7 @@
  * Created by diego on 3/9/15.
  */
 
-module.exports = function (log, app, mongoose) {
+module.exports = function (log, app, mongoose, pool) {
     'use strict';
 
     var express = require('express'),
@@ -19,13 +19,23 @@ module.exports = function (log, app, mongoose) {
             }
         }
 
+        var util = require('util');
+
+        var memory = process.memoryUsage();
+        var heapUsed = (memory.heapUsed / 1024 / 1024).toFixed(2) + " MB";
+        var heapTotal = (memory.heapTotal / 1024 / 1024).toFixed(2) + " MB";
+
+
         params = {
             server: app.get('env'),
-            node: {version: process.version, runtime: app.get('runtime')},
+            node: {version: process.version, runtime: app.get('runtime'), timeElapsed: moment(app.get('runtime')).fromNow(true) },
             mongoose: {version: mongoose.version, connected: connected},
-            pid: process.pid
+            oracle: {connectionsOpen: pool.connectionsOpen, connectionsInUse: pool.connectionsInUse},
+            process: {pid: process.pid, heapUsed: heapUsed, heapTotal: heapTotal}
         };
         res.render('index', params);
+
+
     });
 
     router.get('/log', function (req, res, next) {

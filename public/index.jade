@@ -1,20 +1,24 @@
 doctype html
 html(lang='en')
-	head
-		title Servicio Terminales
-	body
-		h1 Servicio Terminales Portuarias
-		p Administración General de Puertos
-		p Servidor: #{server}
-		p(style="font-weight:bolder") NodeJs version:
-			= node.version
-		p(style="font-weight:bolder") Mongoose version:
-			= mongoose.version
-		span
-			- if (mongoose.connected)
-				span(style="color:green")  Connected
-			- else
-				span(style="color:red")  Not connected
-		br
-		p Process Id: #{pid}
-		p Runtime: #{node.runtime}
+    head
+    title Servicio Terminales
+    body
+        h1 Servicio Terminales Portuarias
+        p Administración General de Puertos
+        p Servidor: #{server}
+        p(style="font-weight:bolder") NodeJs version:
+            = node.version
+        p(style="font-weight:bolder") Mongoose version:
+            = mongoose.version
+        span
+            - if (mongoose.connected)
+                span(style="color:green")  Connected
+            - else
+                span(style="color:red")  Not connected
+        br
+        p(style="font-weight:bolder") Oracle: open(#{oracle.connectionsOpen}) - used(#{oracle.connectionsInUse})
+        p Process
+        ul
+            li PID: #{process.pid}
+            li Memory: #{process.heapUsed} - Total: #{process.heapTotal}
+        p Runtime: #{node.runtime} - #{node.timeElapsed}
