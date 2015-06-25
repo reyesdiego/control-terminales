@@ -100,6 +100,13 @@ server.listen(app.get('port'), function () {
     log.logger.info("Running on %s://localhost:%s", 'http', app.get('port'));
     log.logger.info("Process Id (pid): %s", process.pid);
 });
+server.on('error', function (err) {
+    'use strict';
+    if (err.code === 'EADDRINUSE') {
+        log.logger.warn('El puerto %s está siendo utilizado por otro proceso. El proceso que intenta iniciar se abortará', app.get('port'));
+        process.exit();
+    }
+});
 
 require('./routes/accounts')(app, null, log);
 
@@ -114,7 +121,7 @@ oracledb.createPool(
             "        (SID = ORCL) " +
             ") " +
             ")",
-        poolMax       : 44,
+        poolMax       : 50,
         poolMin       : 2,
         poolIncrement : 5,
         poolTimeout   : 4
@@ -135,12 +142,18 @@ process.on('SIGINT', function () {
         log.logger.info("process.env.NODE_ENV %s", process.env.NODE_ENV);
         if (process.env.NODE_ENV === 'production') {
             var mailer = new mail.mail(config.email);
-            mailer.send('noreply@puertobuenosaires.gob.ar', 'AGP-TERAPI - ERROR', 'Mongoose default connection disconnected', function () {
-                process.exit(0);
+            mailer.send('dreyes@puertobuenosaires.gob.ar', 'AGP-TERAPI - ERROR', 'Mongoose default connection disconnected', function () {
+                process.exit();
             });
         } else {
-            process.exit(0);
+            process.exit();
         }
+    });
+});
+process.on('exit', function () {
+    var mailer = new mail.mail(config.email);
+    mailer.send('dreyes@puertobuenosaires.gob.ar', 'AGP-TERAPI - ERROR', 'Mongoose default connection disconnected', function () {
+        console.log('exit');
     });
 });
 
@@ -149,11 +162,11 @@ process.on('uncaughtException', function (err) {
     log.logger.info("Caught exception: " + err);
 });
 
-
+//for jade views
 app.locals.moment = require('moment');
 
 
-app.get('/mail/:user', function (req, res) {
+/*app.get('/mail/:user', function (req, res) {
     'use strict';
     var mail = require("./include/emailjs");
 
@@ -184,4 +197,4 @@ app.get('/mail/:user', function (req, res) {
         }
     });
 
-});
+});*/
