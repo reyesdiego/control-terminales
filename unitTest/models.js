@@ -212,38 +212,45 @@ describe('Models', function () {
     describe('# Invoices', function () {
         it('should have all properties', function (done) {
 
-            Invoice.schema.paths.should.have.property("terminal");
-            Invoice.schema.paths.should.have.property("codTipoComprob");
-            Invoice.schema.paths.should.have.property("nroPtoVenta");
-            Invoice.schema.paths.should.have.property("nroComprob");
-            Invoice.schema.paths.should.have.property("codTipoAutoriz");
-            Invoice.schema.paths.should.have.property("codAutoriz");
-            Invoice.schema.paths.should.have.property("codTipoDoc");
-            Invoice.schema.paths.should.have.property("nroDoc");
-            Invoice.schema.paths.should.have.property("clientId");
-            Invoice.schema.paths.should.have.property("razon");
-            Invoice.schema.paths.should.have.property("importe.gravado");
-            Invoice.schema.paths.should.have.property("importe.noGravado");
-            Invoice.schema.paths.should.have.property("importe.exento");
-            Invoice.schema.paths.should.have.property("importe.iva");
-            Invoice.schema.paths.should.have.property("importe.subtotal");
-            Invoice.schema.paths.should.have.property("importe.otrosTributos");
-            Invoice.schema.paths.should.have.property("importe.total");
-            Invoice.schema.paths.should.have.property("codMoneda");
-            Invoice.schema.paths.should.have.property("cotiMoneda");
-            Invoice.schema.paths.should.have.property("observa");
-            Invoice.schema.paths.should.have.property("codConcepto");
-            Invoice.schema.paths.should.have.property("fecha.emision");
-            Invoice.schema.paths.should.have.property("fecha.vcto");
-            Invoice.schema.paths.should.have.property("fecha.desde");
-            Invoice.schema.paths.should.have.property("fecha.hasta");
-            Invoice.schema.paths.should.have.property("fecha.vctoPago");
-            Invoice.schema.paths.should.have.property("detalle");
-            Invoice.schema.paths.should.have.property("otrosTributos");
-            Invoice.schema.paths.should.have.property("estado");
-            Invoice.schema.paths.should.have.property("comment");
+            var properties = [
+                "terminal",
+                "codTipoComprob",
+                "nroPtoVenta",
+                "nroComprob",
+                "codTipoAutoriz",
+                "codAutoriz",
+                "codTipoDoc",
+                "nroDoc",
+                "clientId",
+                "razon",
+                "importe.gravado",
+                "importe.noGravado",
+                "importe.exento",
+                "importe.iva",
+                "importe.subtotal",
+                "importe.otrosTributos",
+                "importe.total",
+                "codMoneda",
+                "cotiMoneda",
+                "observa",
+                "codConcepto",
+                "fecha.emision",
+                "fecha.vcto",
+                "fecha.desde",
+                "fecha.hasta",
+                "fecha.vctoPago",
+                "detalle",
+                "otrosTributos",
+                "estado",
+                "comment",
+                "invoiced"
+            ];
 
-            Object.keys(Invoice.schema.paths).length.should.equal(32);
+            properties.forEach(function (property) {
+                Invoice.schema.paths.should.have.property(property);
+            });
+
+            Object.keys(Invoice.schema.paths).length.should.equal(properties.length + 2);
 
             done();
         });
