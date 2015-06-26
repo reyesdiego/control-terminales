@@ -187,7 +187,7 @@ module.exports = function (log, pool) {
     }
 
     function getByContenedor(req, res) {
-        pool.acquire(function (err, connection) {
+        pool.getConnection(function (err, connection) {
             var strSql;
             if (err) {
                 console.log(err, "Error acquiring from pool.");
