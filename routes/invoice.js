@@ -756,9 +756,6 @@ module.exports = function(log, io, pool, app) {
                         result;
 
                     if (!err) {
-                        if (invoices.length > 0) {
-                            console.log(invoices[0].nroComprob, invoices[invoices.length-1].nroComprob);
-                        }
                         invoices.forEach(function (invoice) {
                             if (control === 0) {
                                 control = invoice.nroComprob;
@@ -781,7 +778,6 @@ module.exports = function(log, io, pool, app) {
                             }
                         });
                         contadorFaltantesTotal += contadorFaltantes;
-
                         result = {
                             status: 'OK',
                             nroPtoVenta: cash,
@@ -1180,6 +1176,48 @@ module.exports = function(log, io, pool, app) {
             });
     }
 
+    function setInvoiced (req, res) {
+        var usr = req.usr;
+
+        if (!req.query.nroComprob || !req.query.codTipoComprob || !req.query.terminal) {
+
+        } else {
+
+            Invoice.update({
+                    nroComprob: req.query.nroComprob,
+                    codTipoComprob: req.query.codTipoComprob,
+                    terminal: req.query.terminal
+                },
+                {$set: {'invoiced': req.query.invoiced}},
+                function (err, rowAffected, data) {
+                    if (err) {
+                        var errMsg = 'Error en cambio de estado. %s';
+                        log.logger.error(errMsg, err.message);
+                        res.status(500).send({status: 'ERROR', data: 'Error en cambio de estado.'});
+                    } else {
+
+                        if (rowAffected === 0) {
+                            Invoice.findByIdAndUpdate(req.params._id,
+                                {$push: {estado: {estado: req.body.estado, grupo: usr.group, user: usr.user}}},
+                                {safe: true, upsert: true},
+                                function (err, data) {
+                                    if (err) {
+                                        var errMsg = 'Error en cambio de estado. %s';
+                                        log.logger.error(errMsg, err.message);
+                                        res.status(500).send({status: 'ERROR', data: 'Error en cambio de estado.'});
+                                    } else {
+                                        res.status(200).send({status: 'OK', data: data});
+                                    }
+                                });
+                        } else {
+                            res.status(200).send({status: 'OK', data: data});
+                        }
+                    }
+                }
+            );
+        }
+    }
+
     function removeInvoices ( req, res){
 
         Invoice.remove({_id: req.params._id}, function (err){
@@ -1281,36 +1319,40 @@ module.exports = function(log, io, pool, app) {
     }
 
     function getDistincts( req, res) {
-        var usr = req.usr;
-        var distinct = '';
+        var usr = req.usr,
+            distinct = '',
+            param = {};
 
-        if (req.route.path === '/:terminal/ships')
+        if (req.route.path === '/:terminal/ships') {
             distinct = 'detalle.buque.nombre';
+        }
 
-        if (req.route.path === '/:terminal/containers')
-            distinct = 'detalle.contenedor';
-
-        if (req.route.path === '/:terminal/clients')
+        if (req.route.path === '/:terminal/clients') {
             distinct = 'razon';
+        }
 
-        var param = {};
-        if (usr.role === 'agp')
+        if (usr.role === 'agp') {
             param.terminal = req.params.terminal;
-        else
+        } else {
             param.terminal = usr.terminal;
+        }
 
-        Invoice.distinct(distinct, param, function (err, data){
-            if (err){
-                res.status(500).send({status: 'ERROR', data: err.message});
-            } else {
-                res.status(200)
-                    .send({
-                        status: 'OK',
-                        totalCount: data.length,
-                        data: data.sort()
-                    });
-            }
-        });
+        if (distinct !== '') {
+            Invoice.distinct(distinct, param, function (err, data) {
+                if (err) {
+                    res.status(500).send({status: 'ERROR', data: err.message});
+                } else {
+                    res.status(200)
+                        .send({
+                            status: 'OK',
+                            totalCount: data.length,
+                            data: data.sort()
+                        });
+                }
+            });
+        } else {
+            res.status(400).send({status: 'ERROR', message: 'El ruta es inválida', data: []});
+        }
     }
 
     function getShipTrips (req, res) {
