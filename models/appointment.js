@@ -4,11 +4,11 @@
 var mongoose = require('mongoose');
 
 var appointment = new mongoose.Schema({
-        terminal: {type: String, require: true},
+        terminal: {type: String, required: true},
         buque: {type: String},
         viaje: {type: String},
-        contenedor: {type: String, uppercase: true},
-        inicio: {type: Date, require: true},
+        contenedor: {type: String, uppercase: true, required: true},
+        inicio: {type: Date, required: true},
         fin: {type: Date},
         mov: {type: String, enum: ['IMPO', 'EXPO']},
         alta: {type: Date},
