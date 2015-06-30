@@ -11,8 +11,7 @@ var logger = require('morgan'),
     errorHandler = require('errorhandler');
 // Express configuracion END
 
-var http = require('http'),
-    socketio = require('socket.io');
+var http = require('http');
 
 var mail = require("./include/emailjs"),
     path = require('path');
@@ -30,8 +29,7 @@ var config = require('./config/config.js'),
     },
     log = new log4n(logOptions);
 
-var io = socketio.listen(server);
-io.set('log level', 1);
+var io = require('socket.io')(server);
 io.on('connection', function (socket) {
     'use strict';
     log.logger.info('Socket Client Connected: %s.', socket.id);
@@ -39,7 +37,6 @@ io.on('connection', function (socket) {
     socket.on('newUser', function (cb) {
         return cb(socket.id);
     });
-
 });
 
 var mongoose = require('mongoose');
