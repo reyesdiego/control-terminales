@@ -103,8 +103,7 @@ module.exports = function (log, io, app) {
             fechaInicio,
             fechaFin,
             param = {},
-            jsonParam,
-            date;
+            jsonParam;
 
         if (req.query.fechaInicio) {
             fechaInicio = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD')).toDate();
@@ -114,23 +113,18 @@ module.exports = function (log, io, app) {
             fechaFin = moment(moment(req.query.fechaFin).add('days', 1).format('YYYY-MM-DD')).toDate();
         }
 
-        date = moment(moment().format('YYYY-MM-DD')).toDate();
         if (req.query.fecha !== undefined) {
             fechaInicio = moment(moment(req.query.fecha).format('YYYY-MM-DD')).toDate();
-            fechaFin = moment(date).add('days', 1).toDate();
+            fechaFin = moment(fechaInicio).add('days', 1).toDate();
         }
 
         param.terminal = usr.terminal;
 
         jsonParam = [
-            {$match: { 'inicio': {$gte: fechaInicio, $lte: fechaFin} }},
-//            { $project: {'accessDate': '$inicio', terminal: '$terminal'} },
+            {$match: { 'inicio': {$gte: fechaInicio, $lt: fechaFin} }},
             { $project: {'accessDate': { $subtract: [ '$inicio', 180 * 60 * 1000 ] }, terminal: '$terminal'} },
             { $group : {
                 _id : { terminal: '$terminal',
-                    year: { $year : "$accessDate" },
-                    month: { $month : "$accessDate" },
-                    day: { $dayOfMonth : "$accessDate" },
                     hour: { $hour : "$accessDate" }
                     },
                 cnt : { $sum : 1 }

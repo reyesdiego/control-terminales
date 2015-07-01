@@ -87,26 +87,31 @@ module.exports = function (log, io, app) {
     function getGatesByHour(req, res){
 
         var usr = req.usr,
-            date = moment(moment().format('YYYY-MM-DD')).toDate(),
-            tomorrow,
-            jsonParam;
+            jsonParam,
+            fechaInicio,
+            fechaFin;
+
+        if (req.query.fechaInicio) {
+            fechaInicio = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD')).toDate();
+        }
+
+        if (req.query.fechaFin) {
+            fechaFin = moment(moment(req.query.fechaFin).add('days', 1).format('YYYY-MM-DD')).toDate();
+        }
 
         if (req.query.fecha !== undefined) {
-            date = moment(moment(req.query.fecha).format('YYYY-MM-DD')).toDate();
+            fechaInicio = moment(moment(req.query.fecha).format('YYYY-MM-DD')).toDate();
+            fechaFin = moment(fechaInicio).add('days', 1).toDate();
         }
-        tomorrow = moment(date).add('days', 1).toDate();
 
         jsonParam = [
-            {$match: { 'gateTimestamp': {$gte: date, $lt: tomorrow} }},
+            {$match: { 'gateTimestamp': {$gte: fechaInicio, $lt: fechaFin} }},
             { $project: {
                 gateTimestamp : {$subtract: [ '$gateTimestamp', 180 * 60 * 1000]},
                 terminal: '$terminal'
             }},
             { $group : {
                 _id : { terminal: '$terminal',
-                    year: { $year : "$gateTimestamp" },
-                    month: { $month : "$gateTimestamp" },
-                    day: { $dayOfMonth : "$gateTimestamp" },
                     hour: { $hour : "$gateTimestamp" }
                     },
                 cnt : { $sum : 1 }
