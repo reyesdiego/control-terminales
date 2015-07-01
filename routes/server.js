@@ -26,6 +26,19 @@ module.exports = function (log, app, mongoose, pool) {
         var heapTotal = (memory.heapTotal / 1024 / 1024).toFixed(2) + " MB";
 
 
+        var osu = require("os-utils");
+        console.log(osu.freememPercentage());
+        console.log(osu.freemem());
+
+        osu.cpuFree(function (data) {
+            console.log(data);
+        });
+        osu.cpuUsage(function (data) {
+            console.log(data);
+        });
+
+
+
         params = {
             server: app.get('env'),
             node: {version: process.version, runtime: app.get('runtime'), timeElapsed: moment(app.get('runtime')).fromNow(true) },
