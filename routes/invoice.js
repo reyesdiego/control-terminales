@@ -246,7 +246,7 @@ module.exports = function(log, io, pool, app) {
 
         jsonParam = [
             {$match: { 'fecha.emision': {$gte: date5Ago, $lt: tomorrow} }},
-            { $project: {'accessDate': '$fecha.emision', terminal: '$terminal', total: sum} },
+            { $project: {'accessDate': {$subtract: ['$fecha.emision', 180 * 60 * 1000]}, terminal: '$terminal', total: sum} },
             { $group : {
                 _id : { terminal: '$terminal',
                     year: { $year : "$accessDate" },
@@ -302,7 +302,7 @@ module.exports = function(log, io, pool, app) {
 
         jsonParam = [
             {$match: { 'fecha.emision': {$gte: month5Ago, $lt: nextMonth} }},
-            { $project: {'accessDate': {$substract: ['$fecha.emision', 180 * 60 * 1000]}, terminal: '$terminal', total: sum} },
+            { $project: {'accessDate': {$subtract: ['$fecha.emision', 180 * 60 * 1000]}, terminal: '$terminal', total: sum} },
             { $group : {
                 _id : { terminal: '$terminal',
                     year: { $year : "$accessDate" },
@@ -1096,7 +1096,7 @@ module.exports = function(log, io, pool, app) {
                                 log.logger.delete('Se eliminó el comprobante %s para ser retransferido.', invoices[0]._id.toString());
                                 Comment.remove({invoice: invoices[0]._id}, function (errComment, delComment){
                                     _addInvoice(res, postData, usr, function (statusHttp, object){
-                                        res.send(statusHttp, object);
+                                        res.status(statusHttp).send(object);
                                     });
                                 });
                             });
@@ -1417,7 +1417,7 @@ module.exports = function(log, io, pool, app) {
                                         }
                                     }
                                 );
-                                res.send(500, { status:'ERROR', data: err });
+                                res.status(500).send({ status:'ERROR', data: err });
                             } else {
                                 connection.release(
                                     function (err) {
@@ -1637,7 +1637,7 @@ module.exports = function(log, io, pool, app) {
 //			logInvoiceBody = 0;
 //		}, req.params.seconds);
 //
-//		res.send(200);
+//		res.status(200).send();
 //	})
 
     return router;
