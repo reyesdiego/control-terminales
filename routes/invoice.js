@@ -302,7 +302,7 @@ module.exports = function(log, io, pool, app) {
 
         jsonParam = [
             {$match: { 'fecha.emision': {$gte: month5Ago, $lt: nextMonth} }},
-            { $project: {'accessDate': '$fecha.emision', terminal: '$terminal', total: sum} },
+            { $project: {'accessDate': {$substract: ['$fecha.emision', 180 * 60 * 1000]}, terminal: '$terminal', total: sum} },
             { $group : {
                 _id : { terminal: '$terminal',
                     year: { $year : "$accessDate" },
@@ -480,10 +480,11 @@ module.exports = function(log, io, pool, app) {
         _price = require('../include/price.js');
         _rates = new _price.price();
         _rates.rates(function (err, rates) {
+            var invoice;
             if (err) {
                 res.status(500).send({status: 'ERROR', data : err.message});
             } else {
-                var invoice = Invoice.aggregate([
+                invoice = Invoice.aggregate([
                     { $match : {
                         'fecha.emision': today,
                         codTipoComprob : {$in : [1]}
