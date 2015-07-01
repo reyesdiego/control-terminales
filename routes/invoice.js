@@ -1040,18 +1040,22 @@ module.exports = function(log, io, pool, app) {
 
         var invoice2add = new Invoice(invoice);
         invoice2add.save( function (errSave, data) {
+            var socketMsg;
             if (!errSave) {
                 log.logger.insert("Invoice INS: %s - %s - Tipo: %s Nro: %s - %s", data._id, usr.terminal, postData.codTipoComprob, postData.nroComprob, postData.fechaEmision);
 
-                var socketMsg = {
+                socketMsg = {
                     status:'OK',
                     data : {
+                        terminal : data.terminal,
                         _id: data._id,
                         emision : data.fecha.emision,
-                        terminal : data.terminal,
-                        codTipoComprob : data.codTipoComprob
+                        codTipoComprob : data.codTipoComprob,
+                        razon: data.razon,
+                        nroComprob: data.nroComprob,
+                        total: data.importe.total
                     }
-                }
+                };
                 io.sockets.emit('invoice', socketMsg);
 
                 var comment = 'Comprobante transferido correntamente.';
