@@ -99,7 +99,7 @@ module.exports = function (log, io, app) {
         jsonParam = [
             {$match: { 'gateTimestamp': {$gte: date, $lt: tomorrow} }},
             { $project: {
-                gateTimestamp : {$subtract: [ '$gateTimestamp', 60 * 60 * 3000]},
+                gateTimestamp : {$subtract: [ '$gateTimestamp', 180 * 60 * 1000]},
                 terminal: '$terminal'
             }},
             { $group : {
@@ -140,7 +140,7 @@ module.exports = function (log, io, app) {
             {$match: { 'gateTimestamp': {$gte: month5Ago, $lt: nextMonth} }},
             { $project : {
                 terminal: '$terminal',
-                gateTimestamp : {$subtract:[ '$gateTimestamp', 60 * 60 * 3000]}
+                gateTimestamp : {$subtract: [ '$gateTimestamp', 180 * 60 * 1000]}
             }},
             {"$group": {
                 _id: {
@@ -171,27 +171,27 @@ module.exports = function (log, io, app) {
             distinct = 'buque';
         }
 
-        if (req.route.path === '/:terminal/containers') {
-            distinct = 'contenedor';
-        }
-
         if (usr.role === 'agp') {
             param.terminal = req.params.terminal;
         } else {
             param.terminal = usr.terminal;
         }
 
-        Gate.distinct(distinct, param, function (err, data) {
-            if (err) {
-                res.status(500).send({status: 'ERROR', data: err.message});
-            } else {
-                res.status(200).send({
-                    status: 'OK',
-                    totalCount: data.length,
-                    data: data.sort()
-                });
-            }
-        });
+        if (distinct !== '') {
+            Gate.distinct(distinct, param, function (err, data) {
+                if (err) {
+                    res.status(500).send({status: 'ERROR', data: err.message});
+                } else {
+                    res.status(200).send({
+                        status: 'OK',
+                        totalCount: data.length,
+                        data: data.sort()
+                    });
+                }
+            });
+        } else {
+            res.status(400).send({status: 'ERROR', message: 'El ruta es inválida', data: []});
+        }
     }
 
     function getMissingGates(req, res) {
