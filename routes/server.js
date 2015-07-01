@@ -12,6 +12,8 @@ module.exports = function (log, app, mongoose, pool) {
         params;
 
     router.get('/', function (req, res, next) {
+
+        console.log("Se consultó http://localhost:8080 a %s", new Date());
         var connected = false;
         if (mongoose.connections.length > 0) {
             if (mongoose.connections[0]._hasOpened) {
@@ -27,14 +29,14 @@ module.exports = function (log, app, mongoose, pool) {
 
 
         var osu = require("os-utils");
-        console.log(osu.freememPercentage());
-        console.log(osu.freemem());
+        //console.log(osu.freememPercentage());
+        //console.log(osu.freemem());
 
         osu.cpuFree(function (data) {
-            console.log(data);
+            //console.log(data);
         });
         osu.cpuUsage(function (data) {
-            console.log(data);
+            //console.log(data);
         });
 
 
