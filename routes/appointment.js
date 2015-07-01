@@ -272,8 +272,9 @@ module.exports = function (log, io, app) {
         appointment2insert.fin = moment(appointment2insert.fin);
         appointment2insert.terminal = usr.terminal;
 
-        if (appointment2insert.email !== undefined && appointment2insert.email !== null){
+        if (appointment2insert.email !== undefined && appointment2insert.email !== null) {
             appointment2insert.email = appointment2insert.email.trim();
+            appointment2insert.emailStatus = false;
         }
 
         if (appointment2insert.alta !== undefined && appointment2insert.alta !== null && appointment2insert.alta !== "") {
@@ -292,8 +293,7 @@ module.exports = function (log, io, app) {
         if (appointment2insert) {
             Appointment.insert(appointment2insert, function (errData, data) {
                 var str,
-                    result,
-                    appointmentToMail = {};
+                    result;
                 if (!errData) {
                     str = util.format('Appointment INS: %s - Inicio: %s - Alta: %s - %s - %s', usr.terminal, data.inicio, data.alta, data._id, data.contenedor);
                     log.logger.insert(str);

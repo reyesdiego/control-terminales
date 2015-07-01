@@ -15,7 +15,7 @@ var appointment = new mongoose.Schema({
         user: {type: String, uppercase: true},
         disponibles_t1: {type: Number},
         email: {type: String, lowercase: true},
-        emailStatus: {type: Boolean, default: false},
+        emailStatus: {type: Boolean},
         verifica: {type: Date},
         verifica_turno: {type: String, enum: ['MA', 'TA']},
         verifica_tipo: {type: String, enum: ['PISO', 'CAMION']}
