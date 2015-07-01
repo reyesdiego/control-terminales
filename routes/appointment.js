@@ -111,7 +111,7 @@ module.exports = function (log, io, app) {
         }
 
         if (req.query.fechaFin) {
-            fechaFin = moment(moment(req.query.fechaFin).format('YYYY-MM-DD')).toDate();
+            fechaFin = moment(moment(req.query.fechaFin).add('days', 1).format('YYYY-MM-DD')).toDate();
         }
 
         date = moment(moment().format('YYYY-MM-DD')).toDate();
@@ -123,8 +123,9 @@ module.exports = function (log, io, app) {
         param.terminal = usr.terminal;
 
         jsonParam = [
-            {$match: { 'inicio': {$gte: fechaInicio, $lt: fechaFin} }},
-            { $project: {'accessDate': '$inicio', terminal: '$terminal'} },
+            {$match: { 'inicio': {$gte: fechaInicio, $lte: fechaFin} }},
+//            { $project: {'accessDate': '$inicio', terminal: '$terminal'} },
+            { $project: {'accessDate': { $subtract: [ '$inicio', 180 * 60 * 1000 ] }, terminal: '$terminal'} },
             { $group : {
                 _id : { terminal: '$terminal',
                     year: { $year : "$accessDate" },
@@ -164,7 +165,7 @@ module.exports = function (log, io, app) {
 
         jsonParam = [
             {$match: { 'inicio': {$gte: date5MonthsAgo, $lt: nextMonth} }},
-            { $project: {'accessDate': '$inicio', terminal: '$terminal'} },
+            { $project: {'accessDate': { $subtract: [ '$inicio', 180 * 60 * 1000 ] }, terminal: '$terminal'} },
             { $group : {
                 _id : { terminal: '$terminal',
                     year: { $year : "$accessDate" },
@@ -366,28 +367,27 @@ module.exports = function (log, io, app) {
             distinct = '',
             param = {};
 
-        if (req.route.path === '/:terminal/containers') {
-            distinct = 'contenedor';
-        }
-
         if (req.route.path === '/:terminal/ships') {
             distinct = 'buque';
         }
 
-        param = {};
         if (usr.role === 'agp') {
             param.terminal = req.params.terminal;
         } else {
             param.terminal = usr.terminal;
         }
 
-        Appointment.distinct(distinct, param, function (err, data) {
-            if (err) {
-                res.status(500).send({status: 'ERROR', data: err});
-            } else {
-                res.status(200).send({status: 'OK', totalCount: data.length, data: data.sort()});
-            }
-        });
+        if (distinct !== '') {
+            Appointment.distinct(distinct, param, function (err, data) {
+                if (err) {
+                    res.status(500).send({status: 'ERROR', data: err});
+                } else {
+                    res.status(200).send({status: 'OK', totalCount: data.length, data: data.sort()});
+                }
+            });
+        } else {
+            res.status(400).send({status: 'ERROR', message: 'El ruta es inválida', data: []});
+        }
     }
 
     function isValidToken(req, res, next) {
