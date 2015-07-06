@@ -2,24 +2,16 @@
  * Created by diego on 3/9/15.
  */
 
-module.exports = function (log, app, mongoose, pool) {
+module.exports = function (log, params) {
     'use strict';
 
     var express = require('express'),
         router = express.Router(),
         moment = require('moment'),
         fs = require('fs'),
-        params;
+        paramsIndex;
 
-    router.get('/', function (req, res, next) {
-
-        console.log("Se consultó http://localhost:8080 a %s", new Date());
-        var connected = false;
-        if (mongoose.connections.length > 0) {
-            if (mongoose.connections[0]._hasOpened) {
-                connected = true;
-            }
-        }
+    router.get('/', function (req, res) {
 
         var util = require('util');
 
@@ -39,17 +31,19 @@ module.exports = function (log, app, mongoose, pool) {
             //console.log(data);
         });
 
-
-
-        params = {
-            server: app.get('env'),
-            node: {version: process.version, runtime: app.get('runtime'), timeElapsed: moment(app.get('runtime')).fromNow(true) },
-            mongoose: {version: mongoose.version, connected: connected},
-            oracle: {connectionsOpen: pool.connectionsOpen, connectionsInUse: pool.connectionsInUse},
+        paramsIndex = {
+            server: params.server,
+            node: {version: params.node.version, runtime: params.node.runtime, timeElapsed: params.node.timeElapsed },
+            mongoose: {version: global.mongoose.version, connected: global.mongoose.connected},
             process: {pid: process.pid, heapUsed: heapUsed, heapTotal: heapTotal}
         };
-        res.render('index', params);
+        if (params.oracle) {
+            paramsIndex.oracle = {
+                pool: params.oracle.pool
+            };
+        }
 
+        res.render('index', paramsIndex);
 
     });
 
@@ -88,11 +82,13 @@ module.exports = function (log, app, mongoose, pool) {
     });
 
     var files=[];
-    app.get('/log2', function(req, res) {
+    router.get('/log2', function(req, res) {
+        var params,
+            lazy;
 
         if (req.query.filename === undefined){
             log.getFiles(function (files){
-                var params = {
+                params = {
                     moment: moment,
                     json:[],
                     files: files
@@ -102,14 +98,14 @@ module.exports = function (log, app, mongoose, pool) {
         } else {
             fs.exists(req.query.filename, function(exists){
                 if (exists) {
-                    var params = {
+                    params = {
                         moment: moment,
                         json:[],
                         filename:req.query.filename,
                         files:files
                     };
                     // serve file
-                    var lazy = require("lazy")
+                    lazy = require("lazy")
                     new lazy(fs.createReadStream(req.query.filename))
                         .lines
                         .forEach(function(line){

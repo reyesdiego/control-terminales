@@ -1,24 +1,30 @@
 doctype html
 html(lang='en')
     head
-    title Servicio Terminales
-    body
-        h1 Servicio Terminales Portuarias
-        p Administración General de Puertos
-        p Servidor: #{server}
-        p(style="font-weight:bolder") NodeJs version:
+    title Control Terminales Portuarias
+    body(style="font-family: 'Open Sans',sans-serif; margin: 20px")
+        - var runtime = moment(node.runtime).format("ddd DD-MM-YYYY HH:mm:SS")
+        h1(style="color: #0099d7;") Servicio Control Terminales Portuarias
+        p(style="font-weight:bolder") URL&nbsp
+            span(style="font-weight: normal") #{server}
+        p(style="font-weight:bolder") NodeJs&nbsp
             = node.version
-        p(style="font-weight:bolder") Mongoose version:
+        p(style="font-weight:bolder") Mongoose&nbsp
             = mongoose.version
-        span
-            - if (mongoose.connected)
-                span(style="color:green")  Connected
-            - else
-                span(style="color:red")  Not connected
-        br
-        p(style="font-weight:bolder") Oracle: open(#{oracle.connectionsOpen}) - used(#{oracle.connectionsInUse})
-        p Process
+            span
+                - if (mongoose.connected)
+                    span(style="color:green")  Connected
+                - else
+                    span(style="color:red")  Not connected
+        - if (oracle)
+            p(style="font-weight:bolder") Oracle&nbsp;
+                - if (oracle.pool)
+                    span(style="color: green") Open(#{oracle.pool.connectionsOpen}) - Used(#{oracle.pool.connectionsInUse})
+                - else
+                    span(style="color: red")  Not connected
+        p(style="font-weight:bolder") Process
         ul
-            li PID: #{process.pid}
-            li Memory: #{process.heapUsed} - Total: #{process.heapTotal}
-        p Runtime: #{node.runtime} - #{node.timeElapsed}
+            li PID #{process.pid}
+            li Memory #{process.heapUsed} - Total #{process.heapTotal}
+        p(style="font-weight:bolder") Runtime&nbsp;
+            span(style="font-weight: normal") #{runtime} - #{node.timeElapsed}

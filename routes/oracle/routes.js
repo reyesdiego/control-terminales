@@ -2,12 +2,12 @@
  * Created by diego on 3/9/15.
  */
 
-module.exports = function (app, log, io, pool) {
+module.exports = function (log, app, pool) {
     'use strict';
 
     function isValidToken(req, res, next) {
 
-        var Account = require('../models/account.js'),
+        var Account = require('../../models/account.js'),
             incomingToken = req.headers.token;
 
         Account.verifyToken(incomingToken, function (err, usr) {

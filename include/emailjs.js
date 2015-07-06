@@ -58,6 +58,7 @@ mail.prototype = {
         'use strict';
         var self = this,
             config = {
+//                from: "A.G.P. <noreply@puertobuenosaires.gob.ar>",
                 from: "A.G.P. <noreply@puertobuenosaires.gob.ar>",
                 to: "A.G.P. <noreply@puertobuenosaires.gob.ar>",
                 subject: subject
@@ -103,7 +104,7 @@ mail.prototype = {
             this.server.send(config, function (err, message) {
                 if (err) {
                     if (typeof callback === 'function') {
-                        return callback({status: "ERROR", code: "AGP-0002", data: err});
+                        return callback({status: "ERROR", code: "AGP-0002", data: err.message});
                     }
                 } else {
                     if (typeof callback === 'function') {

@@ -2,7 +2,7 @@
  * @module Accounts
  */
 
-module.exports = function (app, passport, log) {
+module.exports = function (log, app, passport) {
     'use strict';
 
     var path = require('path'),
@@ -79,27 +79,40 @@ module.exports = function (app, passport, log) {
                     message = flash("ERROR", 'El email ya existe.');
                 } else if (error.name === 'BadRequestError' && error.message && error.message.indexOf('argument not set')) {
                     message =  flash("ERROR", 'It looks like you\'re missing a required argument. Try again.');
+                } else if (error.name === 'MongoError' && error.message.indexOf('duplicate')) {
+                    message = flash("ERROR", 'El usuario ya existe.');
                 } else {
                     message = flash("ERROR", 'Ha ocurrido un error en la llamada.');
                 }
                 res.status(500).send(message);
             } else {
                 //Successfully registered user
+
+                delete account.password;
+
                 emailConfig = Object.create(config.email);
                 emailConfig.throughBcc = false;
                 mailer = new mail.mail(emailConfig);
 
-                res.render('registerUser.jade', {url: config.url, salt: user.salt, full_name: user.full_name, user: user.user, password: user.password}, function (err, html) {
+                res.render('registerUser.jade', {url: config.url, salt: user.salt, full_name: user.full_name, user: user.user, password: user.password}, function (errJade, html) {
                     html = {
                         data : html,
                         alternative: true
                     };
-                    mailer.send(user.email, "Solicitud de registro", html, function (err, messageBack) {
-                        log.logger.insert('Account INS: %s, se envió mail a %s', user.user, user.email);
+                    mailer.send(user.email, "Solicitud de registro", html, function (errMail, messageBack) {
+                        var result = {
+                            status: "OK",
+                            data: account,
+                            emailDelivered: false
+                        };
+                        if (errMail) {
+                            log.logger.error('Account INS: %s, NO se envió mail a %s', user.user, user.email);
+                        } else {
+                            log.logger.insert('Account INS: %s, se envió mail a %s', user.user, user.email);
+                            result.emailDelivered = true;
+                        }
+                        res.status(200).send(result);
                     });
-                    account.password = '';
-                    message = flash('OK', account);
-                    res.status(200).send(message);
                 });
             }
         });
@@ -241,6 +254,62 @@ module.exports = function (app, passport, log) {
         });
     });
 
+    app.get('/agp/account/token', function (req, res) {
+
+        var result,
+            emailConfig,
+            mailer;
+
+        Account.findAll({salt: req.query.salt}, function (err, users) {
+            if (err) {
+                res.status(500).send({status: "ERROR", data: err});
+            } else {
+                if (users[0].status) {
+                    result = {
+                        status: "ERROR",
+                        message: "El usuario ya se encuentra habilitado.",
+                        data: "El usuario ya se encuentra habilitado."
+                    };
+                    res.status(500).send(result);
+                } else {
+
+                    emailConfig = Object.create(config.email);
+                    emailConfig.throughBcc = false;
+                    mailer = new mail.mail(emailConfig);
+
+                    var user = users[0];
+                    res.render('registerUser.jade', {
+                        url: config.url,
+                        salt: user.salt,
+                        full_name: user.full_name,
+                        user: user.user,
+                        password: user.password
+                    }, function (errJade, html) {
+                        html = {
+                            data: html,
+                            alternative: true
+                        };
+                        mailer.send(user.email, "Solicitud de registro", html, function (errMail, messageBack) {
+                            var result = {
+                                status: "OK",
+                                data: user,
+                                emailDelivered: false
+                            };
+                            if (errMail) {
+                                log.logger.error('Account Register by Page: %s, NO se envió mail a %s', user.user, user.email);
+                            } else {
+                                log.logger.insert('Account Register by Page: %s, se envió mail a %s', user.user, user.email);
+                                result.emailDelivered = true;
+                            }
+                            res.status(200).send(result);
+                        });
+                    });
+                }
+            }
+        });
+
+    });
+
     /**
      * Login method
      *
@@ -305,7 +374,7 @@ module.exports = function (app, passport, log) {
 
                     errMsg = err.message;
                     log.logger.error(errMsg);
-                    res.status(403).json({status: "ERROR", data: errMsg});
+                    res.status(403).json({status: "ERROR", code: err.code, message: err.message, data: err.data});
 
                 } else {
                     if (usersToken.status) {
@@ -313,19 +382,27 @@ module.exports = function (app, passport, log) {
                             loggedUser.lastLogin = new Date();
                             loggedUser.save(function (err, userSaved) {
                                 log.logger.info("User '%s' has logged in From: %s", json.email, req.socket.remoteAddress);
-                                res.status(200).json({status: "OK", data: usersToken});
+                                res.status(200).json({
+                                    status: "OK",
+                                    data: usersToken
+                                });
                             });
                         });
                     } else {
                         errMsg = util.format("El usuario %s no se encuentra habilitado para utilizar el sistema. Debe contactar al administrador.", usersToken.email);
-                        res.status(403).json({status: "ERROR", data: errMsg});
+                        res.status(403).json({
+                            status: "ERROR",
+                            code: "ACC-0004",
+                            message: errMsg,
+                            data: errMsg
+                        });
                     }
                 }
             });
         } else {
             errMsg = util.format("Debe proveerse un usuario o email");
             log.logger.error(errMsg);
-            res.status(403).json({status: "ERROR", data: errMsg});
+            res.status(400).json({status: "ERROR", data: errMsg});
         }
     });
 

@@ -60,14 +60,14 @@ Account.statics.verifyToken = function (incomingToken, cb) {
         try {
             decoded = jwt.decode(incomingToken, tokenSecret);
         } catch (e) {
-            err = {error: 'Token decoding error.' + e.message};
+            err = {code: "AGP-0015", message: 'Error al decodificar el Token.' + e.message};
             return cb(err);
         }
         //Now do a lookup on that email in mongodb ... if exists it's a real user
         if (decoded && decoded.email) {
             this.findOne({email: decoded.email}, function (err, usr) {
                 if (err || !usr) {
-                    err = {error: 'Issue finding user.'};
+                    err = {message: 'Issue finding user.'};
                     return cb(err);
                 } else if (incomingToken === usr.token.token) {
                     if (cb !== undefined) {
@@ -87,18 +87,19 @@ Account.statics.verifyToken = function (incomingToken, cb) {
 //                }
             });
         } else {
-            err = {error: 'Issue decoding incoming token.'};
+            err = {code: "AGP-0014", message: 'El Token es vacio o invalido'};
             return cb(err);
         }
     } else {
-        err = {error: 'Invalid or missing Token'};
+        err = {code: "AGP-0014", message: 'El Token es vacio o invalido'};
         return cb(err);
     }
 };
 
 Account.statics.login = function (username, password, cb) {
     'use strict';
-    var errMsg = '';
+    var errMsg = '',
+        user;
     if (username !== undefined && username !== '' && password !== undefined && password !== '') {
         this.findOne({
             $or: [{email: username}, {user: username}],
@@ -108,33 +109,35 @@ Account.statics.login = function (username, password, cb) {
                 return cb(err, null);
             } else if (user) {
 
+                user = {
+                    _id : user._id,
+                    acceso: user.acceso,
+                    role: user.role,
+                    email: user.email,
+                    user: user.user,
+                    group: user.group,
+                    terminal: user.terminal,
+                    token: user.token,
+                    date_created: user.date_created,
+                    full_name: user.full_name,
+                    emailToApp: user.emailToApp,
+                    status: user.status,
+                    salt: user.salt
+                };
                 if (user.token !== undefined) {
-                    return cb(false, {
-                        _id : user._id,
-                        acceso: user.acceso,
-                        role: user.role,
-                        email: user.email,
-                        user: user.user,
-                        group: user.group,
-                        terminal: user.terminal,
-                        token: user.token,
-                        date_created: user.date_created,
-                        full_name: user.full_name,
-                        emailToApp: user.emailToApp,
-                        status: user.status
-                    });
+                    return cb(false, user);
                 } else {
                     errMsg = 'El usuario no ha validado su cuenta para ingresar el sistema. Verifique su cuenta de correo.';
-                    return cb({message: errMsg});
+                    return cb({code: "ACC-0003", message: errMsg, data: user});
                 }
             } else {
                 errMsg = 'Usuario o Contraseña incorrectos';
-                return cb({message: errMsg});
+                return cb({code: "ACC-0001", message: errMsg});
             }
         });
     } else {
-        errMsg = 'Usuario o Contraseña incorrectos';
-        return cb({message: errMsg});
+        errMsg = 'Usuario o Contraseña no pueden ser vacios';
+        return cb({code: "ACC-0002", message: errMsg});
     }
 };
 

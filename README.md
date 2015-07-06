@@ -1,7 +1,6 @@
-# AGP Version 1.0
+# AGP Version 2.0.1
 
-*	Red
-Administracion General de Puertos
+*	Administracion General de Puertos
 
 ###Configuración
 

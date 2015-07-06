@@ -2,7 +2,7 @@
  * Created by diego on 3/9/15.
  */
 
-module.exports = function (app, log, io, mongoose, pool) {
+module.exports = function (log, app, io, pool, params) {
     'use strict';
     var serverMain,
         state,
@@ -16,7 +16,8 @@ module.exports = function (app, log, io, mongoose, pool) {
         task,
         voucherType,
         gate,
-        invoice
+        invoice,
+        moment = require('moment');
 
     function isValidToken(req, res, next) {
 
@@ -34,11 +35,26 @@ module.exports = function (app, log, io, mongoose, pool) {
         });
     }
 
-    serverMain = require('./server')(log, app, mongoose, pool);
+    serverMain = require('./server')(log, params);
     app.use('/', serverMain);
 
-    state = require('./state')(log);
-    app.use('/states', state);
+    appointment = require('./appointment')(log);
+    app.use('/appointments', isValidToken, appointment);
+
+    appointmentEmailQueue = require('./appointmentEmailQueue')(log);
+    app.use('/appointmentEmailQueues', isValidToken, appointmentEmailQueue);
+
+    comment = require('./comment')(log);
+    app.use('/comments', isValidToken, comment);
+
+    docType = require('./docType')(log);
+    app.use('/docTypes', docType);
+
+    gate = require('./gate')(log);
+    app.use('/gates', isValidToken, gate);
+
+    invoice = require('./invoice')(log, io, pool);
+    app.use('/invoices', isValidToken, invoice);
 
     match = require('./matchPrice')(log);
     app.use('/matchPrices', isValidToken, match);
@@ -46,32 +62,17 @@ module.exports = function (app, log, io, mongoose, pool) {
     price = require('./price')(log);
     app.use('/prices', isValidToken, price);
 
-    comment = require('./comment')(log);
-    app.use('/comments', isValidToken, comment);
-
-    appointment = require('./appointment')(log, io, app);
-    app.use('/appointments', isValidToken, appointment);
-
-    appointmentEmailQueue = require('./appointmentEmailQueue')(log, io);
-    app.use('/appointmentEmailQueues', isValidToken, appointmentEmailQueue);
-
-    docType = require('./docType')(log);
-    app.use('/docTypes', docType);
-
-    unitType = require('./unitType')(log);
-    app.use('/unitTypes', unitType);
+    state = require('./state')(log);
+    app.use('/states', state);
 
     task = require('./task')(log);
     app.use('/tasks', isValidToken, task);
 
+    unitType = require('./unitType')(log);
+    app.use('/unitTypes', unitType);
+
     voucherType = require('./voucherType')(log);
     app.use('/voucherTypes', voucherType);
-
-    gate = require('./gate')(log, io, app);
-    app.use('/gates', isValidToken, gate);
-
-    invoice = require('./invoice')(log, io, pool, app);
-    app.use('/invoices', isValidToken, invoice);
 
 }
 

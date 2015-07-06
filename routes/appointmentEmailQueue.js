@@ -2,7 +2,7 @@
  * Created by diego on 6/11/15.
  */
 
-module.exports = function (log, io, app) {
+module.exports = function (log) {
     'use strict';
 
     var express = require('express'),
