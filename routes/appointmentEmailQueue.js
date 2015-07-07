@@ -36,9 +36,9 @@ module.exports = function (log) {
 
         if (req.query.fechaInicio && req.query.fechaFin) {
             param.$or = [];
-            fechaIni = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+            fechaIni = moment(req.query.fechaInicio, 'YYYY-MM-DD HH:mm Z').toDate();
             param.$or.push({inicio: {$lte: fechaIni}, fin: {$gte: fechaIni}});
-            fechaFin = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+            fechaFin = moment(req.query.fechaFin, 'YYYY-MM-DD HH:mm Z').toDate();
             param.$or.push({inicio: {$lte: fechaFin}, fin: {$gte: fechaFin}});
             param.$or.push({inicio: {$gte: fechaIni}, fin: {$lte: fechaFin}});
         }

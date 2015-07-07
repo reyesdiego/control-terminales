@@ -36,11 +36,11 @@ module.exports = function(log, io, pool) {
         if (req.query.fechaInicio || req.query.fechaFin) {
             param["fecha.emision"] = {};
             if (req.query.fechaInicio) {
-                fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD 00:00:00 Z'));
+                fecha = moment(req.query.fechaInicio, ['YYYY-MM-DD']);
                 param["fecha.emision"]['$gte'] = fecha;
             }
             if (req.query.fechaFin) {
-                fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD 00:00:00 Z'));
+                fecha = moment(req.query.fechaFin, ['YYYY-MM-DD']);
                 param["fecha.emision"]['$lte'] = fecha;
             }
         }
@@ -118,12 +118,13 @@ module.exports = function(log, io, pool) {
         var usr = req.usr,
             param = {
                 _id: req.params.id
-            };
+            },
+            invoice;
 
         if (usr.role !== 'agp')
             param.terminal = usr.terminal;
 
-        var invoice = Invoice.find(param);
+        invoice = Invoice.find(param);
         invoice.exec(function(err, invoices){
             if (err) {
                 log.logger.error("%s", err.error);
@@ -144,9 +145,9 @@ module.exports = function(log, io, pool) {
             response;
 
         if (req.query.fecha !== undefined) {
-            fechaEmision = moment(moment(req.query.fecha).format('YYYY-MM-DD')).toDate();
+            fechaEmision = moment(req.query.fecha, ['YYYY-MM-DD']).toDate();
         }
-        tomorrow = moment(fechaEmision).add('days', 1).toDate();
+        tomorrow = moment(fechaEmision).add(1, 'days').toDate();
         match['$match'] = {'fecha.emision' : {$gte: fechaEmision, '$lt': tomorrow}};
         jsonParam.push(match);
 
@@ -212,7 +213,7 @@ module.exports = function(log, io, pool) {
 
     function getCountByDate(req, res) {
 
-        var date = moment(moment().format('YYYY-MM-DD')),
+        var date = moment(moment().format('YYYY-MM-DD')).toDate(),
             date5Ago,
             tomorrow,
             sum = {},
@@ -220,10 +221,10 @@ module.exports = function(log, io, pool) {
             result;
 
         if (req.query.fecha !== undefined) {
-            date = moment(moment(req.query.fecha).format('YYYY-MM-DD'));
+            date = moment(req.query.fecha, ['YYYY-MM-DD']).toDate();
         }
-        date5Ago = moment(date).subtract('days', 4).toDate();
-        tomorrow = moment(date).add('days', 1).toDate();
+        date5Ago = moment(date).subtract(4, 'days').toDate();
+        tomorrow = moment(date).add(1, 'days').toDate();
 
 
         if (req.params.currency === 'PES') {
@@ -269,17 +270,17 @@ module.exports = function(log, io, pool) {
 
     function getCountByMonth(req, res) {
 
-        var date = moment(moment().format('YYYY-MM-DD')).subtract('days', moment().date() - 1),
+        var date = moment(moment().format('YYYY-MM-DD')).subtract(moment().date() - 1, 'days').toDate(),
             month5Ago,
             nextMonth,
             sum = {},
             jsonParam;
 
         if (req.query.fecha !== undefined) {
-            date = moment(req.query.fecha, 'YYYY-MM-DD').subtract('days', moment(req.query.fecha).date() - 1);
+            date = moment(req.query.fecha, ['YYYY-MM-DD']).subtract(moment(req.query.fecha, ['YYYY-MM-DD']).date() - 1, 'days');
         }
-        month5Ago = moment(date).subtract('months', 4).toDate();
-        nextMonth = moment(date).add('months', 1).toDate();
+        month5Ago = moment(date).subtract(4, 'months').toDate();
+        nextMonth = moment(date).add(1, 'months').toDate();
 
 
         if (req.params.currency === 'PES') {
@@ -321,8 +322,6 @@ module.exports = function(log, io, pool) {
 
     function getNoRates(req, res) {
 
-        log.startElapsed();
-
         var terminal = req.params.terminal,
             _price = require('../include/price.js'),
             _rates = new _price.price(terminal),
@@ -332,6 +331,8 @@ module.exports = function(log, io, pool) {
             param,
             invoices,
             errorResult;
+
+        log.startElapsed();
 
         _rates.rates(function (err, rates) {
 
@@ -349,11 +350,11 @@ module.exports = function(log, io, pool) {
                 if (req.query.fechaInicio || req.query.fechaFin) {
                     param["fecha.emision"] = {};
                     if (req.query.fechaInicio) {
-                        fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+                        fecha = moment(moment(req.query.fechaInicio, ['YYYY-MM-DD'])).toDate();
                         param["fecha.emision"]['$gte'] = fecha;
                     }
                     if (req.query.fechaFin) {
-                        fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+                        fecha = moment(moment(req.query.fechaFin, ['YYYY-MM-DD'])).toDate();
                         param["fecha.emision"]['$lte'] = fecha;
                     }
                 }
@@ -404,15 +405,15 @@ module.exports = function(log, io, pool) {
 
         var moment = require('moment'),
             today = moment(moment().format('YYYY-MM-DD')).toDate(),
-            tomorrow = moment(moment().format('YYYY-MM-DD')).add('days', 1).toDate(),
+            tomorrow = moment(moment().format('YYYY-MM-DD')).add(1, 'days').toDate(),
             _price,
             _rates,
             sum = {},
             jsonParam;
 
         if (req.query.fecha !== undefined) {
-            today = moment(moment(req.query.fecha).format('YYYY-MM-DD')).toDate();
-            tomorrow = moment(moment(req.query.fecha).format('YYYY-MM-DD')).add('days', 1).toDate();
+            today = moment(req.query.fecha, ['YYYY-MM-DD']).toDate();
+            tomorrow = moment(req.query.fecha, ['YYYY-MM-DD']).add(1, 'days').toDate();
         }
 
         _price = require('../include/price.js');
@@ -464,13 +465,13 @@ module.exports = function(log, io, pool) {
     function getRatesLiquidacion(req, res) {
 
         var today = moment(moment().format('YYYY-MM-DD')).toDate(),
-            tomorrow = moment(moment().format('YYYY-MM-DD')).add('days', 1).toDate(),
+            tomorrow = moment(moment().format('YYYY-MM-DD')).add(1, 'days').toDate(),
             _price,
             _rates;
 
         if (req.query.fecha !== undefined) {
-            today = moment(moment(req.query.fecha).format('YYYY-MM-DD')).toDate();
-            tomorrow = moment(moment(req.query.fecha).format('YYYY-MM-DD')).add('days', 1).toDate();
+            today = moment(req.query.fecha, 'YYYY-MM-DD').toDate();
+            tomorrow = moment(req.query.fecha, 'YYYY-MM-DD').add(1, 'days').toDate();
         }
 
         _price = require('../include/price.js');
@@ -635,11 +636,11 @@ module.exports = function(log, io, pool) {
                 if (req.query.fechaInicio || req.query.fechaFin) {
                     match["fecha.emision"] = {};
                     if (req.query.fechaInicio) {
-                        fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z')).toDate();
+                        fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
                         match["fecha.emision"]['$gte'] = fecha;
                     }
                     if (req.query.fechaFin) {
-                        fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z')).toDate();
+                        fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
                         match["fecha.emision"]['$lte'] = fecha;
                     }
                 }
@@ -712,11 +713,11 @@ module.exports = function(log, io, pool) {
         if (req.query.fechaInicio || req.query.fechaFin){
             param["fecha.emision"] = {};
             if (req.query.fechaInicio) {
-                fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+                fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
                 param["fecha.emision"]['$gte'] = fecha;
             }
             if (req.query.fechaFin) {
-                fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+                fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
                 param["fecha.emision"]['$lte'] = fecha;
             }
         }
@@ -818,11 +819,11 @@ module.exports = function(log, io, pool) {
         if (req.query.fechaInicio || req.query.fechaFin){
             param["fecha.emision"]={};
             if (req.query.fechaInicio){
-                fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+                fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
                 param["fecha.emision"]['$gte'] = fecha;
             }
             if (req.query.fechaFin){
-                fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+                fecha = moment(req.query.fechaFin, 'YYYY-MM-DD HH:mm Z').toDate();
                 param["fecha.emision"]['$lte'] = fecha;
             }
         }
@@ -975,15 +976,19 @@ module.exports = function(log, io, pool) {
 
     function getInvoicesByRates (req, res) {
 
-        var ratesParam = req.body.data;
+        var ratesParam = req.body.data,
+            param,
+            dateIni,
+            dateFin;
+
         if (ratesParam.length<1){
 
         } else {
 
-            var dateIni = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD')).toDate();
-            var dateFin = moment(moment(req.query.fechaFin).format('YYYY-MM-DD')).toDate();
+            dateIni = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
+            dateFin = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
 
-            var param = [
+            param = [
                 { $match: { code: {$in: ratesParam } } },
                 { $unwind: '$match'},
                 { $project : {code: '$code',  match: '$match', _id: false}}
@@ -1021,18 +1026,22 @@ module.exports = function(log, io, pool) {
                 ];
 
                 var rates = Invoice.aggregate(param);
-                rates.exec( function (err, ratesData){
+                rates.exec( function (err, ratesData) {
+                    var response,
+                        result,
+                        result2;
+
                     if (err){
                         log.logger.error(err);
                         res.status(500).json({status:"ERROR", data: err.message});
                     }
                     else {
-                        var response = Enumerable.from(ratesData)
+                        response = Enumerable.from(ratesData)
                             .join(Enumerable.from(matchprices), '$.code', '$.match', function (rate, matchprice){
                                 rate.code = matchprice.code;
                                 return rate;
                             }).toArray();
-                        var result = Enumerable.from(response).groupBy("{code: $.code, terminal: $.terminal}", null,
+                        result = Enumerable.from(response).groupBy("{code: $.code, terminal: $.terminal}", null,
                             function (key, g) {
                                 var result = {
                                     terminal: key.terminal
@@ -1041,7 +1050,7 @@ module.exports = function(log, io, pool) {
                                 return result;
                             }).toArray();
 
-                        var result2 = Enumerable.from(result).groupBy("$.terminal" , null,
+                        result2 = Enumerable.from(result).groupBy("$.terminal" , null,
                             function (key, g) {
                                 var prop = g.getSource();
                                 var ter = {terminal: key, data: {}};
@@ -1195,18 +1204,25 @@ module.exports = function(log, io, pool) {
     }
 
     function getShipContainers (req, res) {
-        var usr = req.usr;
+        var usr = req.usr,
+            paramTerminal,
+            ter,
+            param,
+            buque,
+            viaje,
+            query;
+
         log.startElapsed();
 
-        var paramTerminal = req.params.terminal;
+        paramTerminal = req.params.terminal;
 
-        var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
-        var param = {terminal:	ter};
+        ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
+        param = {terminal:	ter};
 
-        var buque = req.query.buqueNombre;
-        var viaje = req.query.viaje;
+        buque = req.query.buqueNombre;
+        viaje = req.query.viaje;
 
-        var query = [
+        query = [
             { $match: param },
             { $unwind : '$detalle'},
             { $match: {'detalle.buque.nombre': buque, "detalle.buque.viaje" : viaje} },
@@ -1219,12 +1235,15 @@ module.exports = function(log, io, pool) {
                 res.status(500).send({status: 'ERROR', data: err.message});
             } else {
                 Gate.find({buque: buque, viaje: viaje}, function (err, dataGates){
+                    var Enumerable,
+                        response;
+
                     if (err) {
                         res.status(500).send({status: 'ERROR', data: err.message});
                     } else {
-                        var Enumerable = require('linq');
+                        Enumerable = require('linq');
 
-                        var response = Enumerable.from(dataContainers)
+                        response = Enumerable.from(dataContainers)
                             .groupJoin(dataGates, '$.contenedor', '$.contenedor', function (inner,outer){
                                 var result = {
                                     contenedor:'',
@@ -1254,7 +1273,8 @@ module.exports = function(log, io, pool) {
             _price = require('../include/price.js'),
             _rates = new _price.price(paramTerminal),
             paramTotal,
-            Enumerable = require("linq");
+            Enumerable = require("linq"),
+            inv;
 
         _rates.rates(function (err, rates){
 
@@ -1277,17 +1297,17 @@ module.exports = function(log, io, pool) {
                 { $project : {contenedor : '$detalle.contenedor'} }
             ];
 
-            var inv = Invoice.aggregate(paramTotal);
+            inv = Invoice.aggregate(paramTotal);
             inv.exec(function (err, data1){
                 //Solo filtra fecha de este lado, en el aggregate trae todas las tasas a las cargas de contenedor históricas.
                 if (req.query.fechaInicio || req.query.fechaFin) {
                     param["fecha.emision"] = {};
                     if (req.query.fechaInicio) {
-                        fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD 00:00:00 Z')).toDate();
+                        fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
                         param["fecha.emision"]['$gte'] = fecha;
                     }
                     if (req.query.fechaFin) {
-                        fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD 00:00:00 Z')).toDate();
+                        fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
                         param["fecha.emision"]['$lte'] = fecha;
                     }
                 }

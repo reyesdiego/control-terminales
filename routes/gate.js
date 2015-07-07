@@ -27,11 +27,11 @@ module.exports = function (log) {
         if (req.query.fechaInicio || req.query.fechaFin) {
             param.gateTimestamp = {};
             if (req.query.fechaInicio) {
-                fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+                fecha = moment(req.query.fechaInicio, ['YYYY-MM-DD HH:mm Z']);
                 param.gateTimestamp['$gte'] = fecha;
             }
             if (req.query.fechaFin){
-                fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+                fecha = moment(req.query.fechaFin, ['YYYY-MM-DD HH:mm Z']);
                 param.gateTimestamp['$lt'] = fecha;
             }
         }
@@ -90,16 +90,16 @@ module.exports = function (log) {
             fechaFin;
 
         if (req.query.fechaInicio) {
-            fechaInicio = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD')).toDate();
+            fechaInicio = moment(req.query.fechaInicio, ['YYYY-MM-DD']).toDate();
         }
 
         if (req.query.fechaFin) {
-            fechaFin = moment(moment(req.query.fechaFin).add('days', 1).format('YYYY-MM-DD')).toDate();
+            fechaFin = moment(req.query.fechaFin, ['YYYY-MM-DD']).add(1, 'days').toDate();
         }
 
         if (req.query.fecha !== undefined) {
-            fechaInicio = moment(moment(req.query.fecha).format('YYYY-MM-DD')).toDate();
-            fechaFin = moment(fechaInicio).add('days', 1).toDate();
+            fechaInicio = moment(req.query.fecha, ['YYYY-MM-DD']).toDate();
+            fechaFin = moment(fechaInicio).add(1, 'days').toDate();
         }
 
         jsonParam = [
@@ -128,16 +128,16 @@ module.exports = function (log) {
 
     function getGatesByMonth(req, res) {
         var usr = req.usr,
-            date = moment(moment().format('YYYY-MM-DD')).subtract('days', moment().date() - 1),
+            date = moment().subtract(moment().date() - 1, 'days').format('YYYY-MM-DD'),
             month5Ago,
             nextMonth,
             jsonParam;
 
         if (req.query.fecha !== undefined) {
-            date = moment(req.query.fecha, 'YYYY-MM-DD').subtract('days', moment(req.query.fecha).date() - 1);
+            date = moment(req.query.fecha, 'YYYY-MM-DD').subtract(moment(req.query.fecha).date() - 1, 'days');
         }
-        month5Ago = moment(date).subtract('months', 4).toDate();
-        nextMonth = moment(date).add('months', 1).toDate();
+        month5Ago = moment(date).subtract(4, 'months').toDate();
+        nextMonth = moment(date).add(1, 'months').toDate();
 
         jsonParam = [
             {$match: { 'gateTimestamp': {$gte: month5Ago, $lt: nextMonth} }},
@@ -231,15 +231,17 @@ module.exports = function (log) {
             }
 
             invoices.exec(function (err, dataInvoices) {
+                var gates;
                 if (err) {
                     res.status(500).send({status: 'ERROR', data: err.message});
                 } else {
-                    var gates = Gate.find({terminal: terminal, carga: "LL"}, {contenedor: 1});
+                    gates = Gate.find({terminal: terminal, carga: "LL"}, {contenedor: 1});
                     gates.exec(function (err, dataGates) {
+                        var invoicesWoGates;
                         if (err) {
                             res.status(500).send({status: 'ERROR', data: err.message});
                         } else {
-                            var invoicesWoGates = linq.from(dataInvoices)
+                            invoicesWoGates = linq.from(dataInvoices)
                                 .except(dataGates, "$.contenedor").toArray();
 
                             res.status(200)
@@ -281,11 +283,12 @@ module.exports = function (log) {
                 gates.sort({gateTimestamp: 1});
             }
             gates.exec(function (err, dataGates) {
+                var invoices;
                 if (err) {
                     res.status(500).send({status: 'ERROR', data: err.message});
                 } else {
 
-                    var invoices = Invoice.aggregate([
+                    invoices = Invoice.aggregate([
                         {$match: {terminal: terminal}},
                         {$unwind: '$detalle'},
                         {$unwind: '$detalle.items'},
@@ -294,11 +297,11 @@ module.exports = function (log) {
                     ]);
 
                     invoices.exec(function (err, dataInvoices) {
-
+                        var gatesWoGates;
                         if (err) {
                             res.status(500).send({status: 'ERROR', data: err.message});
                         } else {
-                            var gatesWoGates = linq.from(dataGates)
+                            gatesWoGates = linq.from(dataGates)
                                 .except(dataInvoices, "$.contenedor").toArray();
 
                             res.status(200)

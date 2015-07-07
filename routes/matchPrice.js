@@ -70,8 +70,10 @@ module.exports = function (log) {
 
         Price.find(param, {topPrices: true})
             .exec(function (err, prices) {
+                var matchPrices;
+
                 if (!err) {
-                    var matchPrices = MatchPrice.aggregate([
+                    matchPrices = MatchPrice.aggregate([
                         { $match : param},
                         { $unwind : '$match'},
                         { $project : {price: true, match : true, code : true}}
@@ -118,14 +120,17 @@ module.exports = function (log) {
 
         var s = MatchPrice.aggregate(paramMatchPrice);
         s.exec(function (err, matches) {
+            var errMsg;
             if (!err) {
 
                 Price.find(paramPrice)
                     .exec(function (err, prices) {
+                        var result = {},
+                            Enumerable = require('linq'),
+                            response;
+
                         if (!err) {
-                            var result = {},
-                                Enumerable = require('linq'),
-                                response = Enumerable.from(matches)
+                            response = Enumerable.from(matches)
                                     .join(Enumerable.from(prices), '$.price.id', '$._id.id', function (match, price) {
                                         if (req.query.type) {
                                             match.description = {
@@ -150,7 +155,7 @@ module.exports = function (log) {
                     });
 
             } else {
-                var errMsg = util.format('Error: %s', err.message);
+                errMsg = util.format('Error: %s', err.message);
                 log.logger.error(errMsg);
                 res.status(500).send({status: 'ERROR', data: errMsg});
             }
@@ -170,13 +175,16 @@ module.exports = function (log) {
             s = MatchPrice.aggregate(param);
 
         s.exec(function (err, noMatches) {
+            var arrNoMatches = [],
+                fecha,
+                param = {},
+                parametro;
+
             if (!err) {
-                var arrNoMatches = [];
                 noMatches.forEach(function (item) {
                     arrNoMatches.push(item.match);
                 });
-                var fecha,
-                    param = {};
+
                 if (req.query.fechaInicio || req.query.fechaFin) {
                     param["fecha.emision"] = {};
                     if (req.query.fechaInicio) {
@@ -189,7 +197,7 @@ module.exports = function (log) {
                     }
                 }
                 param.terminal = paramTerminal;
-                var parametro = [
+                parametro = [
                     { $match: param},
                     { $unwind: '$detalle'},
                     { $unwind: '$detalle.items'},
@@ -226,6 +234,8 @@ module.exports = function (log) {
         async.forEachSeries(matches, function(match, asyncCallback) {
 
             Price.findOne({_id: match._idPrice}, function (err, priceItem) {
+                var _matchPrice2Add;
+
                 if (!err && priceItem) {
                     if (match._id !== undefined && match._id !== null) {
                         MatchPrice.findOne({_id: match._id}, function (err, matchItem) {
@@ -235,7 +245,7 @@ module.exports = function (log) {
                             });
                         });
                     } else {
-                        var _matchPrice2Add = {
+                        _matchPrice2Add = {
                             terminal: match.terminal,
                             code: match.code,
                             match: match.match,
@@ -254,7 +264,7 @@ module.exports = function (log) {
                 }
             });
         }, function (err) {
-            res.send({status: "OK", data: {matches: matches.length}});
+            res.status(200).send({status: "OK", data: {matches: matches.length}});
         });
 
     }

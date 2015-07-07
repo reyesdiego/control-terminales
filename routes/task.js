@@ -11,13 +11,15 @@ module.exports = function (log) {
 
     function getTasks(req, res) {
 
-        var tasks = Task.find();
+        var tasks = Task.find(),
+            result;
+
         tasks.sort({description: 1});
         tasks.exec(function (err, data) {
             if (err) {
                 res.status(500).send({status: 'ERROR', data: err.message});
             } else {
-                var result = {
+                result = {
                     status: 'OK',
                     data: data
                 };

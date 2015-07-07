@@ -10,13 +10,14 @@ module.exports = function (log) {
 
     function getStates(req, res, next) {
         var State = require('../models/state.js'),
-            response;
+            response,
+            result;
 
         State.find({}, function (err, data) {
             if (err) {
                 res.status(500).send({status: "ERROR", data: err.message});
             } else {
-                var result = data;
+                result = data;
                 if (req.query.type === 'array') {
                     result = {};
                     data.forEach(function (item) {

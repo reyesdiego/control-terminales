@@ -10,13 +10,14 @@ module.exports = function (log) {
 
     function getDocTypes(req, res) {
         var Doc = require('../models/docType.js'),
-            response;
+            response,
+            result;
 
         Doc.find({}, function (err, data) {
             if (err) {
                 res.status(500).send({status: "ERROR", data: err.message});
             } else {
-                var result = data;
+                result = data;
                 if (req.query.type === 'array') {
                     result = {};
                     data.forEach(function (item) {

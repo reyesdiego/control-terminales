@@ -14,9 +14,10 @@ module.exports = function (log) {
             invoiceQueryParam = req.params.invoice;
 
         Invoice.find({_id: invoiceQueryParam}, function (err, invoices) {
+            var comment;
             if (!err) {
                 if (invoices.length > 0 && (invoices[0].terminal === usr.terminal || usr.terminal === 'AGP')) {
-                    var comment = Comment.find({invoice : invoiceQueryParam});
+                    comment = Comment.find({invoice : invoiceQueryParam});
                     comment.sort({_id: -1});
                     comment.exec(function (err, comments) {
                         if (err) {

@@ -97,12 +97,14 @@ module.exports = function (log) {
     }
 
     function getRates2(req, res) {
+        var pri,
+            priz;
 
         if (req.usr.terminal !== 'AGP') {
             res.status(403).send({status: "ERROR", data: "No posee permisos para acceder a estos datos."});
         }
-        var pri = require('../include/price.js'),
-            priz = new pri.price();
+        pri = require('../include/price.js');
+        priz = new pri.price();
         priz.rates(true, function (err, data) {
             res.status(200).send(data);
         });
@@ -120,7 +122,7 @@ module.exports = function (log) {
                 return;
             }
             req.body.topPrices.forEach(function (item) {
-                item.from = moment(item.from).format("YYYY-MM-DD 00:00:00 Z");
+                item.from = moment(item.from, "YYYY-MM-DD").toDate();
             });
 
             if (req.method === 'POST') {
@@ -137,6 +139,10 @@ module.exports = function (log) {
                         log.logger.insert("Price INS:%s - %s", priceAdded._id, usr.terminal);
 
                         Account.findEmailToApp('price', function (err, emails) {
+                            var strSubject,
+                                mailer,
+                                to;
+
                             if (!err) {
 
                                 if (emails.data.length > 0) {
@@ -145,9 +151,9 @@ module.exports = function (log) {
                                             data : html,
                                             alternative: true
                                         };
-                                        var strSubject = util.format("AGP - %s - Tarifa Nueva", usr.terminal),
-                                            mailer = new mail.mail(config.email),
-                                            to = emails.data;
+                                        strSubject = util.format("AGP - %s - Tarifa Nueva", usr.terminal);
+                                        mailer = new mail.mail(config.email);
+                                        to = emails.data;
                                         mailer.send(to, strSubject, html);
                                     });
                                 }
@@ -173,7 +179,7 @@ module.exports = function (log) {
                             res.status(200).send({"status": "OK", "data": dataSaved});
                         } else {
                             log.logger.error('Error: %s - %s', errSave.message, usr.terminal);
-                            res.status(500).send({"status":"ERROR", "data": errSave.message});
+                            res.status(500).send({"status": "ERROR", "data": errSave.message});
                         }
                     });
                 });

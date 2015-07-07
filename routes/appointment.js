@@ -37,9 +37,9 @@ module.exports = function (log) {
 
         if (req.query.fechaInicio && req.query.fechaFin) {
             param.$or = [];
-            fechaIni = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z'));
+            fechaIni = moment(moment(req.query.fechaInicio, ['YYYY-MM-DD HH:mm Z']));
             param.$or.push({inicio: {$lte: fechaIni}, fin: {$gte: fechaIni}});
-            fechaFin = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z'));
+            fechaFin = moment(moment(req.query.fechaFin, ['YYYY-MM-DD HH:mm Z']));
             param.$or.push({inicio: {$lte: fechaFin}, fin: {$gte: fechaFin}});
             param.$or.push({inicio: {$gte: fechaIni}, fin: {$lte: fechaFin}});
         }
@@ -95,16 +95,16 @@ module.exports = function (log) {
             jsonParam;
 
         if (req.query.fechaInicio) {
-            fechaInicio = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD')).toDate();
+            fechaInicio = moment(moment(req.query.fechaInicio, ['YYYY-MM-DD'])).toDate();
         }
 
         if (req.query.fechaFin) {
-            fechaFin = moment(moment(req.query.fechaFin).add('days', 1).format('YYYY-MM-DD')).toDate();
+            fechaFin = moment(moment(req.query.fechaFin, ['YYYY-MM-DD']).add(1, 'days')).toDate();
         }
 
         if (req.query.fecha !== undefined) {
-            fechaInicio = moment(moment(req.query.fecha).format('YYYY-MM-DD')).toDate();
-            fechaFin = moment(fechaInicio).add('days', 1).toDate();
+            fechaInicio = moment(moment(req.query.fecha, ['YYYY-MM-DD'])).toDate();
+            fechaFin = moment(fechaInicio).add(1, 'days').toDate();
         }
 
         param.terminal = usr.terminal;
@@ -134,17 +134,17 @@ module.exports = function (log) {
             nextMonth,
             jsonParam;
 
-        date = moment(moment().format('YYYY-MM-DD')).subtract('days', moment().date() - 1);
+        date = moment().subtract(moment().date() - 1, 'days').format('YYYY-MM-DD');
         if (req.query.fecha !== undefined) {
-            date = moment(req.query.fecha, 'YYYY-MM-DD').subtract('days', moment(req.query.fecha).date() - 1);
+            date = moment(req.query.fecha, 'YYYY-MM-DD').subtract(moment(req.query.fecha).date() - 1, 'days');
         }
         monthsAgo = 4;
         if (req.query.monthsAgo) {
             monthsAgo = req.query.monthsAgo;
         }
 
-        date5MonthsAgo = moment(date).subtract('months', monthsAgo).toDate();
-        nextMonth = moment(date).add('months', 1).toDate();
+        date5MonthsAgo = moment(date).subtract(monthsAgo, 'months').toDate();
+        nextMonth = moment(date).add(1, 'months').toDate();
 
         jsonParam = [
             {$match: { 'inicio': {$gte: date5MonthsAgo, $lt: nextMonth} }},
