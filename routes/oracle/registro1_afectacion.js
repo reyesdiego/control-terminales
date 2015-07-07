@@ -101,7 +101,7 @@ module.exports = function (log, pool) {
                 strWhere = strWhere.substr(0, strWhere.length - 4);
                 strSql = util.format(strSql, strWhere);
 
-                connection.execute(strSql, [skip, limit], {outFormat: oracledb.OBJECT}, function (err, data) {
+                connection.execute(strSql, [skip, skip + limit], {outFormat: oracledb.OBJECT}, function (err, data) {
                     if (err) {
                         connection.release(
                             function (err) {
