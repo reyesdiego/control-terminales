@@ -502,11 +502,12 @@ module.exports = function(log, io, pool) {
                     }}]);
 
                 invoice.exec(function (err, data) {
+                    var mp;
                     if (err) {
                         res.status(500).send({status: 'ERROR', data : err.message});
                     } else {
 
-                        var mp = MatchPrice.find({match: {$in: rates}}, {price: true, match : true});
+                        mp = MatchPrice.find({match: {$in: rates}}, {price: true, match : true});
                         mp.populate({path: 'price', match: {rate: {$exists: 1}}});
                         mp.exec(function (err, dataMatch) {
 
@@ -539,7 +540,7 @@ module.exports = function(log, io, pool) {
             paramTerminal = req.params.terminal,
             moment = require('moment'),
             today = moment(moment().format('YYYY-MM-DD')).toDate(),
-            tomorrow = moment(moment().format('YYYY-MM-DD')).add('days', 1).toDate(),
+            tomorrow = moment(moment().format('YYYY-MM-DD')).add(1, 'days').toDate(),
             ter,
             _price,
             _rates,
@@ -547,14 +548,14 @@ module.exports = function(log, io, pool) {
             jsonParam;
 
         if (req.query.fecha !== undefined) {
-            today = moment(moment(req.query.fecha).format('YYYY-MM-DD')).toDate();
-            tomorrow = moment(moment(req.query.fecha).format('YYYY-MM-DD')).add('days', 1).toDate();
+            today = moment(req.query.fecha, 'YYYY-MM-DD').toDate();
+            tomorrow = moment(req.query.fecha, 'YYYY-MM-DD').add(1, 'days').toDate();
         }
 
         ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
 
         _price = require('../include/price.js');
-        _rates = new _price.price();
+        _rates = new _price.price(ter);
         _rates.rates(function (err, rates) {
 
             if (req.params.currency === 'PES') {
@@ -1274,7 +1275,8 @@ module.exports = function(log, io, pool) {
             _rates = new _price.price(paramTerminal),
             paramTotal,
             Enumerable = require("linq"),
-            inv;
+            inv,
+            fecha;
 
         _rates.rates(function (err, rates){
 
