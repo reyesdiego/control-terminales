@@ -381,7 +381,7 @@ module.exports = function (log, app, passport) {
                         Account.findOne({_id: usersToken._id}, function (err, loggedUser) {
                             loggedUser.lastLogin = new Date();
                             loggedUser.save(function (err, userSaved) {
-                                log.logger.info("User '%s' has logged in From: %s", json.email, req.socket.remoteAddress);
+                                log.logger.verbose("El usuario '%s' ha ingresado a la página desde: %s", json.email, req.socket.remoteAddress);
                                 res.status(200).json({
                                     status: "OK",
                                     data: usersToken
