@@ -16,12 +16,11 @@ module.exports = function (log) {
 
     mongoose.connection.on('error', function (err) {
         log.logger.error("Database or Mongoose error. %s", err.toString());
-        log.logger.error("El procese %s se abortará.", process.pid);
-        process.exit();
-
     });
     mongoose.connection.on('disconnected', function () {
         log.logger.error("Mongoose default connection disconnected");
+        log.logger.error("El proceso %s se abortará.", process.pid);
+        process.exit();
     });
 
     global.mongoose = {
