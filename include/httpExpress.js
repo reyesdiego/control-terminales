@@ -38,7 +38,6 @@ module.exports = function (log, port, withSocketIo) {
     app.use(express.static(path.join(__dirname, '..', '/public')));
 
     app.all('/*', function (req, res, next) {
-        'use strict';
         res.header("Access-Control-Allow-Origin", "*");
         res.header("Access-Control-Allow-Headers", 'X-Requested-With, Content-Type, token');
         res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
