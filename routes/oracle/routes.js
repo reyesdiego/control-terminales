@@ -21,6 +21,15 @@ module.exports = function (log, app, pool) {
         });
     }
 
+    app.all('/afip*', function (req, res, next) {
+       console.log('AFIP %s, %s', req.originalUrl, new Date());
+        if ('OPTIONS' === req.method) {
+            res.status(200).send();
+        } else {
+            next();
+        }
+
+    });
     var registro1_afectacion = require('./registro1_afectacion')(log, pool);
     app.use('/afip', registro1_afectacion);
 
