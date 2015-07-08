@@ -44,18 +44,17 @@ oracledb.createPool(
         'use strict';
 
         if (err) {
-            log.logger.error('Oracle error: %s', err);
+            log.logger.error('Oracle: %s', err.message);
         } else {
             require('./routes/oracle/routes')(log, httpExpress.app, pool);
-
-            params = {
-                server: config.url,
-                node: {version: process.version, runtime: httpExpress.app.get('runtime'), timeElapsed: moment(moment(httpExpress.app.get('runtime'))).fromNow(true)},
-                oracle: {pool: pool}
-            };
-
-            require('./routes/routesWeb')(log, httpExpress.app, httpExpress.io, pool, params);
         }
+
+        params = {
+            server: config.url,
+            node: {version: process.version, runtime: httpExpress.app.get('runtime'), timeElapsed: moment(moment(httpExpress.app.get('runtime'))).fromNow(true)},
+            oracle: {pool: pool}
+        };
+        require('./routes/routesWeb')(log, httpExpress.app, httpExpress.io, pool, params);
     }
 );
 
