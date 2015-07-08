@@ -2,23 +2,23 @@
  * Created by diego on 6/12/14.
  */
 
-var price = function (terminal){
+var price = function (terminal) {
 
-	this.Price = require("../models/price.js");
-	this.matchPrice = require("../models/matchPrice.js");
-	this.terminal = terminal;
+    this.Price = require("../models/price.js");
+    this.matchPrice = require("../models/matchPrice.js");
+    this.terminal = terminal;
 
 }
 
 price.prototype = {
 	rates: function (withDescription, callback){
+        var Enumerable = require('linq'),
+            self = this;
 
 		if (typeof withDescription === 'function'){
 			callback = withDescription;
 		}
 
-		var Enumerable = require('linq');
-		var self = this;
 		if (callback !== undefined){
 			var selfMatchPrice =this.matchPrice;
 
@@ -32,18 +32,21 @@ price.prototype = {
 			params.push({$unwind:'$match'});
 			selfMatchPrice.aggregate( params, function(err, data){
 				selfMatchPrice.populate(data, [{ path:'price', match:{rate:{$exists:1}} }], function (err, matchprices){
+                    var ratesDesc = {},
+                        result,
+                        a;
+
 						if (err) {
 							if (typeof callback === 'function')
 								return callback(err);
 						} else {
-							var ratesDesc = {};
-							var result = Enumerable.from(matchprices)
+							result = Enumerable.from(matchprices)
 								.where(function (item){
 									return item.price != null;
 								});
 
 							if (withDescription === true){
-								var a = result.select(function(item){
+								a = result.select(function(item){
 									ratesDesc[item.match] = item.price.description;
 									return item;
 								}).toArray();
