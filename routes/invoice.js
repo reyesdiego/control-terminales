@@ -1147,58 +1147,62 @@ module.exports = function(log, io, pool) {
                         return (ter);
                     }).toArray();
 
-                pool.getConnection(function(err, connection) {
-                    var strSql;
-                    if (err) {
-                        console.log(err, "Error acquiring from pool, but returns data from mongo.");
-                        res.status(200).send({status: 'OK', data: resultTer});
-                    } else {
+                if (pool) {
+                    pool.getConnection(function (err, connection) {
+                        var strSql;
+                        if (err) {
+                            console.log("%s, Error en Oracle getShipTrips.", new Date());
+                            res.status(200).send({status: 'OK', data: resultTer});
+                        } else {
 
-                        strSql = "select nombrebuque buque, fechaarribo fecha, count(*) cnt " +
-                            "	from registro1_sumimpomani " +
-                            "	group by nombrebuque, fechaarribo " +
-                            "	order by nombrebuque,fechaarribo";
+                            strSql = "select nombrebuque buque, fechaarribo fecha, count(*) cnt " +
+                                "	from registro1_sumimpomani " +
+                                "	group by nombrebuque, fechaarribo " +
+                                "	order by nombrebuque,fechaarribo";
 
-                        connection.execute(strSql, [], {outFormat: oracledb.OBJECT},function (err, dataOra){
-                            var dataQ;
-                            if (err){
-                                connection.release(
-                                    function (err) {
-                                        if (err) {
-                                            console.error(err.message);
+                            connection.execute(strSql, [], {outFormat: oracledb.OBJECT}, function (err, dataOra) {
+                                var dataQ;
+                                if (err) {
+                                    connection.release(
+                                        function (err) {
+                                            if (err) {
+                                                console.error(err.message);
+                                            }
                                         }
-                                    }
-                                );
-                                res.status(500).send({ status:'ERROR', data: err });
-                            } else {
-                                connection.release(
-                                    function (err) {
-                                        if (err) {
-                                            console.error(err.message);
+                                    );
+                                    res.status(500).send({status: 'ERROR', data: err});
+                                } else {
+                                    connection.release(
+                                        function (err) {
+                                            if (err) {
+                                                console.error(err.message);
+                                            }
                                         }
-                                    }
-                                );
-                                dataOra = Enumerable.from(dataOra).select(function (item){
-                                    return { "buque": item.BUQUE, fecha: item.FECHA};
-                                }).toArray();
-                                dataQ = Enumerable.from(resultTer).groupJoin(dataOra, '$.buque', '$.buque', function (item, g) {
-                                    var both = false;
-                                    if (g.getSource !==undefined)
-                                        both = true;
-                                    return {
-                                        buque: item.buque,
-                                        viajes: item.viajes,
-                                        both : both
-                                    };
-                                }).toArray();
+                                    );
+                                    dataOra = Enumerable.from(dataOra).select(function (item) {
+                                        return {"buque": item.BUQUE, fecha: item.FECHA};
+                                    }).toArray();
+                                    dataQ = Enumerable.from(resultTer).groupJoin(dataOra, '$.buque', '$.buque', function (item, g) {
+                                        var both = false;
+                                        if (g.getSource !== undefined)
+                                            both = true;
+                                        return {
+                                            buque: item.buque,
+                                            viajes: item.viajes,
+                                            both: both
+                                        };
+                                    }).toArray();
 
-                                res.status(200).send({status: 'OK', data: dataQ});
+                                    res.status(200).send({status: 'OK', data: dataQ});
 
-                            }
-                        });
-                    }
-                });
-
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    console.log("%s, Error en Oracle getShipTrips.", new Date());
+                    res.status(200).send({status: 'OK', data: resultTer});
+                }
 
             }
         });
