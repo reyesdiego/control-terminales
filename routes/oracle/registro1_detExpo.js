@@ -8,6 +8,7 @@ module.exports = function (log, pool) {
     var express = require('express'),
         router = express.Router(),
         util = require("util"),
+        moment = require('moment'),
         oracledb = require('oracledb');
 
     function getRegistro1DetExpo(req, res) {
@@ -66,11 +67,11 @@ module.exports = function (log, pool) {
                 }
 
                 if (req.query.fechaInicio) {
-                    strWhere += util.format(" FECOFI >= TO_DATE('%s', 'RRRR-MM-DD') AND ", req.query.fechaInicio);
+                    strWhere += util.format(" FECOFI >= TO_DATE('%s', 'RRRR-MM-DD') AND ", moment(req.query.fechaInicio, 'YYYY-MM-DD').format('YYYY-MM-DD'));
                 }
 
                 if (req.query.fechaFin) {
-                    strWhere += util.format(" FECOFI <= TO_DATE('%s', 'RRRR-MM-DD') AND ", req.query.fechaFin);
+                    strWhere += util.format(" FECOFI <= TO_DATE('%s', 'RRRR-MM-DD') AND ", moment(req.query.fechaFin, 'YYYY-MM-DD').format('YYYY-MM-DD'));
                 }
 
                 if (req.query.detallada) {
