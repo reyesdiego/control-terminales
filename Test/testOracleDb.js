@@ -4,7 +4,7 @@
 
 var oracledb = require('oracledb');
 
-
+//oracledb.outFormat = 2;
 oracledb.getConnection(
     {
         user          : "HR",
@@ -27,7 +27,7 @@ oracledb.getConnection(
                 + "FROM departments "
                 + "WHERE department_id > :did",
             [0],
-            {outFormat: oracledb.OBJECT},
+            {},
             function(err, result)
             {
                 if (err) {
