@@ -32,14 +32,14 @@ email.server.send(
 var mail = require("../include/emailjs");
 
 var options = {
-	user:    "turnos",
+	user:    "noreply",
 	password: "desarrollo",
 	host:    "10.10.0.170",
 	port: "25",
-	domain: "puertobuenosaires.gov.ar",
+	domain: "puertobuenosaires.gob.ar",
 	ssl:     false,
 	status: true,
-	throughBcc: true
+	throughBcc: false
 }
 
 var mailer = new mail.mail(options);
@@ -65,7 +65,7 @@ var html = {
 //console.log('Se envio un mail a %j', messageBack);
 //});
 
-mailer.send('reyesdiego@hotmail.com', 'jola', 'Primero', function (err, messageBack) {
+mailer.send('reyesdiego@hotmail.com', 'Hola', 'Primero', function (err, messageBack) {
     'use strict';
     if (err) {
         console.log(err);
