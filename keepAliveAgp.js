@@ -5,14 +5,16 @@
 var http = require('http'),
     mail = require('./include/emailjs');
 
-var interval = 5 * 60 * 1000, // 5 minutos
+//var interval = 5 * 60 * 1000, // 5 minutos
+var interval = 5 * 1000, // 5 minutos
     emailSent = 0,
     allowSending = true,
     optionsget = {
         host: process.argv[2], // here only the domain name (no http/https !)
         port: process.argv[3],
-        path: '/',
-        method: 'GET'
+        path: '/invoicesX/BACTSSA/ship',
+        method: 'GET',
+        timeout: 20
     };
 
 console.info('KeepAlive AgpApi on host:%s port:%s has started successfully. Pid: %s', process.argv[2], process.argv[3], process.pid);
@@ -27,15 +29,25 @@ function request() {
         if (res.statusCode === 200) {
             allowSending = true;
             emailSent = 0;
+            console.log('OK');
         } else {
             console.log("Se Cayo: ", res.statusCode);
         }
+        var chunk1;
+        res.on('data', function (chunk) {
+            chunk1 += chunk;
+        });
+        res.on('end', function () {
+            console.log(chunk1);
+        });
+
     });
 
     reqGet.end();
 
     reqGet.on('error', function (e) {
-        'use strict';
+
+
         var mailer = new mail.mail(allowSending),
             to = ["reyesdiego@hotmail.com", "dreyes@puertobuenosaires.gob.ar"];
         mailer.send(to, "Servicio AGP detenido (testing)", JSON.stringify(optionsget), function (err, message) {
@@ -51,5 +63,6 @@ function request() {
                 }
             }
         });
+
 });
 }
