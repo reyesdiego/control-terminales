@@ -24,8 +24,10 @@ var httpExpress = require('./include/httpExpress.js')(log, port, true);
 var passport = null;
 require('./routes/accounts')(log, httpExpress.app, passport);
 
-var oracledb = require('oracledb');
-oracledb.createPool(
+//var oracledb = require('oracledb');
+var oracle = require('./include/oracle.js');
+oracle = new oracle();
+oracle.oracledb.createPool(
     {
         user          : "HR",
         password      : "oracle_4U",
@@ -38,15 +40,16 @@ oracledb.createPool(
         poolMax       : 50,
         poolMin       : 2,
         poolIncrement : 5,
-        poolTimeout   : 4
+        poolTimeout   : 4,
     },
     function (err, pool) {
         'use strict';
 
+        oracle.pool = pool;
         if (err) {
             log.logger.error('Oracle: %s', err.message);
         } else {
-            require('./routes/oracle/routes')(log, httpExpress.app, pool);
+            require('./routes/oracle/routes')(log, httpExpress.app, oracle);
         }
 
         params = {
@@ -54,7 +57,7 @@ oracledb.createPool(
             node: {version: process.version, runtime: httpExpress.app.get('runtime'), timeElapsed: moment(moment(httpExpress.app.get('runtime'))).fromNow(true)},
             oracle: {pool: pool}
         };
-        require('./routes/routesWeb')(log, httpExpress.app, httpExpress.io, pool, params);
+        require('./routes/routesWeb')(log, httpExpress.app, httpExpress.io, oracle, params);
     }
 );
 

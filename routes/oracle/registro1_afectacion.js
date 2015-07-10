@@ -2,22 +2,17 @@
  * Created by diego on 11/19/14.
  */
 
-module.exports = function (log, pool) {
+module.exports = function (log, oracle) {
     'use strict';
 
     var express = require('express'),
         router = express.Router(),
         util = require("util"),
-        moment = require('moment'),
-        oracledb = require('oracledb');
+        moment = require('moment');
 
     function getRegistro1Afectacion(req, res) {
 
-        var oracleUtils = require('../../include/oracle.js');
-
-        oracleUtils = new oracleUtils();
-
-        pool.getConnection(function (err, connection) {
+        oracle.pool.getConnection(function (err, connection) {
 
             var strWhere = '',
                 skip = parseInt(req.params.skip, 10),
@@ -30,7 +25,7 @@ module.exports = function (log, pool) {
                 res.status(500).json({ status: 'ERROR', data: err });
             } else {
 
-                orderBy = oracleUtils.orderBy(req.query.order);
+                orderBy = oracle.orderBy(req.query.order);
 
                 strSql = "SELECT * FROM " +
                     " (SELECT " +
@@ -102,15 +97,9 @@ module.exports = function (log, pool) {
                 strWhere = strWhere.substr(0, strWhere.length - 4);
                 strSql = util.format(strSql, strWhere);
 
-                connection.execute(strSql, [skip, skip + limit], {outFormat: oracledb.OBJECT}, function (err, data) {
+                connection.execute(strSql, [skip, skip + limit], function (err, data) {
                     if (err) {
-                        connection.release(
-                            function (err) {
-                                if (err) {
-                                    console.error(err.message);
-                                }
-                            }
-                        );
+                        oracle.doRelease(connection);
                         res.status(500).json({ status: 'ERROR', data: err.message });
                     } else {
                         strSql = "SELECT COUNT(*) AS TOTAL FROM REGISTRO1_AFECTACION";
@@ -118,26 +107,14 @@ module.exports = function (log, pool) {
                             strSql += util.format(" %s", strWhere);
                         }
 
-                        connection.execute(strSql, [], {outFormat: oracledb.OBJECT}, function (err, dataCount) {
+                        connection.execute(strSql, [], function (err, dataCount) {
                             var result,
                                 total;
                             if (err) {
-                                connection.release(
-                                    function (err) {
-                                        if (err) {
-                                            console.error(err.message);
-                                        }
-                                    }
-                                );
+                                oracle.doRelease(connection);
                                 res.status(500).json({ status: 'ERROR', data: err.message });
                             } else {
-                                connection.release(
-                                    function (err) {
-                                        if (err) {
-                                            console.error(err.message);
-                                        }
-                                    }
-                                );
+                                oracle.doRelease(connection);
 
                                 total = dataCount.rows[0].TOTAL;
                                 result = {
@@ -163,7 +140,7 @@ module.exports = function (log, pool) {
             distinct = 'NOMBREBUQUE';
         }
 
-        pool.getConnection(function (err, connection) {
+        oracle.pool.getConnection(function (err, connection) {
             var strSql = '',
                 result;
 
@@ -173,24 +150,12 @@ module.exports = function (log, pool) {
             } else {
                 strSql = util.format("SELECT DISTINCT %s as D FROM REGISTRO1_AFECTACION ORDER BY %s", distinct, distinct);
 
-                connection.execute(strSql, [], {outFormat: oracledb.OBJECT}, function (err, data) {
+                connection.execute(strSql, [], function (err, data) {
                     if (err) {
-                        connection.release(
-                            function (err) {
-                                if (err) {
-                                    console.error(err.message);
-                                }
-                            }
-                        );
+                        oracle.doRelease(connection);
                         res.status(500).send({ status: 'ERROR', data: err.message });
                     } else {
-                        connection.release(
-                            function (err) {
-                                if (err) {
-                                    console.error(err.message);
-                                }
-                            }
-                        );
+                        oracle.doRelease(connection);
                         result = {status: 'OK', totalCount: data.length, data: data.rows};
                         res.status(200).json(result);
                     }
