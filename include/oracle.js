@@ -2,13 +2,24 @@
  * Created by diego on 1/16/15.
  */
 
-
 var oracleUtils = function () {
     'use strict';
+    this.oracledb = require('oracledb');
+    this.oracledb.outFormat = this.oracledb.OBJECT;
+    this.pool;
 };
 
 oracleUtils.prototype = {
 
+    doRelease: function (connection) {
+        'use strict';
+        connection.release(
+            function (err) {
+                if (err) {
+                    console.error(err.message);
+                }
+            });
+    },
     orderBy : function (order) {
         'use strict';
         var orderBy = '',
