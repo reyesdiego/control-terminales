@@ -10,7 +10,7 @@ var should = require('should'),
 
 describe('AgpApi Rest', function () {
     'use strict';
-    var url = 'http://localhost:8080';
+    var url = 'http://localhost:8090';
     // within before() you can run all the operations that are needed to setup your tests. In this case
     // I want to create a connection with the database, and when I'm done, I call done().
     before(function (done) {
