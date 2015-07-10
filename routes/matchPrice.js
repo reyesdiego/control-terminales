@@ -188,11 +188,11 @@ module.exports = function (log) {
                 if (req.query.fechaInicio || req.query.fechaFin) {
                     param["fecha.emision"] = {};
                     if (req.query.fechaInicio) {
-                        fecha = moment(moment(req.query.fechaInicio).format('YYYY-MM-DD HH:mm Z')).toDate();
+                        fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
                         param["fecha.emision"]["$gte"] = fecha;
                     }
                     if (req.query.fechaFin) {
-                        fecha = moment(moment(req.query.fechaFin).format('YYYY-MM-DD HH:mm Z')).toDate();
+                        fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
                         param["fecha.emision"]['$lte'] = fecha;
                     }
                 }
