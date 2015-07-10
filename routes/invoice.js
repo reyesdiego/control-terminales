@@ -3,7 +3,7 @@
  *
  * @module Routes
  */
-module.exports = function(log, io, pool) {
+module.exports = function(log, io, oracle) {
     'use strict';
 
     var express = require('express'),
@@ -14,8 +14,7 @@ module.exports = function(log, io, pool) {
         Invoice = require('../models/invoice.js'),
         Gate = require('../models/gate.js'),
         MatchPrice = require('../models/matchPrice.js'),
-        Enumerable = require('linq'),
-        oracledb = require('oracledb');
+        Enumerable = require('linq');
 
     //GET - Return all invoice in the DB
     function getInvoices(req, res) {
@@ -36,11 +35,11 @@ module.exports = function(log, io, pool) {
         if (req.query.fechaInicio || req.query.fechaFin) {
             param["fecha.emision"] = {};
             if (req.query.fechaInicio) {
-                fecha = moment(req.query.fechaInicio, ['YYYY-MM-DD']);
+                fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
                 param["fecha.emision"]['$gte'] = fecha;
             }
             if (req.query.fechaFin) {
-                fecha = moment(req.query.fechaFin, ['YYYY-MM-DD']);
+                fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
                 param["fecha.emision"]['$lte'] = fecha;
             }
         }
@@ -221,7 +220,7 @@ module.exports = function(log, io, pool) {
             result;
 
         if (req.query.fecha !== undefined) {
-            date = moment(req.query.fecha, ['YYYY-MM-DD']).toDate();
+            date = moment(req.query.fecha, 'YYYY-MM-DD').toDate();
         }
         date5Ago = moment(date).subtract(4, 'days').toDate();
         tomorrow = moment(date).add(1, 'days').toDate();
@@ -277,7 +276,7 @@ module.exports = function(log, io, pool) {
             jsonParam;
 
         if (req.query.fecha !== undefined) {
-            date = moment(req.query.fecha, ['YYYY-MM-DD']).subtract(moment(req.query.fecha, ['YYYY-MM-DD']).date() - 1, 'days');
+            date = moment(req.query.fecha, ['YYYY-MM-DD']).subtract(moment(req.query.fecha, 'YYYY-MM-DD').date() - 1, 'days');
         }
         month5Ago = moment(date).subtract(4, 'months').toDate();
         nextMonth = moment(date).add(1, 'months').toDate();
@@ -350,11 +349,11 @@ module.exports = function(log, io, pool) {
                 if (req.query.fechaInicio || req.query.fechaFin) {
                     param["fecha.emision"] = {};
                     if (req.query.fechaInicio) {
-                        fecha = moment(moment(req.query.fechaInicio, ['YYYY-MM-DD'])).toDate();
+                        fecha = moment(moment(req.query.fechaInicio, 'YYYY-MM-DD')).toDate();
                         param["fecha.emision"]['$gte'] = fecha;
                     }
                     if (req.query.fechaFin) {
-                        fecha = moment(moment(req.query.fechaFin, ['YYYY-MM-DD'])).toDate();
+                        fecha = moment(moment(req.query.fechaFin, 'YYYY-MM-DD')).toDate();
                         param["fecha.emision"]['$lte'] = fecha;
                     }
                 }
@@ -412,8 +411,8 @@ module.exports = function(log, io, pool) {
             jsonParam;
 
         if (req.query.fecha !== undefined) {
-            today = moment(req.query.fecha, ['YYYY-MM-DD']).toDate();
-            tomorrow = moment(req.query.fecha, ['YYYY-MM-DD']).add(1, 'days').toDate();
+            today = moment(req.query.fecha, 'YYYY-MM-DD').toDate();
+            tomorrow = moment(req.query.fecha, 'YYYY-MM-DD').add(1, 'days').toDate();
         }
 
         _price = require('../include/price.js');
@@ -824,7 +823,7 @@ module.exports = function(log, io, pool) {
                 param["fecha.emision"]['$gte'] = fecha;
             }
             if (req.query.fechaFin){
-                fecha = moment(req.query.fechaFin, 'YYYY-MM-DD HH:mm Z').toDate();
+                fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
                 param["fecha.emision"]['$lte'] = fecha;
             }
         }
@@ -1147,8 +1146,8 @@ module.exports = function(log, io, pool) {
                         return (ter);
                     }).toArray();
 
-                if (pool) {
-                    pool.getConnection(function (err, connection) {
+                if (oracle.pool) {
+                    oracle.pool.getConnection(function (err, connection) {
                         var strSql;
                         if (err) {
                             console.log("%s, Error en Oracle getShipTrips.", new Date());
@@ -1160,25 +1159,13 @@ module.exports = function(log, io, pool) {
                                 "	group by nombrebuque, fechaarribo " +
                                 "	order by nombrebuque,fechaarribo";
 
-                            connection.execute(strSql, [], {outFormat: oracledb.OBJECT}, function (err, dataOra) {
+                            connection.execute(strSql, [], function (err, dataOra) {
                                 var dataQ;
                                 if (err) {
-                                    connection.release(
-                                        function (err) {
-                                            if (err) {
-                                                console.error(err.message);
-                                            }
-                                        }
-                                    );
+                                    oracle.doRelease(connection);
                                     res.status(500).send({status: 'ERROR', data: err});
                                 } else {
-                                    connection.release(
-                                        function (err) {
-                                            if (err) {
-                                                console.error(err.message);
-                                            }
-                                        }
-                                    );
+                                    oracle.doRelease(connection);
                                     dataOra = Enumerable.from(dataOra).select(function (item) {
                                         return {"buque": item.BUQUE, fecha: item.FECHA};
                                     }).toArray();
