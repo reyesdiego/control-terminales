@@ -8,6 +8,7 @@ module.exports = function (log, pool) {
     var express = require('express'),
         router = express.Router(),
         util = require("util"),
+        moment = require('moment'),
         oracledb = require('oracledb');
 
     function getRegistro1Afectacion(req, res) {
@@ -90,11 +91,11 @@ module.exports = function (log, pool) {
                 }
 
                 if (req.query.fechaInicio) {
-                    strWhere += util.format(" FECHA_REGISTRO >= TO_DATE('%s', 'RRRR-MM-DD') AND ", req.query.fechaInicio);
+                    strWhere += util.format(" FECHA_REGISTRO >= TO_DATE('%s', 'RRRR-MM-DD') AND ", moment(req.query.fechaInicio, 'YYYY-MM-DD').format('YYYY-MM-DD'));
                 }
 
                 if (req.query.fechaFin) {
-                    strWhere += util.format(" FECHA_REGISTRO <= TO_DATE('%s', 'RRRR-MM-DD') AND ", req.query.fechaFin);
+                    strWhere += util.format(" FECHA_REGISTRO <= TO_DATE('%s', 'RRRR-MM-DD') AND ", moment(req.query.fechaFin, 'YYYY-MM-DD').format('YYYY-MM-DD'));
                 }
 
 
@@ -167,8 +168,8 @@ module.exports = function (log, pool) {
                 result;
 
             if (err) {
-                console.log(err, "Error acquiring from pool.");
-                res.status(500).json({ status: 'ERROR', data: err });
+                console.log('Error %s', err.message);
+                res.status(500).json({ status: 'ERROR', data: err.message });
             } else {
                 strSql = util.format("SELECT DISTINCT %s as D FROM REGISTRO1_AFECTACION ORDER BY %s", distinct, distinct);
 
@@ -199,11 +200,13 @@ module.exports = function (log, pool) {
 
     }
 
-    // Se deja comentado el middleware ya que no tiene utilidad hasta este momento
-    //router.use(function timeLog(req, res, next){
-    //  log.logger.info('Time registro1_afectacion: %s', Date.now());
-    //  next();
-    //});
+/*
+    router.use(function timeLog(req, res, next){
+//      log.logger.info('Time registro1_afectacion: %s', Date.now());
+      next();
+    });
+*/
+
     router.get('/registro1_afectacion/:skip/:limit', getRegistro1Afectacion);
     router.get('/registro1_afectacion/buques', getDistinct);
 
