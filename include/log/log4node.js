@@ -41,6 +41,7 @@ var log4njs = function (options) {
     var transports = [];
     if (options.toConsole) {
         transports.push(new (winston.transports.Console)({
+            level: 'silly',
             colorize: true,
             raw: false,
             timestamp: true
@@ -48,9 +49,10 @@ var log4njs = function (options) {
     }
 
     if (options.toFile) {
-        transports.push(
-            new (winston.transports.File)({ filename: options.path + options.filename })
-        );
+        transports.push(new (winston.transports.File)({
+            level: 'silly',
+            filename: options.path + options.filename
+        }));
     }
 
     var logger = module.exports = new (winston.Logger)({
