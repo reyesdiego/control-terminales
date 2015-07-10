@@ -2,19 +2,17 @@
  * Created by diego on 11/19/14.
  */
 
-module.exports = function (log, pool) {
+module.exports = function (log, oracle) {
     'use strict';
 
     var express = require('express'),
         router = express.Router(),
-        util = require("util"),
-        oracledb = require('oracledb');
+        util = require("util");
 
     function getRegistro3DetImpo(req, res) {
 
-        pool.getConnection(function (err, connection) {
-            var oracleUtils,
-                orderBy,
+        oracle.pool.getConnection(function (err, connection) {
+            var orderBy,
                 strWhere = '',
                 skip,
                 limit,
@@ -24,9 +22,7 @@ module.exports = function (log, pool) {
                 console.log(err, "Error acquiring from pool.");
                 res.status(500).json({ status: 'ERROR', data: err });
             } else {
-                oracleUtils = require('../../include/oracle.js');
-                oracleUtils = new oracleUtils();
-                orderBy = oracleUtils.orderBy(req.query.order);
+                orderBy = oracle.orderBy(req.query.order);
 
                 skip = parseInt(req.params.skip, 10);
                 limit = parseInt(req.params.limit, 10);
@@ -67,15 +63,9 @@ module.exports = function (log, pool) {
                 strWhere = strWhere.substr(0, strWhere.length - 4);
                 strSql = util.format(strSql, strWhere);
 
-                connection.execute(strSql, [skip + 1, skip + limit], {outFormat: oracledb.OBJECT}, function (err, data) {
+                connection.execute(strSql, [skip + 1, skip + limit], function (err, data) {
                     if (err) {
-                        connection.release(
-                            function (err) {
-                                if (err) {
-                                    console.error(err.message);
-                                }
-                            }
-                        );
+                        oracle.doRelease(connection);
                         res.status(500).json({ status: 'ERROR', data: err.message });
                     } else {
                         strSql = "SELECT COUNT(*) AS TOTAL FROM REGISTRO3_DETIMPO";
@@ -83,26 +73,14 @@ module.exports = function (log, pool) {
                             strSql += util.format(" %s", strWhere);
                         }
 
-                        connection.execute(strSql, [], {outFormat: oracledb.OBJECT}, function (err, dataCount) {
+                        connection.execute(strSql, [], function (err, dataCount) {
                             var total,
                                 result;
                             if (err) {
-                                connection.release(
-                                    function (err) {
-                                        if (err) {
-                                            console.error(err.message);
-                                        }
-                                    }
-                                );
+                                oracle.doRelease(connection);
                                 res.status(500).json({ status: 'ERROR', data: err.message });
                             } else {
-                                connection.release(
-                                    function (err) {
-                                        if (err) {
-                                            console.error(err.message);
-                                        }
-                                    }
-                                );
+                                oracle.doRelease(connection);
                                 total = dataCount.rows[0].TOTAL;
                                 result = {
                                     status: 'OK',
