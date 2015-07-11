@@ -54,7 +54,7 @@ oracle.oracledb.createPool(
 
         params = {
             server: config.url,
-            node: {version: process.version, runtime: httpExpress.app.get('runtime'), timeElapsed: moment(moment(httpExpress.app.get('runtime'))).fromNow(true)},
+            node: {version: process.version, runtime: httpExpress.app.get('runtime')},
             oracle: {pool: pool}
         };
         require('./routes/routesWeb')(log, httpExpress.app, httpExpress.io, oracle, params);
