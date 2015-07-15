@@ -16,6 +16,7 @@ module.exports = {
     'ttl': 3600000, //1 hour
     'resetTokenExpiresMinutes': 20, //20 minutes later
     'url': "http://10.10.0.223:8080",
+    'domain': "10.10.0.223",
     'emailTurnos': {
         user:    "noreply",
         password: "desarrollo",
@@ -54,14 +55,7 @@ module.exports = {
         pass: 'desarrollo',
         auth: {authdb: "admin"}
     },
-    'server_port': 8080,
+    'server_port_ter': 8080,
     'server_port_web': 8090,
-    'server_ssl_port': 443,
-    oracle: {
-        hostname: "10.10.0.226",
-        port: 1521,
-        database: "orcl.orapruebadie.agp.gob.ar", // System ID (SID)
-        user: "HR",
-        password: "oracle_4U"
-    }
+    'server_ssl_port': 443
 };

@@ -4,10 +4,12 @@ html(lang='en')
     title Control Terminales Portuarias
     body(style="font-family: 'Open Sans',sans-serif; margin: 20px")
         - var runtime = moment(node.runtime).format("ddd DD-MM-YYYY HH:mm:SS")
-		- var fromNow = moment(node.runtime).fromNow(true)
+        - var fromNow = moment(node.runtime).fromNow(true)
         h1(style="color: #0099d7;") Servicio Control Terminales Portuarias
-        p(style="font-weight:bolder") URL&nbsp
-            span(style="font-weight: normal") #{server}
+        p(style="font-weight:bolder") IP&nbsp
+            span(style="font-weight: normal") #{server.ip}
+        p(style="font-weight:bolder") Port&nbsp
+            span(style="font-weight: normal") #{server.port}
         p(style="font-weight:bolder") NodeJs&nbsp
             = node.version
         p(style="font-weight:bolder") Mongoose&nbsp

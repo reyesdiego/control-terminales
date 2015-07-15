@@ -13,7 +13,7 @@ var config = require('./config/config.js'),
     log = new log4n(logOptions),
     params,
     moment = require('moment'),
-    port = process.env.PORT || config.server_port;
+    port = process.env.PORT || config.server_port_ter;
 
 //moment.locale('es');
 //Conecta a la base de datos MongoDb
@@ -22,7 +22,7 @@ require('./include/mongoose.js')(log);
 var httpExpress = require('./include/httpExpress.js')(log, port, true);
 
 params = {
-    server: config.url,
+    server: {ip: config.domain, port: config.server_port_ter},
     node: {version: process.version, runtime: httpExpress.app.get('runtime'), timeElapsed: moment(moment(httpExpress.app.get('runtime'))).fromNow(true)}
 };
 

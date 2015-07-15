@@ -72,7 +72,8 @@ module.exports = function (log, app, passport) {
         /*Passport method injection*/
         Account.register(user, password, function (error, account) {
             var mailer,
-                emailConfig;
+                emailConfig,
+                url;
 
             if (error) {
                 if (error.name === 'BadRequestError' && error.message && error.message.indexOf('exists') > -1) {
@@ -93,8 +94,8 @@ module.exports = function (log, app, passport) {
                 emailConfig = Object.create(config.email);
                 emailConfig.throughBcc = false;
                 mailer = new mail.mail(emailConfig);
-
-                res.render('registerUser.jade', {url: config.url, salt: user.salt, full_name: user.full_name, user: user.user, password: user.password}, function (errJade, html) {
+                url = util.format('http://%s:%s', config.domain, config.server_port_web);
+                res.render('registerUser.jade', {url: url, salt: user.salt, full_name: user.full_name, user: user.user, password: user.password}, function (errJade, html) {
                     html = {
                         data : html,
                         alternative: true
@@ -258,7 +259,9 @@ module.exports = function (log, app, passport) {
 
         var result,
             emailConfig,
-            mailer;
+            mailer,
+            url,
+            user;
 
         Account.findAll({salt: req.query.salt}, function (err, users) {
             if (err) {
@@ -277,9 +280,10 @@ module.exports = function (log, app, passport) {
                     emailConfig.throughBcc = false;
                     mailer = new mail.mail(emailConfig);
 
-                    var user = users[0];
+                    user = users[0];
+                    url = util.format('http://%s:%s', config.domain, config.server_port_web);
                     res.render('registerUser.jade', {
-                        url: config.url,
+                        url: url,
                         salt: user.salt,
                         full_name: user.full_name,
                         user: user.user,
@@ -290,13 +294,13 @@ module.exports = function (log, app, passport) {
                             alternative: true
                         };
                         mailer.send(user.email, "Solicitud de registro", html, function (errMail, messageBack) {
-                            var result = {
+                            result = {
                                 status: "OK",
                                 data: user,
                                 emailDelivered: false
                             };
                             if (errMail) {
-                                log.logger.error('Account Register by Page: %s, NO se envió mail a %s', user.user, user.email);
+                                log.logger.error('Account Register by Page: %s, NO se envió mail a %s. %s', user.user, user.email, errMail.data);
                             } else {
                                 log.logger.insert('Account Register by Page: %s, se envió mail a %s', user.user, user.email);
                                 result.emailDelivered = true;

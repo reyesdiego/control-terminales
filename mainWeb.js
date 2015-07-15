@@ -53,7 +53,7 @@ oracle.oracledb.createPool(
         }
 
         params = {
-            server: config.url,
+            server: {ip: config.domain, port: config.server_port_web},
             node: {version: process.version, runtime: httpExpress.app.get('runtime')},
             oracle: {pool: pool}
         };
