@@ -100,7 +100,7 @@ module.exports = function(log, io, oracle) {
                         result = {
                             status: 'OK',
                             totalCount: cnt,
-                            pageCount: (limit > pageCount) ? pageCount : pageCount,
+                            pageCount: (limit > pageCount) ? pageCount : limit,
                             page: skip,
                             data: invoices
                         };
@@ -918,48 +918,6 @@ module.exports = function(log, io, oracle) {
                     }
                 }
             });
-    }
-
-    function setInvoiced (req, res) {
-        var usr = req.usr;
-
-        if (!req.query.nroComprob || !req.query.codTipoComprob || !req.query.terminal) {
-
-        } else {
-
-            Invoice.update({
-                    nroComprob: req.query.nroComprob,
-                    codTipoComprob: req.query.codTipoComprob,
-                    terminal: req.query.terminal
-                },
-                {$set: {'invoiced': req.query.invoiced}},
-                function (err, rowAffected, data) {
-                    if (err) {
-                        var errMsg = 'Error en cambio de estado. %s';
-                        log.logger.error(errMsg, err.message);
-                        res.status(500).send({status: 'ERROR', data: 'Error en cambio de estado.'});
-                    } else {
-
-                        if (rowAffected === 0) {
-                            Invoice.findByIdAndUpdate(req.params._id,
-                                {$push: {estado: {estado: req.body.estado, grupo: usr.group, user: usr.user}}},
-                                {safe: true, upsert: true},
-                                function (err, data) {
-                                    if (err) {
-                                        var errMsg = 'Error en cambio de estado. %s';
-                                        log.logger.error(errMsg, err.message);
-                                        res.status(500).send({status: 'ERROR', data: 'Error en cambio de estado.'});
-                                    } else {
-                                        res.status(200).send({status: 'OK', data: data});
-                                    }
-                                });
-                        } else {
-                            res.status(200).send({status: 'OK', data: data});
-                        }
-                    }
-                }
-            );
-        }
     }
 
     function removeInvoices ( req, res){

@@ -70,7 +70,10 @@ var invoiceSchema = new Schema({
         }
     ],
     comment: [{type: mongoose.Schema.ObjectId, ref: 'comments' }],
-    invoiced: {type: Date}
+    payment: {
+        date: { type: Date },
+        number: {type: Number}
+    }
 });
 
 invoiceSchema.index({nroPtoVenta: 1, codTipoComprob: 1, nroComprob: 1, terminal: 1}, {unique: true});

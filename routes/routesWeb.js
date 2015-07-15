@@ -7,6 +7,7 @@ module.exports = function (log, app, io, pool, params) {
     var serverMain,
         state,
         match,
+        paying,
         price,
         comment,
         appointment,
@@ -58,6 +59,9 @@ module.exports = function (log, app, io, pool, params) {
 
     match = require('./matchPrice')(log);
     app.use('/matchPrices', isValidToken, match);
+
+    paying = require('./paying')(log);
+    app.use('/paying', isValidToken, paying);
 
     price = require('./price')(log);
     app.use('/prices', isValidToken, price);
