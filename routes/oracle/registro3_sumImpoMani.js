@@ -48,6 +48,9 @@ module.exports = function (log, oracle) {
                     "       CANTIDAD_SOBRANTE_FALTANTE, " +
                     "       CANTIDADAFECTAR, " +
                     "       COMENTARIOS, " +
+                    "       PTOEMBARQUE, " +
+                    "       POS_SIM, " +
+                    "       RESPTRASTRAB, " +
                     "       REGISTRADO_POR, " +
                     "       REGISTRADO_EN, " +
                     "       ROW_NUMBER() OVER (ORDER BY " + orderBy + ") R " +
@@ -106,8 +109,8 @@ module.exports = function (log, oracle) {
 
     // Se deja comentado el middleware ya que no tiene utilidad hasta este momento
     //router.use(function timeLog(req, res, next){
-    //	log.logger.info('Time registro3_sumimpomani: %s', Date.now());
-    //	next();
+    //  log.logger.info('Time registro3_sumimpomani: %s', Date.now());
+    //  next();
     //});
 
     router.get('/registro3_sumimpomani/:skip/:limit', getRegistro3SumImpoMani);

@@ -56,6 +56,9 @@ module.exports = function (log, oracle) {
                             "   LUGAROPERATIVO, " +
                             "   LUGARDEGIRO, " +
                             "   NOMBREBUQUE, " +
+                            "   CODPROCESO, " +
+                            "   MANI_CONSOL, " +
+                            "   BANDERA_NROBUQUE, " +
                             "   REGISTRADO_POR, " +
                             "   REGISTRADO_EN, " +
                             "   ROW_NUMBER() OVER ( ORDER BY " + orderBy + " ) R " +

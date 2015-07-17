@@ -56,6 +56,7 @@ module.exports = function (log, oracle) {
                     "       FECOFI, " +
                     "       CODIGOLIQUIDADO, " +
                     "       TOTALDERECHOSIMPO, " +
+                    "       PTOEMBARQUE, " +
                     "       REGISTRADO_POR, " +
                     "       REGISTRADO_EN, " +
                     "       ROW_NUMBER() OVER (ORDER BY " + orderBy + ") R " +

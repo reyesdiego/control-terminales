@@ -40,6 +40,7 @@ module.exports = function (log, oracle) {
                     "       CONTENEDOR, " +
                     "       CONDICION, " +
                     "       COMENTARIO, " +
+                    "       PTOEMBARQUE, " +
                     "       REGISTRADO_POR, " +
                     "       REGISTRADO_EN, " +
                     "       ROW_NUMBER() OVER (ORDER BY " + orderBy + ") R " +

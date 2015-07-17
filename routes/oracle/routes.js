@@ -48,6 +48,9 @@ module.exports = function (log, app, pool) {
     var registro1_sumImpoMani = require('./registro1_sumImpoMani')(log, pool);
     app.use('/afip', registro1_sumImpoMani);
 
+    var registro1_remoTrb = require('./registro1_remoTrb')(log, pool);
+    app.use('/afip', registro1_remoTrb);
+
     var registro2_afectacion = require('./registro2_afectacion')(log, pool);
     app.use('/afip', registro2_afectacion);
 
@@ -66,6 +69,12 @@ module.exports = function (log, app, pool) {
     var registro2_sumImpoMane = require('./registro2_sumImpoMani')(log, pool);
     app.use('/afip', registro2_sumImpoMane);
 
+    var registro2_remoTrb = require('./registro2_remoTrb')(log, pool);
+    app.use('/afip', registro2_remoTrb);
+
+    var registro3_afectacion = require('./registro3_afectacion')(log, pool);
+    app.use('/afip', registro3_afectacion);
+
     var registro3_detExpo = require('./registro3_detExpo')(log, pool);
     app.use('/afip', registro3_detExpo);
 
@@ -80,6 +89,9 @@ module.exports = function (log, app, pool) {
 
     var registro3_sumImpoMane = require('./registro3_sumImpoMani')(log, pool);
     app.use('/afip', registro3_sumImpoMane);
+
+    var registro3_remoTrb = require('./registro3_remoTrb')(log, pool);
+    app.use('/afip', registro3_remoTrb);
 
     var registro4_sumExpoMane = require('./registro4_sumExpoMane')(log, pool);
     app.use('/afip', registro4_sumExpoMane);

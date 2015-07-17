@@ -46,6 +46,7 @@ module.exports = function (log, oracle) {
                     "       TRANSITO_TRANSBORDO, " +
                     "       FRACCIONADO, " +
                     "       BLOQUEO, " +
+                    "       PTOEMBARQUE, " +
                     "       REGISTRADO_POR, " +
                     "       REGISTRADO_EN, " +
                     "       ROW_NUMBER() OVER (ORDER BY " + orderBy + ") R " +
