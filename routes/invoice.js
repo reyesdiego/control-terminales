@@ -85,13 +85,13 @@ module.exports = function(log, io, oracle) {
 
         invoices = Invoice.find(param);
 
-        invoices.skip(skip).limit(limit);
         if (req.query.order) {
             order = JSON.parse(req.query.order);
             invoices.sort(order[0]);
         } else {
             invoices.sort({codTipoComprob: 1, nroComprob: 1});
         }
+        invoices.skip(skip).limit(limit);
 
         invoices.exec(function (err, invoices) {
             if (!err) {

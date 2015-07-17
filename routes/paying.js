@@ -19,38 +19,83 @@ module.exports = function (log) {
             invoices,
             price = new priceUtils.price(paramTerminal),
             skip,
-            limit;
+            limit,
+            order,
+            estados;
+
+        if (paginated) {
+            estados = ['todo'];
+        } else {
+            estados = ['E', 'R', 'T'];
+        }
 
         price.rates(false, function (err, prices) {
+            var param,
+                match;
 
-            var match = {
+            match = {
                 terminal: paramTerminal,
                 'fecha.emision': {$gte: new Date(2015, 1, 0, 0, 0)},
                 'detalle.items.id': {$in: prices},
                 'payment': {$exists: false}
             };
 
-            var param = [
-                {$match: match},
-                {$project: {terminal: 1, fecha: '$fecha.emision', codTipoComprob: 1, nroComprob: 1, detalle: '$detalle'}},
+            param = [
+                {$match: match },
+                {$project: {terminal: 1, fecha: '$fecha.emision', estado: '$estado', codTipoComprob: 1, nroComprob: 1, nroPtoVenta: 1, detalle: '$detalle'}},
+                {$unwind: '$estado'},
+                {$group: {
+                    _id:   {
+                        _id: '$_id',
+                        terminal: '$terminal',
+                        fecha: '$fecha',
+                        nroComprob: '$nroComprob',
+                        codTipoComprob: '$codTipoComprob',
+                        nroPtoVenta: '$nroPtoVenta',
+                        detalle: '$detalle'
+                    },
+                    estado: {$last: '$estado'}
+                }},
+                {$project: {'_id': '$_id._id', nroPtoVenta: '$_id.nroPtoVenta', terminal: '$_id.terminal', nroComprob: '$_id.nroComprob', fecha: '$_id.fecha', codTipoComprob: '$_id.codTipoComprob', detalle: '$_id.detalle', estado: true}},
+                {$match: {'estado.estado': {$nin: estados}}},
                 {$unwind: '$detalle'},
                 {$unwind: '$detalle.items'},
                 {$match: {'detalle.items.id': {$in: prices}}},
-                {$project: {terminal: 1, code: '$detalle.items.id', fecha: 1, nroComprob: 1, codTipoComprob:1, cnt: '$detalle.items.cnt', importe: '$detalle.items.impTot', contenedor: '$detalle.contenedor'} },
                 {$group: {
                     _id: {
                         _id: '$_id',
-                        fecha: '$fecha',
                         terminal: '$terminal',
-                        codTipoComprob: '$codTipoComprob',
                         nroComprob: '$nroComprob',
-                        code: '$code'
+                        nroPtoVenta: '$nroPtoVenta',
+                        codTipoComprob: '$codTipoComprob',
+                        fecha: '$fecha',
+                        estado: '$estado',
+                        code: '$detalle.items.id'
                     },
-                    importe: {$sum: '$importe'},
-                    cnt: {$sum: '$cnt'}
+                    importe: {$sum: '$detalle.items.impTot'},
+                    cnt: {$sum : '$detalle.items.cnt'}
                 }},
-                {$sort: {'_id.codTipoComprob': 1}}
+                {$project: {
+                    _id: '$_id._id',
+                    terminal: '$_id.terminal',
+                    emision: '$_id.fecha',
+                    nroPtoVenta: '$_id.nroPtoVenta',
+                    codTipoComprob: '$_id.codTipoComprob',
+                    nroComprob: '$_id.nroComprob',
+                    code: '$_id.code',
+                    importe: '$importe',
+                    cnt: '$cnt',
+                    estado: '$_id.estado'
+                }}
             ];
+
+            if (req.query.order) {
+                order = JSON.parse(req.query.order);
+                param.push({$sort: order[0]});
+            } else {
+                param.push({$sort: {'codTipoComprob': 1}});
+            }
+
             if (paginated) {
                 limit = parseInt(req.params.limit, 10);
                 skip = parseInt(req.params.skip, 10);
@@ -93,11 +138,18 @@ module.exports = function (log) {
     function getPayed(req, res) {
         var invoices,
             skip = parseInt(req.params.skip, 10),
-            limit = parseInt(req.params.limit, 10);
+            limit = parseInt(req.params.limit, 10),
+            order;
 
         invoices = Invoice.find({'payment.number': req.params.number, terminal: req.params.terminal});
-        invoices.skip(skip);
-        invoices.limit(limit);
+
+        if (req.query.order) {
+            order = JSON.parse(req.query.order);
+            invoices.sort(order[0]);
+        } else {
+            invoices.sort({'codTipoComprob': 1, 'nroComprob': 1});
+        }
+        invoices.skip(skip).limit(limit)
 
         invoices.exec(function (err, data) {
             if (err) {
@@ -149,7 +201,7 @@ module.exports = function (log) {
                                 res.status(500).send({status: 'ERROR', message: err.message});
                             } else {
                                 async.forEach(data.data, function (item, callback) {
-                                    Invoice.update({_id: item._id._id},
+                                    Invoice.update({_id: item._id},
                                         {$set: {
                                             'payment': {
                                                 date: newPaying.date,
@@ -180,16 +232,25 @@ module.exports = function (log) {
                                                 importe: {$sum: '$importe'}
                                             }}
                                         ]);
-                                        totalPayment.exec( function (err, totalPayment) {
-                                            newPaying.total = totalPayment[0].importe;
-                                            newPaying.save(function (err, newPayingSaved) {
+                                        totalPayment.exec(function (err, totalPayment) {
+                                            if (totalPayment.length > 0){
+                                                newPaying.total = totalPayment[0].importe;
+                                                newPaying.save(function (err, newPayingSaved) {
+                                                    res.status(200).send(
+                                                        {
+                                                            status: "OK",
+                                                            data: "Se ha generado la siguiente Liquidación: " + nextPaymentNumber.toString()
+                                                        }
+                                                    );
+                                                });
+                                            } else {
                                                 res.status(200).send(
                                                     {
                                                         status: "OK",
                                                         data: "Se ha generado la siguiente Liquidación: " + nextPaymentNumber.toString()
                                                     }
                                                 );
-                                            });
+                                            }
                                         });
                                     });
                                 });
