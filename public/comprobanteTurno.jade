@@ -5,7 +5,7 @@ html(lang='es')
     body(style="font-family: 'Open Sans',sans-serif; font-size: 12px; background-color:white !important")
         - var fecha = moment(inicio).format("DD-MM-YYYY")
         - var horario = moment(inicio).format("HH:mm") + 'hs. a ' + moment(fin).format("HH:mm") + "hs.";
-        - var alta = moment(alta).format("DD-MM-YYYY HH:mm") + " hs.";
+        - var altal = moment(alta).format("DD-MM-YYYY HH:mm") + " hs.";
         - verifica = (verifica !== undefined && verifica !== null && verifica !== "") ? moment(verifica).format("DD-MM-YYYY") : verifica;
         table
                 tr(style="background-color: white !important;")
@@ -16,7 +16,7 @@ html(lang='es')
             p(style="text-align: left") Solicitud generada en&nbsp;
                 b #{full_name}
                 | &nbsp;el día
-                b &nbsp;#{alta}
+                b &nbsp;#{altal}
                 |. Se contaba con&nbsp;
                 b #{disponibles_t1}
                 | &nbsp;turnos disponibles dentro del período de la Tarifa 1.
