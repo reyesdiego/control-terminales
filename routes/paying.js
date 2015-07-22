@@ -72,7 +72,19 @@ module.exports = function (log) {
                         estado: '$estado',
                         code: '$detalle.items.id'
                     },
-                    importe: {$sum: '$detalle.items.impTot'},
+                    importe: {
+                        $sum: {
+                            $cond: { if: {  $or:[
+                                {$eq: [ "$codTipoComprob", 3 ] },
+                                {$eq: [ "$codTipoComprob", 8 ] },
+                                {$eq: [ "$codTipoComprob", 13 ] }
+                            ]
+                            },
+                                then: {$multiply:['$detalle.items.impTot', -1]},
+                                else: '$detalle.items.impTot'
+                            }
+                        }
+                    },
                     cnt: {$sum : '$detalle.items.cnt'}
                 }},
                 {$project: {
@@ -224,7 +236,21 @@ module.exports = function (log) {
                                             {$unwind: '$detalle'},
                                             {$unwind: '$detalle.items'},
                                             {$match: {'detalle.items.id': {$in: rates }}},
-                                            {$project: {terminal: 1, code: '$detalle.items.id', nroComprob: 1, cnt: '$detalle.items.cnt', importe: '$detalle.items.impTot', contenedor: '$detalle.contenedor'} },
+                                            {$project: {
+                                                terminal: 1,
+                                                code: '$detalle.items.id',
+                                                nroComprob: 1,
+                                                cnt: '$detalle.items.cnt',
+                                                importe: {
+                                                    $cond: { if: {  $or: [
+                                                        {$eq: [ "$codTipoComprob", 3 ] },
+                                                        {$eq: [ "$codTipoComprob", 8 ] },
+                                                        {$eq: [ "$codTipoComprob", 13 ] }
+                                                    ]},
+                                                        then: {$multiply: ['$detalle.items.impTot', -1]},
+                                                        else: '$detalle.items.impTot'}
+                                                }
+                                            }},
                                             {$group: {
                                                 _id: {
                                                     terminal: '$terminal'
@@ -233,7 +259,7 @@ module.exports = function (log) {
                                             }}
                                         ]);
                                         totalPayment.exec(function (err, totalPayment) {
-                                            if (totalPayment.length > 0){
+                                            if (totalPayment.length > 0) {
                                                 newPaying.total = totalPayment[0].importe;
                                                 newPaying.save(function (err, newPayingSaved) {
                                                     res.status(200).send(

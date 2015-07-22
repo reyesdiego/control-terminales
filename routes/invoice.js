@@ -75,6 +75,14 @@ module.exports = function(log, io, oracle) {
             param['detalle.items.id'] = req.query.code;
         }
 
+        if (req.query.payment === '1') {
+            param.payment = {$exists: true};
+        }
+
+        if (req.query.rates) {
+            param['detalle.items.id'] = {$in: req.query.rates};
+        }
+
         if (req.query.estado) {
             states = req.query.estado.split(",");
             param['$or'] = [
