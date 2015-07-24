@@ -545,19 +545,14 @@ module.exports = function(log, io, oracle) {
     function getRatesByContainer(req, res) {
         var usr = req.usr,
             paramTerminal = req.params.terminal,
-            moment = require('moment'),
-            today = moment(moment().format('YYYY-MM-DD')).toDate(),
-            tomorrow = moment(moment().format('YYYY-MM-DD')).add(1, 'days').toDate(),
             ter,
             _price,
             _rates,
             sum = {},
-            jsonParam;
-
-        if (req.query.fecha !== undefined) {
-            today = moment(req.query.fecha, 'YYYY-MM-DD').toDate();
-            tomorrow = moment(req.query.fecha, 'YYYY-MM-DD').add(1, 'days').toDate();
-        }
+            buque,
+            viaje,
+            jsonParam,
+            match;
 
         ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
 
@@ -579,12 +574,20 @@ module.exports = function(log, io, oracle) {
                 ]};
             }
 
+            match = {
+                terminal: ter,
+                'detalle.items.id' : {$in: rates},
+                'detalle.contenedor' : req.params.container
+            };
+            if (req.query.buqueNombre) {
+                match['detalle.buque.nombre'] = req.query.buqueNombre;
+            }
+            if (req.query.viaje) {
+                match['detalle.buque.viaje'] = req.query.viaje;
+            }
+
             jsonParam = [
-                {   $match: {
-                    terminal: ter,
-                    'detalle.items.id' : {$in: rates},
-                    'detalle.contenedor' : req.params.container
-                }},
+                {   $match: match},
                 {$unwind : '$detalle'},
                 {$unwind : '$detalle.items'},
                 {$match : {
@@ -1168,31 +1171,41 @@ module.exports = function(log, io, oracle) {
             param,
             buque,
             viaje,
-            query;
+            query,
+            price,
+            rates;
+
+        price = require('../include/price.js');
 
         log.startElapsed();
 
         paramTerminal = req.params.terminal;
 
         ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
-        param = {terminal:	ter};
 
+        rates = new price.price(ter)
+
+        param = {terminal:	ter};
         buque = req.query.buqueNombre;
         viaje = req.query.viaje;
 
-        query = [
-            { $match: param },
-            { $unwind : '$detalle'},
-            { $match: {'detalle.buque.nombre': buque, "detalle.buque.viaje" : viaje} },
-            { $group: {_id: {buque: '$detalle.buque.nombre', viaje: "$detalle.buque.viaje",contenedor: '$detalle.contenedor'} } },
-            { $project: {contenedor: '$_id.contenedor', _id: false}},
-            { $sort: {contenedor: 1} }
-        ];
-        Invoice.aggregate(query , function (err, dataContainers){
+        rates.rates(function (err, ratesArray) {
+
+            query = [
+                { $match: param },
+                { $unwind : '$detalle'},
+                { $unwind : '$detalle.items'},
+                { $match: {'detalle.buque.nombre': buque, "detalle.buque.viaje" : viaje, 'detalle.items.id': {$in: ratesArray } } },
+                { $group: {_id: {buque: '$detalle.buque.nombre', viaje: "$detalle.buque.viaje", contenedor: '$detalle.contenedor' }, tonelada: {$sum: '$detalle.items.cnt'} } },
+                { $project: {contenedor: '$_id.contenedor', toneladas: '$tonelada', _id: false}},
+                { $sort: {contenedor: 1} }
+            ];
+
+            Invoice.aggregate(query , function (err, dataContainers) {
             if (err) {
                 res.status(500).send({status: 'ERROR', data: err.message});
             } else {
-                Gate.find({buque: buque, viaje: viaje}, function (err, dataGates){
+                Gate.find({buque: buque, viaje: viaje}, function (err, dataGates) {
                     var Enumerable,
                         response;
 
@@ -1202,7 +1215,7 @@ module.exports = function(log, io, oracle) {
                         Enumerable = require('linq');
 
                         response = Enumerable.from(dataContainers)
-                            .groupJoin(dataGates, '$.contenedor', '$.contenedor', function (inner,outer){
+                            .groupJoin(dataGates, '$.contenedor', '$.contenedor', function (inner,outer) {
                                 var result = {
                                     contenedor:'',
                                     gates: []
@@ -1223,6 +1236,9 @@ module.exports = function(log, io, oracle) {
                 });
             }
         });
+
+        });
+
     }
 
     function getContainersNoRates (req, res) {
