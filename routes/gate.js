@@ -27,11 +27,11 @@ module.exports = function (log) {
         if (req.query.fechaInicio || req.query.fechaFin) {
             param.gateTimestamp = {};
             if (req.query.fechaInicio) {
-                fecha = moment(req.query.fechaInicio, ['YYYY-MM-DD HH:mm Z']);
+                fecha = moment(req.query.fechaInicio, ['YYYY-MM-DD HH:mm Z']).toDate();
                 param.gateTimestamp['$gte'] = fecha;
             }
             if (req.query.fechaFin){
-                fecha = moment(req.query.fechaFin, ['YYYY-MM-DD HH:mm Z']);
+                fecha = moment(req.query.fechaFin, ['YYYY-MM-DD HH:mm Z']).toDate();
                 param.gateTimestamp['$lt'] = fecha;
             }
         }
@@ -46,6 +46,16 @@ module.exports = function (log) {
 
         if (req.query.viaje) {
             param.viaje = req.query.viaje;
+        }
+
+        if (req.query.carga) {
+            param.carga = req.query.carga;
+        }
+
+        if (req.query.ontime === '1') {
+            param["$where"] = 'this.gateTimestamp>=this.turnoInicio && this.gateTimestamp<=this.turnoFin';
+        } else if (req.query.ontime === '0') {
+            param["$where"] = 'this.gateTimestamp<this.turnoInicio || this.gateTimestamp>this.turnoFin';
         }
 
         if (usr.role === 'agp') {
@@ -341,7 +351,6 @@ router.use(function timeLog(req, res, next){
     router.get('/:terminal/missingGates', getMissingGates);
     router.get('/:terminal/missingInvoices', getMissingInvoices);
     router.get('/:terminal/ships', getDistincts);
-    router.get('/:terminal/containers', getDistincts);
 
     return router;
 };
