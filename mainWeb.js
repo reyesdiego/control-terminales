@@ -28,15 +28,29 @@ require('./routes/accounts')(log, httpExpress.app, passport);
 var oracle = require('./include/oracle.js');
 oracle = new oracle();
 oracle.oracledb.createPool(
+    //{
+    //    user          : "HR",
+    //    password      : "oracle_4U",
+    //    connectString : "(DESCRIPTION = " +
+    //        "(ADDRESS = (PROTOCOL = TCP)(HOST = 10.10.0.226)(PORT = 1521)) " +
+    //        "(CONNECT_DATA = " +
+    //        "        (SID = ORCL) " +
+    //        ") " +
+    //        ")",
+    //    poolMax       : 50,
+    //    poolMin       : 2,
+    //    poolIncrement : 5,
+    //    poolTimeout   : 4,
+    //},
     {
-        user          : "HR",
-        password      : "oracle_4U",
+        user          : "afip",
+        password      : "afip_",
         connectString : "(DESCRIPTION = " +
-            "(ADDRESS = (PROTOCOL = TCP)(HOST = 10.10.0.226)(PORT = 1521)) " +
-            "(CONNECT_DATA = " +
-            "        (SID = ORCL) " +
-            ") " +
-            ")",
+        "(ADDRESS = (PROTOCOL = TCP)(HOST = 10.1.0.60)(PORT = 1521)) " +
+        "(CONNECT_DATA = " +
+        "        (SID = AFIP) " +
+        ") " +
+        ")",
         poolMax       : 50,
         poolMin       : 2,
         poolIncrement : 5,

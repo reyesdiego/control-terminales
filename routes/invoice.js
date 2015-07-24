@@ -1287,6 +1287,13 @@ module.exports = function(log, io, oracle) {
                     }
                 }
 
+                if (req.query.buqueNombre) {
+                    param['detalle.buque.nombre'] = req.query.buqueNombre;
+                }
+                if (req.query.viaje) {
+                    param['detalle.buque.viaje'] = req.query.viaje;
+                }
+
                 Invoice.distinct('detalle.contenedor', param, function (err, data2){
 
                     var contes = Enumerable.from(data1).select('$.contenedor');
