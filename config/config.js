@@ -23,6 +23,7 @@ module.exports = {
         host:    "10.10.0.170",
         port: "25",
         domain: "puertobuenosaires.gob.ar",
+        from: "Administración General de Puertos <noreply@puertobuenosaires.gov.ar>",
         ssl:     false,
         status: true,
         throughBcc: true
@@ -33,6 +34,7 @@ module.exports = {
         host:    "10.10.0.170",
         port: "25",
         domain: "puertobuenosaires.gob.ar",
+        from: "Administración General de Puertos <noreply@puertobuenosaires.gov.ar>",
         ssl:     false,
         status: true,
         throughBcc: true
