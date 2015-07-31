@@ -7,6 +7,7 @@ var mail = function (options) {
     'use strict';
     var conf;
 
+    this.from = options.from;
     this.status = options.status;
     this.throughBcc = options.throughBcc;
 
@@ -58,9 +59,7 @@ mail.prototype = {
         'use strict';
         var self = this,
             config = {
-//                from: "A.G.P. <noreply@puertobuenosaires.gob.ar>",
-                from: "A.G.P. <noreply@puertobuenosaires.gob.ar>",
-                to: "A.G.P. <noreply@puertobuenosaires.gob.ar>",
+                from: this.from,
                 subject: subject
             },
             tos = [];
