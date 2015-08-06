@@ -9,6 +9,8 @@ var payings = new mongoose.Schema({
     terminal: {type: String, required: true},
     number: {type: Number, required: true},
     date: {type: Date, required: true},
+    vouchers: {type: Number},
+    tons: {type: Number},
     total: {type: Number, required: true}
 });
 
