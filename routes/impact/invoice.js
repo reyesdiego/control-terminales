@@ -17,39 +17,44 @@ module.exports = function (log, io) {
 
     function addInvoice(req, res) {
 
-        var usr = req.usr;
-
-        var postData = '';
+        var usr = req.usr,
+            postData = '',
+            mailer,
+            strBody,
+            strSubject,
+            errMsg;
 
         req.addListener("data", function(postDataChunk) {
             postData += postDataChunk;
         });
-        req.addListener("end", function() {
+        req.addListener("end", function () {
 
             var contentTypeExists = req.headers["content-type"].toLowerCase().indexOf("text/plain");
-            if (contentTypeExists === -1){
-                var errMsg = util.format("El content-type:%s es incorrecto. Debe enviar text/plain. %s", req.headers["content-type"], usr.terminal);
+            if (contentTypeExists === -1) {
+                errMsg = util.format("El content-type:%s es incorrecto. Debe enviar text/plain. %s", req.headers["content-type"], usr.terminal);
                 log.logger.error(errMsg);
                 res.status(400).send(errMsg);
                 return;
             }
 
             try {
-                if (logInvoiceBody === 1)
+                if (logInvoiceBody === 1) {
                     log.logger.info("Invoice body INS: %s - %s", postData, usr.terminal);
+                }
 
                 postData = JSON.parse(postData);
-            } catch (errParsing){
-                var strBody = util.format("Parsing JSON: [%s], JSON:%s", errParsing.toString(), postData);
-                var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
+            } catch (errParsing) {
+                strBody = util.format("Parsing JSON: [%s], JSON:%s", errParsing.toString(), postData);
+                strSubject = util.format("AGP - %s - ERROR", usr.terminal);
+
                 log.logger.error(strBody);
-                var mailer = new mail.mail(config.email);
+                mailer = new mail.mail(config.email);
                 mailer.send(usr.email, strSubject, strBody);
-                res.status(500).send({status:"ERROR", data: strBody} );
+                res.status(500).send({status: "ERROR", data: strBody} );
                 return;
             }
 
-            _addInvoice(res, postData, usr, function(statusHttp, object){
+            _addInvoice(res, postData, usr, function (statusHttp, object){
                 res.status(statusHttp).send(object);
             });
         });
@@ -72,13 +77,13 @@ module.exports = function (log, io) {
                 clienteId: postData.clientId,
                 razon: postData.razon.trim(),
                 importe: {
-                    gravado: postData.impGrav,
-                    noGravado: postData.impNoGrav,
-                    exento: postData.impExento,
-                    subtotal: postData.impSubtot,
-                    iva: postData.impIva,
+                    gravado: Math.abs(postData.impGrav),
+                    noGravado: Math.abs(postData.impNoGrav),
+                    exento: Math.abs(postData.impExento),
+                    subtotal: Math.abs(postData.impSubtot),
+                    iva: Math.abs(postData.impIva),
                     otrosTributos: postData.impOtrosTrib,
-                    total: postData.impTotal
+                    total: Math.abs(postData.impTotal)
                 },
                 codMoneda: postData.codMoneda,
                 cotiMoneda: postData.cotiMoneda,
@@ -103,7 +108,7 @@ module.exports = function (log, io) {
                 comment: []
             };
 
-            if (postData.otrosTributos){
+            if (postData.otrosTributos) {
                 postData.otrosTributos.forEach(function (item) {
 
                     var otId = (item.id !== undefined) ? item.id.toString() : null;
@@ -112,15 +117,15 @@ module.exports = function (log, io) {
                         {
                             id: (otId) ? otId : "",
                             desc: (otDesc) ? otDesc.trim() : "",
-                            imponible: item.imponible,
-                            imp: item.imp
-                        })
+                            imponible: Math.abs(item.imponible),
+                            imp: Math.abs(item.imp)
+                        });
                 });
             }
 
             var subTotalCheck=0;
             if ( postData.detalle && postData.detalle.length > 0 ){
-                postData.detalle.forEach(function (container){
+                postData.detalle.forEach(function (container) {
                     var buqueId = (container.buqueId !== undefined && container.buqueId !== null) ? container.buqueId.toString() : "";
                     var buqueDesc = container.buqueDesc;
                     var viaje = container.viaje;
@@ -134,27 +139,27 @@ module.exports = function (log, io) {
 
                     var contenedor = container.contenedor;
                     var cont = {
-                        contenedor:		(contenedor) ? container.contenedor.trim() : "",
-                        IMO:			container.IMO,
-                        buque:			buque,
+                        contenedor: (contenedor) ? container.contenedor.trim() : "",
+                        IMO: container.IMO,
+                        buque: buque,
                         items: []
                     };
-                    if (container.items){
-                        container.items.forEach( function (item){
+                    if (container.items) {
+                        container.items.forEach(function (item) {
                             cont.items.push(
                                 {
-                                    id:			item.id,
-                                    cnt:		Math.abs(item.cnt),
-                                    uniMed:		item.uniMed,
-                                    impUnit:	item.impUnit,
-                                    impTot:		Math.abs(item.impTot)
+                                    id: item.id,
+                                    cnt: Math.abs(item.cnt),
+                                    uniMed: item.uniMed,
+                                    impUnit: item.impUnit,
+                                    impTot: Math.abs(item.impTot)
                                 });
-                            subTotalCheck += item.impTot;
+                            subTotalCheck += Math.abs(item.impTot);
                         });
                     } else {
                         var errMsg = util.format("Invoice INS: %s", "El contenedor no posee items.");
                         log.logger.error(errMsg);
-                        callback(500, {status:"ERROR", data: errMsg});
+                        callback(500, {status: "ERROR", data: errMsg});
                         return;
                     }
                     invoice.detalle.push(cont);
@@ -163,7 +168,7 @@ module.exports = function (log, io) {
             } else {
                 var errMsg = util.format("Invoice INS: %s - %s. - %j", "El comprobante no posee detalles.", usr.terminal, postData);
                 log.logger.error(errMsg);
-                callback(500, {status:"ERROR", data: errMsg});
+                callback(500, {status: "ERROR", data: errMsg});
             }
 
         } catch (error){
@@ -173,19 +178,19 @@ module.exports = function (log, io) {
             log.logger.error(body);
 
             var mailer = new mail.mail(config.email);
-            mailer.send(usr.email, strSubject, body, function(){
+            mailer.send(usr.email, strSubject, body, function () {
             });
-            callback(500, {"status":"ERROR", "data": body});
+            callback(500, {"status": "ERROR", "data": body});
         }
 
         var invoice2add = new Invoice(invoice);
-        invoice2add.save( function (errSave, data) {
+        invoice2add.save(function (errSave, data) {
             var socketMsg;
             if (!errSave) {
                 log.logger.insert("Invoice INS: %s - %s - Tipo: %s Nro: %s - %s", data._id, usr.terminal, postData.codTipoComprob, postData.nroComprob, postData.fechaEmision);
 
                 socketMsg = {
-                    status:'OK',
+                    status: 'OK',
                     data : {
                         terminal : data.terminal,
                         _id: data._id,
@@ -201,7 +206,7 @@ module.exports = function (log, io) {
                 var comment = 'Comprobante transferido correntamente.';
                 var commentState = 'Y';
 
-                if ( ( subTotalCheck > postData.impSubtot + 2) || ( subTotalCheck < postData.impSubtot - 2) ){
+                if ((subTotalCheck > postData.impSubtot + 2) || (subTotalCheck < postData.impSubtot - 2)) {
                     comment = util.format("El subtotal del comprobante es incorrecto, la suma es %d y se informa %d. - %s.", subTotalCheck, postData.impSubtot, usr.terminal);
                     data.estado[0].estado = 'T';
                 }
@@ -213,7 +218,7 @@ module.exports = function (log, io) {
                     state: commentState,
                     user: usr.user,
                     group: "ALL"
-                }, function (err, commentAdded){
+                }, function (err, commentAdded) {
                     if (err){
 
                     } else {
@@ -250,9 +255,9 @@ module.exports = function (log, io) {
                             log.logger.error(errMsg, { data: postData});
 
 //  Envia email cuando recibe duplicado, por ahora comentado
-//							var mailer = new mail.mail(config.email);
-//							mailer.send(usr.email, strSubject, errMsg, function(){
-//							});
+//                          var mailer = new mail.mail(config.email);
+//                          mailer.send(usr.email, strSubject, errMsg, function(){
+//                          });
 
                             return callback(500, {status: "ERROR", data: errMsg});
                         }
