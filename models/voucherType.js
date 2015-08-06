@@ -5,8 +5,9 @@
 var mongoose = require("mongoose");
 
 var voucher = new mongoose.Schema({
-    _id:        {type: Number},
-    description: {type: String, required: true}
+    _id: {type: Number},
+    description: {type: String, required: true},
+    type: {type: Number, required: true, enum: [1, -1]}
 });
 
 module.exports = mongoose.model('vouchertypes', voucher);
