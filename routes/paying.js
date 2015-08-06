@@ -11,7 +11,9 @@ module.exports = function (log) {
         Invoice = require('../models/invoice.js'),
         Paying = require('../models/paying.js'),
         priceUtils = require('../include/price.js'),
-        moment = require('moment');
+        moment = require('moment'),
+        VoucherType = require('../models/voucherType.js'),
+        Enumerable = require('linq');
 
     function _getNotPayed(req, paginated, callback) {
 
@@ -21,119 +23,167 @@ module.exports = function (log) {
             skip,
             limit,
             order,
-            estados;
+            estados,
+            desde,
+            hasta,
+            tipoDeSuma,
+            cond;
 
-        if (paginated) {
-            estados = ['todo'];
+        if (req.query.fechaInicio === undefined || req.query.fechaFin === undefined) {
+            callback({status: "ERROR", message: "Debe proveer parametros de fecha"});
         } else {
-            estados = ['E', 'R', 'T'];
-        }
 
-        price.rates(false, function (err, prices) {
-            var param,
-                match;
-
-            match = {
-                terminal: paramTerminal,
-                'fecha.emision': {$gte: new Date(2015, 1, 0, 0, 0)},
-                'detalle.items.id': {$in: prices},
-                'payment': {$exists: false}
-            };
-
-            param = [
-                {$match: match },
-                {$project: {terminal: 1, fecha: '$fecha.emision', estado: '$estado', codTipoComprob: 1, nroComprob: 1, nroPtoVenta: 1, detalle: '$detalle'}},
-                {$unwind: '$estado'},
-                {$group: {
-                    _id:   {
-                        _id: '$_id',
-                        terminal: '$terminal',
-                        fecha: '$fecha',
-                        nroComprob: '$nroComprob',
-                        codTipoComprob: '$codTipoComprob',
-                        nroPtoVenta: '$nroPtoVenta',
-                        detalle: '$detalle'
-                    },
-                    estado: {$last: '$estado'}
-                }},
-                {$project: {'_id': '$_id._id', nroPtoVenta: '$_id.nroPtoVenta', terminal: '$_id.terminal', nroComprob: '$_id.nroComprob', fecha: '$_id.fecha', codTipoComprob: '$_id.codTipoComprob', detalle: '$_id.detalle', estado: true}},
-                {$match: {'estado.estado': {$nin: estados}}},
-                {$unwind: '$detalle'},
-                {$unwind: '$detalle.items'},
-                {$match: {'detalle.items.id': {$in: prices}}},
-                {$group: {
-                    _id: {
-                        _id: '$_id',
-                        terminal: '$terminal',
-                        nroComprob: '$nroComprob',
-                        nroPtoVenta: '$nroPtoVenta',
-                        codTipoComprob: '$codTipoComprob',
-                        fecha: '$fecha',
-                        estado: '$estado',
-                        code: '$detalle.items.id'
-                    },
-                    importe: {
-                        $sum: {
-                            $cond: { if: {  $or:[
-                                {$eq: [ "$codTipoComprob", 3 ] },
-                                {$eq: [ "$codTipoComprob", 8 ] },
-                                {$eq: [ "$codTipoComprob", 13 ] }
-                            ]
-                            },
-                                then: {$multiply:['$detalle.items.impTot', -1]},
-                                else: '$detalle.items.impTot'
-                            }
-                        }
-                    },
-                    cnt: {$sum : '$detalle.items.cnt'}
-                }},
-                {$project: {
-                    _id: '$_id._id',
-                    terminal: '$_id.terminal',
-                    emision: '$_id.fecha',
-                    nroPtoVenta: '$_id.nroPtoVenta',
-                    codTipoComprob: '$_id.codTipoComprob',
-                    nroComprob: '$_id.nroComprob',
-                    code: '$_id.code',
-                    importe: '$importe',
-                    cnt: '$cnt',
-                    estado: '$_id.estado'
-                }}
-            ];
-
-            if (req.query.order) {
-                order = JSON.parse(req.query.order);
-                param.push({$sort: order[0]});
-            } else {
-                param.push({$sort: {'codTipoComprob': 1}});
-            }
-
-            if (paginated) {
-                limit = parseInt(req.params.limit, 10);
-                skip = parseInt(req.params.skip, 10);
-                param.push({$skip: skip});
-                param.push({$limit: limit});
-            }
-
-            invoices = Invoice.aggregate(param);
-            invoices.exec(function (err, data) {
+            VoucherType.find({type: -1}, function (err, vouchertypes){
                 if (err) {
-                    callback(err);
+                    callback({status: "ERROR", message: err.message});
                 } else {
+                    cond = Enumerable.from(vouchertypes)
+                        .select(function (item) {
+                            if (item.type === -1) {
+                                return {$eq: ["$codTipoComprob", item._id]};
+                            }
+                        }).toArray();
+
+                    desde = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
+                    if (desde < new Date(2015, 1, 0, 0, 0)) {
+                        desde = new Date(2015, 1, 0, 0, 0);
+                    }
+                    hasta = moment(req.query.fechaFin, 'YYYY-MM-DD').add(1, 'days').toDate();
+
                     if (paginated) {
-                        Invoice.count(match, function (err, count) {
+                        estados = ['todo'];
+                        tipoDeSuma = '$detalle.items.impTot';
+                    } else {
+                        estados = ['E', 'R', 'T'];
+                        tipoDeSuma = {
+                            $cond: { if: {$or: cond},
+                                then: {$multiply: ['$detalle.items.impTot', -1]},
+                                else: '$detalle.items.impTot'}
+                        };
+                    }
+
+                    price.rates(false, function (err, prices) {
+                        var param,
+                            match;
+
+                        match = {
+                            terminal: paramTerminal,
+                            'fecha.emision': {$gte: desde, $lt: hasta},
+                            'detalle.items.id': {$in: prices},
+                            'payment': {$exists: false}
+                        };
+
+                        param = [
+                            {$match: match },
+                            {$project: {
+                                terminal: 1,
+                                fecha: '$fecha.emision',
+                                estado: '$estado',
+                                codTipoComprob: 1,
+                                nroComprob: 1,
+                                nroPtoVenta: 1,
+                                detalle: '$detalle',
+                                total: '$importe.total'
+                            }},
+                            {$unwind: '$estado'},
+                            {$group: {
+                                _id:   {
+                                    _id: '$_id',
+                                    terminal: '$terminal',
+                                    fecha: '$fecha',
+                                    nroComprob: '$nroComprob',
+                                    codTipoComprob: '$codTipoComprob',
+                                    nroPtoVenta: '$nroPtoVenta',
+                                    detalle: '$detalle',
+                                    total: '$total'
+                                },
+                                estado: {$last: '$estado'}
+                            }},
+                            {$project: {
+                                '_id': '$_id._id',
+                                nroPtoVenta: '$_id.nroPtoVenta',
+                                terminal: '$_id.terminal',
+                                nroComprob: '$_id.nroComprob',
+                                fecha: '$_id.fecha',
+                                codTipoComprob: '$_id.codTipoComprob',
+                                detalle: '$_id.detalle',
+                                totalF: '$_id.total',
+                                estado: true
+                            }},
+                            {$match: {'estado.estado': {$nin: estados}}},
+                            {$unwind: '$detalle'},
+                            {$unwind: '$detalle.items'},
+                            {$match: {'detalle.items.id': {$in: prices}}},
+                            {$group: {
+                                _id: {
+                                    _id: '$_id',
+                                    terminal: '$terminal',
+                                    nroComprob: '$nroComprob',
+                                    nroPtoVenta: '$nroPtoVenta',
+                                    codTipoComprob: '$codTipoComprob',
+                                    fecha: '$fecha',
+                                    estado: '$estado',
+                                    code: '$detalle.items.id',
+                                    total: '$totalF'
+                                },
+                                importe: {
+                                    $sum: tipoDeSuma
+                                },
+                                cnt: {$sum : '$detalle.items.cnt'}
+                            }},
+                            {$project: {
+                                _id: '$_id._id',
+                                terminal: '$_id.terminal',
+                                emision: '$_id.fecha',
+                                nroPtoVenta: '$_id.nroPtoVenta',
+                                codTipoComprob: '$_id.codTipoComprob',
+                                nroComprob: '$_id.nroComprob',
+                                code: '$_id.code',
+                                tasa: '$importe',
+                                total: '$_id.total',
+                                cnt: '$cnt',
+                                estado: '$_id.estado'
+                            }}
+                        ];
+
+                        if (req.query.order) {
+                            order = JSON.parse(req.query.order);
+                            param.push({$sort: order[0]});
+                        } else {
+                           // param.push({$sort: {'codTipoComprob': 1}});
+                        }
+
+                        if (paginated) {
+                            limit = parseInt(req.params.limit, 10);
+                            skip = parseInt(req.params.skip, 10);
+                            param.push({$skip: skip});
+                            param.push({$limit: limit});
+                        }
+
+                        invoices = Invoice.aggregate(param);
+                        invoices.exec(function (err, data) {
                             if (err) {
                                 callback(err);
                             } else {
-                                callback(null, {status: "OK", totalCount: count, data: data});
+                                if (paginated) {
+                                    Invoice.count(match, function (err, count) {
+                                        if (err) {
+                                            callback(err);
+                                        } else {
+                                            callback(null, {status: "OK", totalCount: count, data: data});
+                                        }
+                                    });
+                                } else {
+                                    callback(null, {status: "OK", data: data});
+                                }
                             }
                         });
-                    } else {
-                        callback(null, {status: "OK", data: data});
-                    }
+                    });
+
                 }
             });
-        });
+        }
+
     }
 
     function getNotPayed(req, res) {
@@ -185,103 +235,30 @@ module.exports = function (log) {
         });
     }
 
-    function setPayment (req, res) {
+    function add2PrePayment(req, res) {
         var async = require('async'),
             paginated = false,
-            paramTerminal;
-
-        paramTerminal = req.params.terminal;
+            invoicesCnt;
 
         _getNotPayed(req, paginated, function (err, data) {
             if (err) {
-                res.status(500).send({status: "ERROR", message: err.message, data: null});
+                res.status(400).send({status: "ERROR", message: err.message, data: null});
             } else {
-                if (data.data.length > 0) {
-                    Paying.aggregate([{$match: {terminal: paramTerminal}}, {$group: {_id: '', max: {$max: '$number'}}}], function (err, maxNumber) {
-                        var nextPaymentNumber = 0;
-                        if (maxNumber.length > 0) {
-                            nextPaymentNumber = maxNumber[0].max;
-                        }
-                        nextPaymentNumber++;
-                        Paying.create({
-                            terminal: paramTerminal,
-                            date: moment(req.body.fecha, 'YYYY-MM-DD HH:mm:SS Z').toDate(),
-                            number: nextPaymentNumber,
-                            total: 0
-                        }, function (err, newPaying) {
-                            if (err) {
-                                res.status(500).send({status: 'ERROR', message: err.message});
-                            } else {
-                                async.forEach(data.data, function (item, callback) {
-                                    Invoice.update({_id: item._id},
-                                        {$set: {
-                                            'payment': {
-                                                date: newPaying.date,
-                                                number: newPaying.number
-                                            }
-                                        }},
-                                        function (err, rowAffected, data) {
-                                            callback();
-                                        });
-                                }, function () {
-                                    var totalPayment,
-                                        price;
-
-                                    log.logger.info("Payment: Se generó la Liquidación Nro: %s", nextPaymentNumber);
-                                    price = new priceUtils.price(paramTerminal);
-                                    price.rates(false, function (err, rates) {
-                                        totalPayment = Invoice.aggregate([
-                                            {$match: {terminal: paramTerminal, "payment.number": nextPaymentNumber}},
-                                            {$project: {terminal:1, codTipoComprob:1, nroComprob: 1, detalle: '$detalle'}},
-                                            {$unwind: '$detalle'},
-                                            {$unwind: '$detalle.items'},
-                                            {$match: {'detalle.items.id': {$in: rates }}},
-                                            {$project: {
-                                                terminal: 1,
-                                                code: '$detalle.items.id',
-                                                nroComprob: 1,
-                                                cnt: '$detalle.items.cnt',
-                                                importe: {
-                                                    $cond: { if: {  $or: [
-                                                        {$eq: [ "$codTipoComprob", 3 ] },
-                                                        {$eq: [ "$codTipoComprob", 8 ] },
-                                                        {$eq: [ "$codTipoComprob", 13 ] }
-                                                    ]},
-                                                        then: {$multiply: ['$detalle.items.impTot', -1]},
-                                                        else: '$detalle.items.impTot'}
-                                                }
-                                            }},
-                                            {$group: {
-                                                _id: {
-                                                    terminal: '$terminal'
-                                                },
-                                                importe: {$sum: '$importe'}
-                                            }}
-                                        ]);
-                                        totalPayment.exec(function (err, totalPayment) {
-                                            if (totalPayment.length > 0) {
-                                                newPaying.total = totalPayment[0].importe;
-                                                newPaying.save(function (err, newPayingSaved) {
-                                                    res.status(200).send(
-                                                        {
-                                                            status: "OK",
-                                                            data: "Se ha generado la siguiente Liquidación: " + nextPaymentNumber.toString()
-                                                        }
-                                                    );
-                                                });
-                                            } else {
-                                                res.status(200).send(
-                                                    {
-                                                        status: "OK",
-                                                        data: "Se ha generado la siguiente Liquidación: " + nextPaymentNumber.toString()
-                                                    }
-                                                );
-                                            }
-                                        });
-                                    });
-                                });
-                            }
-                        });
+                invoicesCnt = data.data.length;
+                if (invoicesCnt > 0) {
+                    async.forEach(data.data, function (item, callback) {
+                        Invoice.update({_id: item._id},
+                            {$set: {
+                                'payment': {
+                                    date: Date.now(),
+                                    number: req.params.number
+                                }
+                            }},
+                            function (err, rowAffected, data) {
+                                callback();
+                            });
+                    }, function () {
+                        res.status(200).send({status: "OK",  message: "Se agregaron " + invoicesCnt.toString() + " a la preliquidación " + req.params.number.toString()});
                     });
                 } else {
                     res.status(500).send({
@@ -294,7 +271,104 @@ module.exports = function (log) {
         });
     }
 
-    function getPayments (req, res) {
+    function getPrePayment(req, res) {
+        var totalPayment,
+            price,
+            number;
+
+        number = parseInt(req.params.number, 10);
+
+        price = new priceUtils.price(req.params.terminal);
+        price.rates(false, function (err, rates) {
+            totalPayment = Invoice.aggregate([
+                {$match: {terminal: req.params.terminal, "payment.number": number}},
+                {$project: {terminal: 1,
+                    codTipoComprob: 1,
+                    nroComprob: 1,
+                    number: '$payment.number',
+                    detalle: '$detalle'
+                }},
+                {$unwind: '$detalle'},
+                {$unwind: '$detalle.items'},
+                {$match: {'detalle.items.id': {$in: rates }}},
+                {$project: {
+                    terminal: 1,
+                    code: '$detalle.items.id',
+                    nroComprob: 1,
+                    number: 1,
+                    cnt: '$detalle.items.cnt',
+                    importe: {
+                        $cond: { if: {  $or: [
+                            {$eq: [ "$codTipoComprob", 3 ] },
+                            {$eq: [ "$codTipoComprob", 8 ] },
+                            {$eq: [ "$codTipoComprob", 13 ] }
+                        ]},
+                            then: {$multiply: ['$detalle.items.impTot', -1]},
+                            else: '$detalle.items.impTot'}
+                    }
+                }},
+                {$group: {
+                    _id: {number: '$number'},
+                    toneladas: {$sum: '$cnt'},
+                    importe: {$sum: '$importe'}
+                }},
+                {$project: {
+                    number: '$_id.number',
+                    tons: '$toneladas',
+                    total: '$importe'
+                }}
+            ]);
+            totalPayment.exec(function (err, totalPayment) {
+                if (err) {
+                    res.status(500).send(
+                        {
+                            status: "ERROR",
+                            message: "Ha ocurrido un error al obtener los datos de la pre liquidación."
+                        }
+                    );
+                } else {
+                    res.status(200).send(
+                        {
+                            status: "OK",
+                            data: totalPayment
+                        }
+                    );
+                }
+            });
+        });
+    }
+
+    function setPrePayment(req, res) {
+        var param,
+            payment,
+            paramTerminal,
+            nextPaymentNumber;
+
+        paramTerminal = req.params.terminal;
+
+        param = [{$match: {terminal: paramTerminal}}, {$group: {_id: '', max: {$max: '$number'}}}];
+        payment = Paying.aggregate(param);
+        payment.exec(function (err, maxNumber) {
+            nextPaymentNumber = 0;
+            if (maxNumber.length > 0) {
+                nextPaymentNumber = maxNumber[0].max;
+            }
+            Paying.create({
+                terminal: paramTerminal,
+                date: moment(req.body.fecha, 'YYYY-MM-DD HH:mm:SS Z').toDate(),
+                number: ++nextPaymentNumber,
+                total: 0
+            }, function (err, newPaying) {
+                if (err) {
+                    res.status(500).send({status: "ERROR", message: err.message});
+                } else {
+                    res.status(200).send({status: "OK", data: newPaying});
+                }
+            });
+        });
+    }
+
+    function getPayments(req, res) {
         var paying,
             skip = parseInt(req.params.skip, 10),
             limit = parseInt(req.params.limit, 10),
@@ -329,7 +403,10 @@ module.exports = function (log) {
     router.get('/payed/:terminal/:number/:skip/:limit', getPayed);
     router.get('/notPayed/:terminal/:skip/:limit', getNotPayed);
     router.get('/payments/:terminal/:skip/:limit', getPayments);
-    router.post('/setPayment/:terminal', setPayment);
+
+    router.post('/setPrePayment/:terminal', setPrePayment);
+    router.get('/getPrePayment/:terminal/:number', getPrePayment);
+    router.put('/addToPrePayment/:terminal/:number', add2PrePayment);
 
     return router;
 }
