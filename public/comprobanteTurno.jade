@@ -60,8 +60,13 @@ html(lang='es')
                             td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") PISO
                         if verifica_tipo == "CAMION"
                             td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") CAMIÓN
-            p
+                if email != "" && email != null
+                    tr
+                        td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") e-Mail:
+                        td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{email}
+
+        p
             p(style="text-align: left") Administración General de Puertos pone en conocimiento que el Turno solicitado ha sido generado correctamente. Este comprobante deberá ser presentado ante cualquier reclamo.
             p Posteriormente podrá consultar, aportando datos de email y contenedor, éste y otros comprobantes haciendo click&nbsp;
-                a(href="www.e-puertobue.com.ar/turnos") aquí
+                a(href="http://www.e-puertobue.com.ar/turnos") aquí
                 |, o vía telefónica con la Unidad de Control de Terminales en los siguientes números: 4313-6122 4313-6928
