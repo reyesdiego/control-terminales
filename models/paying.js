@@ -7,7 +7,8 @@ var mongoose = require("mongoose");
 
 var payings = new mongoose.Schema({
     terminal: {type: String, required: true},
-    number: {type: Number, required: true},
+    preNumber: {type: Number},
+    number: {type: Number},
     date: {type: Date, required: true},
     vouchers: {type: Number},
     tons: {type: Number},

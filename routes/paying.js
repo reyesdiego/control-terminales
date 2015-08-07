@@ -33,7 +33,7 @@ module.exports = function (log) {
             callback({status: "ERROR", message: "Debe proveer parametros de fecha"});
         } else {
 
-            VoucherType.find({type: -1}, function (err, vouchertypes){
+            VoucherType.find({type: -1}, function (err, vouchertypes) {
                 if (err) {
                     callback({status: "ERROR", message: err.message});
                 } else {
@@ -203,7 +203,7 @@ module.exports = function (log) {
             limit = parseInt(req.params.limit, 10),
             order;
 
-        invoices = Invoice.find({'payment.number': req.params.number, terminal: req.params.terminal});
+        invoices = Invoice.find({'payment': req.params._id, terminal: req.params.terminal});
 
         if (req.query.order) {
             order = JSON.parse(req.query.order);
@@ -220,7 +220,7 @@ module.exports = function (log) {
                     message: err.message
                 });
             } else {
-                Invoice.count({'payment.number': req.params.number, terminal: req.params.terminal}, function (err, cnt) {
+                Invoice.count({'payment': req.params._id, terminal: req.params.terminal}, function (err, cnt) {
                     var pageCount = data.length,
                         result = {
                             status: 'OK',
@@ -249,16 +249,13 @@ module.exports = function (log) {
                     async.forEach(data.data, function (item, callback) {
                         Invoice.update({_id: item._id},
                             {$set: {
-                                'payment': {
-                                    date: Date.now(),
-                                    number: req.params.number
-                                }
+                                'payment': req.body.payingId
                             }},
                             function (err, rowAffected, data) {
                                 callback();
                             });
                     }, function () {
-                        res.status(200).send({status: "OK",  message: "Se agregaron " + invoicesCnt.toString() + " a la preliquidación " + req.params.number.toString()});
+                        res.status(200).send({status: "OK",  message: "Se agregaron " + invoicesCnt.toString() + " a la preliquidación."});
                     });
                 } else {
                     res.status(500).send({
@@ -272,70 +269,84 @@ module.exports = function (log) {
     }
 
     function getPrePayment(req, res) {
-        var totalPayment,
+        var param,
+            totalPayment,
             price,
-            number;
+            cond,
+            mongoose = require("mongoose");
 
-        number = parseInt(req.params.number, 10);
+        var _id = mongoose.Types.ObjectId(req.params._id);
 
-        price = new priceUtils.price(req.params.terminal);
-        price.rates(false, function (err, rates) {
-            totalPayment = Invoice.aggregate([
-                {$match: {terminal: req.params.terminal, "payment.number": number}},
-                {$project: {terminal: 1,
-                    codTipoComprob: 1,
-                    nroComprob: 1,
-                    number: '$payment.number',
-                    detalle: '$detalle'
-                }},
-                {$unwind: '$detalle'},
-                {$unwind: '$detalle.items'},
-                {$match: {'detalle.items.id': {$in: rates }}},
-                {$project: {
-                    terminal: 1,
-                    code: '$detalle.items.id',
-                    nroComprob: 1,
-                    number: 1,
-                    cnt: '$detalle.items.cnt',
-                    importe: {
-                        $cond: { if: {  $or: [
-                            {$eq: [ "$codTipoComprob", 3 ] },
-                            {$eq: [ "$codTipoComprob", 8 ] },
-                            {$eq: [ "$codTipoComprob", 13 ] }
-                        ]},
-                            then: {$multiply: ['$detalle.items.impTot', -1]},
-                            else: '$detalle.items.impTot'}
-                    }
-                }},
-                {$group: {
-                    _id: {number: '$number'},
-                    toneladas: {$sum: '$cnt'},
-                    importe: {$sum: '$importe'}
-                }},
-                {$project: {
-                    number: '$_id.number',
-                    tons: '$toneladas',
-                    total: '$importe'
-                }}
-            ]);
-            totalPayment.exec(function (err, totalPayment) {
-                if (err) {
-                    res.status(500).send(
-                        {
-                            status: "ERROR",
-                            message: "Ha ocurrido un error al obtener los datos de la pre liquidación."
+        VoucherType.find({type: -1}, function (err, vouchertypes) {
+            if (err) {
+                callback({status: "ERROR", message: err.message});
+            } else {
+                cond = Enumerable.from(vouchertypes)
+                    .select(function (item) {
+                        if (item.type === -1) {
+                            return {$eq: ["$codTipoComprob", item._id]};
                         }
-                    );
-                } else {
-                    res.status(200).send(
-                        {
-                            status: "OK",
-                            data: totalPayment
+                    }).toArray();
+
+                price = new priceUtils.price(req.params.terminal);
+                price.rates(false, function (err, rates) {
+                    param = [
+                        {$match: {terminal: req.params.terminal, "payment": _id}},
+                        {$project: {terminal: 1,
+                            codTipoComprob: 1,
+                            nroComprob: 1,
+                            number: '$payment.number',
+                            detalle: '$detalle'
+                        }},
+                        {$unwind: '$detalle'},
+                        {$unwind: '$detalle.items'},
+                        {$match: {'detalle.items.id': {$in: rates }}},
+                        {$project: {
+                            terminal: 1,
+                            code: '$detalle.items.id',
+                            nroComprob: 1,
+                            number: 1,
+                            cnt: '$detalle.items.cnt',
+                            importe: {
+                                $cond: { if: {  $or: cond },
+                                    then: {$multiply: ['$detalle.items.impTot', -1]},
+                                    else: '$detalle.items.impTot'}
+                            }
+                        }},
+                        {$group: {
+                            _id: {number: '$number'},
+                            toneladas: {$sum: '$cnt'},
+                            importe: {$sum: '$importe'}
+                        }},
+                        {$project: {
+                            number: '$_id.number',
+                            tons: '$toneladas',
+                            total: '$importe'
+                        }}
+                    ];
+                    totalPayment = Invoice.aggregate(param);
+                    totalPayment.exec(function (err, totalPayment) {
+                        if (err) {
+                            res.status(500).send(
+                                {
+                                    status: "ERROR",
+                                    message: "Ha ocurrido un error al obtener los datos de la pre liquidación."
+                                }
+                            );
+                        } else {
+                            res.status(200).send(
+                                {
+                                    status: "OK",
+                                    data: totalPayment
+                                }
+                            );
                         }
-                    );
-                }
-            });
+                    });
+                });
+
+            }
         });
+
     }
 
     function setPrePayment(req, res) {
@@ -344,9 +355,9 @@ module.exports = function (log) {
             paramTerminal,
             nextPaymentNumber;
 
-        paramTerminal = req.params.terminal;
+        paramTerminal = req.body.terminal;
 
-        param = [{$match: {terminal: paramTerminal}}, {$group: {_id: '', max: {$max: '$number'}}}];
+        param = [{$match: {terminal: paramTerminal}}, {$group: {_id: '', max: {$max: '$preNumber'}}}];
         payment = Paying.aggregate(param);
         payment.exec(function (err, maxNumber) {
             nextPaymentNumber = 0;
@@ -356,7 +367,9 @@ module.exports = function (log) {
             Paying.create({
                 terminal: paramTerminal,
                 date: moment(req.body.fecha, 'YYYY-MM-DD HH:mm:SS Z').toDate(),
-                number: ++nextPaymentNumber,
+                preNumber: ++nextPaymentNumber,
+                vouchers: 0,
+                tons: 0,
                 total: 0
             }, function (err, newPaying) {
                 if (err) {
@@ -364,6 +377,29 @@ module.exports = function (log) {
                 } else {
                     res.status(200).send({status: "OK", data: newPaying});
                 }
+            });
+        });
+    }
+
+    function setPayment(req, res) {
+        var param,
+            payment,
+            paramTerminal,
+            nextPaymentNumber;
+
+        paramTerminal = req.body.terminal;
+
+        param = [{$match: {terminal: paramTerminal}}, {$group: {_id: '', max: {$max: '$number'}}}];
+        payment = Paying.aggregate(param);
+        payment.exec(function (err, maxNumber) {
+            nextPaymentNumber = 0;
+            if (maxNumber.length > 0) {
+                nextPaymentNumber = maxNumber[0].max;
+            }
+            Paying.update({terminal: paramTerminal, preNumber: req.body.preNumber},
+                {$set: {number: nextPaymentNumber, date: Date.now()}},
+                function (err, payment, rowAfected) {
+                    res.status(200).send({status: "OK", data: payment});
             });
         });
     }
@@ -400,13 +436,14 @@ module.exports = function (log) {
         });
     }
 
-    router.get('/payed/:terminal/:number/:skip/:limit', getPayed);
+    router.get('/payed/:terminal/:_id/:skip/:limit', getPayed);
     router.get('/notPayed/:terminal/:skip/:limit', getNotPayed);
     router.get('/payments/:terminal/:skip/:limit', getPayments);
 
-    router.post('/setPrePayment/:terminal', setPrePayment);
-    router.get('/getPrePayment/:terminal/:number', getPrePayment);
-    router.put('/addToPrePayment/:terminal/:number', add2PrePayment);
+    router.post('/prePayment', setPrePayment);
+    router.put('/payment', setPayment);
+    router.get('/getPrePayment/:terminal/:_id', getPrePayment);
+    router.put('/addToPrePayment/:terminal', add2PrePayment);
 
     return router;
 }

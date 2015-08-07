@@ -93,6 +93,7 @@ module.exports = function(log, io, oracle) {
         }
 
         invoices = Invoice.find(param);
+        invoices.populate({path: 'payment'});
 
         if (req.query.order) {
             order = JSON.parse(req.query.order);
@@ -133,6 +134,7 @@ module.exports = function(log, io, oracle) {
             param.terminal = usr.terminal;
 
         invoice = Invoice.find(param);
+        invoice.populate({path: 'payment'});
         invoice.exec(function(err, invoices){
             if (err) {
                 log.logger.error("%s", err.error);
