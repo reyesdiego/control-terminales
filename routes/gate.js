@@ -153,17 +153,19 @@ module.exports = function (log) {
             {$match: { 'gateTimestamp': {$gte: month5Ago, $lt: nextMonth} }},
             { $project : {
                 terminal: '$terminal',
-                gateTimestamp : {$subtract: [ '$gateTimestamp', 180 * 60 * 1000]}
+                gateTimestamp : {$subtract: [ '$gateTimestamp', 180 * 60 * 1000]},
+                dia: {$dateToString: { format: "%Y%m", date: {$subtract: [ '$gateTimestamp', 180 * 60 * 1000]} }},
             }},
             {"$group": {
                 _id: {
-                    "terminal": "$terminal",
-                    "year": {"$year": "$gateTimestamp"},
-                    "month": {"$month": "$gateTimestamp"}
+                    terminal: "$terminal",
+                    year: {$year: "$gateTimestamp"},
+                    month: {$month: "$gateTimestamp"},
+                    dia: '$dia'
                 },
                 cnt: {"$sum": 1}
             }},
-            { $sort: {'_id.month': 1, '_id.terminal': 1 }}
+            { $sort: {'_id.dia': 1, '_id.terminal': 1 }}
         ];
         Gate.aggregate(jsonParam, function (err, data) {
             var result = {

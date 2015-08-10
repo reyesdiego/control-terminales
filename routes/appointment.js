@@ -148,15 +148,20 @@ module.exports = function (log) {
 
         jsonParam = [
             {$match: { 'inicio': {$gte: date5MonthsAgo, $lt: nextMonth} }},
-            { $project: {'accessDate': { $subtract: [ '$inicio', 180 * 60 * 1000 ] }, terminal: '$terminal'} },
+            { $project: {
+                accessDate: { $subtract: [ '$inicio', 180 * 60 * 1000 ] },
+                dia: {$dateToString: { format: "%Y%m", date: {$subtract: ['$inicio', 180 * 60 * 1000]} }},
+                terminal: '$terminal'
+            }},
             { $group : {
                 _id : { terminal: '$terminal',
                     year: { $year : "$accessDate" },
-                    month: { $month : "$accessDate" }
+                    month: { $month : "$accessDate" },
+                    dia: '$dia'
                     },
                 cnt : { $sum : 1 }
             }},
-            { $sort: {'_id.month': 1, '_id.terminal': 1 }}
+            { $sort: {'_id.dia': 1, '_id.terminal': 1 }}
         ];
 
         Appointment.aggregate(jsonParam, function (err, data) {

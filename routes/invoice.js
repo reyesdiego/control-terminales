@@ -151,7 +151,6 @@ module.exports = function(log, io, oracle) {
             match = {$match: {}},
             fechaEmision = moment(moment().format('YYYY-MM-DD')).toDate(),
             tomorrow,
-            Enumerable,
             response;
 
         if (req.query.fecha !== undefined) {
@@ -308,16 +307,21 @@ module.exports = function(log, io, oracle) {
 
         jsonParam = [
             {$match: { 'fecha.emision': {$gte: month5Ago, $lt: nextMonth} }},
-            { $project: {'accessDate': {$subtract: ['$fecha.emision', 180 * 60 * 1000]}, terminal: '$terminal', total: sum} },
+            { $project: {
+                accessDate: {$subtract: ['$fecha.emision', 180 * 60 * 1000]},
+                dia: {$dateToString: { format: "%Y%m", date: {$subtract: ['$fecha.emision', 180 * 60 * 1000]} }},
+                terminal: '$terminal',
+                total: sum}},
             { $group : {
                 _id : { terminal: '$terminal',
-                    year: { $year : "$accessDate" },
-                    month: { $month : "$accessDate" }
+                        year: { $year : "$accessDate" },
+                        month: { $month : "$accessDate" },
+                        dia: '$dia'
                 },
                 cnt : { $sum : 1 },
                 total: { $sum : '$total'}
             }},
-            { $sort: {'_id.month': 1, '_id.terminal': 1 }}
+            { $sort: {'_id.dia': 1, '_id.terminal': 1 }}
         ];
 
         Invoice.aggregate(jsonParam, function (err, data) {
