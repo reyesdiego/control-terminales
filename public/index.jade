@@ -29,5 +29,6 @@ html(lang='en')
         ul
             li PID #{process.pid}
             li Memory #{process.heapUsed} - Total #{process.heapTotal}
-        p(style="font-weight:bolder") Runtime&nbsp;
+            li Cpus #{process.cpus}
+    p(style="font-weight:bolder") Runtime&nbsp;
             span(style="font-weight: normal") #{runtime} - #{fromNow}

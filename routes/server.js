@@ -9,11 +9,15 @@ module.exports = function (log, params) {
         router = express.Router(),
         moment = require('moment'),
         fs = require('fs'),
+        os = require('os'),
+        numWorkers,
         paramsIndex;
 
     router.get('/', function (req, res) {
 
         var util = require('util');
+
+        numWorkers = os.cpus().length;
 
         var memory = process.memoryUsage();
         var heapUsed = (memory.heapUsed / 1024 / 1024).toFixed(2) + " MB";
@@ -35,7 +39,7 @@ module.exports = function (log, params) {
             server: params.server,
             node: {version: params.node.version, runtime: params.node.runtime, timeElapsed: params.node.timeElapsed },
             mongoose: {version: global.mongoose.version, connected: global.mongoose.connected},
-            process: {pid: process.pid, heapUsed: heapUsed, heapTotal: heapTotal}
+            process: {cpus: numWorkers, pid: process.pid, heapUsed: heapUsed, heapTotal: heapTotal}
         };
         if (params.oracle) {
             paramsIndex.oracle = {

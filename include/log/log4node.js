@@ -10,52 +10,68 @@ var log4njs = function (options) {
         winston = require('winston'),
         fs      = require('fs'),
         elapsed = 0,
-    // Logging levels
-        config = {
-            levels: {
-                silly: 0,
-                verbose: 1,
-                info: 2,
-                data: 3,
-                warn: 4,
-                debug: 5,
-                error: 6,
-                insert: 7,
-                update: 8,
-                delete: 9
-            },
-            colors: {
-                silly: 'magenta',
-                verbose: 'cyan',
-                info: 'green',
-                data: 'grey',
-                warn: 'yellow',
-                debug: 'blue',
-                error: 'red',
-                insert: 'yellow',
-                update: 'green',
-                delete: 'red'
-            }
-        };
+        logger,
+        config,
+        transports;
 
-    var transports = [];
+    // Logging levels
+    config = {
+        levels: {
+            silly: 0,
+            verbose: 1,
+            info: 2,
+            data: 3,
+            warn: 4,
+            debug: 5,
+            error: 6,
+            insert: 7,
+            update: 8,
+            delete: 9
+        },
+        colors: {
+            silly: 'magenta',
+            verbose: 'cyan',
+            info: 'green',
+            data: 'grey',
+            warn: 'yellow',
+            debug: 'blue',
+            error: 'red',
+            insert: 'yellow',
+            update: 'green',
+            delete: 'red'
+        }
+    };
+
+    transports = [];
     if (options.toConsole) {
         transports.push(new (winston.transports.Console)({
             level: 'silly',
             colorize: true,
             raw: false,
-            timestamp: true
+            timestamp: function () {
+                return moment().format("YYYY-MM-DDThh:mm:ss.SSS") + ' | ' + process.pid;
+            }
         }));
     }
 
     if (options.toFile) {
         transports.push(new (winston.transports.File)({
             level: 'silly',
-            filename: options.path + options.filename
+            filename: options.path + options.filename,
+            json: false,
+            formatter: function (options) {
+                var result = {
+                    level: options.level,
+                    message: options.message,
+                    timestamp: moment().toISOString(),
+                    pid: process.pid
+                };
+                return JSON.stringify(result);
+            }
         }));
     }
 
-    var logger = module.exports = new (winston.Logger)({
+    logger = module.exports = new (winston.Logger)({
         transports: transports,
         levels: config.levels,
         colors: config.colors
@@ -69,6 +85,8 @@ var log4njs = function (options) {
     self.toFile = options.toFile;
 
     self.getFiles = function (callback) {
+        var pathFilename = '',
+            stats;
         if (callback !== undefined && typeof(callback) === 'function') {
             var logFiles = [];
             fs.readdir(self.path, function (err, files) {
@@ -76,8 +94,6 @@ var log4njs = function (options) {
                     console.log(err);
                     return;
                 }
-                var pathFilename = '',
-                    stats;
                 files.forEach(function (item) {
                     pathFilename = self.path + '/' + item;
                     stats = fs.statSync(pathFilename);
@@ -114,4 +130,4 @@ var log4njs = function (options) {
 
 };
 
-exports = module.exports = log4njs;
+exports.log = log4njs;

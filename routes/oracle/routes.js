@@ -22,7 +22,7 @@ module.exports = function (log, app, pool) {
     }
 
     app.all('/afip*', function (req, res, next) {
-       console.log('AFIP %s, %s', req.originalUrl, new Date());
+       log.logger.info('AFIP %s', req.originalUrl);
         if ('OPTIONS' === req.method) {
             res.status(200).send();
         } else {

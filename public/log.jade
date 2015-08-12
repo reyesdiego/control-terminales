@@ -1,40 +1,46 @@
 doctype html
-html(lang='fr')
-	head
-		title Servicio Terminales - Log
-	body(style="font-family:arial; font-size:12px;")
-		h1 Servicio Terminales Portuarias
-			p Log de aplicación
-			form(action="log2", method="get")
-				label Log:
-				select(name="filename")
-					- for(bookmark in files) {
-						option(value=files[bookmark].url)= files[bookmark].title
-					- }
-				input(type="submit", value="Seleccionar Log File")
-
-		table(style="width:90%;border:1px solid grey; border-collapse:collapse")
-			thead
-				tr
-					th(align="left", style="width:135px; border:1px solid grey; border-collapse:collapse; padding:2px") Fecha
-					th(style="width:80px; border:1px solid grey; border-collapse:collapse; padding:2px") Nivel
-					th(align="left", style="width:70%; border:1px solid grey; border-collapse:collapse; padding:2px") Mensaje
-				- for(line in json) {
-				tr
-					td(style="border:1px solid grey; border-collapse:collapse; padding:2px; vertical-align:top")
-						div(style="width:135px; vertical-align:top")=moment(json[line].timestamp).format('YY-MM-DD HH:mm:ss:SSS')
-					- if (json[line].level === 'info') {
-						td(style="color:green;border:1px solid grey; border-collapse:collapse; padding:2px; vertical-align:top")
-							div(style="width:80px; text-align:center")=json[line].level
-					-	}
-					- else if (json[line].level === 'error')
-						td(style="color:red;border:1px solid grey; border-collapse:collapse; padding:2px; vertical-align:top")
-							div(style="width:80px; text-align:center")=json[line].level
-					- else if (json[line].level === 'insert')
-						td(style="background-color:grey; color: yellow ;border:1px solid grey; border-collapse:collapse; padding:2px; vertical-align:top")
-							div(style="width:80px; text-align:center")=json[line].level
-					- else
-						td(style="border:1px solid grey; border-collapse:collapse; padding:2px")
-							div(style="width:80px; text-align:center")=json[line].level
-					td(style="border:1px solid grey; border-collapse:collapse; padding:2px")=json[line].message
-				- }
+html(lang='es')
+    head
+        title Servicio Terminales - Log
+    body(style="font-family:arial; font-size:12px;")
+        h1 Servicio Terminales Portuarias
+            p Log de aplicación
+            form(action="log2", method="get")
+                label Log:
+                select(name="filename")
+                    - for(bookmark in files) {
+                        option(value=files[bookmark].url)= files[bookmark].title
+                    - }
+                input(type="submit", value="Seleccionar Log File")
+        -var color='bolder';
+        table(style="width: 100%;border: 1px solid grey; border-collapse: collapse")
+            thead
+                tr
+                    th(align="center" style="width:80px; border:1px solid grey") #pid
+                    th(align="center" style="border:1px solid grey") Fecha
+                    th(style="width:80px; border:1px solid grey; border-collapse:collapse; ") Nivel
+                    th(align="left" style="width:90%; border:1px solid grey; border-collapse:collapse; ") Mensaje
+                - for(line in json) {
+                    - if (line>0 && json[line-1].pid != json[line].pid) {
+                        - color = (color === 'bolder') ? '':'bolder' ;
+                    - }
+                tr
+                    td(style="width:80px; border:1px solid grey; vertical-align:top; padding-left: 5px; padding-right: 5px")
+                        div(style="text-align:center; font-weight: #{color}")="#" + json[line].pid
+                    td(style="border:1px solid grey; vertical-align:top; padding-left: 5px; padding-right: 5px")
+                        div(style=" width: 150px; vertical-align:top")=moment(json[line].timestamp, "YYYY-MM-DD HH:mm:ss:SSS").format('YYYY-MM-DD HH:mm:ss.SSS')
+                    - if (json[line].level === 'info') {
+                        td(style="color:green;border:1px solid grey; padding:2px; vertical-align:top")
+                            div(style="width:80px; text-align:center")=json[line].level
+                    -   }
+                    - else if (json[line].level === 'error')
+                        td(style="color:red;border:1px solid grey; padding:2px; vertical-align:top")
+                            div(style="width:80px; text-align:center")=json[line].level
+                    - else if (json[line].level === 'insert')
+                        td(style="background-color:grey; color: yellow ;border:1px solid grey; padding:2px; vertical-align:top")
+                            div(style="width:80px; text-align:center")=json[line].level
+                    - else
+                        td(style="border:1px solid grey; padding:2px")
+                            div(style="width:80px; text-align:center")=json[line].level
+                    td(style="width:90%; border:1px solid grey; padding-left: 5px;")=json[line].message
+                - }

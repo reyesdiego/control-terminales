@@ -249,7 +249,7 @@ module.exports = function (log) {
                     async.forEach(data.data, function (item, callback) {
                         Invoice.update({_id: item._id},
                             {$set: {
-                                'payment': req.body.payingId
+                                'payment': req.body.paymentId
                             }},
                             function (err, rowAffected, data) {
                                 callback();
@@ -394,12 +394,26 @@ module.exports = function (log) {
         payment.exec(function (err, maxNumber) {
             nextPaymentNumber = 0;
             if (maxNumber.length > 0) {
-                nextPaymentNumber = maxNumber[0].max;
+                nextPaymentNumber = (maxNumber[0].max === null) ? 0 : maxNumber[0].max;
             }
-            Paying.update({terminal: paramTerminal, preNumber: req.body.preNumber},
-                {$set: {number: nextPaymentNumber, date: Date.now()}},
-                function (err, payment, rowAfected) {
-                    res.status(200).send({status: "OK", data: payment});
+            Paying.find({terminal: paramTerminal, preNumber: req.body.preNumber}, function (err, payment) {
+                if (payment[0].number !== undefined && payment[0].number !== null){
+                    res.status(500).send({
+                        status: "ERROR",
+                        message: "La Preliquidacion ya se encuenta liquidada",
+                        data: payment[0]
+                    });
+                } else {
+                    payment[0].number = ++nextPaymentNumber;
+                    payment[0].date = Date.now();
+                    payment[0].save(function (err, payment) {
+                        res.status(200).send({
+                            status: "OK",
+                            message: "Se ha generado la Liquidación nro " + nextPaymentNumber,
+                            data: payment
+                        });
+                    });
+                }
             });
         });
     }
@@ -409,6 +423,12 @@ module.exports = function (log) {
             skip = parseInt(req.params.skip, 10),
             limit = parseInt(req.params.limit, 10),
             paramTerminal = req.params.terminal;
+
+        if (req.route.path.indexOf('rePayments') > 0) {
+            console.log(req.route.path);
+        } else {
+            console.log(req.route.path);
+        }
 
         paying = Paying.find({terminal: paramTerminal});
         paying.skip(skip);
@@ -436,11 +456,53 @@ module.exports = function (log) {
         });
     }
 
+    function deletePrePayment(req, res) {
+
+        var _id = req.params._id;
+
+        Paying.find({_id: _id}, function (err, payings) {
+            if (err) {
+                res.status(500).send({
+                    status: 'ERROR',
+                    message: err.message
+                });
+            } else {
+                if (payings.length !== 1) {
+                    res.status(500).send({
+                        status: 'ERROR',
+                        message: "La Liquidación no existe."
+                    });
+                } else {
+                    Invoice.update({payment: _id}, {$unset: {payment: ''}}, {multi: true}, function (err, rowAffected) {
+                        if (err) {
+                            res.status(500).send({
+                                status: 'ERROR',
+                                message: err.message
+                            });
+                        } else {
+                            Paying.remove({_id: _id}, function (err) {
+                                var msg = 'La Liquidación ha sido eliminada y ' + rowAffected + ' comprobantes han sido liberados.';
+                                log.logger.info(msg);
+                                res.status(200).send({
+                                    status: 'OK',
+                                    message: msg,
+                                    data: null
+                                });
+                            });
+                        }
+                    });
+                }
+            }
+        });
+    }
+
     router.get('/payed/:terminal/:_id/:skip/:limit', getPayed);
     router.get('/notPayed/:terminal/:skip/:limit', getNotPayed);
     router.get('/payments/:terminal/:skip/:limit', getPayments);
+    router.get('/prePayments/:terminal/:skip/:limit', getPayments);
 
     router.post('/prePayment', setPrePayment);
+    router.delete('/prePayment/:_id', deletePrePayment);
     router.put('/payment', setPayment);
     router.get('/getPrePayment/:terminal/:_id', getPrePayment);
     router.put('/addToPrePayment/:terminal', add2PrePayment);
