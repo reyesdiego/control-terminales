@@ -15,6 +15,7 @@ module.exports = {
      */
     'ttl': 3600000, //1 hour
     'resetTokenExpiresMinutes': 20, //20 minutes later
+    'cpus': 4,
     'url': "http://10.10.0.223:8080",
     'domain': "10.10.0.223",
     'emailTurnos': {

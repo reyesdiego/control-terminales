@@ -5,8 +5,10 @@
 var cluster = require('cluster'),
     config = require('./config/config.js'),
     log4n = require('./include/log/log4node.js'),
-    log = new log4n.log(config.log);
+    log = new log4n.log(config.log),
+    osCpus = require('os').cpus().length;
 
+var cpus = (config.cpus !== undefined && config.cpus > osCpus) ? config.cpus : osCpus;
 
 var service = process.env.SERVICE;
 
@@ -16,10 +18,9 @@ if (!service) {
 } else {
 
     if (cluster.isMaster) {
-        var numWorkers = require('os').cpus().length;
-        log.logger.info('Master cluster %s setting up %s workers...', process.pid, numWorkers);
+        log.logger.info('Master cluster %s setting up %s workers...', process.pid, cpus);
 
-        for(var i = 0; i < numWorkers; i++) {
+        for (var i = 0; i < cpus; i++) {
             cluster.fork();
         }
 
