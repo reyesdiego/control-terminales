@@ -422,15 +422,14 @@ module.exports = function (log) {
         var paying,
             skip = parseInt(req.params.skip, 10),
             limit = parseInt(req.params.limit, 10),
-            paramTerminal = req.params.terminal;
+            paramTerminal = req.params.terminal,
+            isNumberExists = true;
 
         if (req.route.path.indexOf('rePayments') > 0) {
-            console.log(req.route.path);
-        } else {
-            console.log(req.route.path);
+            isNumberExists = false;
         }
 
-        paying = Paying.find({terminal: paramTerminal});
+        paying = Paying.find({terminal: paramTerminal, number: {$exists: isNumberExists}});
         paying.skip(skip);
         paying.limit(limit);
         paying.exec(function (err, payings) {
