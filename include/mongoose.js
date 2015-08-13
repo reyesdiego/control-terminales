@@ -9,8 +9,7 @@ module.exports = function (log) {
     mongoose.connect(config.mongo_url, config.mongo_opts);
 
     mongoose.connection.on('connected', function () {
-        log.logger.info("Mongoose version: %s", mongoose.version);
-        log.logger.info("Connected to Database. %s", config.mongo_url);
+        log.logger.info("Mongoose %s Connected to Database. %s", mongoose.version, config.mongo_url);
         global.mongoose.connected = true;
     });
 
@@ -18,8 +17,7 @@ module.exports = function (log) {
         log.logger.error("Database or Mongoose error. %s", err.toString());
     });
     mongoose.connection.on('disconnected', function () {
-        log.logger.error("Mongoose default connection disconnected");
-        log.logger.error("El proceso %s se abortará.", process.pid);
+        log.logger.error("Mongoose default connection disconnected, el proceso %s se abortará", process.pid);
         process.exit();
     });
 

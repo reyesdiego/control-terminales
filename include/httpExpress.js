@@ -57,9 +57,7 @@ module.exports = function (log, port, withSocketIo) {
     http.globalAgent.maxSockets = 100;
     server = http.createServer(app);
     server.listen(port, function () {
-        log.logger.info("Nodejs server Version: %s", process.version);
-        log.logger.info("Running on %s://localhost:%s", 'http', port);
-        log.logger.info("Process Id (pid): %s", process.pid);
+        log.logger.info("#%s Nodejs %s Running on %s://localhost:%s", process.pid, process.version, 'http', port);
     });
     server.on('error', function (err) {
         if (err.code === 'EADDRINUSE') {
