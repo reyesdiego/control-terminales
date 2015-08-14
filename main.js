@@ -8,7 +8,7 @@ var cluster = require('cluster'),
     log = new log4n.log(config.log),
     osCpus = require('os').cpus().length;
 
-var processesQy = (config.cpus !== undefined && config.cpus > osCpus) ? config.cpus : osCpus;
+var processesQy = (config.processes !== undefined && config.processes > osCpus) ? config.processes : osCpus;
 
 var service = process.env.SERVICE;
 
