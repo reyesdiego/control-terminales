@@ -268,14 +268,11 @@ module.exports = function (log) {
         });
     }
 
-    function getPrePayment(req, res) {
+    function calculatePrePayment (terminal, _id, callback) {
         var param,
             totalPayment,
             price,
-            cond,
-            mongoose = require("mongoose");
-
-        var _id = mongoose.Types.ObjectId(req.params._id);
+            cond;
 
         VoucherType.find({type: -1}, function (err, vouchertypes) {
             if (err) {
@@ -288,14 +285,14 @@ module.exports = function (log) {
                         }
                     }).toArray();
 
-                price = new priceUtils.price(req.params.terminal);
+                price = new priceUtils.price(terminal);
                 price.rates(false, function (err, rates) {
                     param = [
-                        {$match: {terminal: req.params.terminal, "payment": _id}},
+                        {$match: {terminal: terminal, "payment": _id}},
                         {$project: {terminal: 1,
                             codTipoComprob: 1,
                             nroComprob: 1,
-                            number: '$payment.number',
+                            payment: '$payment',
                             detalle: '$detalle'
                         }},
                         {$unwind: '$detalle'},
@@ -305,7 +302,7 @@ module.exports = function (log) {
                             terminal: 1,
                             code: '$detalle.items.id',
                             nroComprob: 1,
-                            number: 1,
+                            payment: 1,
                             cnt: '$detalle.items.cnt',
                             importe: {
                                 $cond: { if: {  $or: cond },
@@ -314,12 +311,11 @@ module.exports = function (log) {
                             }
                         }},
                         {$group: {
-                            _id: {number: '$number'},
+                            _id: '$payment',
                             toneladas: {$sum: '$cnt'},
                             importe: {$sum: '$importe'}
                         }},
                         {$project: {
-                            number: '$_id.number',
                             tons: '$toneladas',
                             total: '$importe'
                         }}
@@ -327,26 +323,37 @@ module.exports = function (log) {
                     totalPayment = Invoice.aggregate(param);
                     totalPayment.exec(function (err, totalPayment) {
                         if (err) {
-                            res.status(500).send(
-                                {
-                                    status: "ERROR",
-                                    message: "Ha ocurrido un error al obtener los datos de la pre liquidación."
-                                }
-                            );
+                            callback(err);
                         } else {
-                            res.status(200).send(
-                                {
-                                    status: "OK",
-                                    data: totalPayment
-                                }
-                            );
+                            callback(null,  totalPayment[0]);
                         }
                     });
                 });
-
             }
         });
+    }
 
+    function getPrePayment(req, res) {
+        var mongoose = require("mongoose");
+
+        var _id = mongoose.Types.ObjectId(req.params._id);
+        calculatePrePayment(req.params.terminal, _id, function (err, payment) {
+            if (err) {
+                res.status(500).send(
+                    {
+                        status: "ERROR",
+                        message: "Ha ocurrido un error al obtener los datos de la pre liquidación."
+                    }
+                );
+            } else {
+                res.status(200).send(
+                    {
+                        status: "OK",
+                        data: payment
+                    }
+                );
+            }
+        });
     }
 
     function setPrePayment(req, res) {
@@ -396,21 +403,32 @@ module.exports = function (log) {
             if (maxNumber.length > 0) {
                 nextPaymentNumber = (maxNumber[0].max === null) ? 0 : maxNumber[0].max;
             }
-            Paying.find({terminal: paramTerminal, preNumber: req.body.preNumber}, function (err, payment) {
-                if (payment[0].number !== undefined && payment[0].number !== null){
+            Paying.findOne({terminal: paramTerminal, preNumber: req.body.preNumber}, function (err, payment) {
+                if (payment.number !== undefined && payment.number !== null) {
                     res.status(500).send({
                         status: "ERROR",
-                        message: "La Preliquidacion ya se encuenta liquidada",
-                        data: payment[0]
+                        message: "La Preliquidación ya se encuentra liquidada",
+                        data: payment
                     });
                 } else {
-                    payment[0].number = ++nextPaymentNumber;
-                    payment[0].date = Date.now();
-                    payment[0].save(function (err, payment) {
-                        res.status(200).send({
-                            status: "OK",
-                            message: "Se ha generado la Liquidación nro " + nextPaymentNumber,
-                            data: payment
+                    calculatePrePayment(paramTerminal, payment._id, function (err, prePayment) {
+                        payment.number = ++nextPaymentNumber;
+                        payment.date = Date.now();
+                        payment.tons = prePayment.tons;
+                        payment.total = prePayment.total;
+                        payment.save(function (err, paymentSaved) {
+                            if (err) {
+                                res.status(500).send({
+                                    status:"ERROR",
+                                    message: err.message
+                                });
+                            } else {
+                                res.status(200).send({
+                                    status: "OK",
+                                    message: "Se ha generado la Liquidación nro " + nextPaymentNumber,
+                                    data: paymentSaved
+                                });
+                            }
                         });
                     });
                 }
@@ -423,13 +441,16 @@ module.exports = function (log) {
             skip = parseInt(req.params.skip, 10),
             limit = parseInt(req.params.limit, 10),
             paramTerminal = req.params.terminal,
-            isNumberExists = true;
+            isNumberExists = true,
+            param;
 
         if (req.route.path.indexOf('rePayments') > 0) {
             isNumberExists = false;
         }
 
-        paying = Paying.find({terminal: paramTerminal, number: {$exists: isNumberExists}});
+        param ={terminal: paramTerminal, number: {$exists: isNumberExists}};
+
+        paying = Paying.find(param);
         paying.skip(skip);
         paying.limit(limit);
         paying.exec(function (err, payings) {
@@ -440,7 +461,7 @@ module.exports = function (log) {
                     data: null
                 });
             } else {
-                Paying.count({terminal: paramTerminal}, function (err, cnt) {
+                Paying.count(param, function (err, cnt) {
                     var pageCount = payings.length,
                         result = {
                             status: 'OK',
