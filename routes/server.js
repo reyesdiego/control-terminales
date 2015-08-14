@@ -10,21 +10,19 @@ module.exports = function (log, params) {
         moment = require('moment'),
         fs = require('fs'),
         os = require('os'),
-        numWorkers,
+        numCpus,
         paramsIndex;
 
     router.get('/', function (req, res) {
 
-        var util = require('util');
+        var util = require('util'),
+            memory = process.memoryUsage(),
+            heapUsed = (memory.heapUsed / 1024 / 1024).toFixed(2) + " MB",
+            heapTotal = (memory.heapTotal / 1024 / 1024).toFixed(2) + " MB",
+            osu = require("os-utils");
 
-        numWorkers = os.cpus().length;
+        numCpus = os.cpus().length;
 
-        var memory = process.memoryUsage();
-        var heapUsed = (memory.heapUsed / 1024 / 1024).toFixed(2) + " MB";
-        var heapTotal = (memory.heapTotal / 1024 / 1024).toFixed(2) + " MB";
-
-
-        var osu = require("os-utils");
         //console.log(osu.freememPercentage());
         //console.log(osu.freemem());
 
@@ -39,7 +37,7 @@ module.exports = function (log, params) {
             server: params.server,
             node: {version: params.node.version, runtime: params.node.runtime, timeElapsed: params.node.timeElapsed },
             mongoose: {version: global.mongoose.version, connected: global.mongoose.connected},
-            process: {cpus: numWorkers, pid: process.pid, heapUsed: heapUsed, heapTotal: heapTotal}
+            process: {processes: process.env.processes,  cpus: numCpus, masterPid: process.env.masterPid, pid: process.pid, heapUsed: heapUsed, heapTotal: heapTotal}
         };
         if (params.oracle) {
             paramsIndex.oracle = {

@@ -8,7 +8,7 @@ var cluster = require('cluster'),
     log = new log4n.log(config.log),
     osCpus = require('os').cpus().length;
 
-var cpus = (config.cpus !== undefined && config.cpus > osCpus) ? config.cpus : osCpus;
+var processesQy = (config.cpus !== undefined && config.cpus > osCpus) ? config.cpus : osCpus;
 
 var service = process.env.SERVICE;
 
@@ -18,10 +18,10 @@ if (!service) {
 } else {
 
     if (cluster.isMaster) {
-        log.logger.info('Master cluster %s setting up %s workers...', process.pid, cpus);
+        log.logger.info('Master cluster %s setting up %s workers...', process.pid, processesQy);
 
-        for (var i = 0; i < cpus; i++) {
-            cluster.fork();
+        for (var i = 0; i < processesQy; i++) {
+            cluster.fork({processes: processesQy, masterPid: process.pid});
         }
 
         cluster.on('online', function(worker) {

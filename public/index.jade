@@ -27,8 +27,10 @@ html(lang='en')
                     span(style="color: red")  Not connected
         p(style="font-weight:bolder") Process
         ul
+            li MasterPID #{process.masterPid}
             li PID #{process.pid}
             li Memory #{process.heapUsed} - Total #{process.heapTotal}
             li Cpus #{process.cpus}
+            li Processes Qy #{process.processes}
     p(style="font-weight:bolder") Runtime&nbsp;
             span(style="font-weight: normal") #{runtime} - #{fromNow}
