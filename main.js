@@ -17,6 +17,7 @@ if (!service) {
     process.exit();
 } else {
 
+/*
     if (cluster.isMaster) {
         log.logger.info('Master cluster %s setting up %s workers...', process.pid, processesQy);
 
@@ -34,12 +35,13 @@ if (!service) {
             cluster.fork();
         });
     } else {
+*/
 
         if (service === "WEB") {
             require('./mainWeb.js')(log);
         } else if (service === "TER") {
             require('./mainTer.js')(log);
         }
-    }
+    //}
 
 }

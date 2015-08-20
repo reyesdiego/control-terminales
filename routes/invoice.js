@@ -750,7 +750,7 @@ module.exports = function(log, io, oracle) {
             cashBoxes,
             cashboxExecs,
             contadorFaltantesTotal,
-            order;
+            async;
 
         if (usr.role === 'agp') {
             param.terminal = req.params.terminal;
@@ -786,20 +786,20 @@ module.exports = function(log, io, oracle) {
         cashBoxes.forEach(function (cash) {
             //funcion que calcula la correlatividad por cada caja que sera ejecutada en paralelo con async
             var cashboxExec = function (callback) {
+                var invoices;
                 param.nroPtoVenta = cash;
-                var invoices = Invoice.find(param, {nroComprob: 1, _id: 0});
+                    invoices = Invoice.find(param, {nroComprob: 1, _id: 0});
 
-                if (req.query.order) {
-                    order = JSON.parse(req.query.order);
-                    invoices.sort(order[0]);
-                } else {
-                    invoices.sort({nroComprob: 1});
-                }
+                invoices.sort({nroComprob: 1});
                 invoices.exec(function (err, invoices) {
                     var faltantes = [],
                         control = 0,
                         contadorFaltantes = 0,
-                        result;
+                        result,
+                        dif,
+                        item2Add,
+                        i,
+                        len;
 
                     if (!err) {
                         invoices.forEach(function (invoice) {
@@ -809,12 +809,13 @@ module.exports = function(log, io, oracle) {
                                 control += 1;
                                 if (control !== invoice.nroComprob) {
                                     if (invoice.nroComprob - control > 3) {
-                                        var dif = (invoice.nroComprob) - control;
+                                        dif = (invoice.nroComprob) - control;
                                         contadorFaltantes+= dif;
-                                        var item2Add = util.format('[%d a %d] (%d)', control, (invoice.nroComprob - 1), dif);
+                                        item2Add = util.format('[%d a %d] (%d)', control, (invoice.nroComprob - 1), dif);
                                         faltantes.push(item2Add);
                                     } else {
-                                        for (var i=control, len=invoice.nroComprob ; i<len; i++){
+                                        len=invoice.nroComprob;
+                                        for (i=control; i<len; i++){
                                             faltantes.push(i.toString());
                                             contadorFaltantes++;
                                         }
@@ -843,7 +844,7 @@ module.exports = function(log, io, oracle) {
             cashboxExecs.push(cashboxExec);
         });
 
-        var async = require('async');
+        async = require('async');
         async.parallel(cashboxExecs, function (err, results) {
             var response = {
                 status: "OK",
