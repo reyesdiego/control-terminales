@@ -67,12 +67,24 @@ module.exports = function (log, port, withSocketIo) {
     });
 
     if (withSocketIo) {
-        io = require('socket.io')(server);
+        io = require('socket.io')(server, {
+            transports: [
+                'websocket',
+                'flashsocket',
+                'htmlfile',
+                'xhr-polling',
+                'jsonp-polling',
+                'polling'
+            ]
+        });
         io.on('connection', function (socket) {
-            log.logger.info('Socket Client Connected: %s.', socket.id);
+            log.logger.info('Socket Client Connected: %s from: %s.', socket.id, socket.client.conn.remoteAddress);
 
             socket.on('newUser', function (cb) {
                 return cb(socket.id);
+            });
+            socket.on('disconnect', function (socket) {
+                log.logger.info('Socket Client Disconnect. Reason: %s.', socket);
             });
         });
     }

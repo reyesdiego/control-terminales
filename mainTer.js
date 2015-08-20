@@ -7,13 +7,14 @@ module.exports = function (log) {
     var config = require('./config/config.js'),
         params,
         moment = require('moment'),
-        port = process.env.PORT || config.server_port_ter;
+        port = process.env.PORT || config.server_port_ter,
+        httpExpress;
 
 //moment.locale('es');
 //Conecta a la base de datos MongoDb
     require('./include/mongoose.js')(log);
 //Crea un servidor http en puerto 8080
-    var httpExpress = require('./include/httpExpress.js')(log, port, true);
+    httpExpress = require('./include/httpExpress.js')(log, port, true);
 
     params = {
         server: {ip: config.domain, port: config.server_port_ter},

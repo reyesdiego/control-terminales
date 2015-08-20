@@ -7,19 +7,20 @@ module.exports = function (log) {
     var config = require('./config/config.js'),
         params,
         moment = require('moment'),
-        port = process.env.PORT || config.server_port_web;
-
+        port = process.env.PORT || config.server_port_web,
+        passport = null,
+        httpExpress,
+        oracle;
 
 //Conecta a la base de datos MongoDb
     require('./include/mongoose.js')(log);
 //Crea un servidor http sobre express en puerto 8090
-    var httpExpress = require('./include/httpExpress.js')(log, port, true);
+    httpExpress = require('./include/httpExpress.js')(log, port, true);
 
-    var passport = null;
     require('./routes/accounts')(log, httpExpress.app, passport);
 
 //var oracledb = require('oracledb');
-    var oracle = require('./include/oracle.js');
+    oracle = require('./include/oracle.js');
     oracle = new oracle();
     oracle.oracledb.createPool(
         //{
