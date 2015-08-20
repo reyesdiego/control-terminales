@@ -3,16 +3,17 @@
  */
 
 var http = require('http'),
-    mail = require('./include/emailjs');
+    mail = require('./include/emailjs'),
+    config = require('./config/config.js');
 
 //var interval = 5 * 60 * 1000, // 5 minutos
 var interval = 5 * 1000, // 5 minutos
     emailSent = 0,
-    allowSending = true,
+    allowSending = config.email,
     optionsget = {
         host: process.argv[2], // here only the domain name (no http/https !)
         port: process.argv[3],
-        path: '/invoicesX/BACTSSA/ship',
+        path: '/',
         method: 'GET',
         timeout: 20
     };
