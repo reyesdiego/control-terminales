@@ -131,4 +131,14 @@ detalleSchema.pre('save', function (next, done) {
 
 });
 
+invoiceSchema.virtual('total').get(function () {
+    var total = 0;
+    if (this.codMoneda === "DOL") {
+        total = this.importe.total * this.cotiMoneda;
+    } else {
+        total = this.importe.total;
+    }
+    return total;
+});
+
 module.exports = mongoose.model('invoice', invoiceSchema);
