@@ -20,7 +20,9 @@
     "passport-local": "0.1.6",
     "passport-local-mongoose": "0.2.5",
     "socket.io": "^1.3.5",
+    "socket.io-client": "^1.3.6",
     "underscore": "1.5.2",
+    "validr": "^0.1.6",
     "winston": "1.0.1"
   },
   "devDependencies": {

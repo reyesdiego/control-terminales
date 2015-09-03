@@ -11,15 +11,76 @@ module.exports = function (log, io) {
         AppointmentEmailQueue = require('../../models/appointmentEmailQueue.js'),
         util = require('util'),
         mail = require("../../include/emailjs"),
-        config = require('../../config/config.js'),
-        verifica_tipo = {
-            PISO: "PISO",
-            CAMION: "CAMION"
-        },
-        verifica_turno = {
-            MANANA: "MA",
-            TARDE: "TA"
-        };
+        config = require('../../config/config.js');
+
+    function validateSanitize(req, res, next) {
+        var errors;
+        var Validr = require('../../include/validation.js');
+        var validate = new Validr.validation(req.body);
+
+        // use string with dot-notation to validate nested fields
+        validate
+            .validate('buque', 'buque is required.')
+            .isLength(1)
+        validate
+            .validate('viaje', 'viaje is required.')
+            .isLength(1);
+        validate
+            .validate('mov', {
+                isLenght: 'mov is required.',
+                isIn: 'mov must be in "IMPO" or "EXPO" values.'
+            }, {ignoreEmpty: true})
+            .isLength(1)
+            .isIn(['EXPO', 'IMPO']);
+        validate
+            .validate('inicio', {
+                isLength: 'inicio is required.',
+                isDate: 'inicio must be a valid date'
+            })
+            .isLength(1)
+            .isDate();
+        validate
+            .validate('fin', {
+                isLength: 'fin is required.',
+                isDate: 'fin must be a valid date'
+            })
+            .isLength(1)
+            .isDate();
+        validate
+            .validate('alta', {
+                isLength: 'alta is required.',
+                isDate: 'alta must be a valid date'
+            })
+            .isLength(1)
+            .isDate();
+        validate
+            .validate('disponibles_t1', 'disponible_t1 must be an integer')
+            .isInt();
+        validate
+            .validate('verifica', 'verifica must be a valid date', {ignoreEmpty: true})
+            .isDate();
+        validate
+            .validate('verifica_turno', 'verifica_turno must be in "MA" or "TA" values.', {ignoreEmpty: true})
+            .isIn(['MA', 'TA']);
+        validate
+            .validate('verifica_tipo', 'verifica_tipo must be in "PISO" or "CAMION" values.', {ignoreEmpty: true})
+            .isIn(['PISO', 'CAMION']);
+        validate
+            .validate('email', 'email must be a valid email account.', {ignoreEmpty: true})
+            .isEmail()
+
+        errors = validate.validationErrors();
+        if (errors) {
+            res.status(400).send({
+                status: "ERROR",
+                message: "Error en la validacion del Appointment",
+                data: util.inspect(errors)
+            });
+        } else {
+            next();
+        }
+
+    }
 
     function addAppointmentEmailQueue(appointmentEmail, callback) {
 
@@ -112,27 +173,7 @@ module.exports = function (log, io) {
             errMsg,
             Account = require('../../models/account');
 
-        appointment2insert.inicio = moment(appointment2insert.inicio);
-        appointment2insert.fin = moment(appointment2insert.fin);
         appointment2insert.terminal = usr.terminal;
-
-        if (appointment2insert.email !== undefined && appointment2insert.email !== null) {
-            appointment2insert.email = appointment2insert.email.trim();
-            appointment2insert.emailStatus = false;
-        }
-
-        if (appointment2insert.alta !== undefined && appointment2insert.alta !== null && appointment2insert.alta !== "") {
-            appointment2insert.alta = moment(appointment2insert.alta);
-        }
-        if (appointment2insert.verifica !== undefined && appointment2insert.verifica !== null && appointment2insert.verifica !== "") {
-            appointment2insert.verifica = moment(appointment2insert.verifica);
-        }
-        if (appointment2insert.verifica_tipo !== verifica_tipo.PISO && appointment2insert.verifica_tipo !== verifica_tipo.CAMION) {
-            delete appointment2insert.verifica_tipo;
-        }
-        if (appointment2insert.verifica_turno !== verifica_turno.MANANA && appointment2insert.verifica_turno !== verifica_turno.TARDE) {
-            delete appointment2insert.verifica_turno;
-        }
 
         if (appointment2insert) {
             Appointment.insert(appointment2insert, function (errData, data) {
@@ -174,7 +215,7 @@ module.exports = function (log, io) {
      });
      */
 
-    router.post('/', addAppointment, reportClient);
+    router.post('/', validateSanitize, addAppointment, reportClient);
 
     return router;
 };

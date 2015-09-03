@@ -15,53 +15,167 @@ module.exports = function (log, io) {
         Comment = require('../../models/comment.js'),
         logInvoiceBody = false;
 
-    function addInvoice(req, res) {
+    function validateSanitize (req, res, next) {
+        var errors,
+            Validr = require('../../include/validation.js'),
+            validate = new Validr.validation(req.postData);
 
-        var usr = req.usr,
-            postData = '',
+        validate
+            .validate('fechaEmision', {
+                isLength: 'fechaEmision is required.',
+                isDate: 'fechaEmision must be a valid date.'
+            })
+            .isLength(1)
+            .isDate();
+        validate
+            .validate('fechaVcto', 'fechaVcto must be a valid date.', {ignoreEmpty: true})
+            .isDate();
+        validate
+            .validate('fechaServDesde', 'fechaServDesde must be a valid date.', {ignoreEmpty: true})
+            .isDate();
+        validate
+            .validate('fechaServHasta', 'fechaServHasta must be a valid date.', {ignoreEmpty: true})
+            .isDate();
+        validate
+            .validate('fechaVctoPago', 'fechaVctoPago must be a valid date.', {ignoreEmpty: true})
+            .isDate();
+        validate
+            .validate('nroComprob', {
+                isNumeric: 'nroComprob must be integer greater or equal to 0.',
+                isInt: 'nroComprob must be integer greater or equal to 0.',
+                isLength: 'nroComprob is required.'
+            })
+            .isNumeric()
+            .isInt({min: 0})
+            .isLength(1);
+        validate
+            .validate('codTipoComprob', 'codTipoComprob is required.')
+            .isInt({min: 0})
+            .isLength(1);
+        validate
+            .validate('nroPtoVenta', 'nroPtoVenta is required.', {ignoreEmpty: true})
+            .isInt({min: 0});
+        validate
+            .validate('nroDoc', 'nroDoc is required.', {ignoreEmpty: true})
+            .isInt({min: 0});
+        validate
+            .validate('razon', 'razon is required.')
+            .isLength(1)
+            .trim();
+        validate
+            .validate('codMoneda', {
+                isLength: 'codMoneda is required.',
+                isIn: 'codMoneda must be in "PES" or "DOL" or "EUR" values'
+            })
+            .isLength(1)
+            .isIn(['PES', 'DOL', 'EUR']);
+        validate
+            .validate('cotiMoneda', {
+                isLength: 'cotiMoneda is required.',
+                isFloat: 'cotiMoneda must be a float greater equal than 1'
+            })
+            .isLength(1)
+            .isFloat({min: 1});
+
+        validate
+            .validate('impGrav', 'impGrav must be a float.', {ignoreEmpty: true})
+            .isFloat();
+        validate
+            .validate('impNoGrav', 'impNoGrav must be a float.', {ignoreEmpty: true})
+            .isFloat();
+        validate
+            .validate('impExento', 'impExento must be a float.', {ignoreEmpty: true})
+            .isFloat();
+        validate
+            .validate('impIva', 'impIva must be a float.', {ignoreEmpty: true})
+            .isFloat();
+        validate
+            .validate('impOtrosTrib', 'impOtrosTrib must be a float.', {ignoreEmpty: true})
+            .isFloat();
+        validate
+            .validate('impSubtot', 'impSubtot must be a float.', {ignoreEmpty: true})
+            .isFloat();
+        validate
+            .validate('impTotal', {
+                isLength: 'impTotal is required.',
+                isFloat: 'impTotal must be a float.'
+            })
+            .isLength(1)
+            .isFloat();
+
+        errors = validate.validationErrors();
+        if (errors) {
+            res.status(400).send({
+                status: "ERROR",
+                message: "Error en la validacion del Invoice",
+                data: util.inspect(errors)
+            });
+        } else {
+            next();
+        }
+
+    }
+
+    function receiveInvoice(req, res, next) {
+
+        var postData = '',
             mailer,
             strBody,
             strSubject,
-            errMsg;
+            errMsg,
+            contentTypeExists;
 
-        req.addListener("data", function(postDataChunk) {
-            postData += postDataChunk;
-        });
-        req.addListener("end", function () {
+        contentTypeExists = req.headers["content-type"].toLowerCase().indexOf("text/plain");
+        if (contentTypeExists === -1) {
+            errMsg = util.format("El content-type:%s es incorrecto. Debe enviar text/plain. %s", req.headers["content-type"], req.usr.terminal);
+            log.logger.error(errMsg);
+            res.status(400).send(errMsg);
+        } else {
+            req.addListener("data", function(postDataChunk) {
+                postData += postDataChunk;
+            });
+            req.addListener("end", function () {
 
-            var contentTypeExists = req.headers["content-type"].toLowerCase().indexOf("text/plain");
-            if (contentTypeExists === -1) {
-                errMsg = util.format("El content-type:%s es incorrecto. Debe enviar text/plain. %s", req.headers["content-type"], usr.terminal);
-                log.logger.error(errMsg);
-                res.status(400).send(errMsg);
-                return;
-            }
+                try {
+                    if (logInvoiceBody === 1) {
+                        log.logger.info("Invoice body INS: %s - %s", postData, req.usr.terminal);
+                    }
 
-            try {
-                if (logInvoiceBody === 1) {
-                    log.logger.info("Invoice body INS: %s - %s", postData, usr.terminal);
+                    req.postData = JSON.parse(postData);
+                    next();
+
+                } catch (errParsing) {
+                    strBody = util.format("Parsing JSON: [%s], JSON:%s", errParsing.toString(), postData);
+                    strSubject = util.format("AGP - %s - ERROR", req.usr.terminal);
+
+                    log.logger.error(strBody);
+                    mailer = new mail.mail(config.email);
+                    mailer.send(req.usr.email, strSubject, strBody);
+                    res.status(500).send({status: "ERROR", data: strBody});
                 }
 
-                postData = JSON.parse(postData);
-            } catch (errParsing) {
-                strBody = util.format("Parsing JSON: [%s], JSON:%s", errParsing.toString(), postData);
-                strSubject = util.format("AGP - %s - ERROR", usr.terminal);
-
-                log.logger.error(strBody);
-                mailer = new mail.mail(config.email);
-                mailer.send(usr.email, strSubject, strBody);
-                res.status(500).send({status: "ERROR", data: strBody} );
-                return;
-            }
-
-            _addInvoice(res, postData, usr, function (statusHttp, object){
-                res.status(statusHttp).send(object);
             });
-        });
+        }
+
     }
 
-    function _addInvoice(res, postData, usr, callback) {
-        var invoice;
+    function addInvoice(req, res) {
+        var invoice,
+            errMsg,
+            subTotalCheck,
+            usr = req.usr,
+            postData = req.postData,
+            strSubject,
+            body,
+            buqueId,
+            buqueDesc,
+            viaje,
+            fecha,
+            buque,
+            contenedor,
+            cont,
+            mailer,
+            invoice2add;
 
         try {
             invoice = {
@@ -90,11 +204,11 @@ module.exports = function (log, io) {
                 observa: postData.observa,
                 codConcepto: postData.codConcepto,
                 fecha: {
-                    emision: moment(postData.fechaEmision),
-                    vcto: moment(postData.fechaVcto),
-                    desde: moment(postData.fechaServDesde),
-                    hasta: moment(postData.fechaServHasta),
-                    vctoPago: moment(postData.fechaVctoPago)
+                    emision: moment(postData.fechaEmision, "YYYY-MM-DDT00:00:00.000.Z"),
+                    vcto: moment(postData.fechaVcto, "YYYY-MM-DDT00:00:00.000.Z"),
+                    desde: moment(postData.fechaServDesde, "YYYY-MM-DDT00:00:00.000.Z"),
+                    hasta: moment(postData.fechaServHasta, "YYYY-MM-DDT00:00:00.000.Z"),
+                    vctoPago: moment(postData.fechaVctoPago, "YYYY-MM-DDT00:00:00.000.Z")
                 },
                 detalle: [],
                 otrosTributos: [],
@@ -123,22 +237,22 @@ module.exports = function (log, io) {
                 });
             }
 
-            var subTotalCheck=0;
-            if ( postData.detalle && postData.detalle.length > 0 ){
+            subTotalCheck = 0;
+            if (postData.detalle && postData.detalle.length > 0) {
                 postData.detalle.forEach(function (container) {
-                    var buqueId = (container.buqueId !== undefined && container.buqueId !== null) ? container.buqueId.toString() : "";
-                    var buqueDesc = container.buqueDesc;
-                    var viaje = container.viaje;
-                    var fecha = (container.fecha !== undefined && container.fecha !== "" && container.fecha != null) ? moment(container.fecha) : "";
-                    var buque = {
+                    buqueId = (container.buqueId !== undefined && container.buqueId !== null) ? container.buqueId.toString() : "";
+                    buqueDesc = container.buqueDesc;
+                    viaje = container.viaje;
+                    fecha = (container.fecha !== undefined && container.fecha !== "" && container.fecha != null) ? moment(container.fecha, "YYYY-MM-DD") : "";
+                    buque = {
                         codigo: (buqueId) ? buqueId.trim() : "",
                         nombre: (buqueDesc) ? buqueDesc.trim() : "",
                         viaje: (viaje) ? viaje.trim() : "",
                         fecha: fecha
                     };
 
-                    var contenedor = container.contenedor;
-                    var cont = {
+                    contenedor = container.contenedor;
+                    cont = {
                         contenedor: (contenedor) ? container.contenedor.trim() : "",
                         IMO: container.IMO,
                         buque: buque,
@@ -157,33 +271,45 @@ module.exports = function (log, io) {
                             subTotalCheck += Math.abs(item.impTot);
                         });
                     } else {
-                        var errMsg = util.format("Invoice INS: %s", "El contenedor no posee items.");
+                        errMsg = util.format("Invoice INS: %s", "El contenedor no posee items.");
                         log.logger.error(errMsg);
-                        callback(500, {status: "ERROR", data: errMsg});
+                        res.status(500).send({
+                            status: "ERROR",
+                            message: errMsg,
+                            data: errMsg
+                        });
                         return;
                     }
                     invoice.detalle.push(cont);
                 });
 
             } else {
-                var errMsg = util.format("Invoice INS: %s - %s. - %j", "El comprobante no posee detalles.", usr.terminal, postData);
+                errMsg = util.format("Invoice INS: %s - %s. - %j", "El comprobante no posee detalles.", usr.terminal, postData);
                 log.logger.error(errMsg);
-                callback(500, {status: "ERROR", data: errMsg});
+                res.status(500).send({
+                    status: "ERROR",
+                    message: errMsg,
+                    data: errMsg
+                });
             }
 
-        } catch (error){
-            var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
-            var body = util.format('Error al insertar comprobante. %s. \n%s',  error.message, JSON.stringify(postData));
+        } catch (error) {
+            strSubject = util.format("AGP - %s - ERROR", usr.terminal);
+            body = util.format('Error al insertar comprobante. %s. \n%s',  error.message, JSON.stringify(postData));
 
             log.logger.error(body);
 
-            var mailer = new mail.mail(config.email);
+            mailer = new mail.mail(config.email);
             mailer.send(usr.email, strSubject, body, function () {
             });
-            callback(500, {"status": "ERROR", "data": body});
+            res.status(500).send({
+                status: "ERROR",
+                message: body,
+                data: body
+            });
         }
 
-        var invoice2add = new Invoice(invoice);
+        invoice2add = new Invoice(invoice);
         invoice2add.save(function (errSave, data) {
             var socketMsg;
             if (!errSave) {
@@ -219,60 +345,61 @@ module.exports = function (log, io) {
                     user: usr.user,
                     group: "ALL"
                 }, function (err, commentAdded) {
-                    if (err){
+                    if (err) {
 
                     } else {
                         data.comment.push(commentAdded._id);
-                        data.save(function (){
-                            callback(200,{status: "OK", data: data});
+                        data.save(function () {
+                            res.status(200).send({
+                                status: "OK",
+                                data: data
+                            });
                         });
                     }
                 });
 
             } else {
                 //TODO crear objecto para tratar los errores, en este caso trato el tema de duplicados.
-                if (errSave.code === 11000){
+                if (errSave.code === 11000) {
                     Invoice.find({
-                        terminal:		usr.terminal,
-                        codTipoComprob:	invoice.codTipoComprob,
-                        nroComprob:		invoice.nroComprob,
-                        nroPtoVenta:	invoice.nroPtoVenta
-                    }, function (err, invoices){
+                        terminal: usr.terminal,
+                        codTipoComprob: invoice.codTipoComprob,
+                        nroComprob: invoice.nroComprob,
+                        nroPtoVenta: invoice.nroPtoVenta
+                    }, function (err, invoices) {
 
-                        var estado = invoices[0].estado[invoices[0].estado.length-1].estado;
-                        if (estado === 'E'){
-                            Invoice.remove({_id : invoices[0]._id}, function (err, delInvoice){
+                        var estado = invoices[0].estado[invoices[0].estado.length - 1].estado;
+                        if (estado === 'E') {
+                            Invoice.remove({_id : invoices[0]._id}, function (err, delInvoice) {
                                 log.logger.delete('Se eliminó el comprobante %s para ser retransferido.', invoices[0]._id.toString());
-                                Comment.remove({invoice: invoices[0]._id}, function (errComment, delComment){
-                                    _addInvoice(res, postData, usr, function (statusHttp, object){
-                                        res.status(statusHttp).send(object);
-                                    });
+                                Comment.remove({invoice: invoices[0]._id}, function (errComment, delComment) {
+                                    addInvoice(req, res);
                                 });
                             });
                         } else {
-                            var errMsg = util.format('Error INS: El tipo de comprobante: %s, número: %s, fue transferido el %s:\n %s\n\n%s - ERROR:%s', invoices[0].codTipoComprob, invoices[0].nroComprob, dateTime.getDateTimeFromObjectId(invoices[0]._id), invoices[0], moment(), errSave);
-                            var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
+                            errMsg = util.format('Error INS: El tipo de comprobante: %s, número: %s, fue transferido el %s:\n %s\n\n%s - ERROR:%s', invoices[0].codTipoComprob, invoices[0].nroComprob, dateTime.getDateTimeFromObjectId(invoices[0]._id), invoices[0], moment(), errSave);
                             log.logger.error(errMsg, { data: postData});
 
-//  Envia email cuando recibe duplicado, por ahora comentado
-//                          var mailer = new mail.mail(config.email);
-//                          mailer.send(usr.email, strSubject, errMsg, function(){
-//                          });
-
-                            return callback(500, {status: "ERROR", data: errMsg});
+                            res.status(500).send({
+                                status: "ERROR",
+                                message: "Error insertando Comprobante",
+                                data: errMsg
+                            });
                         }
 
                     });
                 } else {
-                    var strSubject = util.format("AGP - %s - ERROR", usr.terminal);
-                    var strError = util.format('Invoice INS: %s -\n%s - %s', errSave, JSON.stringify(postData), usr.terminal);
-                    log.logger.error(strError);
+                    strSubject = util.format("AGP - %s - ERROR", usr.terminal);
+                    errMsg = util.format('Invoice INS: %s -\n%s - %s', errSave, JSON.stringify(postData), usr.terminal);
+                    log.logger.error(errMsg);
 
-                    var mailer = new mail.mail(config.email);
-                    mailer.send(usr.email, strSubject, strError, function(){
+                    mailer = new mail.mail(config.email);
+                    mailer.send(usr.email, strSubject, errMsg, function () {
                     });
-
-                    return callback(500, {status: "ERROR", data: strError});
+                    res.status(500).send({
+                        status: "ERROR",
+                        data: errMsg
+                    });
                 }
             }
         });
@@ -285,7 +412,7 @@ module.exports = function (log, io) {
      });
      */
 
-    router.post('/', addInvoice);
+    router.post('/', receiveInvoice, validateSanitize, addInvoice);
 
     return router;
 };
