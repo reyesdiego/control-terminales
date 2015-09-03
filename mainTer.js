@@ -8,7 +8,9 @@ module.exports = function (log) {
         params,
         moment = require('moment'),
         port = process.env.PORT || config.server_port_ter,
-        httpExpress;
+        httpExpress,
+        VoucherType = require('./models/voucherType.js'),
+        voucherType;
 
 //moment.locale('es');
 //Conecta a la base de datos MongoDb
@@ -21,7 +23,16 @@ module.exports = function (log) {
         node: {version: process.version, runtime: httpExpress.app.get('runtime'), timeElapsed: moment(moment(httpExpress.app.get('runtime'))).fromNow(true)}
     };
 
-    require('./routes/routesTer')(log, httpExpress.app, httpExpress.io, params);
+    voucherType = VoucherType.find({type: -1}, {_id: 1});
+    voucherType.lean();
+    voucherType.exec(function (err, data) {
+        var result = [];
+        data.forEach(function (item) {
+            result.push(item._id);
+        });
+        global.cache.voucherTypes = result;
+        require('./routes/routesTer')(log, httpExpress.app, httpExpress.io, params);
+    });
 
     process.on('exit', function () {
         'use strict';

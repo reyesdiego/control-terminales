@@ -36,12 +36,13 @@ if (!service) {
         });
     } else {
 */
+    global.cache = {};
 
-        if (service === "WEB") {
-            require('./mainWeb.js')(log);
-        } else if (service === "TER") {
-            require('./mainTer.js')(log);
-        }
+    if (service === "WEB") {
+        require('./mainWeb.js')(log);
+    } else if (service === "TER") {
+        require('./mainTer.js')(log);
+    }
     //}
 
 }
