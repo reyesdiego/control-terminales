@@ -28,11 +28,11 @@ module.exports = function (log) {
             param.gateTimestamp = {};
             if (req.query.fechaInicio) {
                 fecha = moment(req.query.fechaInicio, ['YYYY-MM-DD HH:mm Z']).toDate();
-                param.gateTimestamp['$gte'] = fecha;
+                param.gateTimestamp.$gte = fecha;
             }
-            if (req.query.fechaFin){
+            if (req.query.fechaFin) {
                 fecha = moment(req.query.fechaFin, ['YYYY-MM-DD HH:mm Z']).toDate();
-                param.gateTimestamp['$lt'] = fecha;
+                param.gateTimestamp.$lt = fecha;
             }
         }
 
@@ -53,9 +53,9 @@ module.exports = function (log) {
         }
 
         if (req.query.ontime === '1') {
-            param["$where"] = 'this.gateTimestamp>=this.turnoInicio && this.gateTimestamp<=this.turnoFin';
+            param.$where = 'this.gateTimestamp>=this.turnoInicio && this.gateTimestamp<=this.turnoFin';
         } else if (req.query.ontime === '0') {
-            param["$where"] = 'this.gateTimestamp<this.turnoInicio || this.gateTimestamp>this.turnoFin';
+            param.$where = 'this.gateTimestamp<this.turnoInicio || this.gateTimestamp>this.turnoFin';
         }
 
         if (usr.role === 'agp') {
@@ -71,7 +71,7 @@ module.exports = function (log) {
         } else {
             gates.sort({gateTimestamp: -1});
         }
-
+        gates.lean();
         gates.exec(function (err, gates) {
             if (err) {
                 log.logger.error("%s", err.error);
@@ -224,37 +224,44 @@ module.exports = function (log) {
         }
 
         _price = require('../include/price.js');
-        _rates = new _price.price();
+        _rates = new _price.price(terminal);
         _rates.rates(function (err, rates) {
 
             var invoices = Invoice.aggregate([
-                {$match: {terminal: terminal}},
+                {$match: {terminal: terminal, codTipoComprob: 1, 'detalle.items.id': {$in: rates}}},
+                {$project: {detalle: 1, fecha: '$fecha.emision'}},
                 {$unwind: '$detalle'},
                 {$unwind: '$detalle.items'},
                 {$match: {'detalle.items.id': {$in: rates}}},
-                {$project: {nroPtoVenta: 1, codTipoComprob: 1, nroComprob: 1, contenedor: '$detalle.contenedor', code: '$detalle.items.id', fecha: '$fecha.emision'}}
+                {$project: {
+                    _id: false,
+                    //v: '$nroPtoVenta',
+                    //n: '$nroComprob',
+                    c: '$detalle.contenedor',
+                    //i: '$detalle.items.id',
+                    f: '$fecha'}}
             ]);
 
-            if (req.query.order) {
-                order = JSON.parse(req.query.order);
-                invoices.sort(order[0]);
-            } else {
-                invoices.sort({codTipoComprob: 1, nroComprob: 1});
-            }
+            //if (req.query.order) {
+            //    order = JSON.parse(req.query.order);
+            //    invoices.sort(order[0]);
+            //} else {
+            //    invoices.sort({codTipoComprob: 1, nroComprob: 1});
+            //}
 
             invoices.exec(function (err, dataInvoices) {
                 var gates;
                 if (err) {
                     res.status(500).send({status: 'ERROR', data: err.message});
                 } else {
-                    gates = Gate.find({terminal: terminal, carga: "LL"}, {contenedor: 1});
+                    gates = Gate.find({terminal: terminal, carga: "LL"}, {c: '$contenedor'});
                     gates.exec(function (err, dataGates) {
                         var invoicesWoGates;
                         if (err) {
                             res.status(500).send({status: 'ERROR', data: err.message});
                         } else {
                             invoicesWoGates = linq.from(dataInvoices)
-                                .except(dataGates, "$.contenedor").toArray();
+                                .except(dataGates, "$.c").toArray();
 
                             res.status(200)
                                 .send({
@@ -288,12 +295,14 @@ module.exports = function (log) {
         _rates.rates(function (err, rates) {
 
             gates = Gate.find({terminal: terminal, carga: "LL"});
-            if (req.query.order) {
-                var order = JSON.parse(req.query.order);
-                gates.sort(order[0]);
-            } else {
-                gates.sort({gateTimestamp: 1});
-            }
+
+            //if (req.query.order) {
+            //    var order = JSON.parse(req.query.order);
+            //    gates.sort(order[0]);
+            //} else {
+            //    gates.sort({gateTimestamp: 1});
+            //}
+            gates.lean();
             gates.exec(function (err, dataGates) {
                 var invoices;
                 if (err) {
