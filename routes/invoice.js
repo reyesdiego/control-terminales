@@ -86,7 +86,7 @@ module.exports = function(log, io, oracle) {
 
         if (req.query.estado) {
             states = req.query.estado.split(",");
-            param['$or'] = [
+            param.$or = [
                 { estado: {$size: 1, $elemMatch: {estado: {$in: states}, grupo: 'ALL'} } },
                 { 'estado.1': { $exists: true }, estado: {$elemMatch: {estado: {$in: states}, grupo: usr.group} } }
             ];
@@ -102,7 +102,7 @@ module.exports = function(log, io, oracle) {
             invoices.sort({codTipoComprob: 1, nroComprob: 1});
         }
         invoices.skip(skip).limit(limit);
-
+        invoices.lean();
         invoices.exec(function (err, invoices) {
             if (!err) {
                 Invoice.count(param, function (err, cnt) {
@@ -235,29 +235,34 @@ module.exports = function(log, io, oracle) {
         tomorrow = moment(date).add(1, 'days').toDate();
 
 
-        if (req.params.currency === 'PES') {
-            sum = { $cond: [
-                {$eq: ['$codMoneda', 'PES' ]},
-                '$importe.total',
-                {$multiply: ['$importe.total', '$cotiMoneda'] }
-            ]};
-        } else if (req.params.currency === 'DOL') {
-            sum = { $cond: [
-                {$eq: ['$codMoneda', 'DOL' ]},
-                '$importe.total',
-                {$divide: ['$importe.total', '$cotiMoneda'] }
-            ]};
-        }
+        //if (req.params.currency === 'PES') {
+        //    sum = { $cond: [
+        //        {$eq: ['$codMoneda', 'PES' ]},
+        //        '$importe.total',
+        //        {$multiply: ['$importe.total', '$cotiMoneda'] }
+        //    ]};
+        //} else if (req.params.currency === 'DOL') {
+        //    sum = { $cond: [
+        //        {$eq: ['$codMoneda', 'DOL' ]},
+        //        '$importe.total',
+        //        {$divide: ['$importe.total', '$cotiMoneda'] }
+        //    ]};
+        //}
 
         jsonParam = [
             {$match: { 'fecha.emision': {$gte: date5Ago, $lt: tomorrow} }},
-            { $project: {'accessDate': {$subtract: ['$fecha.emision', 180 * 60 * 1000]}, terminal: '$terminal', total: sum} },
+            { $project: {
+                fecha: '$fecha.emision',
+                accessDate: {$subtract: ['$fecha.emision', 180 * 60 * 1000]},
+                terminal: '$terminal',
+                total: '$total'}
+            },
             { $group : {
                 _id : { terminal: '$terminal',
                     year: { $year : "$accessDate" },
                     month: { $month : "$accessDate" },
                     day: { $dayOfMonth : "$accessDate" },
-                    date: '$accessDate'
+                    date: '$fecha'
                 },
                 cnt : { $sum : 1 },
                 total: { $sum : '$total'}
@@ -281,7 +286,6 @@ module.exports = function(log, io, oracle) {
         var date = moment(moment().format('YYYY-MM-DD')).subtract(moment().date() - 1, 'days').toDate(),
             month5Ago,
             nextMonth,
-            sum = {},
             jsonParam;
 
         if (req.query.fecha !== undefined) {
@@ -290,28 +294,13 @@ module.exports = function(log, io, oracle) {
         month5Ago = moment(date).subtract(4, 'months').toDate();
         nextMonth = moment(date).add(1, 'months').toDate();
 
-
-        if (req.params.currency === 'PES') {
-            sum = { $cond: [
-                {$eq: ['$codMoneda', 'PES' ]},
-                '$importe.total',
-                {$multiply: ['$importe.total', '$cotiMoneda'] }
-            ]};
-        } else if (req.params.currency === 'DOL') {
-            sum = { $cond: [
-                {$eq: ['$codMoneda', 'DOL' ]},
-                '$importe.total',
-                {$divide: ['$importe.total', '$cotiMoneda'] }
-            ]};
-        }
-
         jsonParam = [
             {$match: { 'fecha.emision': {$gte: month5Ago, $lt: nextMonth} }},
             { $project: {
                 accessDate: {$subtract: ['$fecha.emision', 180 * 60 * 1000]},
                 dia: {$dateToString: { format: "%Y%m", date: {$subtract: ['$fecha.emision', 180 * 60 * 1000]} }},
                 terminal: '$terminal',
-                total: sum}},
+                total: 1}},
             { $group : {
                 _id : { terminal: '$terminal',
                         year: { $year : "$accessDate" },
@@ -389,7 +378,7 @@ module.exports = function(log, io, oracle) {
                 } else {
                     invoices.sort({codTipoComprob: 1, nroComprob: 1});
                 }
-
+                invoices.lean();
                 invoices.exec(function (err, invoices) {
                     var pageCount = invoices.length;
                     Invoice.count(param, function (err, cnt) {
@@ -788,10 +777,11 @@ module.exports = function(log, io, oracle) {
             var cashboxExec = function (callback) {
                 var invoices;
                 param.nroPtoVenta = cash;
-                    invoices = Invoice.find(param, {nroComprob: 1, _id: 0});
 
+                invoices = Invoice.find(param, {nroComprob: 1, _id: 0});
                 invoices.sort({nroComprob: 1});
-                invoices.exec(function (err, invoices) {
+                invoices.lean();
+                invoices.exec(function (err, invoicesData) {
                     var faltantes = [],
                         control = 0,
                         contadorFaltantes = 0,
@@ -802,7 +792,7 @@ module.exports = function(log, io, oracle) {
                         len;
 
                     if (!err) {
-                        invoices.forEach(function (invoice) {
+                        invoicesData.forEach(function (invoice) {
                             if (control === 0) {
                                 control = invoice.nroComprob;
                             } else {
@@ -1372,8 +1362,8 @@ module.exports = function(log, io, oracle) {
     router.get('/:terminal/:skip/:limit', getInvoices);
     router.get('/invoice/:id', getInvoice);
     router.get('/counts', getCounts);
-    router.get('/countsByDate/:currency', getCountByDate);
-    router.get('/countsByMonth/:currency', getCountByMonth);
+    router.get('/countsByDate', getCountByDate);
+    router.get('/countsByMonth', getCountByMonth);
     router.get('/noRates/:terminal/:skip/:limit', getNoRates);
     router.get('/ratesTotal/:currency', getRatesTotal);
     router.get('/rates', getRatesLiquidacion);
