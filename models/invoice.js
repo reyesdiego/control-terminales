@@ -19,7 +19,7 @@ var detalleSchema = new Schema({
             cnt: {type: Number, required: true},
             uniMed: {type: String},
             impUnit: {type: Number, required: true},
-            impTot:{type: Number, required: true}
+            impTot: {type: Number, required: true}
         }
     ]
 });
@@ -44,6 +44,7 @@ var invoiceSchema = new Schema({
         otrosTributos: {type: Number},
         total: {type: Number, required: true}
     },
+    total: {type: Number},
     codMoneda: {type: String, required: true, enum: ['PES', 'DOL', 'EUR']},
     cotiMoneda: {type: Number, required: true, min: 1},
     observa: {type: String },
@@ -76,15 +77,24 @@ var invoiceSchema = new Schema({
 invoiceSchema.index({nroPtoVenta: 1, codTipoComprob: 1, nroComprob: 1, terminal: 1}, {unique: true});
 
 invoiceSchema.pre('save', function (next, done) {
-/*
-if (this.cotiMoneda && this.codMoneda){
-    if ( this.codMoneda === 'DOL' && this.cotiMoneda <= 1 ){
-        next(new Error("La cotización del dolar debe ser mayor a Uno (1)."));
-    } else if (this.codMoneda === 'PES' && this.cotiMoneda !== 1){
-        next(new Error("La cotización del peso debe ser Uno (1)."));
+    'use strict';
+    this.total = this.importe.total;
+
+    if (this.cotiMoneda && this.codMoneda) {
+        if (this.codMoneda === 'DOL') {
+            if (this.cotiMoneda <= 1) {
+                next(new Error("La cotización del dolar debe ser mayor a Uno (1)."));
+            } else {
+                this.total = this.importe.total * this.cotiMoneda;
+            }
+        } else if (this.codMoneda === 'PES' && this.cotiMoneda !== 1) {
+            next(new Error("La cotización del peso debe ser Uno (1)."));
+        }
+        if (global.cache.voucherTypes.indexOf(this.codTipoComprob) >= 0) {
+            this.total = this.total * -1;
+        }
     }
-}
-*/
+
     next();
 });
 
@@ -129,16 +139,6 @@ detalleSchema.pre('save', function (next, done) {
 
     next();
 
-});
-
-invoiceSchema.virtual('total').get(function () {
-    var total = 0;
-    if (this.codMoneda === "DOL") {
-        total = this.importe.total * this.cotiMoneda;
-    } else {
-        total = this.importe.total;
-    }
-    return total;
 });
 
 module.exports = mongoose.model('invoice', invoiceSchema);
