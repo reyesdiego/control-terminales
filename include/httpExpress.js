@@ -8,6 +8,7 @@ module.exports = function (log, port, withSocketIo) {
 // Express configuracion BEGIN
     var express = require('express'),
         app = express(),
+        compress = require('compression'),
         server,
         io,
         result,
@@ -31,6 +32,10 @@ module.exports = function (log, port, withSocketIo) {
     app.set('view engine', 'jade');
     //for jade views
     app.locals.moment = require('moment');
+
+    app.use(compress({
+        level : 8
+    }));
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({ extended: true }));
     app.use(multer());
