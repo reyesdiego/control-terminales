@@ -10,13 +10,18 @@ module.exports = function (log) {
 
     function getVoucherTypes(req, res) {
         var Voucher = require('../models/voucherType.js'),
-            response;
+            response,
+            result,
+            vouchers;
 
-        Voucher.find({}, function (err, data) {
+        vouchers = Voucher.find();
+        vouchers.lean();
+        vouchers.sort({description: 1});
+        vouchers.exec(function (err, data) {
             if (err) {
                 res.status(500).send({status: "ERROR", data: err.message});
             } else {
-                var result = data;
+                result = data;
                 if (req.query.type === 'array') {
                     result = {};
                     data.forEach(function (item) {
