@@ -254,14 +254,16 @@ module.exports = function (log) {
                 if (err) {
                     res.status(500).send({status: 'ERROR', data: err.message});
                 } else {
-                    gates = Gate.find({terminal: terminal, carga: "LL"}, {c: '$contenedor'});
+                    gates = Gate.find({terminal: terminal, carga: "LL"}, {contenedor: true, _id: false});
                     gates.exec(function (err, dataGates) {
                         var invoicesWoGates;
                         if (err) {
                             res.status(500).send({status: 'ERROR', data: err.message});
                         } else {
+                            dataGates = linq.from(dataGates).select("{c: $.contenedor}");
                             invoicesWoGates = linq.from(dataInvoices)
                                 .except(dataGates, "$.c").toArray();
+                                //.except(dataGates).toArray();
 
                             res.status(200)
                                 .send({
@@ -269,6 +271,7 @@ module.exports = function (log) {
                                     totalCount: invoicesWoGates.length,
                                     data: invoicesWoGates
                                 });
+                            res.flush();
                         }
                     });
                 }
