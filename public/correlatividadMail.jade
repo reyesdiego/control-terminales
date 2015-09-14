@@ -8,17 +8,19 @@ html(lang='es')
                 td
                     img(src="http://terminales.puertobuenosaires.gob.ar/images/logo.png")
                 td
-                    h1(style="font-family: inherit; font-weight: 400; font-size: 30px; line-height: 1.1; background-color:white !important; color: #0099d7;") &nbsp;Comprobantes Faltantes
+                    h1(style="font-family: inherit; font-weight: 400; font-size: 30px; line-height: 1.1; background-color:white !important; color: #0099d7;") &nbsp;#{voucher} faltantes en #{terminal}
         br
+        h2 Cantidad de comprobantes faltantes #{totalCount}
         - each val1, index1 in param
             div(style="font-family: inherit; font-weight: bolder; color: #fff;background-color: #e74c3c;border: 1px solid #e74c3c; padding: 10px 15px;border-top-right-radius: 3px;border-top-left-radius: 3px; width:800px") Punto de Venta #{val1.nroPtoVenta} con #{val1.totalCount} faltantes.
             div(style="border: 1px solid #e74c3c; padding: 10px 15px;width:800px")
+                - var total = val1.data.length - 1;
                 - each val2, index2 in val1.data
-                    span #{val2} -&nbsp;
+                    - if (total == index2)
+                        span #{val2}
+                    - else
+                        span #{val2} -&nbsp;
+
             br
         p
             p(style="text-align: left") Administración General de Puertos pone en conocimiento que exiten comprobante faltante de envio.
-            p Posteriormente podrá consultar, aportando datos de email y contenedor, éste y otros comprobantes haciendo click&nbsp;
-                a(href="http://www.e-puertobue.com.ar/turnos") aquí
-                | , o vía telefónica con la Unidad de Control de Terminales en los siguientes números: 4313-6122 4313-6928
-
