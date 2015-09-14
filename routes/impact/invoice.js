@@ -49,8 +49,11 @@ module.exports = function (log, io) {
             .isInt({min: 0})
             .isLength(1);
         validate
-            .validate('codTipoComprob', 'codTipoComprob is required.')
-            .isInt({min: 0})
+            .validate('codTipoComprob', {
+              //  isInt: 'codTipoComprob must be integer',
+                isLength: 'codTipoComprob is required.'
+            })
+            //.isInt({min: 0})
             .isLength(1);
         validate
             .validate('nroPtoVenta', 'nroPtoVenta is required.', {ignoreEmpty: true})
