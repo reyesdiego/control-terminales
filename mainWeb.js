@@ -10,7 +10,9 @@ module.exports = function (log) {
         port = process.env.PORT || config.server_port_web,
         passport = null,
         httpExpress,
-        oracle;
+        oracle,
+        VoucherType = require('./models/voucherType.js'),
+        voucherType;
 
 //Conecta a la base de datos MongoDb
     require('./include/mongoose.js')(log);
@@ -66,6 +68,19 @@ module.exports = function (log) {
                 node: {version: process.version, runtime: httpExpress.app.get('runtime')},
                 oracle: {pool: pool}
             };
+
+            voucherType = VoucherType.find({}, {_id: 1, description: 1});
+            voucherType.lean();
+            voucherType.exec(function (err, data) {
+                var result = {};
+                data.forEach(function (item) {
+                    result[item._id] = item.description;
+                });
+                global.cache.voucherTypes = result;
+                require('./routes/routesTer')(log, httpExpress.app, httpExpress.io, params);
+            });
+
+
             require('./routes/routesWeb')(log, httpExpress.app, httpExpress.io, oracle, params);
         }
     );

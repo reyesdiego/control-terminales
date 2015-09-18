@@ -22,105 +22,53 @@ module.exports = function(log, io, oracle) {
 
         var usr = req.usr,
             paramTerminal = req.params.terminal,
-            fecha,
             limit = parseInt(req.params.limit, 10),
             skip = parseInt(req.params.skip, 10),
             ter = (usr.role === 'agp') ? paramTerminal : usr.terminal,
-            param = {
-                terminal: ter
-            },
-            states,
-            invoices,
-            order;
+            param = {},
+            inv = require('../lib/invoice.js');
 
-        if (req.query.fechaInicio || req.query.fechaFin) {
-            param["fecha.emision"] = {};
-            if (req.query.fechaInicio) {
-                fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
-                param["fecha.emision"]['$gte'] = fecha;
-            }
-            if (req.query.fechaFin) {
-                fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
-                param["fecha.emision"]['$lte'] = fecha;
-            }
-        }
-        if (req.query.nroPtoVenta) {
-            param.nroPtoVenta = req.query.nroPtoVenta;
-        }
-        if (req.query.codTipoComprob) {
-            param.codTipoComprob = req.query.codTipoComprob;
-        }
-        if (req.query.nroComprobante) {
-            param.nroComprob = req.query.nroComprobante;
-        }
-        if (req.query.razonSocial) {
-            param.razon = {$regex: req.query.razonSocial};
-        }
-        if (req.query.documentoCliente) {
-            param.nroDoc = req.query.documentoCliente;
-        }
+        inv = new inv(ter);
 
-        if (req.query.contenedor) {
-            param['detalle.contenedor'] = req.query.contenedor;
-        }
+        param.fechaInicio = req.query.fechaInicio;
+        param.fechaFin = req.query.fechaFin;
+        param.nroPtoVenta = req.query.nroPtoVenta;
+        param.codTipoComprob = req.query.codTipoComprob;
+        param.nroComprobante = req.query.nroComprobante;
+        param.razonSocial = req.query.razonSocial;
+        param.documentoCliente = req.query.documentoCliente;
+        param.contenedor = req.query.contenedor;
+        param.buqueNombre = req.query.buqueNombre;
+        param.viaje = req.query.viaje;
+        param.code = req.query.code;
+        param.payment = req.query.payment;
+        param.rates = req.query.rates;
+        param.estado = req.query.estado;
+        param.order = req.query.order;
+        param.group = usr.group;
 
-        if (req.query.buqueNombre) {
-            param['detalle.buque.nombre'] = req.query.buqueNombre;
-        }
-
-        if (req.query.viaje) {
-            param['detalle.buque.viaje'] = req.query.viaje;
-        }
-
-        if (req.query.code) {
-            param['detalle.items.id'] = req.query.code;
-        }
-
-        if (req.query.payment === '1') {
-            param.payment = {$exists: true};
-        }
-
-        if (req.query.rates) {
-            param['detalle.items.id'] = {$in: req.query.rates};
-        }
-
-        if (req.query.estado) {
-            states = req.query.estado.split(",");
-            param.$or = [
-                { estado: {$size: 1, $elemMatch: {estado: {$in: states}, grupo: 'ALL'} } },
-                { 'estado.1': { $exists: true }, estado: {$elemMatch: {estado: {$in: states}, grupo: usr.group} } }
-            ];
-        }
-
-        invoices = Invoice.find(param);
-        invoices.populate({path: 'payment'});
-
-        if (req.query.order) {
-            order = JSON.parse(req.query.order);
-            invoices.sort(order[0]);
-        } else {
-            invoices.sort({codTipoComprob: 1, nroComprob: 1});
-        }
-        invoices.skip(skip).limit(limit);
-        invoices.lean();
-        invoices.exec(function (err, invoices) {
-            if (!err) {
-                Invoice.count(param, function (err, cnt) {
-                    var pageCount = invoices.length,
-                        result = {
-                            status: 'OK',
-                            totalCount: cnt,
-                            pageCount: (limit > pageCount) ? pageCount : limit,
-                            page: skip,
-                            data: invoices
-                        };
+        if (skip >= 0 && limit >= 0) {
+            param.skip = skip;
+            param.limit = limit;
+            inv.getInvoices(param, function (err, result) {
+                if (err) {
+                    res.status(500).send({status: "ERROR", data: err.message});
+                } else {
                     res.status(200).send(result);
-                });
-            } else {
-                log.logger.error("%s", err.message);
-                res.status(500).send({status: "ERROR", data: err.message});
-            }
-        });
+                }
+            });
+        } else {
+            inv.getInvoicesCSV(param, function (err, result) {
+                if (err) {
+                    res.status(500).send({status: "ERROR", data: err.message});
+                } else {
+                    res.header('content-type', 'text/csv');
+                    res.header('content-disposition', 'attachment; filename=report.csv');
+                    res.status(200).send(result);
+                }
+            });
+        }
+
     }
 
     function getInvoice(req, res) {
@@ -776,11 +724,11 @@ module.exports = function(log, io, oracle) {
             //funcion que calcula la correlatividad por cada caja que sera ejecutada en paralelo con async
             var cashboxExec = function (callback) {
                 var invoices;
-                param.nroPtoVenta = cash;
+                param.nroPtoVenta = parseInt(cash, 10);
 
                 invoices = Invoice.find(param, {nroComprob: 1, _id: 0});
                 invoices.sort({nroComprob: 1});
-                invoices.lean();
+                //invoices.lean();
                 invoices.exec(function (err, invoicesData) {
                     var faltantes = [],
                         control = 0,
@@ -1359,6 +1307,7 @@ module.exports = function(log, io, oracle) {
         }
     });
 
+    router.get('/:terminal/down', getInvoices);
     router.get('/:terminal/:skip/:limit', getInvoices);
     router.get('/invoice/:id', getInvoice);
     router.get('/counts', getCounts);
