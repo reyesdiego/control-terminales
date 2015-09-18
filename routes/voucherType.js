@@ -15,8 +15,8 @@ module.exports = function (log) {
             vouchers;
 
         vouchers = Voucher.find();
-        vouchers.lean();
         vouchers.sort({description: 1});
+        vouchers.lean();
         vouchers.exec(function (err, data) {
             if (err) {
                 res.status(500).send({status: "ERROR", data: err.message});
