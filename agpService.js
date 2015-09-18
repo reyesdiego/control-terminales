@@ -21,6 +21,7 @@ var asyncParallel = [];
 var terminalsName = ['bactssa', 't4', 'trp'];
 var sendMail = config.email;
 
+//var host = config.domain;
 var host = '10.10.0.223';
 
 mongoose.connect(config.mongo_url, config.mongo_opts);
@@ -61,21 +62,23 @@ VouchersType.find({}, function (err, vouchersDesc) {
 
                         res.on('end', function () {
                             var result = JSON.parse(resData),
-                                mailer;
+                                mailer,
+                                to;
 
                             if (result.status === 'OK') {
                                 console.log('%s, %s', user.terminal, result.data);
                                 if (result.data.length > 0) {
                                     mailer = new mail.mail(sendMail);
-                                    user.email = "dreyes@puertobuenosaires.gob.ar";
-                                    mailer.send(user.email,
+                                    to = ["dreyes@puertobuenosaires.gob.ar", user.email];
+                                    mailer.send(to,
                                         result.data.length.toString() + " CÓDIGOS SIN ASOCIAR AL " + date,
                                         user.terminal + '\n\n' + result.data,
                                         function (err, dataMail) {
                                             if (err) {
                                                 console.log('No se envió mail. %s', err.data);
                                             } else {
-                                                console.log('Se envió mail a %s, con %s', user.email, result.data);
+                                                console.log(user.email);
+                                                console.log('Se envió mail a %s - %s', to, moment());
                                             }
                                         });
 
@@ -120,7 +123,9 @@ VouchersType.find({}, function (err, vouchersDesc) {
                                             res.on('end', function () {
                                                 var result = JSON.parse(resData),
                                                     totalCnt,
-                                                    mailer;
+                                                    mailer,
+                                                    subject,
+                                                    to;
 
                                                 if (result.status === 'OK') {
                                                     totalCnt = result.totalCount;
@@ -146,16 +151,17 @@ VouchersType.find({}, function (err, vouchersDesc) {
                                                                 alternative: true
                                                             };
                                                             mailer = new mail.mail(sendMail);
-                                                            user.email = "dreyes@puertobuenosaires.gob.ar";
-                                                            var subject = voucherList[voucher.toString()] + " faltantes al " + date + " : " + totalCnt.toString();
-                                                            mailer.send(user.email,
+                                                            to = ["dreyes@puertobuenosaires.gob.ar", user.email];
+                                                            subject = voucherList[voucher.toString()] + " faltantes al " + date + " : " + totalCnt.toString();
+                                                            mailer.send(to,
                                                                 subject,
                                                                 html,
                                                                 function (err, dataMail) {
                                                                     if (err) {
                                                                         console.log('No se envió mail. %s', err.data);
                                                                     } else {
-                                                                        console.log('Se envió mail a %s, con %s', user.email, html);
+                                                                        console.log(user.email);
+                                                                        console.log('Se envió mail a %s - %s', to, moment());
                                                                     }
                                                                     return callback();
                                                                 });
