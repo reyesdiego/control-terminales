@@ -47,6 +47,7 @@ module.exports = function (log, oracle) {
                     "    MONTOSEGURO, " +
                     "    ADUANASALIDA, " +
                     "    PAISDESTINO, " +
+                    "    PAISDESTINO_ID, " +
                     "    FECOFI, " +
                     "    FECHA_CUMPLIDO, " +
                     "    FECOFIPOSTEMBARQUE, " +

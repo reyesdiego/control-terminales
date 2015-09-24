@@ -41,6 +41,7 @@ module.exports = function (log, oracle) {
                     "    ESTADO_MERCA, " +
                     "    PROVINCIAORIGEN, " +
                     "    PAISDESTINO, " +
+                    "    PAISDESTINO_ID, " +
                     "    UNIDAD_DECLARADA, " +
                     "    CANTIDAD_UNIDAD_DECLARADA, " +
                     "    BASEIMPONIBLEDOLARES, " +
