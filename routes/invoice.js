@@ -1161,17 +1161,18 @@ module.exports = function(log, io, oracle) {
 
         rates = new price.price(ter)
 
-        param = {terminal:	ter};
         buque = req.query.buqueNombre;
         viaje = req.query.viaje;
+        param = {terminal:	ter, 'detalle.buque.nombre': buque};
 
         rates.rates(function (err, ratesArray) {
 
             query = [
                 { $match: param },
                 { $unwind : '$detalle'},
+                { $match: {'detalle.buque.nombre': buque}},
                 { $unwind : '$detalle.items'},
-                { $match: {'detalle.buque.nombre': buque, "detalle.buque.viaje" : viaje, 'detalle.items.id': {$in: ratesArray } } },
+                { $match: {"detalle.buque.viaje" : viaje, 'detalle.items.id': {$in: ratesArray } } },
                 { $group: {_id: {buque: '$detalle.buque.nombre', viaje: "$detalle.buque.viaje", contenedor: '$detalle.contenedor' }, tonelada: {$sum: '$detalle.items.cnt'} } },
                 { $project: {contenedor: '$_id.contenedor', toneladas: '$tonelada', _id: false}},
                 { $sort: {contenedor: 1} }
