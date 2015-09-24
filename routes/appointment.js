@@ -10,7 +10,9 @@ module.exports = function (log) {
         moment = require('moment'),
         Account = require('../models/account'),
         Appointment = require('../models/appointment.js'),
-        util = require('util');
+        Invoice = require('../models/invoice.js'),
+        util = require('util'),
+        linq = require('linq');
 
     function getAppointments(req, res) {
 
@@ -236,6 +238,66 @@ module.exports = function (log) {
         }
     }
 
+    function getMissingAppointments(req, res) {
+        var usr = req.usr,
+            terminal = '',
+            _price,
+            _rates;
+
+        if (usr.role === 'agp') {
+            terminal = req.params.terminal;
+        } else {
+            terminal = usr.terminal;
+        }
+
+        _price = require('../include/price.js');
+        _rates = new _price.price(terminal);
+        _rates.rates(function (err, rates) {
+
+            var invoices = Invoice.aggregate([
+                {$match: {terminal: terminal, codTipoComprob: 1, 'detalle.items.id': {$in: rates}}},
+                {$project: {detalle: 1, fecha: '$fecha.emision'}},
+                {$unwind: '$detalle'},
+                {$unwind: '$detalle.items'},
+                {$match: {'detalle.items.id': {$in: rates}}},
+                {$group: {_id: {c: '$detalle.contenedor', f: '$fecha'}}},
+                {$project: {
+                    _id: false,
+                    c: '$_id.c',
+                    f: '$_id.f'
+                }}
+            ]);
+
+            invoices.exec(function (err, dataInvoices) {
+                var appointments;
+                if (err) {
+                    res.status(500).send({status: 'ERROR', data: err.message});
+                } else {
+                    appointments = Appointment.find({terminal: terminal}, {contenedor: true, _id: false});
+                    appointments.exec(function (err, dataAppointments) {
+                        var invoicesWoGates;
+                        if (err) {
+                            res.status(500).send({status: 'ERROR', data: err.message});
+                        } else {
+                            dataAppointments = linq.from(dataAppointments).select("{c: $.contenedor}");
+                            invoicesWoGates = linq.from(dataInvoices)
+                                .except(dataAppointments, "$.c").toArray();
+                            //.except(dataGates).toArray();
+
+                            res.status(200)
+                                .send({
+                                    status: 'OK',
+                                    totalCount: invoicesWoGates.length,
+                                    data: invoicesWoGates
+                                });
+                            res.flush();
+                        }
+                    });
+                }
+            });
+        });
+    }
+
     /*
     router.use(function timeLog(req, res, next){
         log.logger.info('Time: %s', Date.now());
@@ -249,6 +311,7 @@ module.exports = function (log) {
     router.get('/:terminal/containers', getDistincts);
     router.get('/:terminal/ships', getDistincts);
     router.get('/container/:container', getByContainer);
+    router.get('/:terminal/missingAppointments', getMissingAppointments);
 
     return router;
 };
