@@ -10,6 +10,7 @@ module.exports = function (log) {
         moment = require('moment'),
         Invoice = require('../models/invoice.js'),
         Gate = require('../models/gate.js'),
+        Appointment = require('../models/appointment.js'),
         util = require('util'),
         config = require('../config/config.js'),
         linq = require('linq');
@@ -341,6 +342,46 @@ module.exports = function (log) {
         });
     }
 
+    function getMissingAppointments(req, res) {
+        var usr = req.usr,
+            terminal = '',
+            param = {};
+
+        if (usr.role === 'agp') {
+            terminal = req.params.terminal;
+        } else {
+            terminal = usr.terminal;
+        }
+        param.terminal = terminal;
+
+        Gate.distinct('contenedor', param, function (err, gates) {
+            if (err) {
+                res._status(500).send({
+                    status: "ERROR",
+                    message: "Error obteniendo Gates"
+                });
+            } else {
+                Appointment.distinct('contenedor', param,  function (err, appointmens) {
+                    var result;
+                    if (err) {
+                        res._status(500).send({
+                            status: "ERROR",
+                            message: "Error obteniendo Gates"
+                        });
+                    } else {
+                        result = linq.from(gates)
+                            .except(appointmens)
+                            .orderBy().toArray();
+                        res.status(200).send({
+                            status: "OK",
+                            totalCount: result.length,
+                            data: result
+                        });
+                    }
+                });
+            }
+        });
+    }
 /*
 router.use(function timeLog(req, res, next){
     log.logger.info('Time: %s', Date.now());
@@ -364,6 +405,7 @@ router.use(function timeLog(req, res, next){
     router.get('/ByMonth', getGatesByMonth);
     router.get('/:terminal/missingGates', getMissingGates);
     router.get('/:terminal/missingInvoices', getMissingInvoices);
+    router.get('/:terminal/missingAppointments', getMissingAppointments);
     router.get('/:terminal/ships', getDistincts);
 
     return router;
