@@ -9,14 +9,17 @@
 //console.log(persona.getName());
 //console.log(persona.getName());
 
+console.time('f');
 
-    var os = require('os');
+var os = require('os');
 console.log(os.cpus());
 console.log(os.platform());
 console.log(os.type());
 console.log(os.hostname());
 console.log(os.release());
 console.log(os.networkInterfaces());
+
+var e = console.timeEnd('f');
 
 /*
 var container = require("./include/container.js");

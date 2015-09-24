@@ -3,16 +3,16 @@
  */
 
 var oracledb = require('oracledb');
-
-//oracledb.outFormat = 2;
+oracledb.maxRows = 103;
+oracledb.outFormat = 2;
 oracledb.getConnection(
     {
-        user          : "HR",
-        password      : "oracle_4U",
+        user          : "afip",
+        password      : "afip_",
         connectString : "(DESCRIPTION = " +
-                                    "(ADDRESS = (PROTOCOL = TCP)(HOST = 10.10.0.226)(PORT = 1521)) " +
+                                    "(ADDRESS = (PROTOCOL = TCP)(HOST = 10.1.0.60)(PORT = 1521)) " +
                                     "(CONNECT_DATA = " +
-                                    "        (SID = ORCL) " +
+                                    "        (SID = AFIP) " +
                                     ") " +
                         ")"
     },
@@ -23,10 +23,9 @@ oracledb.getConnection(
             return;
         }
         connection.execute(
-            "SELECT department_id, department_name "
-                + "FROM departments "
-                + "WHERE department_id > :did",
-            [0],
+            "     select *"
+    + " FROM COUNTRIES ",
+            [],
             {},
             function(err, result)
             {
@@ -36,7 +35,7 @@ oracledb.getConnection(
                     return;
                 }
                 console.log("metadata: %j", result.metaData);
-                console.log("rows: %j ", result.rows);
+                console.log("rows: %s, count: %j ", result.rows.length, result.rows);
                 doRelease(connection);
             });
     });
