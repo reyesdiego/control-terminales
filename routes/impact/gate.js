@@ -45,8 +45,8 @@ module.exports = function (log, io) {
             .isLength(1)
             .isIn(['VA', 'NO', 'LL']);
         validate
-            .validate('patenteCamion', 'patenteCamion is invalid.')
-            .isLength(6);
+            .validate('patenteCamion', 'patenteCamion is invalid.', {ignoreEmpty: true})
+            .isLength(1, 6, 6)
         validate
             .validate('gateTimestamp', {
                 isLength: 'gateTimestamp is required.',

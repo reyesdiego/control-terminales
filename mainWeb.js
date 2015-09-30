@@ -24,7 +24,7 @@ module.exports = function (log) {
 //var oracledb = require('oracledb');
     oracle = require('./include/oracle.js');
     oracle = new oracle();
-    oracle.oracledb.maxRows = 1000;
+    oracle.oracledb.maxRows = 5000;
     oracle.oracledb.createPool(
         //{
         //    user          : "HR",

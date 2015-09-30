@@ -1,6 +1,3 @@
-0/**
- * Created by diego on 7/3/15.
- */
 /**
  * Created by diego on 3/9/15.
  */

@@ -73,17 +73,25 @@ module.exports = function (log) {
                             'payment': {$exists: false}
                         };
 
+                        if (req.query.codTipoComprob) {
+                            match.codTipoComprob = req.query.codTipoComprob;
+                        }
+                        if (req.query.buqueNombre) {
+                            match['detalle.buque.nombre'] = req.query.buqueNombre;
+                        }
+                        if (req.query.razonSocial) {
+                            match.razon = req.query.razonSocial;
+                        }
                         param = [
                             {$match: match },
                             {$project: {
                                 terminal: 1,
                                 fecha: '$fecha.emision',
-                                estado: '$estado',
+                                estado: 1,
                                 codTipoComprob: 1,
-                                nroComprob: 1,
                                 nroPtoVenta: 1,
-                                detalle: '$detalle',
-                                total: '$importe.total'
+                                detalle: 1,
+                                cotiMoneda: 1
                             }},
                             {$unwind: '$estado'},
                             {$group: {
@@ -91,11 +99,10 @@ module.exports = function (log) {
                                     _id: '$_id',
                                     terminal: '$terminal',
                                     fecha: '$fecha',
-                                    nroComprob: '$nroComprob',
                                     codTipoComprob: '$codTipoComprob',
                                     nroPtoVenta: '$nroPtoVenta',
                                     detalle: '$detalle',
-                                    total: '$total'
+                                    cotiMoneda: '$cotiMoneda'
                                 },
                                 estado: {$last: '$estado'}
                             }},
@@ -103,11 +110,10 @@ module.exports = function (log) {
                                 '_id': '$_id._id',
                                 nroPtoVenta: '$_id.nroPtoVenta',
                                 terminal: '$_id.terminal',
-                                nroComprob: '$_id.nroComprob',
                                 fecha: '$_id.fecha',
                                 codTipoComprob: '$_id.codTipoComprob',
                                 detalle: '$_id.detalle',
-                                totalF: '$_id.total',
+                                cotiMoneda: '$_id.cotiMoneda',
                                 estado: true
                             }},
                             {$match: {'estado.estado': {$nin: estados}}},
@@ -118,13 +124,13 @@ module.exports = function (log) {
                                 _id: {
                                     _id: '$_id',
                                     terminal: '$terminal',
-                                    nroComprob: '$nroComprob',
                                     nroPtoVenta: '$nroPtoVenta',
                                     codTipoComprob: '$codTipoComprob',
                                     fecha: '$fecha',
                                     estado: '$estado',
                                     code: '$detalle.items.id',
-                                    total: '$totalF'
+                                    cotiMoneda: '$cotiMoneda',
+                                    buque: '$detalle.buque.nombre'
                                 },
                                 importe: {
                                     $sum: tipoDeSuma
@@ -137,10 +143,11 @@ module.exports = function (log) {
                                 emision: '$_id.fecha',
                                 nroPtoVenta: '$_id.nroPtoVenta',
                                 codTipoComprob: '$_id.codTipoComprob',
-                                nroComprob: '$_id.nroComprob',
+                                buque: '$_id.buque',
+                                cotiMoneda: '$_id.cotiMoneda',
                                 code: '$_id.code',
                                 tasa: '$importe',
-                                total: '$_id.total',
+                                totalTasa: {$multiply: ['$importe', '$_id.cotiMoneda']},
                                 cnt: '$cnt',
                                 estado: '$_id.estado'
                             }}

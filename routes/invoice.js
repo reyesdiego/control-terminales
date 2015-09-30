@@ -1057,7 +1057,7 @@ module.exports = function(log, io, oracle) {
         var paramTerminal = req.params.terminal;
 
         var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
-        var param = {terminal:	ter, 'detalle.buque.nombre':{$ne:null}};
+        var param = {terminal: ter, 'detalle.buque.nombre': {$ne: null}};
 
         Invoice.aggregate([
             { $match: param },
@@ -1083,10 +1083,10 @@ module.exports = function(log, io, oracle) {
                                 fecha : item.fecha
                             }
                             ter.viajes.push(viaje);
-//								for (var pro in item){
-//									if (pro !== 'buque')
-//										ter.viajes.push(item[pro]);
-//								}
+                            //for (var pro in item){
+                            //    if (pro !== 'buque')
+                            //        ter.viajes.push(item[pro]);
+                            //}
                         });
                         return (ter);
                     }).toArray();
@@ -1111,7 +1111,7 @@ module.exports = function(log, io, oracle) {
                                     res.status(500).send({status: 'ERROR', data: err});
                                 } else {
                                     oracle.doRelease(connection);
-                                    dataOra = Enumerable.from(dataOra).select(function (item) {
+                                    dataOra = Enumerable.from(dataOra.rows).select(function (item) {
                                         return {"buque": item.BUQUE, fecha: item.FECHA};
                                     }).toArray();
                                     dataQ = Enumerable.from(resultTer).groupJoin(dataOra, '$.buque', '$.buque', function (item, g) {
