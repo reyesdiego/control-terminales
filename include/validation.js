@@ -16,6 +16,10 @@ module.exports.validation = function (data) {
     validate._validator.__proto__.isDate = function () {
         var msg='';
 
+        if (this._options.ignoreEmpty && ( this._value === undefined || this._value == null || this._value === "") ) {
+            return this;
+        }
+
         if ( !(moment(this._value, "YYYY-MM-DDTHH:mm:SS.SSS", true).isValid() ||
                 moment(this._value, "YYYY-MM-DD", true).isValid() ||
                 moment(this._value, "YYYY/MM/DD", true).isValid() ||
