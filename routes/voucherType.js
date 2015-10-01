@@ -6,11 +6,11 @@ module.exports = function (log) {
     'use strict';
 
     var express = require('express'),
-        router = express.Router();
+        router = express.Router(),
+        Voucher = require('../models/voucherType.js');
 
     function getVoucherTypes(req, res) {
-        var Voucher = require('../models/voucherType.js'),
-            response,
+            var response,
             result,
             vouchers;
 
@@ -37,6 +37,32 @@ module.exports = function (log) {
             }
         });
     }
+
+    function getVoucherByTerminal (req, res) {
+        var usr = req.usr,
+            param = {},
+            Invoice = require('../models/invoice.js'),
+            voucher;
+
+        if (usr.role === 'agp') {
+            param.terminal = req.params.terminal;
+        } else {
+            param.terminal = usr.terminal;
+        }
+
+        Invoice.distinct('codTipoComprob', param, function (err, data) {
+            voucher = Voucher.find({_id: {$in: data}});
+            voucher.sort({description: 1});
+            voucher.lean();
+            voucher.exec(function (err, vouchers) {
+                res.status(200).send({
+                    status: "OK",
+                    data: vouchers
+                });
+            });
+        });
+    }
+
 /*
 router.use(function timeLog(req, res, next){
     log.logger.info('Time: %s', Date.now());
@@ -44,6 +70,7 @@ router.use(function timeLog(req, res, next){
 });
 */
     router.get('/', getVoucherTypes);
+    router.get('/:terminal', getVoucherByTerminal);
 
     return router;
 }
