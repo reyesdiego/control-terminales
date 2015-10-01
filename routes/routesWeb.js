@@ -76,7 +76,7 @@ module.exports = function (log, app, io, pool, params) {
     app.use('/unitTypes', unitType);
 
     voucherType = require('./voucherType')(log);
-    app.use('/voucherTypes', voucherType);
+    app.use('/voucherTypes', isValidToken, voucherType);
 
 }
 
