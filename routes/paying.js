@@ -27,9 +27,10 @@ module.exports = function (log) {
             desde,
             hasta,
             tipoDeSuma,
-            cond;
+            cond,
+            mongoose = require("mongoose");
 
-        if (req.query.fechaInicio === undefined || req.query.fechaFin === undefined) {
+        if ((req.query.fechaInicio === undefined || req.query.fechaFin === undefined) && req.params._id === undefined) {
             callback({status: "ERROR", message: "Debe proveer parametros de fecha"});
         } else {
 
@@ -43,12 +44,6 @@ module.exports = function (log) {
                                 return {$eq: ["$codTipoComprob", item._id]};
                             }
                         }).toArray();
-
-                    desde = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
-                    if (desde < new Date(2015, 1, 0, 0, 0)) {
-                        desde = new Date(2015, 1, 0, 0, 0);
-                    }
-                    hasta = moment(req.query.fechaFin, 'YYYY-MM-DD').add(1, 'days').toDate();
 
                     if (paginated) {
                         estados = ['todo'];
@@ -65,23 +60,37 @@ module.exports = function (log) {
                     price.rates(false, function (err, prices) {
                         var param,
                             match;
+                        var _id = mongoose.Types.ObjectId(req.params._id);
+                        if (req.params._id) {
+                            match = {
+                                payment: _id
+                            };
+                        } else {
 
-                        match = {
-                            terminal: paramTerminal,
-                            'fecha.emision': {$gte: desde, $lt: hasta},
-                            'detalle.items.id': {$in: prices},
-                            'payment': {$exists: false}
-                        };
+                            desde = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
+                            if (desde < new Date(2015, 1, 0, 0, 0)) {
+                                desde = new Date(2015, 1, 0, 0, 0);
+                            }
+                            hasta = moment(req.query.fechaFin, 'YYYY-MM-DD').add(1, 'days').toDate();
 
-                        if (req.query.codTipoComprob) {
-                            match.codTipoComprob = req.query.codTipoComprob;
+                            match = {
+                                terminal: paramTerminal,
+                                'fecha.emision': {$gte: desde, $lt: hasta},
+                                'detalle.items.id': {$in: prices},
+                                'payment': {$exists: false}
+                            };
+
+                            if (req.query.codTipoComprob) {
+                                match.codTipoComprob = req.query.codTipoComprob;
+                            }
+                            if (req.query.buqueNombre) {
+                                match['detalle.buque.nombre'] = req.query.buqueNombre;
+                            }
+                            if (req.query.razonSocial) {
+                                match.razon = req.query.razonSocial;
+                            }
                         }
-                        if (req.query.buqueNombre) {
-                            match['detalle.buque.nombre'] = req.query.buqueNombre;
-                        }
-                        if (req.query.razonSocial) {
-                            match.razon = req.query.razonSocial;
-                        }
+
                         param = [
                             {$match: match },
                             {$project: {
@@ -129,6 +138,7 @@ module.exports = function (log) {
                                     fecha: '$fecha',
                                     estado: '$estado',
                                     code: '$detalle.items.id',
+                                    impUnit: '$detalle.items.impUnit',
                                     cotiMoneda: '$cotiMoneda',
                                     buque: '$detalle.buque.nombre'
                                 },
@@ -145,7 +155,8 @@ module.exports = function (log) {
                                 codTipoComprob: '$_id.codTipoComprob',
                                 buque: '$_id.buque',
                                 cotiMoneda: '$_id.cotiMoneda',
-                                code: '$_id.code',
+                                code: '$_id.impUnit',
+                                impUnit: '$_id.impUnit',
                                 tasa: '$importe',
                                 totalTasa: {$multiply: ['$importe', '$_id.cotiMoneda']},
                                 cnt: '$cnt',
@@ -205,6 +216,7 @@ module.exports = function (log) {
     }
 
     function getPayed(req, res) {
+/*
         var invoices,
             skip = parseInt(req.params.skip, 10),
             limit = parseInt(req.params.limit, 10),
@@ -240,6 +252,16 @@ module.exports = function (log) {
                 });
             }
         });
+*/
+        var paginated = true;
+        _getNotPayed(req, paginated, function (err, data) {
+            if (err) {
+                res.status(500).send({status: "ERROR", message: err.message, data: null});
+            } else {
+                res.status(200).send({status: "OK", totalCount: data.totalCount, data: data.data});
+            }
+        });
+
     }
 
     function add2PrePayment(req, res) {
@@ -296,12 +318,14 @@ module.exports = function (log) {
                 price.rates(false, function (err, rates) {
                     param = [
                         {$match: {terminal: terminal, "payment": _id}},
-                        {$project: {terminal: 1,
+                        {$project: {
+                            terminal: 1,
                             codTipoComprob: 1,
                             nroComprob: 1,
-                            payment: '$payment',
-                            detalle: '$detalle'
-                        }},
+                            payment: 1,
+                            cotiMoneda: 1,
+                            detalle: 1
+                            }},
                         {$unwind: '$detalle'},
                         {$unwind: '$detalle.items'},
                         {$match: {'detalle.items.id': {$in: rates }}},
@@ -313,20 +337,27 @@ module.exports = function (log) {
                             cnt: '$detalle.items.cnt',
                             importe: {
                                 $cond: { if: {  $or: cond },
-                                    then: {$multiply: ['$detalle.items.impTot', -1]},
-                                    else: '$detalle.items.impTot'}
-                            }
-                        }},
+                                        then: {$multiply: ['$detalle.items.impTot', -1]},
+                                        else: '$detalle.items.impTot'}
+                                },
+                            importePeso: {
+                                $cond: { if: {  $or: cond },
+                                    then: {$multiply: [ {$multiply: ['$detalle.items.impTot', '$cotiMoneda']}, -1]},
+                                    else: {$multiply: ['$detalle.items.impTot', '$cotiMoneda']}}
+                            }}
+                        },
                         {$group: {
                             _id: '$payment',
                             toneladas: {$sum: '$cnt'},
-                            importe: {$sum: '$importe'}
-                        }},
+                            importe: {$sum: '$importe'},
+                            importePeso: {$sum: '$importePeso'}
+                            }},
                         {$project: {
                             tons: '$toneladas',
-                            total: '$importe'
-                        }}
-                    ];
+                            total: '$importe',
+                            totalPeso: '$importePeso'
+                            }}
+                        ];
                     totalPayment = Invoice.aggregate(param);
                     totalPayment.exec(function (err, totalPayment) {
                         if (err) {
