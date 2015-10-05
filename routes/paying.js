@@ -81,7 +81,7 @@ module.exports = function (log) {
                             };
 
                             if (req.query.codTipoComprob) {
-                                match.codTipoComprob = req.query.codTipoComprob;
+                                match.codTipoComprob = parseInt(req.query.codTipoComprob, 10);
                             }
                             if (req.query.buqueNombre) {
                                 match['detalle.buque.nombre'] = req.query.buqueNombre;
