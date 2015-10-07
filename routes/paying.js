@@ -347,7 +347,10 @@ module.exports = function (log) {
                             }}
                         },
                         {$group: {
-                            _id: '$payment',
+                            _id: {
+                                payment: '$payment',
+                                code: '$code'
+                            },
                             toneladas: {$sum: '$cnt'},
                             importe: {$sum: '$importe'},
                             importePeso: {$sum: '$importePeso'}
@@ -363,7 +366,7 @@ module.exports = function (log) {
                         if (err) {
                             callback(err);
                         } else {
-                            callback(null,  totalPayment[0]);
+                            callback(null,  totalPayment);
                         }
                     });
                 });
@@ -450,14 +453,25 @@ module.exports = function (log) {
                     });
                 } else {
                     calculatePrePayment(paramTerminal, payment._id, function (err, prePayment) {
+                        var detail;
                         payment.number = ++nextPaymentNumber;
                         payment.date = Date.now();
-                        payment.tons = prePayment.tons;
-                        payment.total = prePayment.total;
+                        payment.detail = [];
+                        prePayment.forEach(function (item) {
+                            detail = {
+                                _id: item._id.code,
+                                cant: item.tons,
+                                totalDol: item.total,
+                                totalPes: item.totalPeso,
+                                iva: item.totalPeso * 21 / 100,
+                                total: item.totalPeso + (item.totalPeso * 21 / 100)
+                            };
+                            payment.detail.push(detail);
+                        });
                         payment.save(function (err, paymentSaved) {
                             if (err) {
                                 res.status(500).send({
-                                    status:"ERROR",
+                                    status: "ERROR",
                                     message: err.message
                                 });
                             } else {

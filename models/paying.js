@@ -10,9 +10,14 @@ var payings = new mongoose.Schema({
     preNumber: {type: Number},
     number: {type: Number},
     date: {type: Date, required: true},
-    vouchers: {type: Number},
-    tons: {type: Number},
-    total: {type: Number, required: true}
+    detail: [{
+        _id: {type: String, required: true},
+        cant: {type: Number, required: true},
+        totalDol: {type: Number, required: true},
+        totalPes: {type: Number, required: true},
+        iva: {type: Number, required: true},
+        total: {type: Number, required: true}
+    }]
 });
 
 module.exports = mongoose.model('payings', payings);
