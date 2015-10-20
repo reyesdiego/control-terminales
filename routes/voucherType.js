@@ -10,7 +10,7 @@ module.exports = function (log) {
         Voucher = require('../models/voucherType.js');
 
     function getVoucherTypes(req, res) {
-            var response,
+        var response,
             result,
             vouchers;
 
@@ -25,7 +25,7 @@ module.exports = function (log) {
                 if (req.query.type === 'array') {
                     result = {};
                     data.forEach(function (item) {
-                        result[item._id] = item.description;
+                        result[item._id] = item;
                     });
                 }
                 response = {

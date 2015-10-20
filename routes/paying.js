@@ -28,7 +28,12 @@ module.exports = function (log) {
             hasta,
             tipoDeSuma,
             cond,
-            mongoose = require("mongoose");
+            mongoose = require("mongoose"),
+            async = require("async"),
+            response;
+
+        var matchPrice = require('../lib/matchPrice.js');
+        matchPrice = new matchPrice(paramTerminal);
 
         if ((req.query.fechaInicio === undefined || req.query.fechaFin === undefined) && req.params._id === undefined) {
             callback({status: "ERROR", message: "Debe proveer parametros de fecha"});
@@ -57,10 +62,37 @@ module.exports = function (log) {
                         };
                     }
 
-                    price.rates(false, function (err, prices) {
+                    price.rates('todo', function (err, prices) {
                         var param,
-                            match;
+                            match,
+                            ratesParam = {},
+                            rates;
+
+                        rates = Enumerable.from(prices)
+                            .select('z=>z.code')
+                            .toArray();
+
                         var _id = mongoose.Types.ObjectId(req.params._id);
+
+                        matchPrice.getPricesTerminal({rate: true}, function (err, dataPrice) {
+                            if (dataPrice.status === "OK") {
+                                async.eachSeries([dataPrice.data], function (item, callbackAsync) {
+                                    ratesParam = {
+                                        $cond: {
+                                            if: {$eq: ['$detalle.item.id', item.code]},
+                                            then: item.topPrices[0].price,
+                                            else: ''
+                                        }
+                                    }
+                                    console.log(item);
+                                    callbackAsync();
+                                }, function () {
+                                    console.log("done");
+                                });
+                            }
+                        });
+
+
                         if (req.params._id) {
                             match = {
                                 payment: _id
@@ -76,7 +108,7 @@ module.exports = function (log) {
                             match = {
                                 terminal: paramTerminal,
                                 'fecha.emision': {$gte: desde, $lt: hasta},
-                                'detalle.items.id': {$in: prices},
+                                'detalle.items.id': {$in: rates},
                                 'payment': {$exists: false}
                             };
 
@@ -99,6 +131,7 @@ module.exports = function (log) {
                                 estado: 1,
                                 codTipoComprob: 1,
                                 nroPtoVenta: 1,
+                                razon: 1,
                                 detalle: 1,
                                 cotiMoneda: 1
                             }},
@@ -110,6 +143,7 @@ module.exports = function (log) {
                                     fecha: '$fecha',
                                     codTipoComprob: '$codTipoComprob',
                                     nroPtoVenta: '$nroPtoVenta',
+                                    razon: '$razon',
                                     detalle: '$detalle',
                                     cotiMoneda: '$cotiMoneda'
                                 },
@@ -121,6 +155,7 @@ module.exports = function (log) {
                                 terminal: '$_id.terminal',
                                 fecha: '$_id.fecha',
                                 codTipoComprob: '$_id.codTipoComprob',
+                                razon: '$_id.razon',
                                 detalle: '$_id.detalle',
                                 cotiMoneda: '$_id.cotiMoneda',
                                 estado: true
@@ -128,13 +163,14 @@ module.exports = function (log) {
                             {$match: {'estado.estado': {$nin: estados}}},
                             {$unwind: '$detalle'},
                             {$unwind: '$detalle.items'},
-                            {$match: {'detalle.items.id': {$in: prices}}},
+                            {$match: {'detalle.items.id': {$in: rates}}},
                             {$group: {
                                 _id: {
                                     _id: '$_id',
                                     terminal: '$terminal',
                                     nroPtoVenta: '$nroPtoVenta',
                                     codTipoComprob: '$codTipoComprob',
+                                    razon: '$razon',
                                     fecha: '$fecha',
                                     estado: '$estado',
                                     code: '$detalle.items.id',
@@ -142,10 +178,13 @@ module.exports = function (log) {
                                     cotiMoneda: '$cotiMoneda',
                                     buque: '$detalle.buque.nombre'
                                 },
-                                importe: {
-                                    $sum: tipoDeSuma
-                                },
-                                cnt: {$sum : '$detalle.items.cnt'}
+                                cnt: {
+                                    $sum: {
+                                        $cond: { if: {$or: cond},
+                                            then: {$multiply: ['$detalle.items.cnt', -1]},
+                                            else: '$detalle.items.cnt'}
+                                    }
+                                }
                             }},
                             {$project: {
                                 _id: '$_id._id',
@@ -154,11 +193,11 @@ module.exports = function (log) {
                                 nroPtoVenta: '$_id.nroPtoVenta',
                                 codTipoComprob: '$_id.codTipoComprob',
                                 buque: '$_id.buque',
+                                razon: '$_id.razon',
                                 cotiMoneda: '$_id.cotiMoneda',
-                                code: '$_id.impUnit',
+                                code: '$_id.code',
                                 impUnit: '$_id.impUnit',
-                                tasa: '$importe',
-                                totalTasa: {$multiply: ['$importe', '$_id.cotiMoneda']},
+                                tasa: {$multiply: ['$_id.impUnit', '$cnt']},
                                 cnt: '$cnt',
                                 estado: '$_id.estado'
                             }}
@@ -168,7 +207,7 @@ module.exports = function (log) {
                             order = JSON.parse(req.query.order);
                             param.push({$sort: order[0]});
                         } else {
-                           // param.push({$sort: {'codTipoComprob': 1}});
+                            param.push({$sort: {'fecha.emision': 1}});
                         }
 
                         if (paginated) {
@@ -183,16 +222,26 @@ module.exports = function (log) {
                             if (err) {
                                 callback(err);
                             } else {
+                                response = Enumerable.from(data)
+                                    .join(Enumerable.from(prices), '$.code', '$.code', function (tasaInvoice, price) {
+                                        tasaInvoice.impUnitAgp = price.price.topPrices[0].price;
+                                        tasaInvoice.tasaAgp = tasaInvoice.impUnitAgp * tasaInvoice.cnt;
+                                        tasaInvoice.totalTasa = tasaInvoice.tasa * tasaInvoice.cotiMoneda;
+                                        tasaInvoice.totalTasaAgp = tasaInvoice.tasaAgp * tasaInvoice.cotiMoneda;
+                                        tasaInvoice.cnt = Math.abs(tasaInvoice.cnt);
+                                        return tasaInvoice;
+                                    }).toArray();
+
                                 if (paginated) {
                                     Invoice.count(match, function (err, count) {
                                         if (err) {
                                             callback(err);
                                         } else {
-                                            callback(null, {status: "OK", totalCount: count, data: data});
+                                            callback(null, {status: "OK", totalCount: count, data: response});
                                         }
                                     });
                                 } else {
-                                    callback(null, {status: "OK", data: data});
+                                    callback(null, {status: "OK", data: response});
                                 }
                             }
                         });
@@ -201,7 +250,6 @@ module.exports = function (log) {
                 }
             });
         }
-
     }
 
     function getNotPayed(req, res) {
@@ -297,9 +345,8 @@ module.exports = function (log) {
         });
     }
 
-    function calculatePrePayment (terminal, _id, callback) {
-        var param,
-            totalPayment,
+    function calculatePrePayment (param, callback) {
+        var totalPayment,
             price,
             cond;
 
@@ -314,10 +361,16 @@ module.exports = function (log) {
                         }
                     }).toArray();
 
-                price = new priceUtils.price(terminal);
-                price.rates(false, function (err, rates) {
+                price = new priceUtils.price(param.terminal);
+                price.rates('todo', function (err, prices) {
+                    var rates;
+
+                    rates = Enumerable.from(prices)
+                        .select('z=>z.code')
+                        .toArray();
+
                     param = [
-                        {$match: {terminal: terminal, "payment": _id}},
+                        {$match: param},
                         {$project: {
                             terminal: 1,
                             codTipoComprob: 1,
@@ -325,7 +378,7 @@ module.exports = function (log) {
                             payment: 1,
                             cotiMoneda: 1,
                             detalle: 1
-                            }},
+                        }},
                         {$unwind: '$detalle'},
                         {$unwind: '$detalle.items'},
                         {$match: {'detalle.items.id': {$in: rates }}},
@@ -333,40 +386,45 @@ module.exports = function (log) {
                             terminal: 1,
                             code: '$detalle.items.id',
                             nroComprob: 1,
+                            cotiMoneda: 1,
                             payment: 1,
-                            cnt: '$detalle.items.cnt',
-                            importe: {
+                            cnt: {
                                 $cond: { if: {  $or: cond },
-                                        then: {$multiply: ['$detalle.items.impTot', -1]},
-                                        else: '$detalle.items.impTot'}
-                                },
-                            importePeso: {
-                                $cond: { if: {  $or: cond },
-                                    then: {$multiply: [ {$multiply: ['$detalle.items.impTot', '$cotiMoneda']}, -1]},
-                                    else: {$multiply: ['$detalle.items.impTot', '$cotiMoneda']}}
-                            }}
-                        },
-                        {$group: {
-                            _id: {
-                                payment: '$payment',
-                                code: '$code'
+                                        then: {$multiply: ['$detalle.items.cnt', -1]},
+                                        else: '$detalle.items.cnt'}
                             },
-                            toneladas: {$sum: '$cnt'},
-                            importe: {$sum: '$importe'},
-                            importePeso: {$sum: '$importePeso'}
-                            }},
-                        {$project: {
-                            tons: '$toneladas',
-                            total: '$importe',
-                            totalPeso: '$importePeso'
-                            }}
-                        ];
+                            impUnit: '$detalle.items.impUnit'
+                        }}
+                    ];
                     totalPayment = Invoice.aggregate(param);
                     totalPayment.exec(function (err, totalPayment) {
+                        var result = Enumerable.from(totalPayment)
+                            .join(Enumerable.from(prices), '$.code', '$.code', function (tasaInvoice, price) {
+                                tasaInvoice.impUnitAgp = price.price.topPrices[0].price;
+                                tasaInvoice.tasa = tasaInvoice.impUnit * tasaInvoice.cnt;
+                                tasaInvoice.tasaAgp = tasaInvoice.impUnitAgp * tasaInvoice.cnt;
+                                tasaInvoice.totalTasa = tasaInvoice.tasa * tasaInvoice.cotiMoneda;
+                                tasaInvoice.totalTasaAgp = tasaInvoice.tasaAgp * tasaInvoice.cotiMoneda;
+                                return tasaInvoice;
+                            })
+                            .groupBy("$.code", null,
+                                function (key, g) {
+                                    var r = {
+                                        _id: {code: key},
+                                        cnt: g.sum("$.cnt"),
+                                        total: g.sum("$.tasa"),
+                                        totalPeso: g.sum("$.totalTasa"),
+                                        totalAgp: g.sum("$.tasaAgp"),
+                                        totalPesoAgp: g.sum("$.totalTasaAgp")
+                                    };
+                                    r.cnt = Math.abs(r.cnt);
+                                    return r;
+                                }).toArray();
+
                         if (err) {
                             callback(err);
                         } else {
-                            callback(null,  totalPayment);
+                            callback(null,  result);
                         }
                     });
                 });
@@ -375,10 +433,41 @@ module.exports = function (log) {
     }
 
     function getPrePayment(req, res) {
-        var mongoose = require("mongoose");
+        var mongoose = require("mongoose"),
+            moment = require("moment"),
+            param = {},
+            desde,
+            hasta;
 
-        var _id = mongoose.Types.ObjectId(req.params._id);
-        calculatePrePayment(req.params.terminal, _id, function (err, payment) {
+        if (req.query.paymentId) {
+            param.payment = mongoose.Types.ObjectId(req.query.paymentId);
+            param.terminal = req.params.terminal;
+        } else {
+            desde = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
+            if (desde < new Date(2015, 1, 0, 0, 0)) {
+                desde = new Date(2015, 1, 0, 0, 0);
+            }
+            hasta = moment(req.query.fechaFin, 'YYYY-MM-DD').add(1, 'days').toDate();
+
+            param = {
+                terminal: req.params.terminal,
+                'fecha.emision': {$gte: desde, $lt: hasta},
+                //'detalle.items.id': {$in: rates},
+                'payment': {$exists: false}
+            };
+
+            if (req.query.codTipoComprob) {
+                param.codTipoComprob = parseInt(req.query.codTipoComprob, 10);
+            }
+            if (req.query.buqueNombre) {
+                param['detalle.buque.nombre'] = req.query.buqueNombre;
+            }
+            if (req.query.razonSocial) {
+                param.razon = req.query.razonSocial;
+            }
+
+        }
+        calculatePrePayment(param, function (err, payment) {
             if (err) {
                 res.status(500).send(
                     {
@@ -576,7 +665,7 @@ module.exports = function (log) {
     router.post('/prePayment', setPrePayment);
     router.delete('/prePayment/:_id', deletePrePayment);
     router.put('/payment', setPayment);
-    router.get('/getPrePayment/:terminal/:_id', getPrePayment);
+    router.get('/getPrePayment/:terminal', getPrePayment);
     router.put('/addToPrePayment/:terminal', add2PrePayment);
 
     return router;
