@@ -47,16 +47,14 @@ module.exports = function (log) {
             });
     }
 
-    function getMatchPricesPrice (req, res){
-        var usr = req.usr,
-            paramTerminal = req.params.terminal,
-            ter = (usr.role === 'agp') ? paramTerminal : usr.terminal,
-            param = {
-                $or : [
-                    {terminal: "AGP"},
-                    {terminal: ter}
-                ]
-            };
+    function getMatchPricesPrice (req, res) {
+
+        var matchPrice = require('../lib/matchPrice.js'),
+            usr = req.usr,
+            ter = (usr.role === 'agp') ? req.params.terminal : usr.terminal,
+            param = {};
+
+        matchPrice = new matchPrice(ter);
 
         if (req.query.code) {
             param.code = req.query.code;
@@ -64,37 +62,17 @@ module.exports = function (log) {
 
         if (req.query.onlyRates) {
             if (req.query.onlyRates !== false) {
-                param.rate = {$exists: true};
+                param.rate = true;
             }
         }
+        matchPrice.getPricesTerminal(param, function (err, result) {
+            if (err) {
+                res.status(500).send({status: "ERROR", data: err.message});
+            } else {
+                res.status(200).send(result);
+            }
+        });
 
-        Price.find(param, {topPrices: true})
-            .exec(function (err, prices) {
-                var matchPrices;
-
-                if (!err) {
-                    matchPrices = MatchPrice.aggregate([
-                        { $match : param},
-                        { $unwind : '$match'},
-                        { $project : {price: true, match : true, code : true}}
-                    ]);
-                    matchPrices.exec(function (err, matches) {
-                        var Enumerable = require('linq'),
-                            response = [];
-                        Enumerable.from(matches)
-                            .join(Enumerable.from(prices), '$.price.id', '$._id.id', function (match, price) {
-                                response.push({
-                                    code: match.match,
-                                    topPrices : price.topPrices
-                                });
-                            }).toArray();
-                        res.status(200).send({status: 'OK', data: response});
-                    });
-                } else {
-                    log.logger.error('Error: %s', err.message);
-                    res.status(500).send({status: 'ERROR', data: err.message});
-                }
-            });
     }
 
     function getMatches(req, res) {
@@ -131,17 +109,17 @@ module.exports = function (log) {
 
                         if (!err) {
                             response = Enumerable.from(matches)
-                                    .join(Enumerable.from(prices), '$.price.id', '$._id.id', function (match, price) {
-                                        if (req.query.type) {
-                                            match.description = {
-                                                'currency': price.currency,
-                                                'price': price.topPrice
-                                            };
-                                        } else {
-                                            match.description = price.description;
-                                        }
-                                        return match;
-                                    }).toArray();
+                                .join(Enumerable.from(prices), '$.price.id', '$._id.id', function (match, price) {
+                                    if (req.query.type) {
+                                        match.description = {
+                                            'currency': price.currency,
+                                            'price': price.topPrice
+                                        };
+                                    } else {
+                                        match.description = price.description;
+                                    }
+                                    return match;
+                                }).toArray();
                             response.forEach(function (item) {
                                 result[item.match] = item.description;
                             });

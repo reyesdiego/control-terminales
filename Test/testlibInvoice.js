@@ -17,3 +17,5 @@ inv.getInvoices({terminal: "BACTSSA", nroPtoVenta: 33}, function (result) {
 inv.getInvoicesCSV({terminal: "BACTSSA", nroPtoVenta: 33}, function (result) {
     console.log(result);
 });
+inv.getTotalByClient()
+

@@ -6,7 +6,7 @@
  */
 
 var oracledb = require('oracledb');
-
+oracledb.maxRows = 2000;
 //oracledb.outFormat = 2;
 oracledb.getConnection(
     {
@@ -29,7 +29,10 @@ oracledb.getConnection(
 //            "SELECT * FROM SIC_TESO_14 ",
             "SELECT * FROM CRE_TESO_30 ",
             [],
-            {},
+            {
+                resultSet: true, // return a result set.  Default is false
+                prefetchRows: 25 // the prefetch size can be set for each query
+            },
             function(err, result)
             {
                 if (err) {
