@@ -17,9 +17,9 @@ html(lang='es')
                 - var total = val1.data.length - 1;
                 - each val2, index2 in val1.data
                     - if (total == index2)
-                        span #{val2}
+                        span(title="#{val2.d}") #{val2.n}
                     - else
-                        span #{val2} -&nbsp;
+                        span(title="#{val2.d}") #{val2.n} -&nbsp;
 
             br
         p
