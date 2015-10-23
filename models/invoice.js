@@ -90,9 +90,9 @@ invoiceSchema.pre('save', function (next, done) {
         } else if (this.codMoneda === 'PES' && this.cotiMoneda !== 1) {
             next(new Error("La cotización del peso debe ser Uno (1)."));
         }
-        if (global.cache.voucherTypes.indexOf(this.codTipoComprob) >= 0) {
-            this.total = this.total * -1;
-        }
+        //if (global.cache.voucherTypes.indexOf(this.codTipoComprob) >= 0) {
+        //    this.total = this.total * -1;
+        //}
     }
 
     next();
