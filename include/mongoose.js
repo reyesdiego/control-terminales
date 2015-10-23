@@ -14,7 +14,7 @@ module.exports = function (log) {
     });
 
     mongoose.connection.on('error', function (err) {
-        log.logger.error("Database or Mongoose error. %s", err.toString());
+        log.logger.error("Database or Mongoose error. %s", err.stack);
     });
     mongoose.connection.on('disconnected', function () {
         log.logger.error("Mongoose default connection disconnected, el proceso %s se abortará", process.pid);
