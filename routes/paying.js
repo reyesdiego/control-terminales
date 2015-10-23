@@ -29,7 +29,6 @@ module.exports = function (log) {
             tipoDeSuma,
             cond,
             mongoose = require("mongoose"),
-            async = require("async"),
             response;
 
         var matchPrice = require('../lib/matchPrice.js');
@@ -62,36 +61,17 @@ module.exports = function (log) {
                         };
                     }
 
-                    price.rates('todo', function (err, prices) {
+                    price.ratePrices(function (err, prices) {
                         var param,
                             match,
-                            ratesParam = {},
+                            _id,
                             rates;
 
                         rates = Enumerable.from(prices)
                             .select('z=>z.code')
                             .toArray();
 
-                        var _id = mongoose.Types.ObjectId(req.params._id);
-
-                        matchPrice.getPricesTerminal({rate: true}, function (err, dataPrice) {
-                            if (dataPrice.status === "OK") {
-                                async.eachSeries([dataPrice.data], function (item, callbackAsync) {
-                                    ratesParam = {
-                                        $cond: {
-                                            if: {$eq: ['$detalle.item.id', item.code]},
-                                            then: item.topPrices[0].price,
-                                            else: ''
-                                        }
-                                    }
-                                    console.log(item);
-                                    callbackAsync();
-                                }, function () {
-                                    console.log("done");
-                                });
-                            }
-                        });
-
+                        _id = mongoose.Types.ObjectId(req.params._id);
 
                         if (req.params._id) {
                             match = {
@@ -224,7 +204,21 @@ module.exports = function (log) {
                             } else {
                                 response = Enumerable.from(data)
                                     .join(Enumerable.from(prices), '$.code', '$.code', function (tasaInvoice, price) {
-                                        tasaInvoice.impUnitAgp = price.price.topPrices[0].price;
+                                        var top = Enumerable.from(price.price.topPrices)
+                                            .where(function (itemW) {
+                                                if (itemW.from < tasaInvoice.emision) {
+                                                    return true;
+                                                } else {
+                                                    return false;
+                                                }
+                                            })
+                                            .orderByDescending('$.from')
+                                            .toArray();
+
+                                        tasaInvoice.impUnitAgp = 0;
+                                        if (top.length > 0) {
+                                            tasaInvoice.impUnitAgp = top[0].price;
+                                        }
                                         tasaInvoice.tasaAgp = tasaInvoice.impUnitAgp * tasaInvoice.cnt;
                                         tasaInvoice.totalTasa = tasaInvoice.tasa * tasaInvoice.cotiMoneda;
                                         tasaInvoice.totalTasaAgp = tasaInvoice.tasaAgp * tasaInvoice.cotiMoneda;
@@ -345,7 +339,7 @@ module.exports = function (log) {
         });
     }
 
-    function calculatePrePayment (param, callback) {
+    function calculatePrePayment(param, callback) {
         var totalPayment,
             price,
             cond;
@@ -362,7 +356,7 @@ module.exports = function (log) {
                     }).toArray();
 
                 price = new priceUtils.price(param.terminal);
-                price.rates('todo', function (err, prices) {
+                price.ratePrices(function (err, prices) {
                     var rates;
 
                     rates = Enumerable.from(prices)
@@ -376,6 +370,7 @@ module.exports = function (log) {
                             codTipoComprob: 1,
                             nroComprob: 1,
                             payment: 1,
+                            fecha: '$fecha.emision',
                             cotiMoneda: 1,
                             detalle: 1
                         }},
@@ -387,6 +382,7 @@ module.exports = function (log) {
                             code: '$detalle.items.id',
                             nroComprob: 1,
                             cotiMoneda: 1,
+                            fecha: 1,
                             payment: 1,
                             cnt: {
                                 $cond: { if: {  $or: cond },
@@ -400,6 +396,19 @@ module.exports = function (log) {
                     totalPayment.exec(function (err, totalPayment) {
                         var result = Enumerable.from(totalPayment)
                             .join(Enumerable.from(prices), '$.code', '$.code', function (tasaInvoice, price) {
+
+                                var top = Enumerable.from(price.price.topPrices)
+                                    .where(function (itemW) {
+                                        if (itemW.from < tasaInvoice.fecha) {
+                                            return true;
+                                        } else {
+                                            return false;
+                                        }
+                                    })
+                                    .orderByDescending('$.from')
+                                    .toArray();
+                                price.price.topPrices = top[0];
+
                                 tasaInvoice.impUnitAgp = price.price.topPrices[0].price;
                                 tasaInvoice.tasa = tasaInvoice.impUnit * tasaInvoice.cnt;
                                 tasaInvoice.tasaAgp = tasaInvoice.impUnitAgp * tasaInvoice.cnt;

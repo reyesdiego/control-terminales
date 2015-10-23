@@ -93,7 +93,7 @@ module.exports = function (log) {
 
     process.on('uncaughtException', function (err) {
         'use strict';
-        log.logger.info("Caught exception: " + err);
+        log.logger.error("Caught exception: %s", err.stack);
     });
 
 };

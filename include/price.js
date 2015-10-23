@@ -10,19 +10,19 @@ var price = function (terminal) {
     this.terminal = terminal;
 
 
-    this.ratesLocal = function (withDescription, callback) {
+    this.ratesLocal = function (parametro, callback) {
         var Enumerable = require('linq'),
             selfMatchPrice,
             params = [],
             self = this;
 
-        if (typeof withDescription === 'function') {
-            callback = withDescription;
-            withDescription = false;
+        if (typeof parametro === 'function') {
+            callback = parametro;
+            parametro.description = false;
         }
 
         if (callback !== undefined) {
-            selfMatchPrice =this.matchPrice;
+            selfMatchPrice = this.matchPrice;
 
             if (self.terminal !== undefined) {
                 params.push({ $match: { terminal: self.terminal}});
@@ -47,24 +47,34 @@ var price = function (terminal) {
                                 return item.price != null;
                             });
 
-                        if (withDescription === true) {
+                        if (parametro.description === true) {
                             a = result.select(function(item){
                                 ratesDesc[item.match] = item.price.description;
                                 return item;
                             }).toArray();
                             result = ratesDesc;
-                        } else if (withDescription === false) {
+                        } else if (parametro.description === false) {
                             result = result.select(function(item){
                                 return item.match;
                             }).toArray();
-                        } else if (withDescription === 'todo') {
+                        } else if (parametro.fecha) {
                             a = result.select(function(item) {
+                                var top = Enumerable.from(item.price.topPrices)
+                                    .where(function (itemW) {
+                                        if (itemW.from < parametro.fecha) {
+                                            return true;
+                                        } else {
+                                            return false;
+                                        }
+                                    })
+                                    .orderByDescending('$.from')
+                                    .toArray();
+                                item.price.topPrices = top;
+
                                 ratesDesc = {
                                     code: item.match,
                                     price: item.price
                                 };
-                                //ratesDesc = item.price;
-                                //ratesDesc.code = item.match;
                                 return ratesDesc;
                             }).toArray();
                             result = a;
@@ -81,63 +91,25 @@ var price = function (terminal) {
 price.prototype = {
 	rates: function (withDescription, callback) {
 
-        this.ratesLocal(withDescription, function (err, data) {
-            callback(err, data);
-        });
-/*
-        var Enumerable = require('linq'),
-            selfMatchPrice,
-            params = [],
-            self = this;
-
         if (typeof withDescription === 'function') {
             callback = withDescription;
+            withDescription = true
         }
 
-        if (callback !== undefined) {
-            selfMatchPrice =this.matchPrice;
+        this.ratesLocal({description: withDescription}, function (err, data) {
+            callback(err, data);
+        });
+    },
+    ratePrices: function (fecha, callback) {
 
-            if (self.terminal !== undefined) {
-                params.push({ $match: { terminal: self.terminal}});
-            } else {
-                params.push({ $match: { terminal:{$exists : 1}}});
-            }
-
-            params.push({ $project: {match:1, price:1}});
-            params.push({$unwind:'$match'});
-            selfMatchPrice.aggregate( params, function(err, data){
-                selfMatchPrice.populate(data, [{ path:'price', match:{rate:{$exists:1}} }], function (err, matchprices) {
-                    var ratesDesc = {},
-                        result,
-                        a;
-
-                        if (err) {
-                            if (typeof callback === 'function')
-                                return callback(err);
-                        } else {
-                            result = Enumerable.from(matchprices)
-                                .where(function (item){
-                                    return item.price != null;
-                                });
-
-                            if (withDescription === true){
-                                a = result.select(function(item){
-                                    ratesDesc[item.match] = item.price.description;
-                                    return item;
-                                }).toArray();
-                                result = ratesDesc;
-                            } else {
-                                result = result.select(function(item){
-                                    return item.match;
-                                }).toArray();
-                            }
-                            if (typeof callback === 'function')
-                                return callback( undefined, result);
-                        }
-                    });
-            });
+        if (typeof fecha === 'function') {
+            callback = fecha;
+            fecha = Date.now();
         }
-        */
+
+        this.ratesLocal({fecha: fecha}, function (err, data) {
+            callback(err, data);
+        });
     }
 
 }

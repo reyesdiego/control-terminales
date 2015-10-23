@@ -410,7 +410,7 @@ module.exports = function(log, io, oracle) {
 
                 _price = require('../include/price.js');
                 _rates = new _price.price();
-                _rates.rates('todo', function (err, prices) {
+                _rates.ratePrices(function (err, prices) {
                     var invoice,
                         param,
                         rates;
@@ -1297,6 +1297,8 @@ module.exports = function(log, io, oracle) {
             clients,
             inv = require('../lib/invoice.js');
 
+        inv = new inv(paramTerminal);
+
         if (req.query.fechaInicio) {
             fechaInicio = moment(req.query.fechaInicio, ['YYYY-MM-DD']).toDate();
         }
@@ -1305,12 +1307,24 @@ module.exports = function(log, io, oracle) {
         }
         if (req.query.clients) {
             clients = req.query.clients;
+            inv.getTotalByClient(clients, fechaInicio, fechaFin, function (err, data) {
+                if (err) {
+                    res.status(500).send(err);
+                } else {
+                    res.status(200).send(data);
+                }
+            });
+        } else {
+            if (req.query.top) {
+                inv.getTotalByClientTop(req.query.top, fechaInicio, fechaFin, function (err, data) {
+                    if (err) {
+                        res.status(500).send(err);
+                    } else {
+                        res.status(200).send(data);
+                    }
+                });
+            }
         }
-
-        inv = new inv(paramTerminal);
-        inv.getTotalByClient(clients, fechaInicio, fechaFin, function (err, data) {
-            res.status(200).send(data);
-        });
     }
     /*
      router.use(function timeLog(req, res, next){
@@ -1355,6 +1369,7 @@ module.exports = function(log, io, oracle) {
     router.post('/byRates', getInvoicesByRates);
     router.get('/containersNoRates/:terminal', getContainersNoRates);
     router.get('/totalClient', getTotals);
+    router.get('/totalClientTop', getTotals);
 
 //	app.get('/invoices/log/:seconds', function( req, res) {
 //		logInvoiceBody = 1;
