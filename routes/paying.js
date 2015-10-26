@@ -29,10 +29,12 @@ module.exports = function (log) {
             tipoDeSuma,
             cond,
             mongoose = require("mongoose"),
-            response;
+            response,
+            groupByContainer,
+            projectByContainer;
 
-        var matchPrice = require('../lib/matchPrice.js');
-        matchPrice = new matchPrice(paramTerminal);
+        //var matchPrice = require('../lib/matchPrice.js');
+        //matchPrice = new matchPrice(paramTerminal);
 
         if ((req.query.fechaInicio === undefined || req.query.fechaFin === undefined) && req.params._id === undefined) {
             callback({status: "ERROR", message: "Debe proveer parametros de fecha"});
@@ -103,6 +105,38 @@ module.exports = function (log) {
                             }
                         }
 
+                        groupByContainer = {
+                            _id: '$_id',
+                            terminal: '$terminal',
+                            nroPtoVenta: '$nroPtoVenta',
+                            codTipoComprob: '$codTipoComprob',
+                            razon: '$razon',
+                            fecha: '$fecha',
+                            estado: '$estado',
+                            code: '$detalle.items.id',
+                            impUnit: '$detalle.items.impUnit',
+                            cotiMoneda: '$cotiMoneda',
+                            buque: '$detalle.buque.nombre'};
+                        projectByContainer = {
+                            _id: '$_id._id',
+                            terminal: '$_id.terminal',
+                            emision: '$_id.fecha',
+                            nroPtoVenta: '$_id.nroPtoVenta',
+                            codTipoComprob: '$_id.codTipoComprob',
+                            buque: '$_id.buque',
+                            razon: '$_id.razon',
+                            cotiMoneda: '$_id.cotiMoneda',
+                            code: '$_id.code',
+                            impUnit: '$_id.impUnit',
+                            tasa: {$multiply: ['$_id.impUnit', '$cnt']},
+                            cnt: '$cnt',
+                            estado: '$_id.estado'
+                        }
+                        if (req.query.byContainer === '1') {
+                            groupByContainer.container = '$detalle.contenedor';
+                            projectByContainer.container = '$_id.container';
+                        }
+
                         param = [
                             {$match: match },
                             {$project: {
@@ -145,19 +179,7 @@ module.exports = function (log) {
                             {$unwind: '$detalle.items'},
                             {$match: {'detalle.items.id': {$in: rates}}},
                             {$group: {
-                                _id: {
-                                    _id: '$_id',
-                                    terminal: '$terminal',
-                                    nroPtoVenta: '$nroPtoVenta',
-                                    codTipoComprob: '$codTipoComprob',
-                                    razon: '$razon',
-                                    fecha: '$fecha',
-                                    estado: '$estado',
-                                    code: '$detalle.items.id',
-                                    impUnit: '$detalle.items.impUnit',
-                                    cotiMoneda: '$cotiMoneda',
-                                    buque: '$detalle.buque.nombre'
-                                },
+                                _id: groupByContainer,
                                 cnt: {
                                     $sum: {
                                         $cond: { if: {$or: cond},
@@ -166,21 +188,7 @@ module.exports = function (log) {
                                     }
                                 }
                             }},
-                            {$project: {
-                                _id: '$_id._id',
-                                terminal: '$_id.terminal',
-                                emision: '$_id.fecha',
-                                nroPtoVenta: '$_id.nroPtoVenta',
-                                codTipoComprob: '$_id.codTipoComprob',
-                                buque: '$_id.buque',
-                                razon: '$_id.razon',
-                                cotiMoneda: '$_id.cotiMoneda',
-                                code: '$_id.code',
-                                impUnit: '$_id.impUnit',
-                                tasa: {$multiply: ['$_id.impUnit', '$cnt']},
-                                cnt: '$cnt',
-                                estado: '$_id.estado'
-                            }}
+                            {$project: projectByContainer}
                         ];
 
                         if (req.query.order) {
