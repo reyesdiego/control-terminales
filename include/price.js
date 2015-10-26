@@ -93,7 +93,7 @@ price.prototype = {
 
         if (typeof withDescription === 'function') {
             callback = withDescription;
-            withDescription = true
+            withDescription = false;
         }
 
         this.ratesLocal({description: withDescription}, function (err, data) {
