@@ -345,6 +345,7 @@ module.exports = function (log) {
     function getMissingAppointments(req, res) {
         var usr = req.usr,
             terminal = '',
+            fecha,
             param = {};
 
         if (usr.role === 'agp') {
@@ -354,13 +355,26 @@ module.exports = function (log) {
         }
         param.terminal = terminal;
 
-        Gate.distinct('contenedor', param, function (err, gates) {
+        if (req.query.fechaInicio || req.query.fechaFin) {
+            param.gateTimestamp = {};
+            if (req.query.fechaInicio) {
+                fecha = moment(req.query.fechaInicio, ['YYYY-MM-DD HH:mm Z']).toDate();
+                param.gateTimestamp.$gte = fecha;
+            }
+            if (req.query.fechaFin) {
+                fecha = moment(req.query.fechaFin, ['YYYY-MM-DD HH:mm Z']).toDate();
+                param.gateTimestamp.$lt = fecha;
+            }
+        }
+
+        Gate.find(param, {contenedor: 1, gateTimestamp: 1, _id: 0}, function (err, gates) {
             if (err) {
                 res._status(500).send({
                     status: "ERROR",
                     message: "Error obteniendo Gates"
                 });
             } else {
+                delete param.gateTimestamp;
                 Appointment.distinct('contenedor', param,  function (err, appointmens) {
                     var result;
                     if (err) {
@@ -370,8 +384,10 @@ module.exports = function (log) {
                         });
                     } else {
                         result = linq.from(gates)
-                            .except(appointmens)
-                            .orderBy().toArray();
+                            .except(linq.from(appointmens).select('z=>{contenedor: z}'), '$.contenedor', '$.contenedor')
+                            .select('x=>{c: x.contenedor, g: x.gateTimestamp}')
+                            .orderBy('$.g')
+                            .toArray();
                         res.status(200).send({
                             status: "OK",
                             totalCount: result.length,
