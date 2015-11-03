@@ -30,8 +30,8 @@ oracledb.getConnection(
             "SELECT * FROM CRE_TESO_30 ",
             [],
             {
-                resultSet: true, // return a result set.  Default is false
-                prefetchRows: 25 // the prefetch size can be set for each query
+               // resultSet: true, // return a result set.  Default is false
+                //prefetchRows: 25 // the prefetch size can be set for each query
             },
             function(err, result)
             {
@@ -41,7 +41,7 @@ oracledb.getConnection(
                     return;
                 }
                 console.log("metadata: %j", result.metaData);
-                console.log("rows: %j ", result.rows);
+                console.log("rows: %j ", result.rows[0].join("|"));
                 doRelease(connection);
             });
     });
