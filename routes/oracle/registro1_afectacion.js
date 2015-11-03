@@ -10,20 +10,58 @@ module.exports = function (log, oracle) {
         util = require("util"),
         moment = require('moment');
 
-    function getRegistro1Afectacion(req, res) {
+    function getRegistro1AfectacionJSON(req, res) {
+        getRegistro1Afectacion(req, function (err, result) {
+            if (err) {
+                res.status(500).send(err);
+            } else {
+                res.status(200).send(result);
+            }
+        });
+    }
+
+    function getRegistro1AfectacionCSV(req, res) {
+        getRegistro1Afectacion(req, function (err, result){
+            var response = "ID|TIPO_REGISTRO|AFECTACION|AFE_ANIO|AFE_ADUANA|AFE_TIPO|AFE_NRO|AFE_LETRA_CTRL|CUITATA|NOMBREATA|ESTADO|PROCESO|FECHA_REGISTRO|CUITIMPO|ADUANA_LLEGADA_SALIDA|PAISDESTINO|DIASPLAZOTRANSPORTE|TRANSPORTISTA|PAISTRANSPORTISTA|MOTIVOAFECTACION|IDENTIFICADORMOTIVOMICDTA|SUMARIA|SUM_ANIO|SUM_ADUANA|SUM_TIPO|SUM_NRO|SUM_LETRA_CTRL|MEDIOTRANSPORTEINTERNO|NACMEDIOTRANSPINTERNO|MATRICULAMEDIOTRANSPINTERNO|LUGAROPERATIVO|LUGARDEGIRO|NOMBREBUQUE|COMENTARIO|REGISTRADO_POR|REGISTRADO_EN\n";
+
+            if (err) {
+                res.status(500).send(err);
+            } else {
+                result.data.forEach(function (item) {
+                    response = response +
+                            item.join('|') +
+                        "\n";
+                });
+                res.header('content-type', 'text/csv');
+                res.header('content-disposition', 'attachment; filename=report.csv');
+                res.status(200).send(response);
+            }
+        });
+    }
+
+    function getRegistro1Afectacion(req, callback) {
+
+        var tipoResultado = oracle.oracledb.OBJECT;
 
         oracle.pool.getConnection(function (err, connection) {
 
             var strWhere = '',
-                skip = parseInt(req.params.skip, 10),
-                limit = parseInt(req.params.limit, 10),
+                skip = 0,
+                limit = 100000000,
                 orderBy,
                 strSql;
 
             if (err) {
                 console.log(err, "Error acquiring from pool.");
-                res.status(500).json({ status: 'ERROR', data: err });
+                return callback({ status: 'ERROR', data: err });
             } else {
+
+                if (req.params.skip) {
+                    skip = parseInt(req.params.skip, 10);
+                    limit = parseInt(req.params.limit, 10);
+                } else {
+                    tipoResultado = oracle.oracledb.ARRAY;
+                }
 
                 orderBy = oracle.orderBy(req.query.order);
 
@@ -97,10 +135,10 @@ module.exports = function (log, oracle) {
                 strWhere = strWhere.substr(0, strWhere.length - 4);
                 strSql = util.format(strSql, strWhere);
 
-                connection.execute(strSql, [skip, skip + limit], function (err, data) {
+                connection.execute(strSql, [skip, skip + limit], {outFormat: tipoResultado}, function (err, data) {
                     if (err) {
                         oracle.doRelease(connection);
-                        res.status(500).json({ status: 'ERROR', data: err.message });
+                        return callback({ status: 'ERROR', data: err.message });
                     } else {
                         strSql = "SELECT COUNT(*) AS TOTAL FROM REGISTRO1_AFECTACION";
                         if (strWhere !== '') {
@@ -112,7 +150,7 @@ module.exports = function (log, oracle) {
                                 total;
                             if (err) {
                                 oracle.doRelease(connection);
-                                res.status(500).json({ status: 'ERROR', data: err.message });
+                                return callback({ status: 'ERROR', data: err.message });
                             } else {
                                 oracle.doRelease(connection);
 
@@ -121,9 +159,10 @@ module.exports = function (log, oracle) {
                                     status: 'OK',
                                     totalCount: total,
                                     pageCount: (limit > total) ? total : limit,
+                                    metadata: data.metaData,
                                     data: data.rows
                                 };
-                                res.status(200).json(result);
+                                return callback(undefined, result);
                             }
                         });
                     }
@@ -172,7 +211,8 @@ module.exports = function (log, oracle) {
     });
 */
 
-    router.get('/registro1_afectacion/:skip/:limit', getRegistro1Afectacion);
+    router.get('/registro1_afectacion/:skip/:limit', getRegistro1AfectacionJSON);
+    router.get('/registro1_afectacion/down', getRegistro1AfectacionCSV);
     router.get('/registro1_afectacion/buques', getDistinct);
 
     return router;
