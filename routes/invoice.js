@@ -493,7 +493,6 @@ module.exports = function(log, io, oracle) {
                                                 code : right.code,
                                                 rate: right.rate,
                                                 terminal: left._id.terminal,
-                                                //fecha: left._id.fecha,
                                                 ton: left.cnt,
                                                 total: left.total,
                                                 totalPeso: left.totalPeso,
@@ -514,6 +513,405 @@ module.exports = function(log, io, oracle) {
 
         }
 
+    }
+
+    function getRatesDate(req, res) {
+
+        var desde,
+            hasta,
+            _price,
+            _rates,
+            cond;
+
+        if (req.query.fechaInicio === undefined || req.query.fechaFin === undefined) {
+            res.status(401).send({status: "ERROR", message: "Debe proveer parametros de fecha"});
+        } else {
+            desde = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
+            hasta = moment(req.query.fechaFin, 'YYYY-MM-DD').add(1, 'days').toDate();
+
+            VoucherType.find({type: -1}, function (err, vouchertypes){
+                if (err) {
+                    res.status(500).send({status: 'ERROR', data : err.message});
+                } else {
+                    cond = Enumerable.from(vouchertypes)
+                        .select(function (item) {
+                            if (item.type === -1) {
+                                return {$eq: [ "$codTipoComprob", item._id]};
+                            }
+                        }).toArray();
+
+                    _price = require('../include/price.js');
+                    _rates = new _price.price();
+                    _rates.ratePrices(function (err, prices) {
+                        var invoice,
+                            param,
+                            rates;
+
+                        rates = Enumerable.from(prices)
+                            .select('z=>z.code')
+                            .toArray();
+
+                        if (err) {
+                            res.status(500).send({status: 'ERROR', data : err.message});
+                        } else {
+                            param = [
+                                { $match : {
+                                    'fecha.emision': {$gte: desde, $lt: hasta}
+                                }},
+                                { $unwind : '$detalle'},
+                                { $unwind : '$detalle.items'},
+                                { $match : {
+                                    'detalle.items.id' : { $in : rates}
+                                }},
+                                {$project : {
+                                    terminal: '$terminal',
+                                    code: '$detalle.items.id',
+                                    date: '$fecha.emision',
+                                    cotiMoneda: '$cotiMoneda',
+                                    cnt: { $cond: [
+                                        {$or : cond },
+                                        {$multiply: ['$detalle.items.cnt', -1]},
+                                        '$detalle.items.cnt'
+                                    ]
+                                    },
+                                    impUnit: '$detalle.items.impUnit',
+                                    impTot: '$detalle.items.impTot'
+                                }}];
+                            invoice = Invoice.aggregate(param);
+
+                            invoice.exec(function (err, data) {
+                                var mp,
+                                    result;
+
+                                if (err) {
+                                    res.status(500).send({status: 'ERROR', data : err.message});
+                                } else {
+
+                                    result = Enumerable.from(data)
+                                        .join(Enumerable.from(prices), '$.code', '$.code', function (tasaInvoice, price) {
+                                            tasaInvoice.impUnitAgp = price.price.topPrices[0].price;
+                                            tasaInvoice.tasa = tasaInvoice.impUnit * tasaInvoice.cnt;
+                                            tasaInvoice.tasaAgp = tasaInvoice.impUnitAgp * tasaInvoice.cnt;
+                                            tasaInvoice.totalTasa = tasaInvoice.tasa * tasaInvoice.cotiMoneda;
+                                            tasaInvoice.totalTasaAgp = tasaInvoice.tasaAgp * tasaInvoice.cotiMoneda;
+                                            return tasaInvoice;
+                                        })
+                                        .groupBy('x=>JSON.stringify({code: x.code, terminal: x.terminal, date: x.date})', null,
+                                        function (key, g) {
+                                            var r;
+                                            key = JSON.parse(key);
+                                            r = {
+                                                _id: {code: key.code, terminal: key.terminal, date: key.date},
+                                                cnt: g.sum("$.cnt"),
+                                                total: g.sum("$.tasa"),
+                                                totalPeso: g.sum("$.totalTasa"),
+                                                totalAgp: g.sum("$.tasaAgp"),
+                                                totalPesoAgp: g.sum("$.totalTasaAgp")
+                                            };
+                                            r.cnt = Math.abs(r.cnt);
+                                            return r;
+                                        }).toArray();
+
+                                    mp = MatchPrice.find({match: {$in: rates}}, {price: true, match : true});
+                                    mp.populate({path: 'price', match: {rate: {$exists: 1}}});
+                                    mp.exec(function (err, dataMatch) {
+
+                                        mp = Enumerable.from(dataMatch)
+                                            .select(function (item) {
+                                                return {code: item.match[0], rate: item.price.toObject().rate};
+                                            }).toArray();
+                                        mp = Enumerable.from(result)
+                                            .join(Enumerable.from(mp), '$._id.code', '$.code', function (left, right){
+                                                return {
+                                                    code : right.code,
+                                                    rate: right.rate,
+                                                    terminal: left._id.terminal,
+                                                    date: left._id.date,
+                                                    ton: left.cnt,
+                                                    total: left.total,
+                                                    totalPeso: left.totalPeso,
+                                                    totalAgp: left.totalAgp,
+                                                    totalPesoAgp: left.totalPesoAgp
+                                                };
+                                            })
+                                            .orderBy('$.date').thenBy('$.terminal')
+                                            .toArray();
+
+                                        res.status(200).send({status: 'OK', data : mp});
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    function getRatesMonth(req, res) {
+
+        var desde,
+            hasta,
+            _price,
+            _rates,
+            cond;
+
+        if (req.query.fechaInicio === undefined || req.query.fechaFin === undefined) {
+            res.status(401).send({status: "ERROR", message: "Debe proveer parametros de fecha"});
+        } else {
+            desde = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
+            hasta = moment(req.query.fechaFin, 'YYYY-MM-DD').add(1, 'days').toDate();
+
+            VoucherType.find({type: -1}, function (err, vouchertypes){
+                if (err) {
+                    res.status(500).send({status: 'ERROR', data : err.message});
+                } else {
+                    cond = Enumerable.from(vouchertypes)
+                        .select(function (item) {
+                            if (item.type === -1) {
+                                return {$eq: [ "$codTipoComprob", item._id]};
+                            }
+                        }).toArray();
+
+                    _price = require('../include/price.js');
+                    _rates = new _price.price();
+                    _rates.ratePrices(function (err, prices) {
+                        var invoice,
+                            param,
+                            rates;
+
+                        rates = Enumerable.from(prices)
+                            .select('z=>z.code')
+                            .toArray();
+
+                        if (err) {
+                            res.status(500).send({status: 'ERROR', data : err.message});
+                        } else {
+                            param = [
+                                { $match : {
+                                    'fecha.emision': {$gte: desde, $lt: hasta}
+                                }},
+                                { $unwind : '$detalle'},
+                                { $unwind : '$detalle.items'},
+                                { $match : {
+                                    'detalle.items.id' : { $in : rates}
+                                }},
+                                {$project : {
+                                    terminal: '$terminal',
+                                    code: '$detalle.items.id',
+                                    year: {$year: '$fecha.emision'},
+                                    month: {$month: '$fecha.emision'},
+                                    cotiMoneda: '$cotiMoneda',
+                                    cnt: { $cond: [
+                                        {$or : cond },
+                                        {$multiply: ['$detalle.items.cnt', -1]},
+                                        '$detalle.items.cnt'
+                                    ]
+                                    },
+                                    impUnit: '$detalle.items.impUnit',
+                                    impTot: '$detalle.items.impTot'
+                                }}];
+                            invoice = Invoice.aggregate(param);
+
+                            invoice.exec(function (err, data) {
+                                var mp,
+                                    result;
+
+                                if (err) {
+                                    res.status(500).send({status: 'ERROR', data : err.message});
+                                } else {
+
+                                    result = Enumerable.from(data)
+                                        .join(Enumerable.from(prices), '$.code', '$.code', function (tasaInvoice, price) {
+                                            tasaInvoice.impUnitAgp = price.price.topPrices[0].price;
+                                            tasaInvoice.tasa = tasaInvoice.impUnit * tasaInvoice.cnt;
+                                            tasaInvoice.tasaAgp = tasaInvoice.impUnitAgp * tasaInvoice.cnt;
+                                            tasaInvoice.totalTasa = tasaInvoice.tasa * tasaInvoice.cotiMoneda;
+                                            tasaInvoice.totalTasaAgp = tasaInvoice.tasaAgp * tasaInvoice.cotiMoneda;
+                                            return tasaInvoice;
+                                        })
+                                        .groupBy('x=>JSON.stringify({code: x.code, terminal: x.terminal, year: x.year, month: x.month})', null,
+                                        function (key, g) {
+                                            var r;
+                                            key = JSON.parse(key);
+                                            r = {
+                                                _id: {code: key.code, terminal: key.terminal, year: key.year, month: key.month},
+                                                cnt: g.sum("$.cnt"),
+                                                total: g.sum("$.tasa"),
+                                                totalPeso: g.sum("$.totalTasa"),
+                                                totalAgp: g.sum("$.tasaAgp"),
+                                                totalPesoAgp: g.sum("$.totalTasaAgp")
+                                            };
+                                            r.cnt = Math.abs(r.cnt);
+                                            return r;
+                                        }).toArray();
+
+                                    mp = MatchPrice.find({match: {$in: rates}}, {price: true, match : true});
+                                    mp.populate({path: 'price', match: {rate: {$exists: 1}}});
+                                    mp.exec(function (err, dataMatch) {
+
+                                        mp = Enumerable.from(dataMatch)
+                                            .select(function (item) {
+                                                return {code: item.match[0], rate: item.price.toObject().rate};
+                                            }).toArray();
+                                        mp = Enumerable.from(result)
+                                            .join(Enumerable.from(mp), '$._id.code', '$.code', function (left, right){
+                                                return {
+                                                    code : right.code,
+                                                    rate: right.rate,
+                                                    terminal: left._id.terminal,
+                                                    year: left._id.year,
+                                                    month: left._id.month,
+                                                    ton: left.cnt,
+                                                    total: left.total,
+                                                    totalPeso: left.totalPeso,
+                                                    totalAgp: left.totalAgp,
+                                                    totalPesoAgp: left.totalPesoAgp
+                                                };
+                                            }).toArray();
+
+                                        res.status(200).send({status: 'OK', data : mp});
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    function getRatesYear(req, res) {
+
+        var desde,
+            hasta,
+            _price,
+            _rates,
+            cond;
+
+        if (req.query.fechaInicio === undefined || req.query.fechaFin === undefined) {
+            res.status(401).send({status: "ERROR", message: "Debe proveer parametros de fecha"});
+        } else {
+            desde = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
+            hasta = moment(req.query.fechaFin, 'YYYY-MM-DD').add(1, 'days').toDate();
+
+            VoucherType.find({type: -1}, function (err, vouchertypes){
+                if (err) {
+                    res.status(500).send({status: 'ERROR', data : err.message});
+                } else {
+                    cond = Enumerable.from(vouchertypes)
+                        .select(function (item) {
+                            if (item.type === -1) {
+                                return {$eq: [ "$codTipoComprob", item._id]};
+                            }
+                        }).toArray();
+
+                    _price = require('../include/price.js');
+                    _rates = new _price.price();
+                    _rates.ratePrices(function (err, prices) {
+                        var invoice,
+                            param,
+                            rates;
+
+                        rates = Enumerable.from(prices)
+                            .select('z=>z.code')
+                            .toArray();
+
+                        if (err) {
+                            res.status(500).send({status: 'ERROR', data : err.message});
+                        } else {
+                            param = [
+                                { $match : {
+                                    'fecha.emision': {$gte: desde, $lt: hasta}
+                                }},
+                                { $unwind : '$detalle'},
+                                { $unwind : '$detalle.items'},
+                                { $match : {
+                                    'detalle.items.id' : { $in : rates}
+                                }},
+                                {$project : {
+                                    terminal: '$terminal',
+                                    code: '$detalle.items.id',
+                                    year: {$year: '$fecha.emision'},
+                                    cotiMoneda: '$cotiMoneda',
+                                    cnt: { $cond: [
+                                        {$or : cond },
+                                        {$multiply: ['$detalle.items.cnt', -1]},
+                                        '$detalle.items.cnt'
+                                    ]
+                                    },
+                                    impUnit: '$detalle.items.impUnit',
+                                    impTot: '$detalle.items.impTot'
+                                }}];
+                            invoice = Invoice.aggregate(param);
+
+                            invoice.exec(function (err, data) {
+                                var mp,
+                                    result;
+
+                                if (err) {
+                                    res.status(500).send({status: 'ERROR', data : err.message});
+                                } else {
+
+                                    result = Enumerable.from(data)
+                                        .join(Enumerable.from(prices), '$.code', '$.code', function (tasaInvoice, price) {
+                                            tasaInvoice.impUnitAgp = price.price.topPrices[0].price;
+                                            tasaInvoice.tasa = tasaInvoice.impUnit * tasaInvoice.cnt;
+                                            tasaInvoice.tasaAgp = tasaInvoice.impUnitAgp * tasaInvoice.cnt;
+                                            tasaInvoice.totalTasa = tasaInvoice.tasa * tasaInvoice.cotiMoneda;
+                                            tasaInvoice.totalTasaAgp = tasaInvoice.tasaAgp * tasaInvoice.cotiMoneda;
+                                            return tasaInvoice;
+                                        })
+                                        .groupBy('x=>JSON.stringify({code: x.code, terminal: x.terminal, year: x.year})', null,
+                                        function (key, g) {
+                                            var r;
+                                            key = JSON.parse(key);
+                                            r = {
+                                                _id: {code: key.code, terminal: key.terminal, year: key.year},
+                                                cnt: g.sum("$.cnt"),
+                                                total: g.sum("$.tasa"),
+                                                totalPeso: g.sum("$.totalTasa"),
+                                                totalAgp: g.sum("$.tasaAgp"),
+                                                totalPesoAgp: g.sum("$.totalTasaAgp")
+                                            };
+                                            r.cnt = Math.abs(r.cnt);
+                                            return r;
+                                        }).toArray();
+
+                                    mp = MatchPrice.find({match: {$in: rates}}, {price: true, match : true});
+                                    mp.populate({path: 'price', match: {rate: {$exists: 1}}});
+                                    mp.exec(function (err, dataMatch) {
+
+                                        mp = Enumerable.from(dataMatch)
+                                            .select(function (item) {
+                                                return {code: item.match[0], rate: item.price.toObject().rate};
+                                            }).toArray();
+                                        mp = Enumerable.from(result)
+                                            .join(Enumerable.from(mp), '$._id.code', '$.code', function (left, right){
+                                                return {
+                                                    code : right.code,
+                                                    rate: right.rate,
+                                                    terminal: left._id.terminal,
+                                                    year: left._id.year,
+                                                    ton: left.cnt,
+                                                    total: left.total,
+                                                    totalPeso: left.totalPeso,
+                                                    totalAgp: left.totalAgp,
+                                                    totalPesoAgp: left.totalPesoAgp
+                                                };
+                                            })
+                                            .orderBy('$.year')
+                                            .toArray();
+
+                                        res.status(200).send({status: 'OK', data : mp});
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
     }
 
     function getRatesByContainer(req, res) {
@@ -1354,6 +1752,9 @@ module.exports = function(log, io, oracle) {
     router.get('/noRates/:terminal/:skip/:limit', getNoRates);
     router.get('/ratesTotal/:currency', getRatesTotal);
     router.get('/rates', getRatesLiquidacion);
+    router.get('/rates/date', getRatesDate);
+    router.get('/rates/month', getRatesMonth);
+    router.get('/rates/year', getRatesYear);
     router.get('/rates/:terminal/:container/:currency', getRatesByContainer);
     router.get('/noMatches/:terminal/:skip/:limit', getNoMatches);
     router.get('/correlative/:terminal', getCorrelative);
