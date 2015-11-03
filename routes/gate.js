@@ -114,7 +114,10 @@ module.exports = function (log) {
         }
 
         jsonParam = [
-            {$match: { 'gateTimestamp': {$gte: fechaInicio, $lt: fechaFin} }},
+            {$match: {
+                gateTimestamp: {$gte: fechaInicio, $lt: fechaFin},
+                carga: "LL"
+            }},
             { $project: {
                 gateTimestamp : {$subtract: [ '$gateTimestamp', 180 * 60 * 1000]},
                 terminal: '$terminal'
@@ -151,7 +154,10 @@ module.exports = function (log) {
         nextMonth = moment(date).add(1, 'months').toDate();
 
         jsonParam = [
-            {$match: { 'gateTimestamp': {$gte: month5Ago, $lt: nextMonth} }},
+            {$match: {
+                gateTimestamp: {$gte: month5Ago, $lt: nextMonth},
+                carga: 'LL'
+            }},
             { $project : {
                 terminal: '$terminal',
                 gateTimestamp : {$subtract: [ '$gateTimestamp', 180 * 60 * 1000]},
