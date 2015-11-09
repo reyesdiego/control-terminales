@@ -46,6 +46,7 @@ module.exports = function(log, io, oracle) {
         param.estado = req.query.estado;
         param.order = req.query.order;
         param.group = usr.group;
+        param.resend = req.query.resend;
 
         if (skip >= 0 && limit >= 0) {
             param.skip = skip;
@@ -111,36 +112,42 @@ module.exports = function(log, io, oracle) {
         jsonParam.push({
             $group: {
                 _id: {terminal: '$terminal', codTipoComprob: '$codTipoComprob'},
-                total: {$sum: '$importe.total'},
+                total: {$sum: '$total'},
                 cnt: {$sum: 1}
             }
         });
-        jsonParam.push({$project : {_id: false, terminal: '$_id.terminal', codTipoComprob: '$_id.codTipoComprob', cnt : '$cnt'}});
+        jsonParam.push({$project : {_id: false, terminal: '$_id.terminal', codTipoComprob: '$_id.codTipoComprob', cnt : '$cnt', total: '$total'}});
         jsonParam.push({$sort: {'terminal': 1, 'codTipoComprob': 1}});
 
         Invoice.aggregate(jsonParam, function (err, data) {
             if (!err) {
 
                 response = Enumerable.from(data)
-                    .groupBy(function (item) {
-                                return item.codTipoComprob;
-                            },
+                    .groupBy('$.codTipoComprob',
                             function (item) {
                                 return item;
                             },
                             function (job, grouping) {
                                 var grupo = grouping.getSource(),
-                                    tot = grouping.sum(function (item) {
+                                    cnt = grouping.sum(function (item) {
                                         return item.cnt;
+                                    }),
+                                    tot = grouping.sum(function (item) {
+                                        return item.total;
                                     }),
                                     grupoItem = {
                                         codTipoComprob: job,
+                                        cnt: cnt,
                                         total: tot
                                     };
 
                                 grupo.forEach(function (item) {
-                                    var porcen = item.cnt * 100 / tot;
-                                    grupoItem[item.terminal] = [item.cnt, porcen];
+                                    var porcenCnt = item.cnt * 100 / cnt,
+                                        porcenTotal = item.total * 100 / tot;
+
+                                    grupoItem[item.terminal] = {
+                                        cnt: [item.cnt, porcenCnt],
+                                        total: [item.total, porcenTotal]};
                                 });
 
                                 return grupoItem;
@@ -1201,44 +1208,52 @@ module.exports = function(log, io, oracle) {
         var ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
         var param = {terminal:	ter};
 
-        if (req.query.fechaInicio || req.query.fechaFin){
-            param["fecha.emision"]={};
-            if (req.query.fechaInicio){
+        if (req.query.fechaInicio || req.query.fechaFin) {
+            param["fecha.emision"] = {};
+            if (req.query.fechaInicio) {
                 fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
                 param["fecha.emision"]['$gte'] = fecha;
             }
-            if (req.query.fechaFin){
+            if (req.query.fechaFin) {
                 fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
                 param["fecha.emision"]['$lte'] = fecha;
             }
         }
-        if (req.query.nroPtoVenta){
+        if (req.query.nroPtoVenta) {
             param.nroPtoVenta = req.query.nroPtoVenta;
         }
-        if (req.query.codTipoComprob){
+        if (req.query.codTipoComprob) {
             param.codTipoComprob = req.query.codTipoComprob;
         }
-        if (req.query.nroComprobante){
+        if (req.query.nroComprobante) {
             param.nroComprob = req.query.nroComprobante;
         }
-        if (req.query.razonSocial){
+        if (req.query.razonSocial) {
             param.razon = {$regex:req.query.razonSocial}
         }
-        if (req.query.documentoCliente){
+        if (req.query.documentoCliente) {
             param.nroDoc = req.query.documentoCliente;
         }
 
-        if (req.query.contenedor)
+        if (req.query.contenedor) {
             param['detalle.contenedor'] = req.query.contenedor;
+        }
 
-        if (req.query.buqueNombre)
+        if (req.query.buqueNombre) {
             param['detalle.buque.nombre'] = req.query.buqueNombre;
+        }
 
-        if (req.query.viaje)
+        if (req.query.viaje) {
             param['detalle.buque.viaje'] = req.query.viaje;
+        }
 
-        if (req.query.code)
+        if (req.query.code) {
             param['detalle.items.id'] = req.query.code;
+        }
+
+        if (req.query.resend) {
+            param.resend = req.query.resend;
+        }
 
         if (req.query.estado){
             var states = req.query.estado.split(",");
@@ -1259,14 +1274,15 @@ module.exports = function(log, io, oracle) {
 
     function updateInvoice (req, res) {
 
-        var usr = req.usr;
+        var usr = req.usr,
+            errMsg;
 
-        var param = {_id: req.params._id, terminal: paramTerminal};
+        var param = {_id: req.params._id, terminal: req.params.terminal};
         Invoice.findOneAndUpdate(param, { $set: req.body}, null, function (err, data) {
             if  (err) {
-                var errMsg = util.format("%s", err.error);
+                errMsg = util.format("%s", err.error);
                 log.logger.error(errMsg);
-                res.status(500).send({status: "ERROR", data: errMsg});
+                res.status(500).send({status: "ERROR", message: errMsg});
             } else {
                 res.status(200).send({"status": "OK", "data": data})
             }

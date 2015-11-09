@@ -3,7 +3,7 @@
  */
 
 
-module.exports.validation = function (data) {
+module.exports.validation = function (data, custom) {
 
     var Validr = require('validr'),
         moment = require('moment');
@@ -11,7 +11,13 @@ module.exports.validation = function (data) {
 //trimBody = require('trim-body');
 
 //trimBody(req.body);
-    var validate = new Validr(data);
+    var validate;
+    if (custom !== undefined) {
+        validate = new Validr(data, custom);
+    }
+    else {
+        validate = new Validr(data);
+    }
 
     validate._validator.__proto__.isDate = function () {
         var msg='';

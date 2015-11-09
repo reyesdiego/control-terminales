@@ -40,6 +40,7 @@ appointment.statics.insert = function (appointment, cb) {
 }
 
 appointment.pre('save', function (next, done) {
+    /*
     var self = this;
     var moment = require("moment"),
         alta,
@@ -65,6 +66,7 @@ appointment.pre('save', function (next, done) {
                 }
         });
     }
+    */
     next();
 });
 

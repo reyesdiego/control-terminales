@@ -21,12 +21,17 @@ module.exports = function (log, oracle) {
     }
 
     function getRegistro1AfectacionCSV(req, res) {
-        getRegistro1Afectacion(req, function (err, result){
-            var response = "ID|TIPO_REGISTRO|AFECTACION|AFE_ANIO|AFE_ADUANA|AFE_TIPO|AFE_NRO|AFE_LETRA_CTRL|CUITATA|NOMBREATA|ESTADO|PROCESO|FECHA_REGISTRO|CUITIMPO|ADUANA_LLEGADA_SALIDA|PAISDESTINO|DIASPLAZOTRANSPORTE|TRANSPORTISTA|PAISTRANSPORTISTA|MOTIVOAFECTACION|IDENTIFICADORMOTIVOMICDTA|SUMARIA|SUM_ANIO|SUM_ADUANA|SUM_TIPO|SUM_NRO|SUM_LETRA_CTRL|MEDIOTRANSPORTEINTERNO|NACMEDIOTRANSPINTERNO|MATRICULAMEDIOTRANSPINTERNO|LUGAROPERATIVO|LUGARDEGIRO|NOMBREBUQUE|COMENTARIO|REGISTRADO_POR|REGISTRADO_EN\n";
+        getRegistro1Afectacion(req, function (err, result) {
+            var columns = [],
+                response = "";
 
             if (err) {
                 res.status(500).send(err);
             } else {
+                result.metaData.forEach(function (item){
+                    columns.push(item.name);
+                });
+                response = columns.join('|') + '\n';
                 result.data.forEach(function (item) {
                     response = response +
                             item.join('|') +
@@ -159,7 +164,7 @@ module.exports = function (log, oracle) {
                                     status: 'OK',
                                     totalCount: total,
                                     pageCount: (limit > total) ? total : limit,
-                                    metadata: data.metaData,
+                                    metaData: data.metaData,
                                     data: data.rows
                                 };
                                 return callback(undefined, result);

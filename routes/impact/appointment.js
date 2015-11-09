@@ -16,7 +16,11 @@ module.exports = function (log, io) {
     function validateSanitize(req, res, next) {
         var errors;
         var Validr = require('../../include/validation.js');
-        var validate = new Validr.validation(req.body);
+        var validate = new Validr.validation(req.body, {
+            isContainer: function (container) {
+                return /\D{4}\d{7}/.test(container);
+            }
+        });
 
         // use string with dot-notation to validate nested fields
         validate
@@ -57,6 +61,12 @@ module.exports = function (log, io) {
             .validate('disponibles_t1', 'disponible_t1 must be an integer')
             .isInt();
         validate
+            .validate('user', {
+                isIn: 'user must be in "CLIENTE" or "TERMINAL" values.'
+            }, {ignoreEmpty: true})
+            .isLength(1)
+            .isIn(['CLIENTE', 'TERMINAL']);
+        validate
             .validate('verifica', 'verifica must be a valid date', {ignoreEmpty: true})
             .isDate();
         validate
@@ -67,7 +77,11 @@ module.exports = function (log, io) {
             .isIn(['PISO', 'CAMION']);
         validate
             .validate('email', 'email must be a valid email account.', {ignoreEmpty: true})
-            .isEmail()
+            .isEmail();
+        validate
+            .validate('contenedor', 'container is not valid')
+            .isLength(1)
+            .isContainer();
 
         errors = validate.validationErrors();
         if (errors) {

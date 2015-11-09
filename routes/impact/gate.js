@@ -15,7 +15,14 @@ module.exports = function (log, io) {
     function validateSanitize(req, res, next) {
         var errors;
         var Validr = require('../../include/validation.js');
-        var validate = new Validr.validation(req.body);
+        var validate = new Validr.validation(req.body, {
+            isContainer: function (container) {
+                return /\D{4}\d{7}/.test(container);
+            },
+            isLicensePlate: function (license) {
+                return /\D{3}\d{3}/.test(license);
+            }
+        });
 
         validate
             .validate('buque', 'buque is required.')
@@ -25,21 +32,21 @@ module.exports = function (log, io) {
             .isLength(1);
         validate
             .validate('mov', {
-                isLenght: 'mov is required.',
+                isLength: 'mov is required.',
                 isIn: 'mov must be in "IMPO" or "EXPO" or "PASO" values.'
             })
             .isLength(1)
             .isIn(['EXPO', 'IMPO', 'PASO']);
         validate
             .validate('tipo', {
-                isLenght: 'tipo is required.',
+                isLength: 'tipo is required.',
                 isIn: 'tipo must be in "IN" or "OUT" values.'
             })
             .isLength(1)
             .isIn(['IN', 'OUT']);
         validate
             .validate('carga', {
-                isLenght: 'carga is required.',
+                isLength: 'carga is required.',
                 isIn: 'carga must be in "VA" or "LL" or "NO" values.'
             })
             .isLength(1)
@@ -47,6 +54,7 @@ module.exports = function (log, io) {
         validate
             .validate('patenteCamion', 'patenteCamion is invalid.', {ignoreEmpty: true})
             .isLength(1, 6, 6)
+            .isLicensePlate();
         validate
             .validate('gateTimestamp', {
                 isLength: 'gateTimestamp is required.',
@@ -55,19 +63,14 @@ module.exports = function (log, io) {
             .isLength(1)
             .isDate();
         validate
-            .validate('turnoInicio', {
-                isLength: 'turnoInicio is required.',
-                isDate: 'turnoInicio must be a valid date'
-            })
-            .isLength(1)
+            .validate('turnoInicio', 'turnoInicio must be a valid date', {ignoreEmpty: true})
             .isDate();
         validate
-            .validate('turnoFin', {
-                isLength: 'turnoFin is required.',
-                isDate: 'turnoFin must be a valid date'
-            })
-            .isLength(1)
+            .validate('turnoFin', 'turnoFin must be a valid date', {ignoreEmpty: true})
             .isDate();
+        validate
+            .validate('contenedor', 'Contenedor is invalid', {ignoreEmpty: true})
+            .isContainer();
 
         errors = validate.validationErrors();
         if (errors) {
