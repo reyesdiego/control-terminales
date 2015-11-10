@@ -21,15 +21,15 @@ module.exports = function (log, app, pool) {
         });
     }
 
-    app.all('/afip*', function (req, res, next) {
-       log.logger.info('AFIP %s', req.originalUrl);
-        if ('OPTIONS' === req.method) {
-            res.status(200).send();
-        } else {
-            next();
-        }
-
-    });
+    //app.all('/afip*', function (req, res, next) {
+    //
+    //    if ('OPTIONS' === req.method) {
+    //        res.status(200).send();
+    //    } else {
+    //        next();
+    //    }
+    //
+    //});
 
     var registro1_afectacion = require('./registro1_afectacion')(log, pool);
     app.use('/afip', isValidToken, registro1_afectacion);
@@ -104,4 +104,3 @@ module.exports = function (log, app, pool) {
     app.use('/afip', isValidToken, registro5_sumExpoMane);
 
 }
-
