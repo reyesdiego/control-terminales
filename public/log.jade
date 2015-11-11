@@ -28,7 +28,7 @@ html(lang='es')
                     td(style="width:80px; border:1px solid grey; vertical-align:top; padding-left: 5px; padding-right: 5px")
                         div(style="text-align:center; font-weight: #{color}")="#" + json[line].pid
                     td(style="border:1px solid grey; vertical-align:top; padding-left: 5px; padding-right: 5px")
-                        div(style=" width: 150px; vertical-align:top")=moment(json[line].timestamp, "YYYY-MM-DD HH:mm:ss:SSS").format('YYYY-MM-DD HH:mm:ss.SSS')
+                        div(style=" width: 150px; vertical-align:top")=moment(json[line].timestamp, "YYYY-MM-DD HH:mm:ss:SSS Z").format('YYYY-MM-DD HH:mm:ss.SSS')
                     - if (json[line].level === 'info') {
                         td(style="color:green;border:1px solid grey; padding:2px; vertical-align:top")
                             div(style="width:80px; text-align:center")=json[line].level
