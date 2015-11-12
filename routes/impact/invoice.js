@@ -371,8 +371,8 @@ module.exports = function (log, io) {
                         nroPtoVenta: invoice.nroPtoVenta
                     }, function (err, invoices) {
 
-                        var estado = invoices[0].estado[invoices[0].estado.length - 1].estado;
-                        if (estado === 'E') {
+                        var estado = invoices[0].resend;
+                        if (estado === 1) {
                             Invoice.remove({_id : invoices[0]._id}, function (err, delInvoice) {
                                 log.logger.delete('Se eliminó el comprobante %s para ser retransferido.', invoices[0]._id.toString());
                                 Comment.remove({invoice: invoices[0]._id}, function (errComment, delComment) {
