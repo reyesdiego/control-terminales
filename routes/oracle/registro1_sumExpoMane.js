@@ -174,52 +174,41 @@ module.exports = function (log, oracle) {
 
     function getByContenedor(req, res) {
         oracle.pool.getConnection(function (err, connection) {
-            var strSql;
+            var strSql,
+                result;
 
             if (err) {
                 console.log(err, "Error acquiring from pool.");
                 res.status(500).json({ status: 'ERROR', data: err });
             } else {
-                strSql = "select sumaria, conocimiento " +
-                    "   from registro4_sumexpomane " +
-                    "   where contenedor = :1";
+                strSql = 'SELECT r1.SUMARIA, ' +
+                    'SUBSTR( r1.SUMARIA, 0, 2) as SUM_ANIO, ' +
+                    'SUBSTR( r1.SUMARIA, 3, 3) as SUM_ADUANA, ' +
+                    'SUBSTR( r1.SUMARIA, 6, 4) as SUM_TIPO, ' +
+                    'SUBSTR( r1.SUMARIA, 10, 6) as SUM_NRO, ' +
+                    'SUBSTR( r1.SUMARIA, 16, 1) as SUM_LETRA_CTRL, ' +
+                    'r2.CONOCIMIENTO, FECHAREGISTRO, FECHAARRIBO, NOMBREBUQUE BUQUE, PESO, p1.NAME P_PROCEDENCIA,' +
+                    'r1.REGISTRADO_POR, r1.REGISTRADO_EN ' +
+                    'FROM REGISTRO1_SUMEXPOMANE r1 ' +
+                    'INNER JOIN REGISTRO2_SUMEXPOMANE r2 ON r1.SUMARIA = r2.SUMARIA ' +
+                    'INNER JOIN REGISTRO3_SUMEXPOMANE r3 ON r2.CONOCIMIENTO = r3.CONOCIMIENTO ' +
+                    'INNER JOIN COUNTRIES p1 on p1.ID = PAISPROCEDENCIA ' +
+                    'WHERE r2.CONOCIMIENTO IN ( ' +
+                    '   SELECT CONOCIMIENTO ' +
+                    '   FROM REGISTRO4_SUMEXPOMANE ' +
+                    '   WHERE CONTENEDOR = :1 )';
 
-                connection.execute(strSql, [req.params.contenedor], function (err, dataSum) {
+                connection.execute(strSql, [req.params.contenedor], function (err, data) {
                     if (err) {
                         oracle.doRelease(connection);
                         res.status(500).send({ status: 'ERROR', data: err.message });
                     } else {
-                        strSql = 'SELECT r1.SUMARIA, ' +
-                            'SUBSTR( r1.SUMARIA, 0, 2) as SUM_ANIO, ' +
-                            'SUBSTR( r1.SUMARIA, 3, 3) as SUM_ADUANA, ' +
-                            'SUBSTR( r1.SUMARIA, 6, 4) as SUM_TIPO, ' +
-                            'SUBSTR( r1.SUMARIA, 10, 6) as SUM_NRO, ' +
-                            'SUBSTR( r1.SUMARIA, 16, 1) as SUM_LETRA_CTRL, ' +
-                            'r2.CONOCIMIENTO, FECHAREGISTRO, FECHAARRIBO, NOMBREBUQUE BUQUE, PESO, p1.NOMBRE P_PROCEDENCIA,' +
-                            'r1.REGISTRADO_POR, r1.REGISTRADO_EN ' +
-                            'FROM REGISTRO1_SUMEXPOMANE r1 ' +
-                            'INNER JOIN REGISTRO2_SUMEXPOMANE r2 ON r1.SUMARIA = r2.SUMARIA ' +
-                            'INNER JOIN REGISTRO3_SUMEXPOMANE r3 ON r2.CONOCIMIENTO = r3.CONOCIMIENTO ' +
-                            'INNER JOIN PAISES p1 on p1.ID = PAISPROCEDENCIA ' +
-                            'WHERE r2.SUMARIA = :1 ';
-
-                        var result;
-                        if (dataSum.rows.length > 0) {
-                            connection.execute(strSql, [dataSum.rows[0].SUMARIA], function (err, data) {
-                                oracle.doRelease(connection);
-                                result = {
-                                    status: 'OK',
-                                    data: data.rows
-                                };
-                                res.status(200).json(result);
-                            });
-                        } else {
-                            result = {
-                                status: 'OK',
-                                data: []
-                            };
-                            res.status(200).json(result);
-                        }
+                        oracle.doRelease(connection);
+                        result = {
+                            status: 'OK',
+                            data: data.rows
+                        };
+                        res.status(200).json(result);
                     }
                 });
             }
