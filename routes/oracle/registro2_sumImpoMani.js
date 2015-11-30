@@ -53,7 +53,7 @@ module.exports = function (log, oracle) {
                     "   FROM V_REGISTRO2_SUMIMPOMANI %s )" +
                     "WHERE R BETWEEN :1 and :2";
 
-                if (req.query.sumaria || req.query.conocimiento) {
+                if (req.query.sumaria || req.query.conocimiento || req.query.transbordo) {
                     strWhere += " WHERE ";
                 }
 
@@ -63,6 +63,10 @@ module.exports = function (log, oracle) {
 
                 if (req.query.conocimiento) {
                     strWhere += util.format(" CONOCIMIENTO = '%s' AND ", req.query.conocimiento);
+                }
+
+                if (req.query.transbordo) {
+                    strWhere += util.format(" TRANSITO_TRANSBORDO = '%s' AND ", req.query.transbordo);
                 }
 
                 strWhere = strWhere.substr(0, strWhere.length - 4);
