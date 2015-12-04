@@ -174,7 +174,7 @@ module.exports = function (log, oracle) {
                     'r1.REGISTRADO_POR, r1.REGISTRADO_EN ' +
                     'FROM REGISTRO1_SUMIMPOMANI r1 ' +
                     'INNER JOIN REGISTRO2_SUMIMPOMANI r2 ON r1.SUMARIA = r2.SUMARIA ' +
-                    'INNER JOIN REGISTRO3_SUMIMPOMANI r3 ON r2.CONOCIMIENTO = r3.CONOCIMIENTO ' +
+                    'INNER JOIN REGISTRO3_SUMIMPOMANI r3 ON r1.SUMARIA = r3.SUMARIA AND r2.CONOCIMIENTO = r3.CONOCIMIENTO ' +
                     'INNER JOIN COUNTRIES p1 on p1.ID = PAISPROCEDENCIA ' +
                     'WHERE r2.CONOCIMIENTO IN ( ' +
                     '   SELECT CONOCIMIENTO ' +
