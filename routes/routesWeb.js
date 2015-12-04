@@ -78,5 +78,35 @@ module.exports = function (log, app, io, pool, params) {
     voucherType = require('./voucherType')(log);
     app.use('/voucherTypes', isValidToken, voucherType);
 
+
+
+    app.post('/sendMail', isValidToken, function (req, res) {
+
+        var config = require("../config/config.js");
+        var mail = require("../include/emailjs");
+
+        var param = req.body;
+        var html = {
+            data : param.html,
+            alternative: true
+        }
+
+        mail = new mail.mail(config.email);
+
+        mail.send(param.to, param.subject, html, function (err, data) {
+
+
+            if (err) {
+                res.status(500).send(err);
+            } else {
+                res.status(200).send(data);
+            }
+        });
+
+
+
+
+    });
+
 }
 
