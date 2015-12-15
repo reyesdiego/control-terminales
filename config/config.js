@@ -24,7 +24,7 @@ module.exports = {
         host:    "10.10.0.170",
         port: "25",
         domain: "puertobuenosaires.gob.ar",
-        from: "Administración General de Puertos <noreply@puertobuenosaires.gov.ar>",
+        from: "Administración General de Puertos <noreply@puertobuenosaires.gob.ar>",
         ssl:     false,
         status: true,
         throughBcc: true
@@ -35,7 +35,7 @@ module.exports = {
         host:    "10.10.0.170",
         port: "25",
         domain: "puertobuenosaires.gob.ar",
-        from: "Administración General de Puertos <noreply@puertobuenosaires.gov.ar>",
+        from: "Administración General de Puertos <noreply@puertobuenosaires.gob.ar>",
         ssl:     false,
         status: true,
         throughBcc: true
@@ -44,8 +44,14 @@ module.exports = {
         path: 'log/',
         filename: 'nohup.out',
         toConsole: true,
-        toFile: true
+        toFile: false
     },
+    //'mongo_url': 'mongodb://10.1.0.60:27017/terapi',
+    //'mongo_opts': {
+    //    user: 'admin',
+    //    pass: 'Pt trend 54',
+    //    auth: {authdb: "admin"}
+    //},
     'mongo_url': 'mongodb://localhost:27017/terapi',
     'mongo_opts': {
         user: 'admin',

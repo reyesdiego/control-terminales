@@ -7,18 +7,23 @@ var options = {
     host:    "10.10.0.170",
     port: "25",
     domain: "puertobuenosaires.gob.ar",
+    from: "Administración General de Puertos <noreply@puertobuenosaires.gob.ar>",
     ssl:     false,
     status: true,
     throughBcc: false
 }
 
-var emailConfig = Object.create(config.email);
-console.log(config.email)
-console.log(emailConfig);
-mail = new mail.mail(emailConfig);
+//var emailConfig = Object.create(config.email);
+//var emailConfig = Object.create(options);
+//console.log(config.email)
+console.log(options);
+mail = new mail.mail(options);
 
-mail.send("reyesdiego@hotmail.com", "hola", "mensaje", function (err, meba) {
-    console.error(err);
-    console.log(meba);
-})
-return
+mail.send("dreyes@puertobuenosaires.gob.ar", "hola", "mensaje", function (err, meba) {
+    if (err) {
+        console.error(err);
+    } else {
+        console.log(meba);
+    }
+    process.exit();
+});

@@ -4,7 +4,7 @@
   "dependencies": {
     "async": "0.9.0",
     "compression": "^1.5.2",
-    "emailjs": "^0.3.8",
+    "emailjs": "^1.0.1",
     "express": "^3.20.1",
     "generic-pool": "^2.2.0",
     "imap": "^0.8.14",
