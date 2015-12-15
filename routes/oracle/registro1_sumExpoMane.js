@@ -137,7 +137,7 @@ module.exports = function (log, oracle) {
                 console.log(err, "Error acquiring from pool.");
                 res.status(500).json({ status: 'ERROR', data: err });
             } else {
-                strSql = util.format("SELECT DISTINCT %s as D FROM REGISTRO1_SUMEXPOMANE ORDER BY %s", distinct, distinct);
+                strSql = util.format("SELECT DISTINCT %s as D FROM REGISTRO1_SUMEXPOMANE WHERE %s is not null ORDER BY %s", distinct, distinct, distinct);
             }
 
             connection.execute(strSql, [], function (err, data) {
