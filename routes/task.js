@@ -21,6 +21,7 @@ module.exports = function (log) {
             } else {
                 result = {
                     status: 'OK',
+                    totalCount: data.length,
                     data: data
                 };
                 res.status(200).send(result);

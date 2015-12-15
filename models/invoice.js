@@ -144,4 +144,4 @@ detalleSchema.pre('save', function (next, done) {
 
 });
 
-module.exports = mongoose.model('invoice', invoiceSchema);
+module.exports = mongoose.model('invoices', invoiceSchema);

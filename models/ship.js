@@ -13,4 +13,4 @@ var ship = new mongoose.Schema({
     }]
 });
 
-module.exports = mongoose.model('ship', ship);
+module.exports = mongoose.model('ships', ship);

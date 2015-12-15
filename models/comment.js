@@ -15,4 +15,4 @@ var commentSchema = new schema({
     invoice: {type: mongoose.Schema.ObjectId, ref: 'invoices'}
 });
 
-module.exports = mongoose.model('comment', commentSchema);
+module.exports = mongoose.model('comments', commentSchema);

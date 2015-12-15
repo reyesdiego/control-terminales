@@ -299,4 +299,4 @@ Account.statics.findEmailToAppByUser = function (user, app, cb) {
     });
 };
 
-module.exports = mongoose.model('Account', Account);
+module.exports = mongoose.model('accounts', Account);

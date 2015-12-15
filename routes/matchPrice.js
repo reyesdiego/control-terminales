@@ -38,11 +38,15 @@ module.exports = function (log) {
             .populate({path: 'matches', match: {"terminal": paramTerminal}})
             .sort({terminal: 1, code: 1})
             .exec(function (err, prices) {
-                if (!err) {
-                    res.status(200).send({status: 'OK', data: prices});
-                } else {
+                if (err) {
                     log.logger.error('Error: %s', err.message);
                     res.status(500).send({status: 'ERROR', data: err.message});
+                } else {
+                    res.status(200).send({
+                        status: 'OK',
+                        totalCount: prices.length,
+                        data: prices
+                    });
                 }
             });
     }
