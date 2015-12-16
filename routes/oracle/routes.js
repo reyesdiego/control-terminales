@@ -31,6 +31,9 @@ module.exports = function (log, app, pool) {
     //
     //});
 
+    var dollar = require('./dollar.js')(log, pool);
+    app.use('/afip', dollar);
+
     var registro1_afectacion = require('./registro1_afectacion')(log, pool);
     app.use('/afip', isValidToken, registro1_afectacion);
 
