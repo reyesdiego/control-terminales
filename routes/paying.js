@@ -415,8 +415,8 @@ module.exports = function (log) {
                                     })
                                     .orderByDescending('$.from')
                                     .toArray();
+                                tasaInvoice.type = price.price._doc.rate;
                                 price.price.topPrices = top[0];
-
                                 tasaInvoice.impUnitAgp = price.price.topPrices[0].price;
                                 tasaInvoice.tasa = tasaInvoice.impUnit * tasaInvoice.cnt;
                                 tasaInvoice.tasaAgp = tasaInvoice.impUnitAgp * tasaInvoice.cnt;
@@ -558,7 +558,7 @@ module.exports = function (log) {
                         data: payment
                     });
                 } else {
-                    calculatePrePayment(paramTerminal, payment._id, function (err, prePayment) {
+                    calculatePrePayment({terminal: paramTerminal, payment: payment._id}, function (err, prePayment) {
                         var detail;
                         payment.number = ++nextPaymentNumber;
                         payment.date = Date.now();
@@ -566,7 +566,7 @@ module.exports = function (log) {
                         prePayment.forEach(function (item) {
                             detail = {
                                 _id: item._id.code,
-                                cant: item.tons,
+                                cant: item.cnt,
                                 totalDol: item.total,
                                 totalPes: item.totalPeso,
                                 iva: item.totalPeso * 21 / 100,
