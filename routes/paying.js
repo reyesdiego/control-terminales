@@ -255,12 +255,48 @@ module.exports = function (log) {
     }
 
     function getNotPayed(req, res) {
-        var paginated = true;
+        var paginated = true,
+            download = false;
+
+        if (req.route.path.indexOf('/download') > 0) {
+            paginated = false;
+            download = true;
+        }
         _getNotPayed(req, paginated, function (err, data) {
             if (err) {
                 res.status(500).send({status: "ERROR", message: err.message, data: null});
             } else {
-                res.status(200).send({status: "OK", totalCount: data.totalCount, data: data.data});
+
+                if (download) {
+                    var response = "FECHA|PTO_VENTA|BUQUE|RAZON|COTI_MONEDA|IMP_UNIT|TASA\n";
+                    data.data.forEach(function (item) {
+                        response = response +
+                            moment(item.emision).format("DD/MM/YYYY") +
+                            "|" +
+                            item.nroPtoVenta +
+                            "|" +
+                            item.buque +
+                            "|" +
+                            item.razon +
+                            "|" +
+                            item.cotiMoneda +
+                            "|" +
+                            item.impUnit +
+                            "|" +
+                            item.tasa +
+                            "\n";
+                    });
+                    res.header('content-type', 'text/csv');
+                    res.header('content-disposition', 'attachment; filename=report.csv');
+                    res.status(200).send(response);
+                } else {
+                        res.status(200).send({
+                            status: "OK",
+                            totalCount: (data.totalCount) ? data.totalCount : data.data.length,
+                            data: data.data
+                        });
+                    }
+
             }
         });
     }
@@ -676,6 +712,7 @@ module.exports = function (log) {
 
     router.get('/payed/:terminal/:_id/:skip/:limit', getPayed);
     router.get('/notPayed/:terminal/:skip/:limit', getNotPayed);
+    router.get('/notPayed/:terminal/download', getNotPayed);
     router.get('/payments/:terminal/:skip/:limit', getPayments);
     router.get('/prePayments/:terminal/:skip/:limit', getPayments);
 
