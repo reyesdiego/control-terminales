@@ -256,7 +256,8 @@ module.exports = function (log) {
 
     function getNotPayed(req, res) {
         var paginated = true,
-            download = false;
+            download = false,
+            response;
 
         if (req.route.path.indexOf('/download') > 0) {
             paginated = false;
@@ -268,22 +269,34 @@ module.exports = function (log) {
             } else {
 
                 if (download) {
-                    var response = "FECHA|PTO_VENTA|BUQUE|RAZON|COTI_MONEDA|IMP_UNIT|TASA\n";
+                    if (req.query.byContainer === '1') {
+                        response = "FECHA|TIPO|BUQUE|RAZON|CONTENEDOR|TONELADAS|TARIFA|TASA|COTI_MONEDA|TOTAL\n";
+                    } else {
+                        response = "FECHA|TIPO|BUQUE|RAZON|TONELADAS|TARIFA|TASA|COTI_MONEDA|TOTAL\n";
+                    }
                     data.data.forEach(function (item) {
                         response = response +
                             moment(item.emision).format("DD/MM/YYYY") +
                             "|" +
-                            item.nroPtoVenta +
+                            global.cache.voucherTypes[item.codTipoComprob] +
                             "|" +
                             item.buque +
                             "|" +
-                            item.razon +
-                            "|" +
-                            item.cotiMoneda +
+                            item.razon;
+                        if (req.query.byContainer === '1') {
+                            response = response + "|" +
+                                    item.container;
+                        }
+                        response = response + "|" +
+                            item.cnt +
                             "|" +
                             item.impUnit +
                             "|" +
                             item.tasa +
+                            "|" +
+                            item.cotiMoneda +
+                            "|" +
+                            item.totalTasa +
                             "\n";
                     });
                     res.header('content-type', 'text/csv');
