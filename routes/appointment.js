@@ -194,7 +194,7 @@ module.exports = function (log) {
                     res.status(500).send({status: 'ERROR', data: err.message});
                 } else {
                     if (data.length === 1) {
-                        Account.findOne({terminal: data[0].terminal}, function (err, account) {
+                        Account.findOne({full_name : {$nin: ["Daniel Bruzon"]}, terminal: data[0].terminal}, function (err, account) {
                             data[0].full_name = account.full_name;
                             res.render('comprobanteTurno.jade', data[0], function (err, html) {
                                 res.status(200).send(html);
