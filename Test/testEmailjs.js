@@ -5,13 +5,14 @@ var fs = require('fs');
 //var privateKey = fs.readFileSync('exchange_new.pfx' );
 
 var options = {
-    user:    "noreply",
-    password: "desarrollo",
+    user:    "",
+    password: "",
     host:    "10.10.0.176",
-    port: "587",
+    port: "25",
 //    domain: "puertobuenosaires.gob.ar",
-    domain: "agp",
-    from: "Administración General de Puertos <noreply@puertobuenosaires.gob.ar>",
+    domain: "",
+//    from: "Administración General de Puertos <noreply@puertobuenosaires.gob.ar>",
+    from: "Diego <dreyes@puertobuenosaires.gob.ar>",
     ssl: false,
     status: true,
     throughBcc: false
@@ -21,7 +22,7 @@ var options = {
 //var emailConfig = Object.create(config.email);
 //var emailConfig = Object.create(options);
 //console.log(config.email)
-console.log(options);
+//console.log(options);
 mail = new mail.mail(options);
 
 mail.send("reyesdiego@hotmail.com", "hola", "mensaje", function (err, meba) {

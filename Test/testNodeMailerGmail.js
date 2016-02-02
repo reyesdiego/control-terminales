@@ -3,20 +3,68 @@
  */
 
 var nodemailer = require('nodemailer');
+var smtpTransport = require('nodemailer-smtp-transport');
+
+var transporter = nodemailer.createTransport(smtpTransport({
+    host: '10.10.0.176',
+    port: 25,
+    //secure: false,
+    //debug: true,
+    //ignoreTLS: true,
+    //localAddress: "10.1.0.61",
+    /*auth: {
+        user: '',
+        pass: ''
+    }*/
+}));
+
+transporter.sendMail({
+    from: 'noreply@puertobuenosaires.gob.ar',
+    to: 'reyesdieXX95go@hotmail.com',
+    subject: 'hello world!',
+    text: 'Authenticated with OAuth2'
+}, function(error, response) {
+    if (error) {
+        console.log(error);
+    } else {
+        console.log('Message sent %s', JSON.stringify(response));
+    }
+});
 
 // create reusable transporter object using SMTP transport
 
 /*
 var transporter = nodemailer.createTransport({
-    service: 'Gmail',
+cd Te    service: 'Gmail',
     auth: {
         user: 'reyesdiego@hotmail.com',
         pass: ''
     }
 });
 */
+/*
+var transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'reyesdiego3060@gmail.com',
+        pass: 'gcomputer'
+    }
+}, {
+    // default values for sendMail method
+    from: 'reyesdiego3060@gmail.com',
+    headers: {
+        'My-Awesome-Header': '123'
+    }
+});
+transporter.sendMail({
+    to: 'reyesdiego@hotmail.com',
+    subject: 'hello',
+    text: 'hello world!'
+});
+*/
 
 
+/*
 var transporter = nodemailer.createTransport({
     host: "10.10.0.176", // hostname
     secureConnection: false, // use SSL
@@ -50,4 +98,4 @@ transporter.sendMail(mailOptions, function(error, info){
     }
     console.log('Message sent: ' + info.response);
 
-});
+});*/
