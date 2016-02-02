@@ -51,10 +51,12 @@ module.exports = function(log, io, oracle) {
         if (skip >= 0 && limit >= 0) {
             param.skip = skip;
             param.limit = limit;
+            log.time("tiempo");
             inv.getInvoices(param, function (err, result) {
                 if (err) {
                     res.status(500).send({status: "ERROR", data: err.message});
                 } else {
+                    result.time = log.timeEnd("tiempo");
                     res.status(200).send(result);
                 }
             });
@@ -1094,6 +1096,8 @@ module.exports = function(log, io, oracle) {
             contadorFaltantesTotal,
             async;
 
+        log.time("totalTime");
+
         if (usr.role === 'agp') {
             param.terminal = req.params.terminal;
         } else {
@@ -1128,14 +1132,18 @@ module.exports = function(log, io, oracle) {
         cashBoxes.forEach(function (cash) {
             //funcion que calcula la correlatividad por cada caja que sera ejecutada en paralelo con async
             var cashboxExec = function (callback) {
-                var invoices;
+                var invoices,
+                    logTimeBase;
                 param.nroPtoVenta = parseInt(cash, 10);
 
                 invoices = Invoice.find(param, {nroComprob: 1, 'fecha.emision': 1, _id: 0});
                 invoices.sort({nroComprob: 1});
-                //invoices.lean();
+                invoices.lean();
+
+                log.time("logTimeBase");
                 invoices.exec(function (err, invoicesData) {
-                    var faltantes = [],
+                    var fecha,
+                        faltantes = [],
                         control = 0,
                         contadorFaltantes = 0,
                         result,
@@ -1151,15 +1159,16 @@ module.exports = function(log, io, oracle) {
                             } else {
                                 control += 1;
                                 if (control !== invoice.nroComprob) {
+                                    fecha = moment(invoice.fecha.emision).format("YYYY-MM-DD");
                                     if (invoice.nroComprob - control > 3) {
                                         dif = (invoice.nroComprob) - control;
                                         contadorFaltantes+= dif;
                                         item2Add = util.format('[%d a %d] (%d)', control, (invoice.nroComprob - 1), dif);
-                                        faltantes.push({n: item2Add, d: invoice.fecha.emision});
+                                        faltantes.push({n: item2Add, d: fecha});
                                     } else {
                                         len=invoice.nroComprob;
                                         for (i=control; i<len; i++){
-                                            faltantes.push({n: i.toString(), d: invoice.fecha.emision});
+                                            faltantes.push({n: i.toString(), d: fecha});
                                             contadorFaltantes++;
                                         }
                                     }
@@ -1172,7 +1181,8 @@ module.exports = function(log, io, oracle) {
                             status: 'OK',
                             nroPtoVenta: cash,
                             totalCount: contadorFaltantes,
-                            data: faltantes
+                            data: faltantes,
+                            time: log.timeEnd("logTimeBase")
                         };
                         //io.sockets.emit('correlative', result);
                         io.sockets.emit('correlative_'+req.query.x, result);
@@ -1192,9 +1202,11 @@ module.exports = function(log, io, oracle) {
             var response = {
                 status: "OK",
                 totalCount: contadorFaltantesTotal,
-                data: results
+                data: results,
+                time: log.timeEnd("totalTime")
             };
             res.status(200).send(response);
+
         });
 
     }
