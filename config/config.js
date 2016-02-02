@@ -19,22 +19,22 @@ module.exports = {
     'url': "http://10.10.0.223:8080",
     'domain': "10.10.0.223",
     'emailTurnos': {
-        user:    "noreply",
-        password: "desarrollo",
-        host:    "10.10.0.170",
+        user:    "",
+        password: "",
+        host:    "10.10.0.176",
         port: "25",
-        domain: "puertobuenosaires.gob.ar",
+        domain: "",
         from: "Administración General de Puertos <noreply@puertobuenosaires.gob.ar>",
         ssl:     false,
         status: true,
         throughBcc: true
     },
     'email': {
-        user:    "noreply",
-        password: "desarrollo",
-        host:    "10.10.0.170",
+        user:    "",
+        password: "",
+        host:    "10.10.0.176",
         port: "25",
-        domain: "puertobuenosaires.gob.ar",
+        domain: "",
         from: "Administración General de Puertos <noreply@puertobuenosaires.gob.ar>",
         ssl:     false,
         status: true,
@@ -46,18 +46,18 @@ module.exports = {
         toConsole: true,
         toFile: false
     },
-    //'mongo_url': 'mongodb://10.1.0.60:27017/terapi',
-    //'mongo_opts': {
-    //    user: 'admin',
-    //    pass: 'Pt trend 54',
-    //    auth: {authdb: "admin"}
-    //},
-    'mongo_url': 'mongodb://localhost:27017/terapi',
+    'mongo_url': 'mongodb://10.1.0.60:27017/terapi',
     'mongo_opts': {
         user: 'admin',
-        pass: 'desarrollo',
+        pass: 'Pt trend 54',
         auth: {authdb: "admin"}
     },
+    //'mongo_url': 'mongodb://localhost:27017/terapi',
+    //'mongo_opts': {
+    //    user: 'admin',
+    //    pass: 'desarrollo',
+    //    auth: {authdb: "admin"}
+    //},
     'mongo_url_log': 'mongodb://localhost:27017/logging',
     'mongo_opts_log': {
         user: 'admin',
