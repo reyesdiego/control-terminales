@@ -2,7 +2,7 @@
  * Created by diego on 3/9/15.
  */
 
-module.exports = function (log, app, io, params) {
+module.exports = function (log, app, io, oracle, params) {
     'use strict';
     var serverMain,
         appointment,
@@ -31,7 +31,7 @@ module.exports = function (log, app, io, params) {
     appointment = require('./impact/appointment')(log, io);
     app.use('/appointment', isValidToken, appointment);
 
-    gate = require('./impact/gate')(log, io);
+    gate = require('./impact/gate')(log, io, oracle);
     app.use('/gate', isValidToken, gate);
 
     invoice = require('./impact/invoice')(log, io);

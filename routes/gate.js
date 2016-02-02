@@ -2,7 +2,7 @@
  * Created by Diego Reyes on 3/21/14.
  */
 
-module.exports = function (log) {
+module.exports = function (log, oracle) {
     'use strict';
 
     var express = require('express'),
@@ -13,7 +13,8 @@ module.exports = function (log) {
         Appointment = require('../models/appointment.js'),
         util = require('util'),
         config = require('../config/config.js'),
-        linq = require('linq');
+        linq = require('linq'),
+        async = require('async');
 
     function getGates(req, res) {
 
@@ -23,7 +24,10 @@ module.exports = function (log) {
             limit = parseInt(req.params.limit, 10),
             skip = parseInt(req.params.skip, 10),
             gates,
-            order;
+            order,
+            result,
+            tasksAsync = [],
+            taskAsync;
 
         if (req.query.fechaInicio || req.query.fechaFin) {
             param.gateTimestamp = {};
@@ -65,132 +69,143 @@ module.exports = function (log) {
             param.terminal = usr.terminal;
         }
 
-        gates = Gate.find(param).limit(limit).skip(skip);
-        if (req.query.order) {
-            order = JSON.parse(req.query.order);
-            gates.sort(order[0]);
-        } else {
-            gates.sort({gateTimestamp: -1});
-        }
-        gates.lean();
-        gates.exec(function (err, gates) {
-            if (err) {
-                log.logger.error("%s", err.error);
-                res.status(500).send({status: "ERROR", data: err});
+        log.time("logTime");
+
+        result = {
+            status: 'OK',
+            totalCount: 0,
+            pageCount: 0,
+            page: 0,
+            data: [],
+            time: 0
+        };
+
+        taskAsync = function (asyncCallback) {
+            gates = Gate.find(param).limit(limit).skip(skip);
+            if (req.query.order) {
+                order = JSON.parse(req.query.order);
+                gates.sort(order[0]);
             } else {
-                Gate.count(param, function (err, cnt) {
-                    var pageCount = gates.length,
-                        result = {
-                            status: 'OK',
-                            totalCount: cnt,
-                            pageCount: (limit > pageCount) ? limit : pageCount,
-                            page: skip,
-                            data: gates
-                        };
-                    res.status(200).send(result);
-                });
+                gates.sort({gateTimestamp: -1});
             }
+            gates.lean();
+            gates.exec(function (err, gates) {
+                let pageCount = gates.length;
+                if (err) {
+                    log.logger.error("%s", err.error);
+                    res.status(500).send({status: "ERROR", data: err});
+                } else {
+                    result.status = 'OK';
+                    result.pageCount = (limit > pageCount) ? limit : pageCount;
+                    result.page = skip;
+                    result.data = gates;
+                    asyncCallback();
+                }
+            });
+        };
+        tasksAsync.push(taskAsync);
+
+        taskAsync = function (asyncCallback) {
+            Gate.count(param, function (err, cnt) {
+                result.totalCount = cnt;
+                asyncCallback();
+            });
+
+        };
+        tasksAsync.push(taskAsync);
+
+        async.parallel(tasksAsync, function (err, data) {
+            result.time = log.timeEnd("logTime");
+            res.status(200).send(result);
         });
+
     }
 
     function getGatesByHour(req, res){
 
-        var usr = req.usr,
-            jsonParam,
-            fechaInicio,
-            fechaFin;
+        let Gate = require('../lib/gate.js');
+        var params = {
+            fechaInicio: null,
+            fechaFin: null,
+            fecha: null
+        };
+
+        Gate = new Gate();
 
         if (req.query.fechaInicio) {
-            fechaInicio = moment(req.query.fechaInicio, ['YYYY-MM-DD']).toDate();
+            params.fechaInicio = moment(req.query.fechaInicio, ['YYYY-MM-DD']).format('YYYY-MM-DD');
         }
 
         if (req.query.fechaFin) {
-            fechaFin = moment(req.query.fechaFin, ['YYYY-MM-DD']).add(1, 'days').toDate();
+            params.fechaFin = moment(req.query.fechaFin, ['YYYY-MM-DD']).add(1, 'days').format('YYYY-MM-DD');
         }
 
         if (req.query.fecha !== undefined) {
-            fechaInicio = moment(req.query.fecha, ['YYYY-MM-DD']).toDate();
-            fechaFin = moment(fechaInicio).add(1, 'days').toDate();
+            params.fechaInicio = moment(req.query.fecha, ['YYYY-MM-DD']).format('YYYY-MM-DD');
+            params.fechaFin = moment(params.fechaInicio).add(1, 'days').format('YYYY-MM-DD');
         }
 
-        jsonParam = [
-            {$match: {
-                gateTimestamp: {$gte: fechaInicio, $lt: fechaFin},
-                carga: "LL"
-            }},
-            { $project: {
-                gateTimestamp : {$subtract: [ '$gateTimestamp', 180 * 60 * 1000]},
-                terminal: '$terminal'
-            }},
-            { $group : {
-                _id : { terminal: '$terminal',
-                    hour: { $hour : "$gateTimestamp" }
-                    },
-                cnt : { $sum : 1 }
-            }},
-            { $sort: {'_id.hour': 1, '_id.terminal': 1 }}
-        ];
-
-        Gate.aggregate(jsonParam, function (err, data) {
-            var result = {
-                status : 'OK',
-                data : data
-            };
-            res.status(200).send(result);
+        Gate.getByHour(params, function (err, data) {
+            let result;
+            if (err) {
+                result = {
+                    status: 'ERROR',
+                    message: err.message
+                };
+                res.status(200).send(result);
+            } else {
+                result = {
+                    status: 'OK',
+                    data: data
+                };
+                res.status(200).send(result);
+            }
         });
     }
 
     function getGatesByMonth(req, res) {
-        var usr = req.usr,
-            date = moment().subtract(moment().date() - 1, 'days').format('YYYY-MM-DD'),
-            month5Ago,
-            nextMonth,
-            jsonParam;
+
+        let Gate = require('../lib/gate.js');
+        var params = {
+                fechaInicio: null,
+                fechaFin: null,
+                fecha: null
+            },
+            date = moment(moment().format("YYYY-MM-DD"));
+
+        Gate = new Gate(oracle);
 
         if (req.query.fecha !== undefined) {
-            date = moment(req.query.fecha, 'YYYY-MM-DD').subtract(moment(req.query.fecha).date() - 1, 'days');
+            date = moment(moment(req.query.fecha).format("YYYY-MM-DD"));
         }
-        month5Ago = moment(date).subtract(4, 'months').toDate();
-        nextMonth = moment(date).add(1, 'months').toDate();
-
-        jsonParam = [
-            {$match: {
-                gateTimestamp: {$gte: month5Ago, $lt: nextMonth},
-                carga: 'LL'
-            }},
-            { $project : {
-                terminal: '$terminal',
-                gateTimestamp : {$subtract: [ '$gateTimestamp', 180 * 60 * 1000]},
-                dia: {$dateToString: { format: "%Y%m", date: {$subtract: [ '$gateTimestamp', 180 * 60 * 1000]} }},
-            }},
-            {"$group": {
-                _id: {
-                    terminal: "$terminal",
-                    year: {$year: "$gateTimestamp"},
-                    month: {$month: "$gateTimestamp"},
-                    dia: '$dia'
-                },
-                cnt: {"$sum": 1}
-            }},
-            { $sort: {'_id.dia': 1, '_id.terminal': 1 }}
-        ];
-        Gate.aggregate(jsonParam, function (err, data) {
-            var result = {
-                status : 'OK',
-                data : data
-            };
-            res.status(200).send(result);
+        params.fechaInicio = moment([date.year(), date.month(), 1]).subtract(4, 'months').format("YYYY-MM-DD");
+        params.fechaFin = moment([date.year(), date.month(), 1]).format("YYYY-MM-DD");
+        Gate.getByMonth(params, function (err, data) {
+            let result;
+            if (err) {
+                result = {
+                    status: 'ERROR',
+                    message: err.message
+                };
+                res.status(200).send(result);
+            } else {
+                result = {
+                    status: 'OK',
+                    data: data
+                };
+                res.status(200).send(result);
+            }
         });
     }
 
     function getDistincts(req, res) {
 
+        let Gate = require('../lib/gate.js');
         var usr = req.usr,
-            distinct = '',
             param = {};
 
         if (req.route.path === '/:terminal/ships') {
-            distinct = 'buque';
+            param.distinct = 'buque';
         }
 
         if (usr.role === 'agp') {
@@ -199,8 +214,10 @@ module.exports = function (log) {
             param.terminal = usr.terminal;
         }
 
-        if (distinct !== '') {
-            Gate.distinct(distinct, param, function (err, data) {
+        if (param.distinct !== '') {
+            Gate = new Gate();
+
+            Gate.getDistinct(param, function (err, data) {
                 if (err) {
                     res.status(500).send({status: 'ERROR', data: err.message});
                 } else {
@@ -222,7 +239,8 @@ module.exports = function (log) {
             terminal = '',
             _price,
             _rates,
-            order;
+            taskAsync,
+            tasksAsync = [];
 
         if (usr.role === 'agp') {
             terminal = req.params.terminal;
@@ -233,56 +251,76 @@ module.exports = function (log) {
         _price = require('../include/price.js');
         _rates = new _price.price(terminal);
         _rates.rates(function (err, rates) {
+            let invoicesWo,
+                gatesWo;
+            log.time("totalTime");
 
-            var invoices = Invoice.aggregate([
-                {$match: {terminal: terminal, codTipoComprob: 1, 'detalle.items.id': {$in: rates}}},
-                {$project: {detalle: 1, fecha: '$fecha.emision'}},
-                {$unwind: '$detalle'},
-                {$unwind: '$detalle.items'},
-                {$match: {'detalle.items.id': {$in: rates}}},
-                {$project: {
-                    _id: false,
-                    //v: '$nroPtoVenta',
-                    //n: '$nroComprob',
-                    c: '$detalle.contenedor',
-                    //i: '$detalle.items.id',
-                    f: '$fecha'}}
-            ]);
+            taskAsync = function (asyncCallback) {
+                var invoices = Invoice.aggregate([
+                    {$match: {terminal: terminal, codTipoComprob: 1, 'detalle.items.id': {$in: rates}}},
+                    {$project: {detalle: 1, fecha: '$fecha.emision'}},
+                    {$unwind: '$detalle'},
+                    {$unwind: '$detalle.items'},
+                    {$match: {'detalle.items.id': {$in: rates}}},
+                    {$project: {
+                        _id: false,
+                        //v: '$nroPtoVenta',
+                        //n: '$nroComprob',
+                        c: '$detalle.contenedor',
+                        //i: '$detalle.items.id',
+                        f: '$fecha'}}
+                ]);
 
-            //if (req.query.order) {
-            //    order = JSON.parse(req.query.order);
-            //    invoices.sort(order[0]);
-            //} else {
-            //    invoices.sort({codTipoComprob: 1, nroComprob: 1});
-            //}
+                //if (req.query.order) {
+                //    order = JSON.parse(req.query.order);
+                //    invoices.sort(order[0]);
+                //} else {
+                //    invoices.sort({codTipoComprob: 1, nroComprob: 1});
+                //}
+                log.time("invoiceTime");
+                invoices.exec(function (err, dataInvoices) {
+                    log.timeEnd("invoiceTime");
+                    if (err) {
+                        res.status(500).send({status: 'ERROR', data: err.message});
+                    } else {
+                        invoicesWo = linq.from(dataInvoices);
+                        asyncCallback();
+                    }
+                });
+            };
+            tasksAsync.push(taskAsync);
 
-            invoices.exec(function (err, dataInvoices) {
-                var gates;
-                if (err) {
-                    res.status(500).send({status: 'ERROR', data: err.message});
-                } else {
-                    gates = Gate.find({terminal: terminal, carga: "LL"}, {contenedor: true, _id: false});
-                    gates.exec(function (err, dataGates) {
-                        var invoicesWoGates;
-                        if (err) {
-                            res.status(500).send({status: 'ERROR', data: err.message});
-                        } else {
-                            dataGates = linq.from(dataGates).select("{c: $.contenedor}");
-                            invoicesWoGates = linq.from(dataInvoices)
-                                .except(dataGates, "$.c").toArray();
-                                //.except(dataGates).toArray();
+            taskAsync = function (asyncCallback) {
+                log.time("gateTime");
+                let gates;
+                gates = Gate.find({terminal: terminal, carga: "LL"}, {contenedor: true, _id: false});
+                gates.exec(function (err, dataGates) {
+                    log.timeEnd("gateTime");
+                    if (err) {
+                        res.status(500).send({status: 'ERROR', data: err.message});
+                    } else {
+                        gatesWo = linq.from(dataGates).select("{c: $.contenedor}");
+                        asyncCallback();
+                    }
+                });
+            }
+            tasksAsync.push(taskAsync);
 
-                            res.status(200)
-                                .send({
-                                    status: 'OK',
-                                    totalCount: invoicesWoGates.length,
-                                    data: invoicesWoGates
-                                });
-                            res.flush();
-                        }
-                    });
-                }
-            });
+        async.parallel(tasksAsync, function (err, data) {
+
+            let invoicesWoGates = invoicesWo.except(gatesWo, "$.c").toArray();
+            //.except(dataGates).toArray();
+
+            res.status(200)
+                .send({
+                    status: 'OK',
+                    totalCount: invoicesWoGates.length,
+                    data: invoicesWoGates,
+                    time: log.timeEnd("totalTime")
+                });
+            res.flush();
+        });
+
         });
     }
 
@@ -292,7 +330,9 @@ module.exports = function (log) {
             terminal = '',
             _price,
             _rates,
-            gates;
+            gates,
+            taskAsync,
+            tasksAsync = [];
 
         if (usr.role === 'agp') {
             terminal = req.params.terminal;
@@ -303,47 +343,72 @@ module.exports = function (log) {
         _price = require('../include/price.js');
         _rates = new _price.price();
         _rates.rates(function (err, rates) {
+            let invoicesWo,
+                gatesWo;
+            log.time("missingInvoices");
 
-            gates = Gate.find({terminal: terminal, carga: "LL"});
+            taskAsync = function (asyncCallback) {
+                log.time("gatesTime");
+                gates = Gate.find({terminal: terminal, carga: "LL"});
 
-            //if (req.query.order) {
-            //    var order = JSON.parse(req.query.order);
-            //    gates.sort(order[0]);
-            //} else {
-            //    gates.sort({gateTimestamp: 1});
-            //}
-            gates.lean();
-            gates.exec(function (err, dataGates) {
-                var invoices;
-                if (err) {
-                    res.status(500).send({status: 'ERROR', data: err.message});
-                } else {
+                //if (req.query.order) {
+                //    var order = JSON.parse(req.query.order);
+                //    gates.sort(order[0]);
+                //} else {
+                //    gates.sort({gateTimestamp: 1});
+                //}
+                gates.lean();
+                gates.exec(function (err, dataGates) {
+                    log.timeEnd("gatesTime");
+                    if (err) {
+                        res.status(500).send({status: 'ERROR', data: err.message});
+                    } else {
 
-                    invoices = Invoice.aggregate([
-                        {$match: {terminal: terminal}},
-                        {$unwind: '$detalle'},
-                        {$unwind: '$detalle.items'},
-                        {$match: {'detalle.items.id': {$in: rates}}},
-                        {$project: { contenedor: '$detalle.contenedor'}}
-                    ]);
-
-                    invoices.exec(function (err, dataInvoices) {
-                        var gatesWoGates;
                         if (err) {
                             res.status(500).send({status: 'ERROR', data: err.message});
                         } else {
-                            gatesWoGates = linq.from(dataGates)
-                                .except(dataInvoices, "$.contenedor").toArray();
-
-                            res.status(200)
-                                .send({
-                                    status: 'OK',
-                                    totalCount: gatesWoGates.length,
-                                    data: gatesWoGates
-                                });
+                            gatesWo = linq.from(dataGates);
+                            asyncCallback();
                         }
-                    });
-                }
+                    }
+                });
+            };
+            tasksAsync.push(taskAsync);
+
+            taskAsync = function (asyncCallback) {
+
+                log.time("invoicesTime");
+                let invoices = Invoice.aggregate([
+                    {$match: {terminal: terminal}},
+                    {$unwind: '$detalle'},
+                    {$unwind: '$detalle.items'},
+                    {$match: {'detalle.items.id': {$in: rates}}},
+                    {$project: { c: '$detalle.contenedor'}}
+                ]);
+
+                invoices.exec(function (err, dataInvoices) {
+                    log.timeEnd("invoicesTime");
+                    if (err) {
+                        res.status(500).send({status: 'ERROR', data: err.message});
+                    } else {
+                        invoicesWo = linq.from(dataInvoices).select(function (item) { return { contenedor: item.c } });
+                        asyncCallback();
+                    }
+                });
+            };
+            tasksAsync.push(taskAsync);
+
+            async.parallel(tasksAsync, function(err, data) {
+                let gatesWoGates;
+
+                gatesWoGates = gatesWo.except(invoicesWo, "$.contenedor").toArray();
+
+                res.status(200)
+                    .send({
+                        status: 'OK',
+                        totalCount: gatesWoGates.length,
+                        data: gatesWoGates,
+                        time: log.timeEnd("missingInvoices")});
             });
         });
     }

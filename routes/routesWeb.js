@@ -2,7 +2,7 @@
  * Created by diego on 3/9/15.
  */
 
-module.exports = function (log, app, io, pool, params) {
+module.exports = function (log, app, io, oracle, params) {
     'use strict';
     var serverMain,
         state,
@@ -52,10 +52,10 @@ module.exports = function (log, app, io, pool, params) {
     docType = require('./docType')(log);
     app.use('/docTypes', docType);
 
-    gate = require('./gate')(log);
+    gate = require('./gate')(log, oracle);
     app.use('/gates', isValidToken, gate);
 
-    invoice = require('./invoice')(log, io, pool);
+    invoice = require('./invoice')(log, io, oracle);
     app.use('/invoices', isValidToken, invoice);
 
     mat = require('./mat')(log);
