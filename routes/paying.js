@@ -116,7 +116,8 @@ module.exports = function (log) {
                             code: '$detalle.items.id',
                             impUnit: '$detalle.items.impUnit',
                             cotiMoneda: '$cotiMoneda',
-                            buque: '$detalle.buque.nombre'};
+                            buque: '$detalle.buque.nombre'
+                        };
                         projectByContainer = {
                             _id: '$_id._id',
                             terminal: '$_id.terminal',
@@ -130,6 +131,7 @@ module.exports = function (log) {
                             impUnit: '$_id.impUnit',
                             tasa: {$multiply: ['$_id.impUnit', '$cnt']},
                             cnt: '$cnt',
+                            cantidad: '$cantidad',
                             estado: '$_id.estado'
                         }
                         if (req.query.byContainer === '1') {
@@ -186,7 +188,8 @@ module.exports = function (log) {
                                             then: {$multiply: ['$detalle.items.cnt', -1]},
                                             else: '$detalle.items.cnt'}
                                     }
-                                }
+                                },
+                                cantidad: {$sum: 1}
                             }},
                             {$project: projectByContainer}
                         ];
@@ -207,6 +210,7 @@ module.exports = function (log) {
 
                         invoices = Invoice.aggregate(param);
                         invoices.exec(function (err, data) {
+                            var countContainer;
                             if (err) {
                                 callback(err);
                             } else {
@@ -235,13 +239,46 @@ module.exports = function (log) {
                                     }).toArray();
 
                                 if (paginated) {
-                                    Invoice.count(match, function (err, count) {
-                                        if (err) {
-                                            callback(err);
-                                        } else {
-                                            callback(null, {status: "OK", totalCount: count, data: response});
-                                        }
-                                    });
+                                    if (req.query.byContainer === '1') {
+                                        countContainer = [
+                                            {"$match": match},
+                                            {"$project": {
+                                                "estado": 1,
+                                                "detalle": 1
+                                            }},
+                                            {"$unwind": "$estado"},
+                                            { "$group": {
+                                                "_id": {"_id": "$_id",
+                                                    "detalle": "$detalle"},
+                                                "estado": {"$last": "$estado"}
+                                            }},
+                                            {"$project": {"_id": "$_id._id", "detalle": "$_id.detalle"}},
+                                            {"$match": {"estado.estado": {"$nin": ["todo"]}}},
+                                            {"$unwind": "$detalle"},
+                                            {"$unwind": "$detalle.items"},
+                                            {"$match": {"detalle.items.id": {"$in": rates}}},
+                                            {"$group": {
+                                                "_id": '',
+                                                cnt: {$sum: 1}
+                                            }}
+                                        ];
+
+                                        Invoice.aggregate(countContainer, function (err, count){
+                                            if (err) {
+                                                callback(err);
+                                            } else {
+                                                callback(null, {status: "OK", totalCount: count[0].cnt, data: response});
+                                            }
+                                        });
+                                    } else {
+                                        Invoice.count(match, function (err, count) {
+                                            if (err) {
+                                                callback(err);
+                                            } else {
+                                                callback(null, {status: "OK", totalCount: count, data: response});
+                                            }
+                                        });
+                                    }
                                 } else {
                                     callback(null, {status: "OK", data: response});
                                 }
