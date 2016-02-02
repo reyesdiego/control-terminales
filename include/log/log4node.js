@@ -12,7 +12,9 @@ var log4njs = function (options) {
         elapsed = 0,
         logger,
         config,
-        transports;
+        transports,
+        timers= {};
+
 
     // Logging levels
     config = {
@@ -119,15 +121,21 @@ var log4njs = function (options) {
         }
     };
 
-    self.startElapsed = function () {
-        elapsed = moment();
+    self.startElapsed = function (name) {
+        timers[name] = Date.now();
     };
-    self.getElapsed = function () {
-        var elapsedEnd = moment();
-        elapsed = elapsed.diff(elapsedEnd) * (-1);
-        return elapsed;
+    self.getElapsed = function (name) {
+        var hora = Date.now();
+        console.log("%s: %sms", name, hora - timers[name]);
     };
-
+    self.time = function (name) {
+        timers[name] = Date.now();
+    };
+    self.timeEnd = function (name) {
+        var ms = Date.now() - timers[name];
+        console.log("%s: %sms", name, ms);
+        return ms;
+    };
 };
 
 exports.log = log4njs;
