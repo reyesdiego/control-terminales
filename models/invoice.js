@@ -85,16 +85,18 @@ invoiceSchema.pre('save', function (next, done) {
         if (this.cotiMoneda && this.codMoneda) {
             if (this.codMoneda === 'DOL') {
                 if (this.cotiMoneda <= 1) {
-                    next(new Error("La cotización del dolar debe ser mayor a Uno (1)."));
+                    //next(new Error("La cotización del dolar debe ser mayor a Uno (1)."));
+                    next();
                 } else {
                     this.total = this.importe.total * this.cotiMoneda;
                 }
             } else if (this.codMoneda === 'PES' && this.cotiMoneda !== 1) {
                 next(new Error("La cotización del peso debe ser Uno (1)."));
             }
-            if (global.cache.voucherTypes.indexOf(this.codTipoComprob) >= 0) {
-                this.total = this.total * -1;
-            }
+        }
+
+        if (global.cache.voucherTypes.indexOf(this.codTipoComprob) >= 0) {
+            this.total = this.total * -1;
         }
     }
 
