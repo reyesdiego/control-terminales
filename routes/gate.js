@@ -173,7 +173,7 @@ module.exports = function (log, oracle) {
             },
             date = moment(moment().format("YYYY-MM-DD"));
 
-        Gate = new Gate(oracle);
+        Gate = new Gate();
 
         if (req.query.fecha !== undefined) {
             date = moment(moment(req.query.fecha).format("YYYY-MM-DD"));
