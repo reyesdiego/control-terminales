@@ -26,9 +26,9 @@ describe('Models', function () {
 
     before(function (done) {
         this.timeout(3000);
-        mongoose.connect(config.mongo_url);
+        mongoose.connect(config.mongo_url, config.mongo_opts);
         mongoose.connection.on('connected', function () {
-
+            console.log("Conectado a Mongodb");
             done();
         });
     });
