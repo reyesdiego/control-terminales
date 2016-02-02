@@ -18,4 +18,5 @@ price = new price.price("BACTSSA");
 
 price.rates(true,  function (err, data) {
     console.log(data);
+    process.exit();
 });

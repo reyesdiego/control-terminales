@@ -82,7 +82,7 @@ oracle.oracledb.createPool(
                 result[item._id] = item.description;
             });
             global.cache.voucherTypes = result;
-            require('./routes/routesTer')(log, httpExpress.app, httpExpress.io, params);
+            require('./routes/routesTer')(log, httpExpress.app, httpExpress.io, oracle, params);
         });
 
 
