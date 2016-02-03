@@ -28,7 +28,8 @@ module.exports = function (log, io, oracle) {
 
                 res.status(500).send({status: "ERROR", data: errMsg});
             } else {
-                log.logger.insert('Gate INS: %s - %s - %s', gateNew._id, usr.terminal, moment(gateNew.gateTimestamp).format("YYYY-MM-DD hh:mm:ss"));
+                let gate = gateNew.data;
+                log.logger.insert('Gate INS: %s - %s - %s', gate._id, usr.terminal, moment(gate.gateTimestamp).format("YYYY-MM-DD hh:mm:ss"));
                 io.sockets.emit('gate', gateNew);
                 res.status(200).send(gateNew);
             }
@@ -36,7 +37,6 @@ module.exports = function (log, io, oracle) {
 
         gateLibOra = new Gate(oracle);
         gateLibOra.add(gate2insert);
-
 
     }
 
