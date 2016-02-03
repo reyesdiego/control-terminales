@@ -30,6 +30,9 @@ module.exports.validation = function (data, custom) {
                 moment(this._value, "YYYY-MM-DD", true).isValid() ||
                 moment(this._value, "YYYY/MM/DD", true).isValid() ||
                 moment(this._value, "YYYY-MM-DDTHH:mm:SS.SSSZ", true).isValid() ||
+                moment(this._value, "YYYY-MM-DDTHH:mm:SS.SSZ", true).isValid() ||
+                moment(this._value, "YYYY-MM-DDTHH:mm:SS.SZ", true).isValid() ||
+                moment(this._value, "YYYY-MM-DD HH:mm:SS.S", true).isValid() ||
                 moment(this._value, "YYYY-MM-DDTHH:mm:SSZ", true).isValid())
         ) {
 
