@@ -267,7 +267,11 @@ module.exports = function (log) {
                                             if (err) {
                                                 callback(err);
                                             } else {
-                                                callback(null, {status: "OK", totalCount: count[0].cnt, data: response});
+                                                let cnt = 0;
+                                                if (count[0]) {
+                                                    cnt = count[0].cnt;
+                                                }
+                                                callback(null, {status: "OK", totalCount: cnt, data: response});
                                             }
                                         });
                                     } else {
