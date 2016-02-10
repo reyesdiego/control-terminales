@@ -8,9 +8,6 @@ module.exports.validation = function (data, custom) {
     var Validr = require('validr'),
         moment = require('moment');
 
-//trimBody = require('trim-body');
-
-//trimBody(req.body);
     var validate;
     if (custom !== undefined) {
         validate = new Validr(data, custom);
