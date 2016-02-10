@@ -21,7 +21,7 @@ module.exports = function (log, io, oracle) {
         gate2insert.terminal = usr.terminal;
 
         gateLib = new Gate();
-        gateLib.add(gate2insert, {validate: true}, function (err, gateNew) {
+        gateLib.add(gate2insert, {validate: true, trim: true}, function (err, gateNew) {
             if (err) {
                 errMsg = util.format('%s: %j \n%s', err.message, err.data, usr.terminal, JSON.stringify(req.body));
                 log.logger.error(errMsg);
@@ -36,7 +36,7 @@ module.exports = function (log, io, oracle) {
         });
 
         gateLibOra = new Gate(oracle);
-        gateLibOra.add(gate2insert);
+        gateLibOra.add(gate2insert, {validate: true, trim: true});
 
     }
 

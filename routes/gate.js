@@ -20,14 +20,9 @@ module.exports = function (log, oracle) {
 
         var usr = req.usr,
             fecha,
-            param = {},
-            limit = parseInt(req.params.limit, 10),
-            skip = parseInt(req.params.skip, 10),
-            gates,
-            order,
-            result,
-            tasksAsync = [],
-            taskAsync;
+            param = {};
+
+        let Gate = require('../lib/gate.js');
 
         if (req.query.fechaInicio || req.query.fechaFin) {
             param.gateTimestamp = {};
@@ -57,6 +52,10 @@ module.exports = function (log, oracle) {
             param.carga = req.query.carga;
         }
 
+        if (req.query.tren) {
+            param.tren = req.query.tren;
+        }
+
         if (req.query.ontime === '1') {
             param.$where = 'this.gateTimestamp>=this.turnoInicio && this.gateTimestamp<=this.turnoFin';
         } else if (req.query.ontime === '0') {
@@ -69,54 +68,22 @@ module.exports = function (log, oracle) {
             param.terminal = usr.terminal;
         }
 
+        param.limit = parseInt(req.params.limit, 10);
+        param.skip = parseInt(req.params.skip, 10);
+        param.order = req.query.order;
+
+        Gate = new Gate();
+
         log.time("logTime");
-
-        result = {
-            status: 'OK',
-            totalCount: 0,
-            pageCount: 0,
-            page: 0,
-            data: [],
-            time: 0
-        };
-
-        taskAsync = function (asyncCallback) {
-            gates = Gate.find(param).limit(limit).skip(skip);
-            if (req.query.order) {
-                order = JSON.parse(req.query.order);
-                gates.sort(order[0]);
+        Gate.getGates(param, function (err, data) {
+            let timeEnd = log.timeEnd("logTime");
+            if (err) {
+                err.time = timeEnd;
+                res.status(500).send(err);
             } else {
-                gates.sort({gateTimestamp: -1});
+                data.time = timeEnd;
+                res.status(200).send(data);
             }
-            gates.lean();
-            gates.exec(function (err, gates) {
-                let pageCount = gates.length;
-                if (err) {
-                    log.logger.error("%s", err.error);
-                    res.status(500).send({status: "ERROR", data: err});
-                } else {
-                    result.status = 'OK';
-                    result.pageCount = (limit > pageCount) ? limit : pageCount;
-                    result.page = skip;
-                    result.data = gates;
-                    asyncCallback();
-                }
-            });
-        };
-        tasksAsync.push(taskAsync);
-
-        taskAsync = function (asyncCallback) {
-            Gate.count(param, function (err, cnt) {
-                result.totalCount = cnt;
-                asyncCallback();
-            });
-
-        };
-        tasksAsync.push(taskAsync);
-
-        async.parallel(tasksAsync, function (err, data) {
-            result.time = log.timeEnd("logTime");
-            res.status(200).send(result);
         });
 
     }
