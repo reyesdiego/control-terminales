@@ -29,10 +29,12 @@ module.exports = function (log, oracle) {
             if (req.query.fechaInicio) {
                 fecha = moment(req.query.fechaInicio, ['YYYY-MM-DD HH:mm Z']).toDate();
                 param.gateTimestamp.$gte = fecha;
+                param.fechaInicio = fecha;
             }
             if (req.query.fechaFin) {
                 fecha = moment(req.query.fechaFin, ['YYYY-MM-DD HH:mm Z']).toDate();
                 param.gateTimestamp.$lt = fecha;
+                param.fechaFin = fecha;
             }
         }
 
@@ -56,6 +58,10 @@ module.exports = function (log, oracle) {
             param.tren = req.query.tren;
         }
 
+        if (req.query.patenteCamion) {
+            param.patenteCamion = req.query.patenteCamion;
+        }
+
         if (req.query.ontime === '1') {
             param.$where = 'this.gateTimestamp>=this.turnoInicio && this.gateTimestamp<=this.turnoFin';
         } else if (req.query.ontime === '0') {
@@ -72,7 +78,7 @@ module.exports = function (log, oracle) {
         param.skip = parseInt(req.params.skip, 10);
         param.order = req.query.order;
 
-        Gate = new Gate();
+        Gate = new Gate(oracle);
 
         log.time("logTime");
         Gate.getGates(param, function (err, data) {
