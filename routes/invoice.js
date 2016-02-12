@@ -26,9 +26,11 @@ module.exports = function(log, io, oracle) {
             skip = parseInt(req.params.skip, 10),
             ter = (usr.role === 'agp') ? paramTerminal : usr.terminal,
             param = {},
-            inv = require('../lib/invoice.js');
+            inv = require('../lib/invoice.js'),
+            inv2 = require('../lib/invoice2.js');
 
         inv = new inv(ter);
+        inv2 = new inv2();
 
         param.fechaInicio = req.query.fechaInicio;
         param.fechaFin = req.query.fechaFin;
@@ -47,12 +49,13 @@ module.exports = function(log, io, oracle) {
         param.order = req.query.order;
         param.group = usr.group;
         param.resend = req.query.resend;
+        param.terminal = paramTerminal;
 
         if (skip >= 0 && limit >= 0) {
             param.skip = skip;
             param.limit = limit;
             log.time("tiempo");
-            inv.getInvoices(param, function (err, result) {
+            inv2.getInvoices(param, function (err, result) {
                 if (err) {
                     res.status(500).send({status: "ERROR", data: err.message});
                 } else {
