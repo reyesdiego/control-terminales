@@ -30,7 +30,7 @@ module.exports = function(log, io, oracle) {
             inv2 = require('../lib/invoice2.js');
 
         inv = new inv(ter);
-        inv2 = new inv2(oracle);
+        inv2 = new inv2();
 
         param.fechaInicio = req.query.fechaInicio;
         param.fechaFin = req.query.fechaFin;
