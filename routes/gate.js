@@ -9,20 +9,20 @@ module.exports = function (log, oracle) {
         router = express.Router(),
         moment = require('moment'),
         Invoice = require('../models/invoice.js'),
-        Gate = require('../models/gate.js'),
+        Gate = require('../lib/gate.js'),
         Appointment = require('../models/appointment.js'),
         util = require('util'),
         config = require('../config/config.js'),
         linq = require('linq'),
         async = require('async');
 
+    Gate = new Gate(oracle);
+
     function getGates(req, res) {
 
         var usr = req.usr,
             fecha,
             param = {};
-
-        let Gate = require('../lib/gate.js');
 
         if (req.query.fechaInicio || req.query.fechaFin) {
             param.gateTimestamp = {};
@@ -58,6 +58,13 @@ module.exports = function (log, oracle) {
             param.tren = req.query.tren;
         }
 
+        if (req.query.onlyTrains === '1') {
+            param.tren = {$exists: true};
+            if (req.query.tren) {
+                param.tren = req.query.tren;
+            }
+        }
+
         if (req.query.patenteCamion) {
             param.patenteCamion = req.query.patenteCamion;
         }
@@ -78,8 +85,6 @@ module.exports = function (log, oracle) {
         param.skip = parseInt(req.params.skip, 10);
         param.order = req.query.order;
 
-        Gate = new Gate(oracle);
-
         log.time("logTime");
         Gate.getGates(param, function (err, data) {
             let timeEnd = log.timeEnd("logTime");
@@ -91,19 +96,15 @@ module.exports = function (log, oracle) {
                 res.status(200).send(data);
             }
         });
-
     }
 
     function getGatesByHour(req, res){
 
-        let Gate = require('../lib/gate.js');
         var params = {
             fechaInicio: null,
             fechaFin: null,
             fecha: null
         };
-
-        Gate = new Gate();
 
         if (req.query.fechaInicio) {
             params.fechaInicio = moment(req.query.fechaInicio, ['YYYY-MM-DD']).format('YYYY-MM-DD');
@@ -138,15 +139,12 @@ module.exports = function (log, oracle) {
 
     function getGatesByMonth(req, res) {
 
-        let Gate = require('../lib/gate.js');
         var params = {
                 fechaInicio: null,
                 fechaFin: null,
                 fecha: null
             },
             date = moment(moment().format("YYYY-MM-DD"));
-
-        Gate = new Gate();
 
         if (req.query.fecha !== undefined) {
             date = moment(moment(req.query.fecha).format("YYYY-MM-DD"));
@@ -173,12 +171,14 @@ module.exports = function (log, oracle) {
 
     function getDistincts(req, res) {
 
-        let Gate = require('../lib/gate.js');
         var usr = req.usr,
             param = {};
 
         if (req.route.path === '/:terminal/ships') {
             param.distinct = 'buque';
+        }
+        if (req.route.path === '/:terminal/trains') {
+            param.distinct = 'tren';
         }
 
         if (usr.role === 'agp') {
@@ -188,7 +188,6 @@ module.exports = function (log, oracle) {
         }
 
         if (param.distinct !== '') {
-            Gate = new Gate();
 
             Gate.getDistinct(param, function (err, data) {
                 if (err) {
@@ -208,6 +207,7 @@ module.exports = function (log, oracle) {
 
     function getMissingGates(req, res) {
 
+        var Gate = require('../models/gate.js');
         var usr = req.usr,
             terminal = '',
             _price,
@@ -299,6 +299,7 @@ module.exports = function (log, oracle) {
 
     function getMissingInvoices(req, res) {
 
+        var Gate = require('../models/gate.js');
         var usr = req.usr,
             terminal = '',
             _price,
@@ -387,6 +388,8 @@ module.exports = function (log, oracle) {
     }
 
     function getMissingAppointments(req, res) {
+
+        var Gate = require('../models/gate.js');
         var usr = req.usr,
             terminal = '',
             fecha,
@@ -467,6 +470,7 @@ router.use(function timeLog(req, res, next){
     router.get('/:terminal/missingInvoices', getMissingInvoices);
     router.get('/:terminal/missingAppointments', getMissingAppointments);
     router.get('/:terminal/ships', getDistincts);
+    router.get('/:terminal/trains', getDistincts);
 
     return router;
 };
