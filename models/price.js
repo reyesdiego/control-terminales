@@ -9,6 +9,7 @@ var price = new mongoose.Schema({
     description: {type: String, required: true},
     unit: {type: String},
     matches: [{ type: mongoose.Schema.ObjectId, ref: 'matchprices' }],
+    rate: {type: String},
     topPrices: [{
         from: {type: Date},
         price: {type: Number, required: true},

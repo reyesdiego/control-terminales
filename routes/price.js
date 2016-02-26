@@ -2,7 +2,7 @@
  * Created by Administrator on 1/10/14.
  */
 
-module.exports = function (log) {
+module.exports = function (log, oracle) {
     'use strict';
 
     var express = require('express'),
@@ -14,99 +14,74 @@ module.exports = function (log) {
         price = require('../models/price.js');
 
     function getPrices(req, res) {
+        let Price = require('../lib/price.js');
 
         var usr = req.usr,
             paramTerminal = req.params.terminal,
             ter = (usr.role === 'agp') ? paramTerminal : usr.terminal,
-            param = {
-                $or : [
-                    {terminal: "AGP"},
-                    {terminal: ter}
-                ]
-            };
+            param = {};
 
-        if (req.query.code) {
-            param.code = req.query.code;
-        }
+        param.code = req.query.code;
+        param.onlyRates = req.query.onlyRates;
 
-        if (req.query.onlyRates) {
-            if (req.query.onlyRates !== false) {
-                param.rate = {$exists: true};
+        let price = new Price(ter);
+
+        price.getPrices(param, function (err, data) {
+            if (err) {
+                log.logger.error('Error: %s', err.message);
+                res.status(500).send(err);
+            } else {
+                res.status(200).send(data);
             }
-        }
-
-        price.find(param, {topPrices : {$slice: -1}})
-            .sort({terminal: 1, code: 1})
-            .exec(function (err, priceList) {
-                if (!err) {
-                    res.status(200).send({
-                        status: 'OK',
-                        totalCount: priceList.length,
-                        data: priceList
-                    });
-                } else {
-                    log.logger.error('Error: %s', err.message);
-                    res.status(500).send({status: 'ERROR', data: err.message});
-                }
-            });
+        });
     }
 
     function getPrice(req, res) {
+        var Price = require('../lib/price.js'),
+            price;
         var usr = req.usr,
             paramTerminal = req.params.terminal,
             ter = (usr.role === 'agp') ? paramTerminal : usr.terminal,
-            param = {
-                $or : [
-                    {terminal: "AGP"},
-                    {terminal: ter}
-                ]
-            };
 
-        if (req.params.id) {
-            param._id = req.params.id;
-        }
-
-        price.findOne(param)
-            .exec(function (err, price) {
-                if (!err) {
-                    res.status(200).send({status: 'OK', totalCount: 1, data: price});
-                } else {
-                    log.logger.error('Error: %s', err.message);
-                    res.status(500).send({status: 'ERROR', data: err.message});
-                }
-            });
+        price = new Price(ter);
+        price.getPrice(req.params.id, function (err, data) {
+            if (err) {
+                log.logger.error('Error: %s', err.message);
+                res.status(500).send(err);
+            } else {
+                res.status(200).send(data);
+            }
+        });
     }
 
     function getRates(req, res) {
-        var usr = req.usr,
-            param = {
-                terminal: "AGP",
-                rate: {$ne: null}
-            };
-
-        price.find(param)
-            .sort({rate: 1, code: 1})
-            .exec(function (err, priceList) {
-                if (!err) {
-                    res.status(200).send({status: 'OK', data: priceList});
-                } else {
-                    log.logger.error('Error: %s', err.message);
-                    res.status(500).send({status: 'ERROR', data: err.message});
-                }
-            });
+        var Price = require('../lib/price.js');
+        Price = new Price();
+        Price.getRates(function (err, data) {
+            if (err) {
+                log.logger.error('Error: %s', err.message);
+                res.status(500).send(err);
+            } else {
+                res.status(200).send(data);
+            }
+        });
     }
 
     function getRates2(req, res) {
-        var pri,
-            priz;
+        var price;
 
         if (req.usr.terminal !== 'AGP') {
             res.status(403).send({status: "ERROR", data: "No posee permisos para acceder a estos datos."});
+            return;
         }
-        pri = require('../include/price.js');
-        priz = new pri.price();
-        priz.rates(true, function (err, data) {
-            res.status(200).send(data);
+        price = require('../lib/price.js');
+        price = new price();
+        price.rates(true, function (err, data) {
+            if (err) {
+                res.status(500).send({status: "ERROR", message: err.message});
+            } else {
+                res.status(200).send(data);
+            }
         });
 
     }
@@ -216,6 +191,18 @@ router.use(function timeLog(req, res, next){
     next();
 });
 */
+    router.param('terminal', function (req, res, next, terminal) {
+        var usr = req.usr;
+
+        if (usr.terminal !== 'AGP' && usr.terminal !== terminal) {
+            var errMsg = util.format('%s', 'La terminal recibida por parámetro es inválida para el token.');
+            log.logger.error(errMsg);
+            res.status(403).send({status: 'ERROR', data: errMsg});
+        } else {
+            next();
+        }
+    });
+
     router.get('/:terminal', getPrices);
     router.get('/:id/:terminal', getPrice);
     router.get('/rates/1/codes', getRates);

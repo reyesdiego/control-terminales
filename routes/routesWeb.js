@@ -67,7 +67,7 @@ module.exports = function (log, app, io, oracle, params) {
     paying = require('./paying')(log);
     app.use('/paying', isValidToken, paying);
 
-    price = require('./price')(log);
+    price = require('./price')(log, oracle);
     app.use('/prices', isValidToken, price);
 
     state = require('./state')(log);

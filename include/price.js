@@ -27,13 +27,13 @@ var price = function (terminal) {
             if (self.terminal !== undefined) {
                 params.push({ $match: { terminal: self.terminal}});
             } else {
-                params.push({ $match: { terminal: { $exists : 1}}});
+                params.push({ $match: { terminal: { $exists : true}}});
             }
 
             params.push({ $project: {match: 1, price: 1}});
             params.push({$unwind: '$match'});
             selfMatchPrice.aggregate(params, function (err, data) {
-                selfMatchPrice.populate(data, [{ path: 'price', match: {rate: {$exists: 1}} }], function (err, matchprices) {
+                selfMatchPrice.populate(data, [{ path: 'price', match: {rate: {$exists: true}}, select: '_id terminal description unit rate topPrices' }], function (err, matchprices) {
                     var ratesDesc = {},
                         result,
                         a;
@@ -43,22 +43,22 @@ var price = function (terminal) {
                             return callback(err);
                     } else {
                         result = Enumerable.from(matchprices)
-                            .where(function (item){
-                                return item.price != null;
-                            });
+                            .where(function (item) {
+                                return item.price !== null;
+                            }).toArray();
 
                         if (parametro.description === true) {
-                            a = result.select(function(item){
+                            a = Enumerable.from(result).select(function(item){
                                 ratesDesc[item.match] = item.price.description;
                                 return item;
                             }).toArray();
                             result = ratesDesc;
-                        } else if (parametro.description === false) {
-                            result = result.select(function(item){
+                        } else if (parametro.description !== undefined && parametro.description === false) {
+                            result = Enumerable.from(result).select(function(item){
                                 return item.match;
                             }).toArray();
                         } else if (parametro.fecha) {
-                            a = result.select(function(item) {
+                            a = Enumerable.from(result).select(function(item) {
                                 var top = Enumerable.from(item.price.topPrices)
                                     .where(function (itemW) {
                                         if (itemW.from < parametro.fecha) {
@@ -85,7 +85,7 @@ var price = function (terminal) {
                 });
             });
         }
-    }
+    };
 }
 
 price.prototype = {
@@ -101,12 +101,12 @@ price.prototype = {
         });
     },
     ratePrices: function (fecha, callback) {
-
+        var moment = require('moment');
         if (typeof fecha === 'function') {
             callback = fecha;
             fecha = Date.now();
         }
-
+        fecha = moment(fecha);
         this.ratesLocal({fecha: fecha}, function (err, data) {
             callback(err, data);
         });
