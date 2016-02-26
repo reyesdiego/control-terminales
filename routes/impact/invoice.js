@@ -230,12 +230,13 @@ module.exports = function (log, io) {
 
                     var otId = (item.id !== undefined) ? item.id.toString() : null;
                     var otDesc = item.desc;
+
                     invoice.otrosTributos.push(
                         {
                             id: (otId) ? otId : "",
                             desc: (otDesc) ? otDesc.trim() : "",
                             imponible: Math.abs(item.imponible),
-                            imp: Math.abs(item.imp)
+                            imp: item.imp
                         });
                 });
             }

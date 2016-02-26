@@ -30,7 +30,7 @@ module.exports = function(log, io, oracle) {
             inv2 = require('../lib/invoice2.js');
 
         inv = new inv(ter);
-        inv2 = new inv2();
+        inv2 = new inv2(oracle);
 
         param.fechaInicio = req.query.fechaInicio;
         param.fechaFin = req.query.fechaFin;
@@ -78,23 +78,24 @@ module.exports = function(log, io, oracle) {
     }
 
     function getInvoice(req, res) {
+        var Invoice = require('../lib/invoice2.js');
+
         var usr = req.usr,
             param = {
                 _id: req.params.id
             },
             invoice;
 
-        if (usr.role !== 'agp')
+        if (usr.role !== 'agp') {
             param.terminal = usr.terminal;
-
-        invoice = Invoice.find(param);
-        invoice.populate({path: 'payment'});
-        invoice.exec(function(err, invoices){
+        }
+        invoice = new Invoice();
+        invoice.getInvoice(param, function (err, data) {
             if (err) {
                 log.logger.error("%s", err.error);
-                res.status(500).send({status:'ERROR', data: err});
+                res.status(500).send(err);
             } else {
-                res.status(200).send({status:"OK", data: invoices[0]||null})
+                res.status(200).send(data);
             }
         });
     }
