@@ -19,8 +19,8 @@ var Price = mongoose.model('prices', price);
 var matchPrice = new mongoose.Schema({
 	terminal:	{type: String},
 	code:		{type: String},
-	match:		[{type: String}]//,
-//	price:		{type: mongoose.Schema.ObjectId, ref:'prices'}
+	match:		[{type: String}],
+	price:		{type: mongoose.Schema.ObjectId, ref:'prices'}
 });
 
 var MatchPrice = mongoose.model('matchprices', matchPrice);
@@ -32,8 +32,9 @@ var MatchPrice = mongoose.model('matchprices', matchPrice);
 //	})
 //})
 
-Price.find({code:'TCIGS'}).populate('matches').exec(function(err, movie) {
-	console.log(movie[0]);
+
+Price.find({code:"TCI"}).populate('matches').exec(function(err, movie) {
+	console.log("%j",movie[0]);
 });
 
 
