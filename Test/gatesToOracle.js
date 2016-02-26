@@ -12,6 +12,7 @@ var config = require('../config/config.js'),
 
 require('../include/mongoose.js')(log);
 var Gates = require("../models/gate.js");
+var Invoices = require("../models/invoice.js");
 
 var oracledb = require('oracledb');
 oracledb.maxRows = 103;
@@ -29,60 +30,86 @@ oracledb.getConnection(
     },
     function(err, connection)
     {
+        var gates,
+            counter=0;
         if (err) {
             console.error(err.message);
             return;
         }
-        var gates = Gates.find();
-        gates.skip(453527);
-        gates.limit(73);
-//        gates.sort({_id: 1});
-        gates.lean();
-        gates.exec( function (err, data) {
+        console.log("pid %s", process.pid);
+
+        gates = Gates.find({}, {
+            _id: false,
+            __v: false
+        }, {timeOut: false})
+            .sort({_id: 1})
+            .skip(750000)
+            .limit(100000)
+            .stream();
+
+        gates.on('data', function (gate) {
             let strSql,
-                values = [];
-            console.log("Se transparan %s registro a Oracle", data.length);
+                param;
 
-            async.each(data, function (gate, callback){
-
-                strSql = "insert into GATES " +
-                    "(ID," +
-                    "TERMINAL," +
-                    "BUQUE," +
-                    "VIAJE," +
-                    "CONTENEDOR," +
-                    "CARGA," +
-                    "MOV," +
-                    "TIPO," +
-                    "GATETIMESTAMP," +
-                    "TURNOINICIO," +
-                    "TURNOFIN," +
-                    "PATENTECAMION) VALUES (" +
-                    "gates_seq.nextval," +
-                    " :1, :2, :3, :4, :5, :6, :7, to_date(:8, 'YYYY-MM-DD HH24:MI:SS'), to_date(:9, 'YYYY-MM-DD HH24:MI:SS'), to_date(:10, 'YYYY-MM-DD HH24:MI:SS'), :11)";
-                values = [gate.terminal,
-                    gate.buque,
-                    gate.viaje,
-                    gate.contenedor,
-                    gate.carga,
-                    gate.mov,
-                    gate.tipo,
-                    moment(gate.gateTimestamp).format("YYYY-MM-DD hh:mm:ss"),
-                    (gate.turnoInicio === null ) ? null : moment(gate.turnoInicio).format("YYYY-MM-DD hh:mm:ss"),
-                    (gate.turnoFin === null ) ? null : moment(gate.turnoFin).format("YYYY-MM-DD hh:mm:ss"),
-                    gate.patenteCamion];
-                connection.execute(strSql, values, {autoCommit:true}, function(err, result) {
-                    if (err) {
-                        console.error(err.message);
-                    }
-                    callback();
-                });
-            }, function () {
-                console.log("TERMINO");
-                doRelease(connection);
+            strSql = "insert into GATES " +
+                "(ID," +
+                "TERMINAL," +
+                "BUQUE," +
+                "VIAJE," +
+                "CONTENEDOR," +
+                "CARGA," +
+                "MOV," +
+                "TIPO," +
+                "GATETIMESTAMP," +
+                "TURNOINICIO," +
+                "TURNOFIN," +
+                "PATENTECAMION," +
+                "TREN) VALUES (" +
+                "gates_seq.nextval," +
+                ":terminal, " +
+                ":buque, " +
+                ":viaje, " +
+                ":contenedor, " +
+                ":carga, " +
+                ":mov, " +
+                ":tipo, " +
+                "to_date(:gateTimestamp, 'YYYY-MM-DD HH24:MI:SS'), " +
+                "to_date(:turnoInicio, 'YYYY-MM-DD HH24:MI:SS'), " +
+                "to_date(:turnoFin, 'YYYY-MM-DD HH24:MI:SS'), " +
+                ":patenteCamion, " +
+                ":tren) RETURNING ID INTO :outputID";
+            param = {
+                outputID : {type: oracledb.NUMBER, dir: oracledb.BIND_OUT},
+                terminal: gate.terminal,
+                buque: gate.buque,
+                viaje: gate.viaje,
+                contenedor: gate.contenedor,
+                carga: gate.carga,
+                mov: gate.mov,
+                tipo: gate.tipo,
+                gateTimestamp: moment(gate.gateTimestamp).format("YYYY-MM-DD hh:mm:ss"),
+                turnoInicio: (gate.turnoInicio === null ) ? null : moment(gate.turnoInicio).format("YYYY-MM-DD hh:mm:ss"),
+                turnoFin: (gate.turnoFin === null ) ? null : moment(gate.turnoFin).format("YYYY-MM-DD hh:mm:ss"),
+                patenteCamion: gate.patenteCamion,
+                tren: gate.tren
+            };
+            connection.execute(strSql, param, {autoCommit:true}, function(err, result) {
+                if (err) {
+                    console.error("%s, ERROR %s, %j", process.pid, err.message, gate);
+                } else {
+                    if ((counter++ % 1000) === 0)
+                        console.log("Process %d", counter-1);
+                    ;
+                }
             });
         });
+
+        gates.on('close', function (data) {
+            console.log("TERMINO");
+        });
+
     });
+
 
 function doRelease(connection) {
     connection.release(
