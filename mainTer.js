@@ -70,7 +70,7 @@ oracle.oracledb.createPool(
         global.cache = {};
 
         params = {
-            server: {ip: config.domain, port: config.server_port_web},
+            server: {ip: config.domain, port: port},
             node: {
                 version: process.version,
                 runtime: httpExpress.app.get('runtime'),
