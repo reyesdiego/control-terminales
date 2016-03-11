@@ -174,6 +174,7 @@ describe('Classes', function () {
 
         it('should exists class Price', function (done) {
             let price = new Price();
+            console.log(price.toString());
             price.toString().length.should.greaterThan(0);
             done();
         });
@@ -493,14 +494,42 @@ describe('Classes', function () {
             done();
         });
 
-        it('should exists method getInvoice and must returns OK ID=2506605 on TERMINAL4', function (done) {
+        it('should exists method getInvoice and must returns OK ID=7772965 on TERMINAL4', function (done) {
             var param = {
-                _id: 2506605,
+                _id: 7772965,
                 terminal: "TERMINAL4"
             };
             var invoice = new Invoice(oracle);
 
+            this.timeout(20000);
             invoice.getInvoice(param, function (err, data) {
+                if (err) {
+                    console.log("ERROR %j", err);
+                    err.should.have.property('status');
+                    err.status.should.be.equal('OK');
+                } else {
+                    console.log("DATA %j", data);
+                    data.should.have.property('status');
+                    data.status.should.be.equal('OK');
+                    data.data.length.should.be.equal(1);
+                }
+                done();
+            });
+        });
+
+        it('should exists method getInvoices and must returns OK only TERMINAL4', function (done) {
+            var param = {
+                terminal: "TERMINAL4",
+                codTipoComprob: 1,
+                buqueNombre: "SANTA URSULA",
+                skip: 0,
+                limit: 15
+            };
+            var invoice = new Invoice(oracle);
+
+            this.timeout(20000);
+
+            invoice.getInvoices(param, function (err, data) {
                 if (err) {
                     console.log("ERROR %j", err);
                     err.should.have.property('status');
@@ -514,24 +543,59 @@ describe('Classes', function () {
             });
         });
 
-        it('should exists method getInvoices and must returns OK only TRP', function (done) {
-            var param = {
-                terminal: "TERMINAL4",
-                skip: 0,
-                limit: 15
-            };
-            var invoice = new Invoice(oracle);
+        it('sould exists method getCounts and must returns OK', function (done) {
 
-            invoice.getInvoices(param, function (err, data) {
-                if (err) {
-                    console.log("ERROR %j", err);
-                    err.should.have.property('status');
-                    err.status.should.be.equal('OK');
-                } else {
-                    console.log("DATA %j", data);
-                    data.should.have.property('status');
-                    data.status.should.be.equal('OK');
-                }
+            var moment = require('moment');
+            var invoice;
+            var param = {
+                fecha: '2014-08-01'
+            };
+            this.timeout(30000);
+
+            invoice = new Invoice(oracle);
+            invoice.getCounts(param, function (err, data) {
+                console.log("DATA %j", data);
+                data.should.have.property('status');
+                data.status.should.be.equal('OK');
+                data.data.length.should.be.greaterThan(0);
+                done();
+            });
+        });
+
+        it('sould exists method getCountByDay and must returns OK', function (done) {
+
+            var moment = require('moment');
+            var invoice;
+            var param = {
+                fecha: '2015-08-01'
+            };
+            this.timeout(30000);
+
+            invoice = new Invoice(oracle);
+            invoice.getCountByDate(param, function (err, data) {
+                console.log("DATA %j", data);
+                data.should.have.property('status');
+                data.status.should.be.equal('OK');
+                data.data.length.should.be.greaterThan(0);
+                done();
+            });
+        });
+
+        it('sould exists method getCountByMonth and must returns OK', function (done) {
+
+            var moment = require('moment');
+            var invoice;
+            var param = {
+                fecha: '2015-08-01'
+            };
+            this.timeout(30000);
+
+            invoice = new Invoice(oracle);
+            invoice.getCountByMonth(param, function (err, data) {
+                console.log("DATA %j", data);
+                data.should.have.property('status');
+                data.status.should.be.equal('OK');
+                data.data.length.should.be.greaterThan(0);
                 done();
             });
         });
@@ -563,18 +627,88 @@ describe('Classes', function () {
             });
         });
 
-        it('should exists method getInvoices and must returns OK only TRP', function (done) {
+        it('should exists method getInvoices and must returns OK only TERMINAL4', function (done) {
             var param = {
-                terminal: "TRP",
+                terminal: "TERMINAL4",
+                codTipoComprob: 1,
+                buqueNombre: "SANTA URSULA",
                 skip: 0,
                 limit: 15
             };
-            var invoice = new Invoice();
+            var invoice;
+
+            this.timeout(30000);
+            invoice = new Invoice();
 
             invoice.getInvoices(param, function (err, data) {
                 console.log("DATA %j", data);
                 data.should.have.property('status');
                 data.status.should.be.equal('OK');
+                done();
+            });
+        });
+
+        it('sould exists method getCounts and must returns OK', function (done) {
+
+            var moment = require('moment');
+            var invoice;
+            var param = {
+                fecha: '2014-08-01'
+            };
+            this.timeout(30000);
+            invoice = new Invoice();
+            invoice.getCounts(param, function (err, data) {
+                if (err) {
+                    console.log("ERROR %s", err);
+                } else {
+                    console.log("DATA %j", data);
+                    data.should.have.property('status');
+                    data.status.should.be.equal('OK');
+                    data.data.length.should.be.greaterThan(0);
+                }
+                done();
+            });
+        });
+
+        it('sould exists method getCountByDate and must returns OK', function (done) {
+
+            var moment = require('moment');
+            var invoice;
+            var param = {
+                fecha: '2016-03-10'
+            };
+            this.timeout(30000);
+            invoice = new Invoice();
+            invoice.getCountByDate(param, function (err, data) {
+                if (err) {
+                    console.log("ERROR %s", err);
+                } else {
+                    console.log("DATA %j", data);
+                    data.should.have.property('status');
+                    data.status.should.be.equal('OK');
+                    data.data.length.should.be.greaterThan(0);
+                }
+                done();
+            });
+        });
+
+        it('sould exists method getCountByMonth and must returns OK', function (done) {
+
+            var invoice;
+            var param = {
+                fecha: '2016-03-10'
+            };
+            this.timeout(30000);
+            invoice = new Invoice();
+            invoice.getCountByMonth(param, function (err, data) {
+                if (err) {
+                    console.log("ERROR %s", err);
+                } else {
+                    console.log("DATA %j", data);
+                    data.should.have.property('status');
+                    data.status.should.be.equal('OK');
+                    data.data.length.should.be.greaterThan(0);
+                }
                 done();
             });
         });

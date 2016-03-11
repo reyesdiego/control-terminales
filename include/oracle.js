@@ -12,14 +12,34 @@ var oracleUtils = function () {
 
 oracleUtils.prototype = {
 
+    error: function (error) {
+        var msg = error.message;
+        var pro = msg.indexOf('ORA-');
+        var codeEnd;
+        var result = {
+                code: '',
+                message: ''
+            };
+
+        if (pro >= 0) {
+            codeEnd = msg.indexOf(':');
+            result = {
+                code: msg.substr(0, codeEnd),
+                message: msg
+            };
+        }
+        return result;
+    },
+
     doRelease: function (connection) {
         'use strict';
-        connection.release(
-            function (err) {
+        if (connection) {
+            connection.release(function (err) {
                 if (err) {
                     console.error(err.message);
                 }
             });
+        }
     },
     orderBy : function (order) {
         'use strict';

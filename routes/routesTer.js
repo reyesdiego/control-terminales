@@ -34,7 +34,7 @@ module.exports = function (log, app, io, oracle, params) {
     gate = require('./impact/gate')(log, io, oracle);
     app.use('/gate', isValidToken, gate);
 
-    invoice = require('./impact/invoice')(log, io);
+    invoice = require('./impact/invoice')(log, io, oracle);
     app.use('/invoice', isValidToken, invoice);
 
 }

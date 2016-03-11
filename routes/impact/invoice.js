@@ -1,18 +1,16 @@
 /**
  * Created by diego on 7/3/15.
  */
-module.exports = function (log, io) {
+module.exports = function (log, io, oracle) {
     'use strict';
 
     var express = require('express'),
         router = express.Router(),
         util = require('util'),
         mail = require("../../include/emailjs"),
-        dateTime = require('../../include/moment'),
         moment = require('moment'),
         config = require('../../config/config.js'),
         Invoice = require('../../models/invoice.js'),
-        Comment = require('../../models/comment.js'),
         logInvoiceBody = false;
 
     function validateSanitize (req, res, next) {
@@ -145,6 +143,7 @@ module.exports = function (log, io) {
                     }
 
                     req.postData = JSON.parse(postData);
+                    req.postData.usr = req.usr;
                     next();
 
                 } catch (errParsing) {
@@ -162,6 +161,7 @@ module.exports = function (log, io) {
 
     }
 
+/*
     function addInvoice(req, res) {
         var invoice,
             errMsg,
@@ -408,6 +408,40 @@ module.exports = function (log, io) {
             }
         });
     }
+*/
+
+    function add (req, res) {
+        var Invoice = require('../../lib/invoice2.js');
+        var InvoiceM,
+            InvoiceO;
+
+
+        InvoiceM = new Invoice();
+        InvoiceM.add(req.postData, io, function (err, data) {
+            if (err) {
+                log.logger.error("Invoice INS: %s", err.data);
+                res.status(500).send(err);
+            } else {
+                let result = data;
+                data = data.data;
+                log.logger.insert("Invoice INS: %s - %s - Tipo: %s Nro: %s - %s", data._id, data.terminal, data.codTipoComprob, data.nroComprob, data.fecha.emision.toString());
+                res.status(200).send(result);
+            }
+        });
+
+        InvoiceO = new Invoice(oracle);
+        InvoiceO.add(req.postData, io, function (err, data) {
+            if (err) {
+                //log.logger.error("%s", err);
+                //res.status(500).send(err);
+            } else {
+                let result = data;
+                data = data.data;
+                //log.logger.insert("Invoice INS: %s - %s - Tipo: %s Nro: %s - %s", data._id, data.terminal, data.codTipoComprob, data.nroComprob, data.fechaEmision.toString());
+                //res.status(200).send(result);
+            }
+        });
+    }
 
     /*
      router.use(function timeLog(req, res, next){
@@ -416,7 +450,8 @@ module.exports = function (log, io) {
      });
      */
 
-    router.post('/', receiveInvoice, validateSanitize, addInvoice);
+//    router.post('/', receiveInvoice, validateSanitize, addInvoice);
+    router.post('/', receiveInvoice, validateSanitize, add);
 
     return router;
 };

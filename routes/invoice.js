@@ -102,155 +102,59 @@ module.exports = function(log, io, oracle) {
 
     function getCounts(req, res) {
 
-        var jsonParam = [],
-            match = {$match: {}},
-            fechaEmision = moment(moment().format('YYYY-MM-DD')).toDate(),
-            tomorrow,
-            response;
+        var param = {};
+        var Invoice = require('../lib/invoice2.js');
 
-        if (req.query.fecha !== undefined) {
-            fechaEmision = moment(req.query.fecha, ['YYYY-MM-DD']).toDate();
-        }
-        tomorrow = moment(fechaEmision).add(1, 'days').toDate();
-        match['$match'] = {'fecha.emision' : {$gte: fechaEmision, '$lt': tomorrow}};
-        jsonParam.push(match);
+        Invoice = new Invoice();
 
-        jsonParam.push({
-            $group: {
-                _id: {terminal: '$terminal', codTipoComprob: '$codTipoComprob'},
-                total: {$sum: '$total'},
-                cnt: {$sum: 1}
-            }
-        });
-        jsonParam.push({$project : {_id: false, terminal: '$_id.terminal', codTipoComprob: '$_id.codTipoComprob', cnt : '$cnt', total: '$total'}});
-        jsonParam.push({$sort: {'terminal': 1, 'codTipoComprob': 1}});
+        param.fecha = req.query.fecha;
 
-        Invoice.aggregate(jsonParam, function (err, data) {
-            if (!err) {
+        Invoice.getCounts(param, function (err, data) {
 
-                response = Enumerable.from(data)
-                    .groupBy('$.codTipoComprob',
-                            function (item) {
-                                return item;
-                            },
-                            function (job, grouping) {
-                                var grupo = grouping.getSource(),
-                                    cnt = grouping.sum(function (item) {
-                                        return item.cnt;
-                                    }),
-                                    tot = grouping.sum(function (item) {
-                                        return item.total;
-                                    }),
-                                    grupoItem = {
-                                        codTipoComprob: job,
-                                        cnt: cnt,
-                                        total: tot
-                                    };
-
-                                grupo.forEach(function (item) {
-                                    var porcenCnt = item.cnt * 100 / cnt,
-                                        porcenTotal = item.total * 100 / tot;
-
-                                    grupoItem[item.terminal] = {
-                                        cnt: [item.cnt, porcenCnt],
-                                        total: [item.total, porcenTotal]};
-                                });
-
-                                return grupoItem;
-                            }).toArray();
-
-                res.status(200).send({status: "OK", data: response});
-            } else {
+            if (err) {
                 log.logger.error(err);
-                res.status(500).send({status: 'ERROR', data: err.message});
+                res.status(500).send(err);
+            } else {
+                res.status(200).send(data);
             }
         });
     }
 
     function getCountByDate(req, res) {
 
-        var date = moment(moment().format('YYYY-MM-DD')).toDate(),
-            date5Ago,
-            tomorrow,
-            sum = {},
-            jsonParam,
-            result;
+        var Invoice = require('../lib/invoice2.js');
+        var param = {};
+
+        Invoice = new Invoice();
 
         if (req.query.fecha !== undefined) {
-            date = moment(req.query.fecha, 'YYYY-MM-DD').toDate();
+            param.fecha = req.query.fecha;
         }
-        date5Ago = moment(date).subtract(4, 'days').toDate();
-        tomorrow = moment(date).add(1, 'days').toDate();
-
-        jsonParam = [
-            {$match: { 'fecha.emision': {$gte: date5Ago, $lt: tomorrow} }},
-            { $project: {
-                fecha: '$fecha.emision',
-                accessDate: {$subtract: ['$fecha.emision', 180 * 60 * 1000]},
-                terminal: '$terminal',
-                total: '$total'}
-            },
-            { $group : {
-                _id : { terminal: '$terminal',
-                    year: { $year : "$accessDate" },
-                    month: { $month : "$accessDate" },
-                    day: { $dayOfMonth : "$accessDate" },
-                    date: '$fecha'
-                },
-                cnt : { $sum : 1 },
-                total: { $sum : '$total'}
-            }},
-            { $sort: {'_id.date': 1, '_id.terminal': 1 }}
-        ];
-
-        result = Invoice.aggregate(jsonParam);
-
-        result.exec(function (err, data) {
+        Invoice.getCountByDate(param, function (err, data) {
             if (err) {
-                res.status(500).send({status: "ERROR", data: err.message});
+                res.status(500).send(err);
             } else {
-                res.status(200).send({status: 'OK', data: data});
+                res.status(200).send(data);
             }
         });
     }
 
     function getCountByMonth(req, res) {
 
-        var date = moment(moment().format('YYYY-MM-DD')).subtract(moment().date() - 1, 'days').toDate(),
-            month5Ago,
-            nextMonth,
-            jsonParam;
+        var Invoice = require('../lib/invoice2.js');
+        var param = {};
+
+        Invoice = new Invoice();
 
         if (req.query.fecha !== undefined) {
-            date = moment(req.query.fecha, ['YYYY-MM-DD']).subtract(moment(req.query.fecha, 'YYYY-MM-DD').date() - 1, 'days');
+            param.fecha = req.query.fecha;
         }
-        month5Ago = moment(date).subtract(4, 'months').toDate();
-        nextMonth = moment(date).add(1, 'months').toDate();
 
-        jsonParam = [
-            {$match: { 'fecha.emision': {$gte: month5Ago, $lt: nextMonth} }},
-            { $project: {
-                accessDate: {$subtract: ['$fecha.emision', 180 * 60 * 1000]},
-                dia: {$dateToString: { format: "%Y%m", date: {$subtract: ['$fecha.emision', 180 * 60 * 1000]} }},
-                terminal: '$terminal',
-                total: 1}},
-            { $group : {
-                _id : { terminal: '$terminal',
-                        year: { $year : "$accessDate" },
-                        month: { $month : "$accessDate" },
-                        dia: '$dia'
-                },
-                cnt : { $sum : 1 },
-                total: { $sum : '$total'}
-            }},
-            { $sort: {'_id.dia': 1, '_id.terminal': 1 }}
-        ];
-
-        Invoice.aggregate(jsonParam, function (err, data) {
+        Invoice.getCountByMonth(param, function (err, data) {
             if (err) {
-                res.status(500).send({status: "ERROR", data: err.message});
+                res.status(500).send(err);
             } else {
-                res.status(200).send({status: 'OK', data: data});
+                res.status(200).send(data);
             }
         });
     }
