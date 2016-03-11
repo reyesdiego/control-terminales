@@ -7,9 +7,10 @@ var http = require('http'),
     config = require('./config/config.js');
 
 //var interval = 5 * 60 * 1000, // 5 minutos
-var interval = 5 * 1000, // 5 minutos
+var minutos = process.argv[4];
+var interval,
     emailSent = 0,
-    allowSending = config.email,
+    mailOptions = config.emailTurnos,
     optionsget = {
         host: process.argv[2], // here only the domain name (no http/https !)
         port: process.argv[3],
@@ -17,6 +18,13 @@ var interval = 5 * 1000, // 5 minutos
         method: 'GET',
         timeout: 20
     };
+
+if (minutos) {
+    interval = minutos * 60 * 1000; //minutos
+} else {
+    interval = 5000; // 5seg
+}
+
 
 console.info('KeepAlive AgpApi on host:%s port:%s has started successfully. Pid: %s', process.argv[2], process.argv[3], process.pid);
 
@@ -27,10 +35,22 @@ setInterval(request, interval);
 function request() {
     'use strict';
     reqGet = http.request(optionsget, function (res) {
+        let mailer,
+            to= ["reyesdiego@hotmail.com", "dreyes@puertobuenosaires.gob.ar"];
         if (res.statusCode === 200) {
-            allowSending = true;
+            mailOptions.status = true;
+            if (emailSent === 2) {
+                mailer = new mail.mail(mailOptions);
+                mailer.send(to, "Servicio AGP Reestablecido", JSON.stringify(optionsget), function (err, message) {
+                    if (err) {
+                        console.log("Error enviando email. %j, %s", err, new Date());
+                    } else {
+                        console.log('emailSent %s a %s - %s', emailSent, to, new Date());
+                    }
+                });
+            }
             emailSent = 0;
-            console.log('OK');
+            console.log('+');
         } else {
             console.log("Se Cayo: ", res.statusCode);
         }
@@ -38,9 +58,7 @@ function request() {
         res.on('data', function (chunk) {
             chunk1 += chunk;
         });
-        res.on('end', function () {
-            console.log(chunk1);
-        });
+        res.on('end', function () { });
 
     });
 
@@ -48,22 +66,22 @@ function request() {
 
     reqGet.on('error', function (e) {
 
-
-        var mailer = new mail.mail(allowSending),
+        var mailer = new mail.mail(mailOptions),
             to = ["reyesdiego@hotmail.com", "dreyes@puertobuenosaires.gob.ar"];
-        mailer.send(to, "Servicio AGP detenido (testing)", JSON.stringify(optionsget), function (err, message) {
-            if (err) {
-                console.log("Error enviando email. %s, %s", err, new Date());
-            } else {
-                emailSent++;
-                console.log('emailSent %s a %s - %s', emailSent, message.header.to, new Date());
-                if (emailSent === 2) {
-                    console.log("\nProceso terminado %s\n", new Date());
-                    allowSending = false;
-                    process.exit(0);
+        if (mailOptions.status) {
+            mailer.send(to, "Servicio AGP detenido", JSON.stringify(optionsget), function (err, message) {
+                if (err) {
+                    console.log("Error enviando email. %j, %s", err, new Date());
+                } else {
+                    emailSent++;
+                    console.log('emailSent %s a %s - %s', emailSent, to, new Date());
+                    if (emailSent === 2) {
+                        console.log("\nEnvio de Alertas Finalizado hasta tanto se reinicie el servicio %s\n", new Date());
+                        mailOptions.status = false;
+                        //process.exit(0);
+                    }
                 }
-            }
-        });
-
+            });
+        }
 });
 }
