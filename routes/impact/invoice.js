@@ -441,7 +441,7 @@ module.exports = function (log, io, oracle) {
                 let result = data;
                 data = data.data;
                 log.logger.insert("Invoice ORA INS: %s - %s - Tipo: %s Nro: %s - %s", data._id, data.terminal, data.codTipoComprob, data.nroComprob, data.fechaEmision.toString());
-console.log(result)
+
                 //res.status(200).send(result);
             }
         });
