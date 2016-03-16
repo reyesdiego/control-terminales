@@ -162,82 +162,47 @@ module.exports = function(log, io, oracle) {
     function getNoRates(req, res) {
 
         var terminal = req.params.terminal,
-            _price = require('../include/price.js'),
-            _rates = new _price.price(terminal),
+            Invoice = require('../lib/invoice2.js'),
+            invoice,
             skip,
             limit,
             fecha,
-            param,
+            param = {},
             invoices,
             errorResult;
 
-        log.startElapsed();
 
-        _rates.rates(function (err, rates) {
+        param.skip = parseInt(req.params.skip, 10);
+        param.limit = parseInt(req.params.limit, 10);
+        param.terminal = terminal;
 
-            if (rates.length > 0) {
+        if (req.query.fechaInicio || req.query.fechaFin) {
+            if (req.query.fechaInicio) {
+                fecha = moment(moment(req.query.fechaInicio, 'YYYY-MM-DD')).toDate();
+                param.fechaInicio = fecha;
+            }
+            if (req.query.fechaFin) {
+                fecha = moment(moment(req.query.fechaFin, 'YYYY-MM-DD')).toDate();
+                param.fechaFin = fecha;
+            }
+        }
+        if (req.query.contenedor) {
+            param.contenedor = req.query.contenedor;
+        }
 
-                skip = parseInt(req.params.skip, 10);
-                limit = parseInt(req.params.limit, 10);
+        if (req.query.razonSocial) {
+            param.razon = req.query.razonSocial;
+        }
+        invoice = new Invoice();
 
-
-                param = {
-                    terminal : terminal,
-                    'detalle.items.id': {$nin: rates}
-                };
-
-                if (req.query.fechaInicio || req.query.fechaFin) {
-                    param["fecha.emision"] = {};
-                    if (req.query.fechaInicio) {
-                        fecha = moment(moment(req.query.fechaInicio, 'YYYY-MM-DD')).toDate();
-                        param["fecha.emision"]['$gte'] = fecha;
-                    }
-                    if (req.query.fechaFin) {
-                        fecha = moment(moment(req.query.fechaFin, 'YYYY-MM-DD')).toDate();
-                        param["fecha.emision"]['$lte'] = fecha;
-                    }
-                }
-
-                if (req.query.contenedor) {
-                    param['detalle.contenedor'] = req.query.contenedor;
-                }
-
-                if (req.query.razonSocial) {
-                    param.razon = {$regex: req.query.razonSocial};
-                }
-
-                invoices = Invoice.find(param);
-                invoices.limit(limit).skip(skip);
-
-                if (req.query.order) {
-                    var order = JSON.parse(req.query.order);
-                    invoices.sort(order[0]);
-                } else {
-                    invoices.sort({codTipoComprob: 1, nroComprob: 1});
-                }
-                invoices.lean();
-                invoices.exec(function (err, invoices) {
-                    var pageCount = invoices.length;
-                    Invoice.count(param, function (err, cnt) {
-                        var dataResult = {
-                            status: 'OK',
-                            totalCount: cnt,
-                            pageCount: (limit > pageCount) ? limit : pageCount,
-                            page: skip,
-                            elapsed: log.getElapsed(),
-                            data: invoices
-                        };
-                        res.status(200).send(dataResult);
-                    });
-                });
+        invoice.getNoRates(param, function (err, invoices) {
+            if (err) {
+                res.status(500).send(err);
             } else {
-                errorResult = {
-                    status: 'ERROR',
-                    data: 'La terminal no tiene Tasa a las Cargas Asociadas.'
-                };
-                res.status(500).send(errorResult);
+                res.status(200).send(invoices);
             }
         });
+
     }
 
     function getRatesTotal(req, res) {
@@ -1353,6 +1318,7 @@ module.exports = function(log, io, oracle) {
         var usr = req.usr,
             distinct = '',
             param = {};
+        var Invoice = require('../lib/invoice2.js');
 
         if (req.route.path === '/:terminal/ships') {
             distinct = 'detalle.buque.nombre';
@@ -1368,17 +1334,14 @@ module.exports = function(log, io, oracle) {
             param.terminal = usr.terminal;
         }
 
+        Invoice = new Invoice();
+
         if (distinct !== '') {
-            Invoice.distinct(distinct, param, function (err, data) {
+            Invoice.getDistinct(distinct, param, function (err, data) {
                 if (err) {
-                    res.status(500).send({status: 'ERROR', data: err.message});
+                    res.status(500).send(err);
                 } else {
-                    res.status(200)
-                        .send({
-                            status: 'OK',
-                            totalCount: data.length,
-                            data: data.sort()
-                        });
+                    res.status(200).send(data);
                 }
             });
         } else {
