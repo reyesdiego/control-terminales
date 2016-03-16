@@ -415,9 +415,11 @@ module.exports = function (log, io, oracle) {
         var InvoiceM,
             InvoiceO;
 
+        var paramMongo = JSON.parse(JSON.stringify(req.postData));
+        var paramOracle = JSON.parse(JSON.stringify(req.postData));
 
         InvoiceM = new Invoice();
-        InvoiceM.add(req.postData, io, function (err, data) {
+        InvoiceM.add(paramMongo, io, function (err, data) {
             if (err) {
                 log.logger.error("Invoice INS: %s", err.data);
                 res.status(500).send(err);
@@ -429,18 +431,21 @@ module.exports = function (log, io, oracle) {
             }
         });
 
+
         InvoiceO = new Invoice(oracle);
-        InvoiceO.add(req.postData, io, function (err, data) {
+        InvoiceO.add(paramOracle, io, function (err, data) {
             if (err) {
-                //log.logger.error("%s", err);
+                log.logger.error("%s", err);
                 //res.status(500).send(err);
             } else {
                 let result = data;
                 data = data.data;
-                //log.logger.insert("Invoice INS: %s - %s - Tipo: %s Nro: %s - %s", data._id, data.terminal, data.codTipoComprob, data.nroComprob, data.fechaEmision.toString());
+                log.logger.insert("Invoice ORA INS: %s - %s - Tipo: %s Nro: %s - %s", data._id, data.terminal, data.codTipoComprob, data.nroComprob, data.fechaEmision.toString());
+console.log(result)
                 //res.status(200).send(result);
             }
         });
+
     }
 
     /*
