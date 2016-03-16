@@ -9,6 +9,7 @@ var config = require('../config/config.js'),
     log = new log4n.log(config.log),
     async = require("async"),
     moment = require("moment");
+var dateTime = require('../include/moment');
 
 require('../include/mongoose.js')(log);
 var Invoice = require("../models/invoice.js");
@@ -29,14 +30,19 @@ oracledb.getConnection(
                         ")"
     },
     function (err, connection) {
-        var invoices;
+        var invoices,
+            counter = 0,
+            _autoCommit = true;
+
         if (err) {
             console.error(err.message);
             return;
         }
         invoices = Invoice.find()
-            .limit(50)
-            .populate('comment')
+            .sort({_id: 1})
+            .skip(0)
+            .limit(10000)
+//            .populate('comment')
             .lean();
         invoices = invoices.stream();
         invoices.on('data', function (invoice) {
@@ -72,7 +78,8 @@ oracledb.getConnection(
                 "FECHA_DESDE, " +
                 "FECHA_HASTA, " +
                 "FECHA_VCTO_PAGO, " +
-                "RESEND" +
+                "RESEND," +
+                "REGISTRADO_EN" +
                 ") VALUES (" +
                 "invoices_seq.nextval, " +
                 ":terminal, " +
@@ -102,7 +109,8 @@ oracledb.getConnection(
                 "to_date(:fechaDesde, 'YYYY-MM-DD')," +
                 "to_date(:fechaHasta, 'YYYY-MM-DD')," +
                 "to_date(:fechaVctoPago, 'YYYY-MM-DD'), " +
-                ":resend " +
+                ":resend," +
+                ":registrado_en " +
                 ") RETURNING ID INTO :outputId";
             param = {
                 outputId : {type: oracledb.NUMBER, dir: oracledb.BIND_OUT},
@@ -133,9 +141,10 @@ oracledb.getConnection(
                 fechaDesde: moment(invoice.fecha.desde).format('YYYY-MM-DD'),
                 fechaHasta: moment(invoice.fecha.hasta).format('YYYY-MM-DD'),
                 fechaVctoPago: moment(invoice.fecha.vctoPago).format('YYYY-MM-DD'),
-                resend: invoice.resend
+                resend: invoice.resend,
+                registrado_en: dateTime.getDateTimeFromObjectId(invoice._id)
             };
-            connection.execute(strSql, param, {autoCommit:true}, function(err, result) {
+            connection.execute(strSql, param, {autoCommit: _autoCommit}, function(err, result) {
                 if (err) {
                     console.error("ERROR EN HEADER: %j", err);
                     process.exit();
@@ -186,9 +195,9 @@ oracledb.getConnection(
                                     UNIMED: item.uniMed,
                                     CNT: item.cnt
                                 };
-                                connection.execute(strSql, param, {autoCommit:true}, function(err, resultDetail) {
+                                connection.execute(strSql, param, {autoCommit: _autoCommit}, function(err, resultDetail) {
                                     if (err) {
-                                        console.error("ERROR EN DETAIL: %j", err);
+                                        console.error("ERROR EN DETAIL: %s", err.message);
                                         callbackDetail();
                                     } else {
                                         callbackDetail();
@@ -199,6 +208,7 @@ oracledb.getConnection(
                         });
                     });
 
+                    /*
                     invoice.comment.forEach(function (comment) {
                         var task = function (callbackDetail) {
                             strSql = "insert into INVOICE_COMMENT " +
@@ -224,9 +234,9 @@ oracledb.getConnection(
                                 STATE: comment.state,
                                 GRUPO: comment.group
                             };
-                            connection.execute(strSql, param, {autoCommit:true}, function(err, resultComment) {
+                            connection.execute(strSql, param, {autoCommit: _autoCommit}, function(err, resultComment) {
                                 if (err) {
-                                    console.error("ERROR EN COMMENT: %j", err);
+                                    console.error("ERROR EN COMMENT: %s", err.message);
                                     callbackDetail();
                                 } else {
                                     callbackDetail();
@@ -235,7 +245,8 @@ oracledb.getConnection(
                         };
                         tasks.push(task);
                     });
-
+*/
+  /*
                     invoice.estado.forEach(function (estado) {
                         var task = function (callbackDetail) {
                             strSql = "insert into INVOICE_STATE " +
@@ -255,9 +266,9 @@ oracledb.getConnection(
                                 STATE: estado.estado,
                                 GRUPO: estado.grupo
                             };
-                            connection.execute(strSql, param, {autoCommit:true}, function(err, resultComment) {
+                            connection.execute(strSql, param, {autoCommit: _autoCommit}, function(err, resultComment) {
                                 if (err) {
-                                    console.error("ERROR EN STATE: %j", err);
+                                    console.error("ERROR EN STATE: %s", err.message);
                                     callbackDetail();
                                 } else {
                                     callbackDetail();
@@ -266,12 +277,37 @@ oracledb.getConnection(
                         };
                         tasks.push(task);
                     });
-
+*/
                     async.parallel(tasks, function (err, data) {
+                        if (counter++ % 1000 === 0) {
+                            console.log("Commited %d", counter - 1);
+                        }
 
+/*
+                        connection.commit(function(err) {
+                            if (err)
+                                console.error(err.message);
+                            else
+                            if (counter++ % 1000 === 0) {
+                                console.log("Commited %d", counter - 1);
+                            }
+                        });
+*/
                     });
                 }
             });
+/*
+            if (counter++ % 1000 === 0) {
+                console.log("Commited %d", counter - 1);
+
+                connection.commit(function(err) {
+                    if (err)
+                        console.error(err.message);
+                    else
+                        console.log("Commited %d", counter - 1);
+                });
+            }
+*/
         });
         invoices.on('close', function() {
             console.log("FINISHED INVOICES");
