@@ -206,6 +206,30 @@ module.exports = function (log, oracle) {
     }
 
     function getMissingGates(req, res) {
+        var usr = req.usr,
+            terminal,
+            param;
+
+        if (usr.role === 'agp') {
+            terminal = req.params.terminal;
+        } else {
+            terminal = usr.terminal;
+        }
+        param = {
+            terminal: terminal
+        }
+        Gate.getMissingGates(param, function (err, data) {
+
+            if (err) {
+                res.status(500).send(err);
+            } else {
+                res.status(200).send(data);
+                res.flush();
+            }
+        });
+
+    }
+    function getMissingGatesORI(req, res) {
 
         var Gate = require('../models/gate.js');
         var usr = req.usr,
@@ -231,16 +255,23 @@ module.exports = function (log, oracle) {
             taskAsync = function (asyncCallback) {
                 var invoices = Invoice.aggregate([
                     {$match: {terminal: terminal, codTipoComprob: 1, 'detalle.items.id': {$in: rates}}},
-                    {$project: {detalle: 1, fecha: '$fecha.emision'}},
-                    {$unwind: '$detalle'},
-                    {$unwind: '$detalle.items'},
-                    {$match: {'detalle.items.id': {$in: rates}}},
+                    //{$project: {detalle: 1, fecha: '$fecha.emision'}},
                     {$project: {
-                        _id: false,
-                        //v: '$nroPtoVenta',
-                        //n: '$nroComprob',
-                        c: '$detalle.contenedor',
-                        //i: '$detalle.items.id',
+                        //detalle: 1,
+                        code: '$detalle.items.id',
+                        contenedor: '$detalle.contenedor',
+                        fecha: '$fecha.emision'}
+                    },
+                    //{$unwind: '$detalle'},
+                    //{$unwind: '$detalle.items'},
+                    {$unwind: '$contenedor'},
+                    {$unwind: '$code'},
+                    //{$match: {'detalle.items.id': {$in: rates}}},
+                    {$match: {'code': {$in: rates}}},
+                    {$project: {
+                        //_id: false,
+                        //c: '$detalle.contenedor',
+                        c: '$contenedor',
                         f: '$fecha'}}
                 ]);
 
@@ -279,20 +310,20 @@ module.exports = function (log, oracle) {
             }
             tasksAsync.push(taskAsync);
 
-        async.parallel(tasksAsync, function (err, data) {
+            async.parallel(tasksAsync, function (err, data) {
 
-            let invoicesWoGates = invoicesWo.except(gatesWo, "$.c").toArray();
-            //.except(dataGates).toArray();
+                let invoicesWoGates = invoicesWo.except(gatesWo, "$.c").toArray();
+                //.except(dataGates).toArray();
 
-            res.status(200)
-                .send({
-                    status: 'OK',
-                    totalCount: invoicesWoGates.length,
-                    data: invoicesWoGates,
-                    time: log.timeEnd("totalTime")
-                });
-            res.flush();
-        });
+                res.status(200)
+                    .send({
+                        status: 'OK',
+                        totalCount: invoicesWoGates.length,
+                        data: invoicesWoGates,
+                        time: log.timeEnd("totalTime")
+                    });
+                res.flush();
+            });
 
         });
     }
