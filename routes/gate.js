@@ -227,7 +227,6 @@ module.exports = function (log, oracle) {
                 res.flush();
             }
         });
-
     }
     function getMissingGatesORI(req, res) {
 
@@ -329,92 +328,26 @@ module.exports = function (log, oracle) {
     }
 
     function getMissingInvoices(req, res) {
-
-        var Gate = require('../models/gate.js');
         var usr = req.usr,
-            terminal = '',
-            _price,
-            _rates,
-            gates,
-            taskAsync,
-            tasksAsync = [];
+            terminal,
+            param;
 
         if (usr.role === 'agp') {
             terminal = req.params.terminal;
         } else {
             terminal = usr.terminal;
         }
+        param = {
+            terminal: terminal
+        }
+        Gate.getMissingInvoices(param, function (err, data) {
 
-        _price = require('../include/price.js');
-        _rates = new _price.price();
-        _rates.rates(function (err, rates) {
-            let invoicesWo,
-                gatesWo;
-            log.time("missingInvoices");
-
-            taskAsync = function (asyncCallback) {
-                log.time("gatesTime");
-                gates = Gate.find({terminal: terminal, carga: "LL"});
-
-                //if (req.query.order) {
-                //    var order = JSON.parse(req.query.order);
-                //    gates.sort(order[0]);
-                //} else {
-                //    gates.sort({gateTimestamp: 1});
-                //}
-                gates.lean();
-                gates.exec(function (err, dataGates) {
-                    log.timeEnd("gatesTime");
-                    if (err) {
-                        res.status(500).send({status: 'ERROR', data: err.message});
-                    } else {
-
-                        if (err) {
-                            res.status(500).send({status: 'ERROR', data: err.message});
-                        } else {
-                            gatesWo = linq.from(dataGates);
-                            asyncCallback();
-                        }
-                    }
-                });
-            };
-            tasksAsync.push(taskAsync);
-
-            taskAsync = function (asyncCallback) {
-
-                log.time("invoicesTime");
-                let invoices = Invoice.aggregate([
-                    {$match: {terminal: terminal}},
-                    {$unwind: '$detalle'},
-                    {$unwind: '$detalle.items'},
-                    {$match: {'detalle.items.id': {$in: rates}}},
-                    {$project: { c: '$detalle.contenedor'}}
-                ]);
-
-                invoices.exec(function (err, dataInvoices) {
-                    log.timeEnd("invoicesTime");
-                    if (err) {
-                        res.status(500).send({status: 'ERROR', data: err.message});
-                    } else {
-                        invoicesWo = linq.from(dataInvoices).select(function (item) { return { contenedor: item.c } });
-                        asyncCallback();
-                    }
-                });
-            };
-            tasksAsync.push(taskAsync);
-
-            async.parallel(tasksAsync, function(err, data) {
-                let gatesWoGates;
-
-                gatesWoGates = gatesWo.except(invoicesWo, "$.contenedor").toArray();
-
-                res.status(200)
-                    .send({
-                        status: 'OK',
-                        totalCount: gatesWoGates.length,
-                        data: gatesWoGates,
-                        time: log.timeEnd("missingInvoices")});
-            });
+            if (err) {
+                res.status(500).send(err);
+            } else {
+                res.status(200).send(data);
+                res.flush();
+            }
         });
     }
 
