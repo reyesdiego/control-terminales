@@ -362,7 +362,7 @@ module.exports = function(log, io, oracle) {
                                     }).toArray();
 
                                 mp = MatchPrice.find({match: {$in: rates}}, {price: true, match : true});
-                                mp.populate({path: 'price', match: {rate: {$exists: 1}}});
+                                mp.populate({path: 'price', match: {rate: {$exists: true}}});
                                 mp.exec(function (err, dataMatch) {
 
                                     mp = Enumerable.from(dataMatch)
@@ -495,7 +495,7 @@ module.exports = function(log, io, oracle) {
                                         }).toArray();
 
                                     mp = MatchPrice.find({match: {$in: rates}}, {price: true, match : true});
-                                    mp.populate({path: 'price', match: {rate: {$exists: 1}}});
+                                    mp.populate({path: 'price', match: {rate: {$exists: true}}});
                                     mp.exec(function (err, dataMatch) {
 
                                         mp = Enumerable.from(dataMatch)
@@ -629,7 +629,7 @@ module.exports = function(log, io, oracle) {
                                         }).toArray();
 
                                     mp = MatchPrice.find({match: {$in: rates}}, {price: true, match : true});
-                                    mp.populate({path: 'price', match: {rate: {$exists: 1}}});
+                                    mp.populate({path: 'price', match: {rate: {$exists: true}}});
                                     mp.exec(function (err, dataMatch) {
 
                                         mp = Enumerable.from(dataMatch)
@@ -761,7 +761,7 @@ module.exports = function(log, io, oracle) {
                                         }).toArray();
 
                                     mp = MatchPrice.find({match: {$in: rates}}, {price: true, match : true});
-                                    mp.populate({path: 'price', match: {rate: {$exists: 1}}});
+                                    mp.populate({path: 'price', match: {rate: {$exists: true}}});
                                     mp.exec(function (err, dataMatch) {
 
                                         mp = Enumerable.from(dataMatch)
@@ -1145,7 +1145,7 @@ module.exports = function(log, io, oracle) {
             param['$or'] = [
                 { estado:{$size: 1, $elemMatch: {estado: {$in: states}, grupo:'ALL'} } },
                 { 'estado.1': { $exists: true } , estado: {$elemMatch: {estado: {$in: states}, grupo: usr.group} } }
-            ]
+            ];
         }
 
         Invoice.distinct('nroPtoVenta', param, function (err, data){
@@ -1518,11 +1518,8 @@ module.exports = function(log, io, oracle) {
     function getContainersNoRates (req, res) {
 
         var paramTerminal = req.params.terminal,
-            _price = require('../include/price.js'),
-            _rates = new _price.price(paramTerminal),
+            Invoice = require('../lib/invoice2.js');
             paramTotal,
-            Enumerable = require("linq"),
-            inv,
             fecha;
 
         _rates.rates(function (err, rates){

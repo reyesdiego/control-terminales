@@ -315,7 +315,7 @@ describe('Classes', function () {
         });
 
         it('should exists method getPrices and must return OK only 1 row', function (done) {
-            this.timeout(10000);
+            this.timeout(20000);
 
             var param = {};
             let price = new Price("TRP");
