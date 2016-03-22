@@ -1003,7 +1003,7 @@ module.exports = function(log, io, oracle) {
         contadorFaltantesTotal = 0;
 
         cashBoxes.forEach(function (cash) {
-            //funcion que calcula la correlatividad por cada caja que sera ejecutada en paralelo con async
+            //funcion que calcula la correlatividad por cada caja que sera ejecutada en paralelo async
             var cashboxExec = function (callback) {
                 var invoices,
                     logTimeBase;

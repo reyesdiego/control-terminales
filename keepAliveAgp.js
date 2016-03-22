@@ -25,7 +25,6 @@ if (minutos) {
     interval = 5000; // 5seg
 }
 
-
 console.info('KeepAlive AgpApi on host:%s port:%s has started successfully. Pid: %s', process.argv[2], process.argv[3], process.pid);
 
 var reqGet;
@@ -70,6 +69,10 @@ function request() {
             to = ["reyesdiego@hotmail.com", "dreyes@puertobuenosaires.gob.ar"];
         if (mailOptions.status) {
             mailer.send(to, "Servicio AGP detenido", JSON.stringify(optionsget), function (err, message) {
+                var util     = require('util'),
+                    spawn    = require('child_process').spawn,
+                    startTer;
+
                 if (err) {
                     console.log("Error enviando email. %j, %s", err, new Date());
                 } else {
@@ -78,10 +81,27 @@ function request() {
                     if (emailSent === 2) {
                         console.log("\nEnvio de Alertas Finalizado hasta tanto se reinicie el servicio %s\n", new Date());
                         mailOptions.status = false;
-                        //process.exit(0);
+
+/*
+                        /!** Executo bash para reestablecer el servicio *!/
+                        startTer = spawn('./startTer.sh', []);
+                        startTer.stdout.on('data', function (data) {
+                            console.log('stdout: ' + data);
+                        });
+
+                        startTer.stderr.on('data', function (data) {
+                            console.log('stderr: ' + data);
+                        });
+
+                        startTer.on('exit', function (code) {
+                            console.log('child process exited with code ' + code);
+                        });
+*/
+
                     }
                 }
             });
         }
-});
+    });
 }
+

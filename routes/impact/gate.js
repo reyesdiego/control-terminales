@@ -36,13 +36,13 @@ module.exports = function (log, io, oracle) {
         });
 
         gateLibOra = new Gate(oracle);
-        gateLibOra.add(gate2insert, {validate: true, trim: true}, function (err, invoiceNew) {
+        gateLibOra.add(gate2insert, {validate: true, trim: true}, function (err, gateNew) {
             if (err) {
                 errMsg = util.format('%s: %j \n%s', err.message, err.data, usr.terminal, JSON.stringify(req.body));
                 log.logger.error(errMsg);
             } else {
-                let invo = invoiceNew.data;
-                log.logger.insert('Gate ORA INS: %s - %s - %s', invo._id, usr.terminal, moment(invo.gateTimestamp).format("YYYY-MM-DD hh:mm:ss"));
+                let gate = gateNew.data;
+                log.logger.insert('Gate ORA INS: %s - %s - %s', gate._id, usr.terminal, moment(gate.gateTimestamp).format("YYYY-MM-DD hh:mm:ss"));
             }
         });
 

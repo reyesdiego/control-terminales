@@ -40,8 +40,8 @@ oracledb.getConnection(
         }
         invoices = Invoice.find()
             .sort({_id: 1})
-            .skip(548000)
-            .limit(1000)
+            .skip(550000)
+            .limit(384)
 //            .populate('comment')
             .lean();
         //invoices = invoices.stream();
