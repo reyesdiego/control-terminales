@@ -3,7 +3,7 @@
  *
  * @module Routes
  */
-module.exports = function(log, io, oracle) {
+module.exports = function (log, io, oracle) {
     'use strict';
 
     var express = require('express'),
@@ -78,9 +78,8 @@ module.exports = function(log, io, oracle) {
     }
 
     function getInvoice(req, res) {
-        var Invoice = require('../lib/invoice2.js');
-
-        var usr = req.usr,
+        var Invoice = require('../lib/invoice2.js'),
+            usr = req.usr,
             param = {
                 _id: req.params.id
             },
@@ -102,8 +101,8 @@ module.exports = function(log, io, oracle) {
 
     function getCounts(req, res) {
 
-        var param = {};
-        var Invoice = require('../lib/invoice2.js');
+        var param = {},
+            Invoice = require('../lib/invoice2.js');
 
         Invoice = new Invoice();
 
@@ -141,8 +140,8 @@ module.exports = function(log, io, oracle) {
 
     function getCountByMonth(req, res) {
 
-        var Invoice = require('../lib/invoice2.js');
-        var param = {};
+        var Invoice = require('../lib/invoice2.js'),
+            param = {};
 
         Invoice = new Invoice();
 
@@ -164,12 +163,8 @@ module.exports = function(log, io, oracle) {
         var terminal = req.params.terminal,
             Invoice = require('../lib/invoice2.js'),
             invoice,
-            skip,
-            limit,
             fecha,
-            param = {},
-            invoices,
-            errorResult;
+            param = {};
 
 
         param.skip = parseInt(req.params.skip, 10);
@@ -207,8 +202,7 @@ module.exports = function(log, io, oracle) {
 
     function getRatesTotal(req, res) {
 
-        var moment = require('moment'),
-            today = moment(moment().format('YYYY-MM-DD')).toDate(),
+        var today = moment(moment().format('YYYY-MM-DD')).toDate(),
             tomorrow = moment(moment().format('YYYY-MM-DD')).add(1, 'days').toDate(),
             _price,
             _rates,
@@ -245,11 +239,10 @@ module.exports = function(log, io, oracle) {
                 {$match : {'detalle.items.id' : {$in: rates}}},
                 {$project : {terminal: 1, 'detalle.items': 1, "total" : sum }},
                 {$group  : {
-                        _id: { terminal: '$terminal'},
-                        cnt: { $sum: 1},
-                        total: {$sum: '$total'}
-                    }
-                }
+                    _id: { terminal: '$terminal'},
+                    cnt: { $sum: 1},
+                    total: {$sum: '$total'}
+                }}
             ];
             Invoice.aggregate(jsonParam, function (err, data) {
                 if (err) {
@@ -279,119 +272,118 @@ module.exports = function(log, io, oracle) {
             desde = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
             hasta = moment(req.query.fechaFin, 'YYYY-MM-DD').add(1, 'days').toDate();
 
-            VoucherType.find({type: -1}, function (err, vouchertypes){
-            if (err) {
-                res.status(500).send({status: 'ERROR', data : err.message});
-            } else {
-                cond = Enumerable.from(vouchertypes)
-                    .select(function (item) {
-                        if (item.type === -1) {
-                            return {$eq: [ "$codTipoComprob", item._id]};
-                        }
-                    }).toArray();
-
-                _price = require('../include/price.js');
-                _rates = new _price.price();
-                _rates.ratePrices(function (err, prices) {
-                    var invoice,
-                        param,
-                        rates;
-
-                    rates = Enumerable.from(prices)
-                        .select('z=>z.code')
-                        .toArray();
-
-                    if (err) {
-                        res.status(500).send({status: 'ERROR', data : err.message});
-                    } else {
-                        param = [
-                            { $match : {
-                                'fecha.emision': {$gte: desde, $lt: hasta}
-                            }},
-                            { $unwind : '$detalle'},
-                            { $unwind : '$detalle.items'},
-                            { $match : {
-                                'detalle.items.id' : { $in : rates}
-                            }},
-                            {$project : {
-                                terminal: '$terminal',
-                                code: '$detalle.items.id',
-                                cotiMoneda: '$cotiMoneda',
-                                cnt: { $cond: [
-                                                    {$or : cond },
-                                                    {$multiply: ['$detalle.items.cnt', -1]},
-                                                    '$detalle.items.cnt'
-                                                ]
-                                },
-                                impUnit: '$detalle.items.impUnit',
-                                impTot: '$detalle.items.impTot'
-                            }}];
-                        invoice = Invoice.aggregate(param);
-
-                        invoice.exec(function (err, data) {
-                            var mp,
-                                result;
-
-                            if (err) {
-                                res.status(500).send({status: 'ERROR', data : err.message});
-                            } else {
-
-                                result = Enumerable.from(data)
-                                    .join(Enumerable.from(prices), '$.code', '$.code', function (tasaInvoice, price) {
-                                        tasaInvoice.impUnitAgp = price.price.topPrices[0].price;
-                                        tasaInvoice.tasa = tasaInvoice.impUnit * tasaInvoice.cnt;
-                                        tasaInvoice.tasaAgp = tasaInvoice.impUnitAgp * tasaInvoice.cnt;
-                                        tasaInvoice.totalTasa = tasaInvoice.tasa * tasaInvoice.cotiMoneda;
-                                        tasaInvoice.totalTasaAgp = tasaInvoice.tasaAgp * tasaInvoice.cotiMoneda;
-                                        return tasaInvoice;
-                                    })
-                                    .groupBy('x=>JSON.stringify({code: x.code, terminal: x.terminal})', null,
-                                    function (key, g) {
-                                        var r;
-                                        key = JSON.parse(key);
-                                        r = {
-                                            _id: {code: key.code, terminal: key.terminal},
-                                            cnt: g.sum("$.cnt"),
-                                            total: g.sum("$.tasa"),
-                                            totalPeso: g.sum("$.totalTasa"),
-                                            totalAgp: g.sum("$.tasaAgp"),
-                                            totalPesoAgp: g.sum("$.totalTasaAgp")
-                                        };
-                                        r.cnt = Math.abs(r.cnt);
-                                        return r;
-                                    }).toArray();
-
-                                mp = MatchPrice.find({match: {$in: rates}}, {price: true, match : true});
-                                mp.populate({path: 'price', match: {rate: {$exists: true}}});
-                                mp.exec(function (err, dataMatch) {
-
-                                    mp = Enumerable.from(dataMatch)
-                                        .select(function (item) {
-                                            return {code: item.match[0], rate: item.price.toObject().rate};
-                                        }).toArray();
-                                    mp = Enumerable.from(result)
-                                        .join(Enumerable.from(mp), '$._id.code', '$.code', function (left, right){
-                                            return {
-                                                code : right.code,
-                                                rate: right.rate,
-                                                terminal: left._id.terminal,
-                                                ton: left.cnt,
-                                                total: left.total,
-                                                totalPeso: left.totalPeso,
-                                                totalAgp: left.totalAgp,
-                                                totalPesoAgp: left.totalPesoAgp
-                                            };
-                                        }).toArray();
-
-                                    res.status(200).send({status: 'OK', data : mp});
-                                });
+            VoucherType.find({type: -1}, function (err, vouchertypes) {
+                if (err) {
+                    res.status(500).send({status: 'ERROR', data : err.message});
+                } else {
+                    cond = Enumerable.from(vouchertypes)
+                        .select(function (item) {
+                            if (item.type === -1) {
+                                return {$eq: [ "$codTipoComprob", item._id]};
                             }
-                        });
-                    }
-                });
+                        }).toArray();
 
-            }
-        });
+                    _price = require('../include/price.js');
+                    _rates = new _price.price();
+                    _rates.ratePrices(function (err, prices) {
+                        var invoice,
+                            param,
+                            rates;
+
+                        rates = Enumerable.from(prices)
+                            .select('z=>z.code')
+                            .toArray();
+
+                        if (err) {
+                            res.status(500).send({status: 'ERROR', data : err.message});
+                        } else {
+                            param = [
+                                { $match : {
+                                    'fecha.emision': {$gte: desde, $lt: hasta}
+                                }},
+                                { $unwind : '$detalle'},
+                                { $unwind : '$detalle.items'},
+                                { $match : {
+                                    'detalle.items.id' : { $in : rates}
+                                }},
+                                {$project : {
+                                    terminal: '$terminal',
+                                    code: '$detalle.items.id',
+                                    cotiMoneda: '$cotiMoneda',
+                                    cnt: { $cond: [
+                                        {$or : cond },
+                                        {$multiply: ['$detalle.items.cnt', -1]},
+                                        '$detalle.items.cnt'
+                                    ]},
+                                    impUnit: '$detalle.items.impUnit',
+                                    impTot: '$detalle.items.impTot'
+                                }}];
+                            invoice = Invoice.aggregate(param);
+
+                            invoice.exec(function (err, data) {
+                                var mp,
+                                    result;
+
+                                if (err) {
+                                    res.status(500).send({status: 'ERROR', data : err.message});
+                                } else {
+
+                                    result = Enumerable.from(data)
+                                        .join(Enumerable.from(prices), '$.code', '$.code', function (tasaInvoice, price) {
+                                            tasaInvoice.impUnitAgp = price.price.topPrices[0].price;
+                                            tasaInvoice.tasa = tasaInvoice.impUnit * tasaInvoice.cnt;
+                                            tasaInvoice.tasaAgp = tasaInvoice.impUnitAgp * tasaInvoice.cnt;
+                                            tasaInvoice.totalTasa = tasaInvoice.tasa * tasaInvoice.cotiMoneda;
+                                            tasaInvoice.totalTasaAgp = tasaInvoice.tasaAgp * tasaInvoice.cotiMoneda;
+                                            return tasaInvoice;
+                                        })
+                                        .groupBy('x=>JSON.stringify({code: x.code, terminal: x.terminal})', null,
+                                            function (key, g) {
+                                                var r;
+                                                key = JSON.parse(key);
+                                                r = {
+                                                    _id: {code: key.code, terminal: key.terminal},
+                                                    cnt: g.sum("$.cnt"),
+                                                    total: g.sum("$.tasa"),
+                                                    totalPeso: g.sum("$.totalTasa"),
+                                                    totalAgp: g.sum("$.tasaAgp"),
+                                                    totalPesoAgp: g.sum("$.totalTasaAgp")
+                                                };
+                                                r.cnt = Math.abs(r.cnt);
+                                                return r;
+                                            }).toArray();
+
+                                    mp = MatchPrice.find({match: {$in: rates}}, {price: true, match : true});
+                                    mp.populate({path: 'price', match: {rate: {$exists: true}}});
+                                    mp.exec(function (err, dataMatch) {
+
+                                        mp = Enumerable.from(dataMatch)
+                                            .select(function (item) {
+                                                return {code: item.match[0], rate: item.price.toObject().rate};
+                                            }).toArray();
+                                        mp = Enumerable.from(result)
+                                            .join(Enumerable.from(mp), '$._id.code', '$.code', function (left, right){
+                                                return {
+                                                    code : right.code,
+                                                    rate: right.rate,
+                                                    terminal: left._id.terminal,
+                                                    ton: left.cnt,
+                                                    total: left.total,
+                                                    totalPeso: left.totalPeso,
+                                                    totalAgp: left.totalAgp,
+                                                    totalPesoAgp: left.totalPesoAgp
+                                                };
+                                            }).toArray();
+
+                                        res.status(200).send({status: 'OK', data : mp});
+                                    });
+                                }
+                            });
+                        }
+                    });
+
+                }
+            });
 
         }
 
@@ -411,7 +403,7 @@ module.exports = function(log, io, oracle) {
             desde = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
             hasta = moment(req.query.fechaFin, 'YYYY-MM-DD').add(1, 'days').toDate();
 
-            VoucherType.find({type: -1}, function (err, vouchertypes){
+            VoucherType.find({type: -1}, function (err, vouchertypes) {
                 if (err) {
                     res.status(500).send({status: 'ERROR', data : err.message});
                 } else {
@@ -454,8 +446,7 @@ module.exports = function(log, io, oracle) {
                                         {$or : cond },
                                         {$multiply: ['$detalle.items.cnt', -1]},
                                         '$detalle.items.cnt'
-                                    ]
-                                    },
+                                    ]},
                                     impUnit: '$detalle.items.impUnit',
                                     impTot: '$detalle.items.impTot'
                                 }}];
@@ -479,20 +470,20 @@ module.exports = function(log, io, oracle) {
                                             return tasaInvoice;
                                         })
                                         .groupBy('x=>JSON.stringify({code: x.code, terminal: x.terminal, date: x.date})', null,
-                                        function (key, g) {
-                                            var r;
-                                            key = JSON.parse(key);
-                                            r = {
-                                                _id: {code: key.code, terminal: key.terminal, date: key.date},
-                                                cnt: g.sum("$.cnt"),
-                                                total: g.sum("$.tasa"),
-                                                totalPeso: g.sum("$.totalTasa"),
-                                                totalAgp: g.sum("$.tasaAgp"),
-                                                totalPesoAgp: g.sum("$.totalTasaAgp")
-                                            };
-                                            r.cnt = Math.abs(r.cnt);
-                                            return r;
-                                        }).toArray();
+                                            function (key, g) {
+                                                var r;
+                                                key = JSON.parse(key);
+                                                r = {
+                                                    _id: {code: key.code, terminal: key.terminal, date: key.date},
+                                                    cnt: g.sum("$.cnt"),
+                                                    total: g.sum("$.tasa"),
+                                                    totalPeso: g.sum("$.totalTasa"),
+                                                    totalAgp: g.sum("$.tasaAgp"),
+                                                    totalPesoAgp: g.sum("$.totalTasaAgp")
+                                                };
+                                                r.cnt = Math.abs(r.cnt);
+                                                return r;
+                                            }).toArray();
 
                                     mp = MatchPrice.find({match: {$in: rates}}, {price: true, match : true});
                                     mp.populate({path: 'price', match: {rate: {$exists: true}}});
@@ -503,7 +494,7 @@ module.exports = function(log, io, oracle) {
                                                 return {code: item.match[0], rate: item.price.toObject().rate};
                                             }).toArray();
                                         mp = Enumerable.from(result)
-                                            .join(Enumerable.from(mp), '$._id.code', '$.code', function (left, right){
+                                            .join(Enumerable.from(mp), '$._id.code', '$.code', function (left, right) {
                                                 return {
                                                     code : right.code,
                                                     rate: right.rate,
@@ -745,20 +736,20 @@ module.exports = function(log, io, oracle) {
                                             return tasaInvoice;
                                         })
                                         .groupBy('x=>JSON.stringify({code: x.code, terminal: x.terminal, year: x.year})', null,
-                                        function (key, g) {
-                                            var r;
-                                            key = JSON.parse(key);
-                                            r = {
-                                                _id: {code: key.code, terminal: key.terminal, year: key.year},
-                                                cnt: g.sum("$.cnt"),
-                                                total: g.sum("$.tasa"),
-                                                totalPeso: g.sum("$.totalTasa"),
-                                                totalAgp: g.sum("$.tasaAgp"),
-                                                totalPesoAgp: g.sum("$.totalTasaAgp")
-                                            };
-                                            r.cnt = Math.abs(r.cnt);
-                                            return r;
-                                        }).toArray();
+                                            function (key, g) {
+                                                var r;
+                                                key = JSON.parse(key);
+                                                r = {
+                                                    _id: {code: key.code, terminal: key.terminal, year: key.year},
+                                                    cnt: g.sum("$.cnt"),
+                                                    total: g.sum("$.tasa"),
+                                                    totalPeso: g.sum("$.totalTasa"),
+                                                    totalAgp: g.sum("$.tasaAgp"),
+                                                    totalPesoAgp: g.sum("$.totalTasaAgp")
+                                                };
+                                                r.cnt = Math.abs(r.cnt);
+                                                return r;
+                                            }).toArray();
 
                                     mp = MatchPrice.find({match: {$in: rates}}, {price: true, match : true});
                                     mp.populate({path: 'price', match: {rate: {$exists: true}}});
@@ -977,7 +968,7 @@ module.exports = function(log, io, oracle) {
             param.terminal = usr.terminal;
         }
 
-        if (req.query.fechaInicio || req.query.fechaFin){
+        if (req.query.fechaInicio || req.query.fechaFin) {
             param["fecha.emision"] = {};
             if (req.query.fechaInicio) {
                 fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
@@ -1097,11 +1088,11 @@ module.exports = function(log, io, oracle) {
             param["fecha.emision"] = {};
             if (req.query.fechaInicio) {
                 fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
-                param["fecha.emision"]['$gte'] = fecha;
+                param["fecha.emision"].$gte = fecha;
             }
             if (req.query.fechaFin) {
                 fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
-                param["fecha.emision"]['$lte'] = fecha;
+                param["fecha.emision"].$lte = fecha;
             }
         }
         if (req.query.nroPtoVenta) {
@@ -1114,7 +1105,7 @@ module.exports = function(log, io, oracle) {
             param.nroComprob = req.query.nroComprobante;
         }
         if (req.query.razonSocial) {
-            param.razon = {$regex:req.query.razonSocial}
+            param.razon = {$regex:req.query.razonSocial};
         }
         if (req.query.documentoCliente) {
             param.nroDoc = req.query.documentoCliente;
@@ -1225,7 +1216,7 @@ module.exports = function(log, io, oracle) {
             dateIni,
             dateFin;
 
-        if (ratesParam.length<1){
+        if (ratesParam.length<1) {
 
         } else {
 
@@ -1456,7 +1447,7 @@ module.exports = function(log, io, oracle) {
 
         ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
 
-        rates = new price.price(ter)
+        rates = new price.price(ter);
 
         buque = req.query.buqueNombre;
         viaje = req.query.viaje;
@@ -1476,40 +1467,41 @@ module.exports = function(log, io, oracle) {
             ];
 
             Invoice.aggregate(query , function (err, dataContainers) {
-            if (err) {
-                res.status(500).send({status: 'ERROR', data: err.message});
-            } else {
-                Gate.find({buque: buque, viaje: viaje}, function (err, dataGates) {
-                    var Enumerable,
-                        response;
+                if (err) {
+                    res.status(500).send({status: 'ERROR', data: err.message});
+                } else {
+                    Gate.find({buque: buque, viaje: viaje}, function (err, dataGates) {
+                        var Enumerable,
+                            response;
 
-                    if (err) {
-                        res.status(500).send({status: 'ERROR', data: err.message});
-                    } else {
-                        Enumerable = require('linq');
+                        if (err) {
+                            res.status(500).send({status: 'ERROR', data: err.message});
+                        } else {
+                            Enumerable = require('linq');
 
-                        response = Enumerable.from(dataContainers)
-                            .groupJoin(dataGates, '$.contenedor', '$.contenedor', function (inner,outer) {
-                                var result = {
-                                    contenedor:'',
-                                    gates: []
-                                };
-                                if (outer.getSource !== undefined)
-                                    result.gates =outer.getSource();
+                            response = Enumerable.from(dataContainers)
+                                .groupJoin(dataGates, '$.contenedor', '$.contenedor', function (inner,outer) {
+                                    var result = {
+                                        contenedor:'',
+                                        gates: []
+                                    };
+                                    if (outer.getSource !== undefined) {
+                                        result.gates =outer.getSource();
+                                    }
 
-                                result.contenedor = inner;
-                                return result;
-                            }).toArray();
+                                    result.contenedor = inner;
+                                    return result;
+                                }).toArray();
 
-                        res.status(200)
-                            .send({
-                                status: 'OK',
-                                elapsed: log.getElapsed(),
-                                data: response});
-                    }
-                });
-            }
-        });
+                            res.status(200)
+                                .send({
+                                    status: 'OK',
+                                    elapsed: log.getElapsed(),
+                                    data: response});
+                        }
+                    });
+                }
+            });
 
         });
 
@@ -1519,7 +1511,7 @@ module.exports = function(log, io, oracle) {
 
         var paramTerminal = req.params.terminal,
             Invoice = require('../lib/invoice2.js');
-            paramTotal,
+        paramTotal,
             fecha;
 
         _rates.rates(function (err, rates){
@@ -1628,10 +1620,11 @@ module.exports = function(log, io, oracle) {
      */
 
     router.param('terminal', function (req, res, next, terminal) {
-        var usr = req.usr;
+        var usr = req.usr,
+            errMsg;
 
         if (usr.terminal !== 'AGP' && usr.terminal !== terminal) {
-            var errMsg = util.format('%s', 'La terminal recibida por parámetro es inválida para el token.');
+            errMsg = util.format('%s', 'La terminal recibida por parámetro es inválida para el token.');
             log.logger.error(errMsg);
             res.status(500).send({status: 'ERROR', data: errMsg});
         } else {
