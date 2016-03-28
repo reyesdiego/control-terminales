@@ -55,7 +55,7 @@ oracle.oracledb.createPool(
         poolMax: 50,
         poolMin: 2,
         poolIncrement: 5,
-        poolTimeout: 4,
+        poolTimeout: 4
     },
     function (err, pool) {
         'use strict';
