@@ -1,14 +1,12 @@
 /**
  * Created by diego on 7/3/15.
  */
-
-//module.exports = function () {
+'use strict';
 
 var config = require('./config/config.js'),
     log4n = require('./include/log/log4node.js'),
     log = new log4n.log(config.log),
     params,
-    moment = require('moment'),
     port = process.env.PORT || config.server_port_web,
     passport = null,
     httpExpress,
@@ -16,48 +14,30 @@ var config = require('./config/config.js'),
     VoucherType = require('./models/voucherType.js'),
     voucherType;
 
-//Conecta a la base de datos MongoDb
+/** Conecta a la base de datos MongoDb */
 require('./include/mongoose.js')(log);
-//Crea un servidor http sobre express en puerto 8090
+/** Crea un servidor http sobre express en puerto 8090 */
 httpExpress = require('./include/httpExpress.js')(log, port, true);
 
 require('./routes/accounts')(log, httpExpress.app, passport);
 
-//var oracledb = require('oracledb');
 oracle = require('./include/oracle.js');
 oracle = new oracle();
-//oracle.oracledb.maxRows = 5000;
-oracle.oracledb.createPool(
-    //{
-    //    user          : "HR",
-    //    password      : "oracle_4U",
-    //    connectString : "(DESCRIPTION = " +
-    //        "(ADDRESS = (PROTOCOL = TCP)(HOST = 10.10.0.226)(PORT = 1521)) " +
-    //        "(CONNECT_DATA = " +
-    //        "        (SID = ORCL) " +
-    //        ") " +
-    //        ")",
-    //    poolMax       : 50,
-    //    poolMin       : 2,
-    //    poolIncrement : 5,
-    //    poolTimeout   : 4,
-    //},
-    {
-        user: "afip",
-        password: "afip_",
-        connectString: "(DESCRIPTION = " +
-        "(ADDRESS = (PROTOCOL = TCP)(HOST = 10.1.0.60)(PORT = 1521)) " +
-        "(CONNECT_DATA = " +
-        "        (SID = AFIP) " +
-        ") " +
-        ")",
-        poolMax: 50,
-        poolMin: 2,
-        poolIncrement: 5,
-        poolTimeout: 4
-    },
+oracle.oracledb.createPool({
+    user: "afip",
+    password: "afip_",
+    connectString: "(DESCRIPTION = " +
+                    "(ADDRESS = (PROTOCOL = TCP)(HOST = 10.1.0.60)(PORT = 1521)) " +
+                    "(CONNECT_DATA = " +
+                    "        (SID = AFIP) " +
+                    ") " +
+                    ")",
+    poolMax: 500,
+    poolMin: 2,
+    poolIncrement: 5,
+    poolTimeout: 4
+},
     function (err, pool) {
-        'use strict';
 
         oracle.pool = pool;
         if (err) {
@@ -85,19 +65,13 @@ oracle.oracledb.createPool(
             require('./routes/routesTer')(log, httpExpress.app, httpExpress.io, oracle, params);
         });
 
-
         require('./routes/routesWeb')(log, httpExpress.app, httpExpress.io, oracle, params);
-    }
-);
+    });
 
 process.on('exit', function () {
-    'use strict';
     log.logger.error('exiting');
 });
 
 process.on('uncaughtException', function (err) {
-    'use strict';
     log.logger.error("Caught exception: %s", err.stack);
 });
-
-//};
