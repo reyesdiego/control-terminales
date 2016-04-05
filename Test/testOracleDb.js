@@ -4,7 +4,7 @@
 
 var oracledb = require('oracledb');
 oracledb.maxRows = 103;
-oracledb.outFormat = 2;
+//oracledb.outFormat = 2;
 oracledb.getConnection(
     {
         user          : "afip",

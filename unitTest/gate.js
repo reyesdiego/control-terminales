@@ -7,6 +7,10 @@ var should = require('should'),
 
 var Account = require('../models/account.js');
 
+var GATE = false;
+var INVOICE = false;
+var PRICE = true;
+
 describe('Classes', function () {
     'use strict';
     var oracle;
@@ -18,52 +22,32 @@ describe('Classes', function () {
 
             oracle = require('../include/oracle.js');
             oracle = new oracle();
-            //oracle.oracledb.maxRows = 5000;
-            oracle.oracledb.createPool(
-                //{
-                //    user          : "HR",
-                //    password      : "oracle_4U",
-                //    connectString : "(DESCRIPTION = " +
-                //        "(ADDRESS = (PROTOCOL = TCP)(HOST = 10.10.0.226)(PORT = 1521)) " +
-                //        "(CONNECT_DATA = " +
-                //        "        (SID = ORCL) " +
-                //        ") " +
-                //        ")",
-                //    poolMax       : 50,
-                //    poolMin       : 2,
-                //    poolIncrement : 5,
-                //    poolTimeout   : 4,
-                //},
-                {
+            oracle.oracledb.createPool({
                     user: "afip",
                     password: "afip_",
                     connectString: "(DESCRIPTION = " +
-                    "(ADDRESS = (PROTOCOL = TCP)(HOST = 10.1.0.60)(PORT = 1521)) " +
-                    "(CONNECT_DATA = " +
-                    "        (SID = AFIP) " +
-                    ") " +
-                    ")",
-                    poolMax: 50,
+                                    "(ADDRESS = (PROTOCOL = TCP)(HOST = 10.1.0.60)(PORT = 1521)) " +
+                                    "(CONNECT_DATA = " +
+                                    "        (SID = AFIP) " +
+                                    ") " +
+                                    ")",
+                    poolMax: 500,
                     poolMin: 2,
                     poolIncrement: 5,
-                    poolTimeout: 4,
-                },
+                    poolTimeout: 4},
                 function (err, pool) {
-
                     oracle.pool = pool;
-
                     done();
-
                 });
-
         });
-
     });
 
     describe('Gate MongoDB', function () {
+        if (!GATE) return;
+
+        var Gate = require('../lib/gate.js');
 
         it('should exists class Gate', function (done) {
-            var Gate = require('../lib/gate.js');
             Gate = new Gate();
             Gate.toString().length.should.greaterThan(0);
             done();
@@ -77,7 +61,6 @@ describe('Classes', function () {
                 skip: 0,
                 limit: 15
             }
-            var Gate = require('../lib/gate.js');
             Gate = new Gate();
             Gate.getGates(param, function (err, data) {
                 console.log("DATA %j ", data);
@@ -91,7 +74,6 @@ describe('Classes', function () {
 
         it('should exists method getByHour', function (done) {
             this.timeout(10000);
-            var Gate = require('../lib/gate.js');
             Gate = new Gate();
             Gate.getByHour({}, function (err, data) {
                 data.should.have.property("length");
@@ -101,7 +83,6 @@ describe('Classes', function () {
 
         it('should exists method getByMonth', function (done) {
             this.timeout(10000);
-            var Gate = require('../lib/gate.js');
             Gate = new Gate();
             Gate.getByMonth({}, function (err, data) {
                 data.should.have.property("length");
@@ -113,7 +94,6 @@ describe('Classes', function () {
             var param = {
                 terminal: "BACTSSA"
             };
-            var Gate = require('../lib/gate.js');
             this.timeout(60000);
             Gate = new Gate();
             Gate.getMissingGates(param, function (err, data) {
@@ -132,12 +112,13 @@ describe('Classes', function () {
         });
 
     });
-
     describe('Gate Oracle', function () {
+        if (!GATE) return;
+
+        var Gate = require('../lib/gate.js');
 
         it('should exists class Gate', function (done) {
-            var Gate = require('../lib/gate.js');
-            Gate = new Gate();
+            Gate = new Gate(oracle);
             Gate.toString().length.should.greaterThan(0);
             done();
         });
@@ -151,7 +132,6 @@ describe('Classes', function () {
                 limit: 15,
                 order: '[{"terminal": -1}]'
             }
-            var Gate = require('../lib/gate.js');
             Gate = new Gate(oracle);
             Gate.getGates(param, function (err, data) {
                 if (err) {
@@ -170,7 +150,6 @@ describe('Classes', function () {
 
         it('should exists method getByHour', function (done) {
             this.timeout(10000);
-            var Gate = require('../lib/gate.js');
             Gate = new Gate(oracle);
             Gate.getByHour({}, function (err, data) {
                 data.should.have.property("length");
@@ -180,7 +159,6 @@ describe('Classes', function () {
 
         it('should exists method getByMonth', function (done) {
             this.timeout(10000);
-            var Gate = require('../lib/gate.js');
             Gate = new Gate(oracle);
             Gate.getByMonth({}, function (err, data) {
                 data.should.have.property("length");
@@ -190,11 +168,10 @@ describe('Classes', function () {
         });
 
         it('should exists method getMissingGates', function (done) {
-            var Gate = require('../lib/gate.js');
             var time = (new Date()).getTime();
             var param = {
-                    terminal: "BACTSSA"
-                };
+                terminal: "BACTSSA"
+            };
 
             this.timeout(60000);
             Gate = new Gate(oracle);
@@ -218,6 +195,8 @@ describe('Classes', function () {
     });
 
     describe('Price MongoDB', function () {
+        if (!PRICE) return;
+
         var Price = require('../lib/price.js');
 
         it('should exists class Price', function (done) {
@@ -396,8 +375,9 @@ describe('Classes', function () {
         });
 
     });
-
     describe('Price Oracle', function () {
+        if (!PRICE) return;
+
         var Price = require('../lib/price.js');
 
         it('should exists class Price', function (done) {
@@ -517,7 +497,7 @@ describe('Classes', function () {
             });
         });
 
-        it('should exists method getPrices and must return OK only TRP = 483', function (done) {
+        it('should exists method getPrices and must return OK only TRP = 418', function (done) {
             this.timeout(10000);
             let param = {};
             let price = new Price("TRP", oracle);
@@ -555,6 +535,7 @@ describe('Classes', function () {
     });
 
     describe('Invoice MongoDB', function () {
+        if (!INVOICE) return;
         var Invoice = require('../lib/invoice2.js');
 
         it('should exists class Invoice', function (done){
@@ -714,8 +695,9 @@ describe('Classes', function () {
         });
 
     });
-
     describe('Invoice Oracle', function () {
+        if (!INVOICE) return;
+
         var Invoice = require('../lib/invoice2.js');
 
         it('should exists class Invoice', function (done) {
