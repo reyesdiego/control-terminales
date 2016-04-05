@@ -1511,7 +1511,7 @@ module.exports = function (log, io, oracle) {
 
         var paramTerminal = req.params.terminal,
             Invoice = require('../lib/invoice2.js');
-        paramTotal,
+        var paramTotal,
             fecha;
 
         _rates.rates(function (err, rates){
@@ -1523,7 +1523,7 @@ module.exports = function (log, io, oracle) {
                 fecha='';
 
             if (req.query.razonSocial) {
-                param.razon = {$regex:req.query.razonSocial}
+                param.razon = {$regex:req.query.razonSocial};
             }
 
             paramTotal = [
@@ -1535,7 +1535,7 @@ module.exports = function (log, io, oracle) {
                 { $project : {contenedor : '$detalle.contenedor'} }
             ];
 
-            inv = Invoice.aggregate(paramTotal);
+            var inv = Invoice.aggregate(paramTotal);
             inv.exec(function (err, data1){
                 //Solo filtra fecha de este lado, en el aggregate trae todas las tasas a las cargas de contenedor históricas.
                 if (req.query.fechaInicio || req.query.fechaFin) {
@@ -1576,41 +1576,57 @@ module.exports = function (log, io, oracle) {
     }
 
     function getTotals (req, res) {
-        var usr = req.usr,
-            paramTerminal = req.query.terminal,
-            fechaInicio = moment(moment("2013-01-01").format('YYYY-MM-DD')).toDate(),
-            fechaFin = moment(moment().format('YYYY-MM-DD')).toDate(),
-            clients,
-            inv = require('../lib/invoice.js');
+        var paramTerminal = req.query.terminal,
+            fechaInicio = moment(moment("2013-01-01").format('YYYY-MM-DD')),
+            fechaFin = moment(moment().format('YYYY-MM-DD')),
+            inv = require('../lib/invoice.js'),
+            Invoice = require('../lib/invoice2.js'),
+            params = {},
+            options = {};
 
         inv = new inv(paramTerminal);
+        Invoice = new Invoice();
+
+        params.terminal = paramTerminal;
 
         if (req.query.fechaInicio) {
-            fechaInicio = moment(req.query.fechaInicio, ['YYYY-MM-DD']).toDate();
+            params.fechaInicio = req.query.fechaInicio;
+        } else {
+            params.fechaInicio = fechaInicio;
         }
         if (req.query.fechaFin) {
-            fechaFin = moment(req.query.fechaFin, ['YYYY-MM-DD']).toDate();
+            params.fechaFin = req.query.fechaFin;
+        } else {
+            params.fechaFin = fechaFin;
         }
+
         if (req.query.clients) {
-            clients = req.query.clients;
-            inv.getTotalByClient(clients, fechaInicio, fechaFin, function (err, data) {
+            params.clients = req.query.clients;
+        }
+        if (req.query.top) {
+            params.top = req.query.top;
+        }
+        if (req.query.output === 'csv') {
+            options.output = 'csv';
+        }
+
+        Invoice.getTotal(params, function (err, dataTotal) {
+            console.log("TOTAL %j", dataTotal);
+
+            Invoice.getTotalByClient(params, options, function (err, data) {
                 if (err) {
                     res.status(500).send(err);
                 } else {
-                    res.status(200).send(data);
-                }
-            });
-        } else {
-            if (req.query.top) {
-                inv.getTotalByClientTop(req.query.top, fechaInicio, fechaFin, function (err, data) {
-                    if (err) {
-                        res.status(500).send(err);
+                    if (options.output === 'csv') {
+                        res.header('content-type', 'text/csv');
+                        res.header('content-disposition', 'attachment; filename=report.csv');
+                        res.status(200).send(data);
                     } else {
                         res.status(200).send(data);
                     }
-                });
-            }
-        }
+                }
+            });
+        });
     }
     /*
      router.use(function timeLog(req, res, next){
