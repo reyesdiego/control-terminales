@@ -435,7 +435,7 @@ module.exports = function (log, io, oracle) {
         InvoiceO = new Invoice(oracle);
         InvoiceO.add(paramOracle, io, function (err, data) {
             if (err) {
-                log.logger.error("Invoice ORA INS: %s, %j", err.message, err);
+                log.logger.error("Invoice ORA INS: %s, %s", err.message, err);
                 //res.status(500).send(err);
             } else {
                 let result = data;
