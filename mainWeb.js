@@ -14,6 +14,10 @@ var config = require('./config/config.js'),
     VoucherType = require('./models/voucherType.js'),
     voucherType;
 
+global.cache = {
+    online: []
+};
+
 /** Conecta a la base de datos MongoDb */
 require('./include/mongoose.js')(log);
 /** Crea un servidor http sobre express en puerto 8090 */
@@ -45,8 +49,6 @@ oracle.oracledb.createPool({
         } else {
             require('./routes/oracle/routes')(log, httpExpress.app, oracle);
         }
-
-        global.cache = {};
 
         params = {
             server: {ip: config.domain, port: config.server_port_web},

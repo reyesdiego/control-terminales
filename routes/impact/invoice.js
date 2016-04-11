@@ -431,11 +431,10 @@ module.exports = function (log, io, oracle) {
             }
         });
 
-
         InvoiceO = new Invoice(oracle);
         InvoiceO.add(paramOracle, io, function (err, data) {
             if (err) {
-                log.logger.error("Invoice ORA INS: %s, %s", err.message, err);
+                log.logger.error("Invoice ORA INS: %s, %s", err.message, JSON.stringify(err.data));
                 //res.status(500).send(err);
             } else {
                 let result = data;
