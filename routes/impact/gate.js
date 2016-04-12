@@ -30,7 +30,7 @@ module.exports = function (log, io, oracle) {
             } else {
                 let gate = gateNew.data;
                 log.logger.insert('Gate INS: %s - %s - %s', gate._id, usr.terminal, moment(gate.gateTimestamp).format("YYYY-MM-DD hh:mm:ss"));
-                io.sockets.emit('gate', gateNew);
+                io.emit('gate', gateNew);
                 res.status(200).send(gateNew);
             }
         });

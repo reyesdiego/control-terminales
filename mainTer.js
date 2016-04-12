@@ -7,6 +7,8 @@
 var config = require('./config/config.js'),
     log4n = require('./include/log/log4node.js'),
     log = new log4n.log(config.log),
+    io = require('socket.io-client'),
+    ioClient,
     params,
     moment = require('moment'),
     port = process.env.PORT || config.server_port_ter,
@@ -18,9 +20,20 @@ var config = require('./config/config.js'),
 //moment.locale('es');
 /** Conecta a la base de datos MongoDb */
 require('./include/mongoose.js')(log);
+
 /** Crea un servidor http en puerto 8080 */
 httpExpress = require('./include/httpExpress.js')(log, port, true);
 
+/** Se conecta al servidor Socket */
+ioClient = io.connect(config.socket_url, { 'forceNew': false});
+ioClient.once('connect', function () {
+    log.logger.info("Conectado al socket IO %s", config.socket_url);
+});
+ioClient.once('reconnect', function() {
+    log.logger.info("RE Conectado al socket IO %s", config.socket_url);
+});
+
+/** Conexion a ORACLE */
 oracle = require('./include/oracle.js');
 oracle = new oracle();
 //oracle.oracledb.maxRows = 5000;
@@ -65,7 +78,7 @@ oracle.oracledb.createPool({
                 result.push(item._id);
             });
             global.cache.voucherTypes = result;
-            require('./routes/routesTer')(log, httpExpress.app, httpExpress.io, oracle, params);
+            require('./routes/routesTer')(log, httpExpress.app, ioClient, oracle, params);
         });
     });
 

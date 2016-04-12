@@ -6,13 +6,15 @@
 var config = require('./config/config.js'),
     log4n = require('./include/log/log4node.js'),
     log = new log4n.log(config.log),
+    socket = require('./include/socketio.js'),
     params,
     port = process.env.PORT || config.server_port_web,
     passport = null,
     httpExpress,
     oracle,
     VoucherType = require('./models/voucherType.js'),
-    voucherType;
+    voucherType,
+    io;
 
 global.cache = {
     online: []
@@ -22,6 +24,8 @@ global.cache = {
 require('./include/mongoose.js')(log);
 /** Crea un servidor http sobre express en puerto 8090 */
 httpExpress = require('./include/httpExpress.js')(log, port, true);
+/** Crea el Servidor Socket sobre el servidor http*/
+io = socket(httpExpress.server, log);
 
 require('./routes/accounts')(log, httpExpress.app, passport);
 
@@ -64,10 +68,10 @@ oracle.oracledb.createPool({
                 result[item._id] = item.description;
             });
             global.cache.voucherTypes = result;
-            require('./routes/routesTer')(log, httpExpress.app, httpExpress.io, oracle, params);
+            require('./routes/routesTer')(log, httpExpress.app, io, oracle, params);
         });
 
-        require('./routes/routesWeb')(log, httpExpress.app, httpExpress.io, oracle, params);
+        require('./routes/routesWeb')(log, httpExpress.app, io, oracle, params);
     });
 
 process.on('exit', function () {

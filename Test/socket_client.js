@@ -10,13 +10,8 @@ conn.once('connect', function () {
     "use strict";
     console.log("se conecto él %s", conn.id);
     //socket.disconnect();
-
-    conn.emit('sayHello', conn.id, function (resp) {
-        console.log('server sent resp code %s', resp);
-    });
-
 });
-
+/*
 conn.once('reconnect', function() {
     "use strict";
     console.log("se RE conecto él %s", conn.id);
@@ -26,12 +21,16 @@ conn.once('reconnect', function() {
     });
 
 });
-
-
+*/
 conn.once('disconnect', function() {
     console.log("CHAU");
     //socket.once('connect', function() {
     //    console.log('Connected for the second time!');
     //});
     //socket.connect();
+});
+
+conn.on('sayHello', function (param) {
+    "use strict";
+    console.log("llego sayHello a cliente %s", param);
 });

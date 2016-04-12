@@ -3,7 +3,7 @@
  */
 
 var online = [];
-var port = 3000;
+var port = 8090;
 var io;
 var http = require("http");
 var server = http.createServer(function(request, response) {
@@ -53,6 +53,7 @@ server.listen(port, function () {
         addOnline(socket.id);
         socket.on('sayHello', function (param1, cb) {
             console.log("Online: %s", JSON.stringify(online));
+            socket.broadcast.emit('sayHello', param1);
             return cb(param1);
         });
         socket.on('disconnect', function (reason) {
@@ -66,10 +67,6 @@ server.listen(port, function () {
                 console.info('Socket Client %s Disconnect. Reason: %s.', socket.id, reason);
             }
         });
-
-        io.emit('sayHello', socket.id);
-
     });
-
 
 });

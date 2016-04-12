@@ -121,7 +121,10 @@ module.exports = function (log, app, passport) {
 
     app.get('/agp/accounts', function (req, res) {
         var incomingToken = req.headers.token,
-            project;
+            project,
+            accounts,
+            Enumerable = require('linq');
+
         Account.verifyToken(incomingToken, function (err, usr) {
             if (err) {
                 log.logger.error(err);
@@ -146,11 +149,23 @@ module.exports = function (log, app, passport) {
                         emailToApp: true
                     };
 
-                    Account.findAll({}, project, function (err, data) {
+                    accounts = Account.find({}, project);
+                    accounts.lean();
+                    accounts.exec(function (err, data) {
+                        var result;
                         if (err) {
                             res.status(500).json({status: "ERROR", data: err.message});
                         } else {
-                            res.status(200).json({status: 'OK', data: data});
+                            result = Enumerable.from(data)
+                                .select(function (item) {
+                                    let sql = `value, idx=>value.user==="${item.user}"`;
+                                    let join = Enumerable.from(global.cache.online).where(sql).toArray();
+                                    if (join.length > 0) {
+                                        item.online = true;
+                                    }
+                                    return item;
+                                }).toArray();
+                            res.status(200).json({status: 'OK', data: result});
                         }
                     });
                 } else {
@@ -329,52 +344,54 @@ module.exports = function (log, app, passport) {
             Account.login(json.email, json.password, function (err, usersToken) {
                 if (err) {
 
-//                        if (req.socket.remoteAddress !== '127.0.0.1' && req.socket.remoteAddress !== 'localhost'){
-//                            var ActiveDirectory = require('activedirectory');
-//                            var ad = new ActiveDirectory({url: 'ldap://10.0.0.56:389',
-//                                                                baseDN: 'dc=ptobaires,dc=gov,dc=ar'
-//                                                            });
-//                            var user = util.format('%s@ptobaires.gov.ar', json.email);
-//                            ad.authenticate(user, json.password, function(err, auth) {
+/*
+                        if (req.socket.remoteAddress !== '127.0.0.1' && req.socket.remoteAddress !== 'localhost'){
+                            var ActiveDirectory = require('activedirectory');
+                            var ad = new ActiveDirectory({url: 'ldap://10.0.0.56:389',
+                                                                baseDN: 'dc=ptobaires,dc=gov,dc=ar'
+                                                            });
+                            var user = util.format('%s@ptobaires.gov.ar', json.email);
+                            ad.authenticate(user, json.password, function(err, auth) {
 
-//                                if (auth) {
-//                                    Account.findOne({user:"agp"}, function (err, userAgp){
-//                                        var msg = util.format("%s - User '%s' has logged in From: %s", dateTime.getDatetime(), json.email, req.socket.remoteAddress);
-//                                        console.log(msg);
+                                if (auth) {
+                                    Account.findOne({user:"agp"}, function (err, userAgp){
+                                        var msg = util.format("%s - User '%s' has logged in From: %s", dateTime.getDatetime(), json.email, req.socket.remoteAddress);
+                                        console.log(msg);
 
-//                                        //Por ahora solo acceso a terminales
-//                                        var rutasAcceso = ['matches.search','tarifario', 'invoices', 'invoices.result', 'invoices.search', 'matches', 'control', 'cfacturas', 'cfacturas.result', 'gates', 'gates.invoices', 'gates.invoices.result', 'gates.result.container', 'turnos', 'turnos.result'];
-//
-//                                        var result = {
-//                                            acceso: rutasAcceso,
-//                                            role: userAgp.role,
-//                                            email: json.email,
-//                                            user: json.email,
-//                                            terminal: userAgp.terminal,
-//                                            token: userAgp.token,
-//                                            date_created: userAgp.date_created,
-//                                            full_name: userAgp.full_name
-//                                        };
-//                                        res.send(200, result);
-//                                    });
-//                                }
-//                                else {
-//                                    if (err) {
-//                                        var errMsg = util.format("%s - ERROR: Authentication Failed -  %s. From: %s", dateTime.getDatetime(), JSON.stringify(err), req.socket.remoteAddress);
-//                                        console.error(errMsg);
-//                                        res.send(403, errMsg);
-//                                        return;
-//                                    }
-//                                    var errMsg = util.format("%s - ERROR: Authentication Failed - %s. From: %s", dateTime.getDatetime(), err.error, req.socket.remoteAddress);
-//                                    console.error(errMsg);
-//                                    res.send(403, errMsg);
-//                                }
-//                            });
-//                        } else {
-//                            var errMsg = util.format("%s - ERROR: Authentication Failed - %s. From: %s", dateTime.getDatetime(), err.error, req.socket.remoteAddress);
-//                            console.error(errMsg);
-//                            res.send(403, errMsg);
-//                        }
+                                        //Por ahora solo acceso a terminales
+                                        var rutasAcceso = ['matches.search','tarifario', 'invoices', 'invoices.result', 'invoices.search', 'matches', 'control', 'cfacturas', 'cfacturas.result', 'gates', 'gates.invoices', 'gates.invoices.result', 'gates.result.container', 'turnos', 'turnos.result'];
+
+                                        var result = {
+                                            acceso: rutasAcceso,
+                                            role: userAgp.role,
+                                            email: json.email,
+                                            user: json.email,
+                                            terminal: userAgp.terminal,
+                                            token: userAgp.token,
+                                            date_created: userAgp.date_created,
+                                            full_name: userAgp.full_name
+                                        };
+                                        res.send(200, result);
+                                    });
+                                }
+                                else {
+                                    if (err) {
+                                        var errMsg = util.format("%s - ERROR: Authentication Failed -  %s. From: %s", dateTime.getDatetime(), JSON.stringify(err), req.socket.remoteAddress);
+                                        console.error(errMsg);
+                                        res.send(403, errMsg);
+                                        return;
+                                    }
+                                    var errMsg = util.format("%s - ERROR: Authentication Failed - %s. From: %s", dateTime.getDatetime(), err.error, req.socket.remoteAddress);
+                                    console.error(errMsg);
+                                    res.send(403, errMsg);
+                                }
+                            });
+                        } else {
+                            var errMsg = util.format("%s - ERROR: Authentication Failed - %s. From: %s", dateTime.getDatetime(), err.error, req.socket.remoteAddress);
+                            console.error(errMsg);
+                            res.send(403, errMsg);
+                        }
+*/
 
                     errMsg = err.message;
                     log.logger.error(errMsg);
@@ -382,15 +399,9 @@ module.exports = function (log, app, passport) {
 
                 } else {
                     if (usersToken.status) {
-                        Account.findOne({_id: usersToken._id}, function (err, loggedUser) {
-                            loggedUser.lastLogin = new Date();
-                            loggedUser.save(function (err, userSaved) {
-                                log.logger.verbose("El usuario '%s' ha ingresado a la página desde: %s", json.email, req.socket.remoteAddress);
-                                res.status(200).json({
-                                    status: "OK",
-                                    data: usersToken
-                                });
-                            });
+                        res.status(200).json({
+                            status: "OK",
+                            data: usersToken
                         });
                     } else {
                         errMsg = util.format("El usuario %s no se encuentra habilitado para utilizar el sistema. Debe contactar al administrador.", usersToken.email);

@@ -198,7 +198,7 @@ module.exports = function (log, io) {
                     log.logger.insert(str);
 
                     result = {status: 'OK', data: data};
-                    io.sockets.emit('appointment', result);
+                    io.emit('appointment', result);
                     res.status(200).send(result);
 
                     Account.findEmailToAppByUser(usr.user, 'emailAppointmentToApp', function (err, emails) {
