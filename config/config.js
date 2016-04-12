@@ -17,6 +17,7 @@ module.exports = {
     'resetTokenExpiresMinutes': 20, //20 minutes later
     'processes': 0,
     'url': "http://10.10.0.223:8080",
+    'socket_url': "http://10.10.0.223:8090",
     'domain': "10.10.0.223",
     'emailTurnos': {
         user:    "",
@@ -50,13 +51,16 @@ module.exports = {
     'mongo_opts': {
         user: 'admin',
         pass: 'Pt trend 54',
-        auth: {authdb: "admin"}
+        auth: {authdb: "admin"},
+        server: { socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 }}
     },
+
     //'mongo_url': 'mongodb://localhost:27017/terapi',
     //'mongo_opts': {
     //    user: 'admin',
     //    pass: 'desarrollo',
-    //    auth: {authdb: "admin"}
+    //    auth: {authdb: "admin"},
+    //    server: { socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 }}
     //},
     'mongo_url_log': 'mongodb://localhost:27017/logging',
     'mongo_opts_log': {
