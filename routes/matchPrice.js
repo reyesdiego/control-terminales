@@ -37,16 +37,51 @@ module.exports = function (log) {
         Price.find(param, {topPrices : {$slice: -1}})
             .populate({path: 'matches', match: {"terminal": paramTerminal}})
             .sort({terminal: 1, code: 1})
+            .lean()
             .exec(function (err, prices) {
+                var response;
                 if (err) {
                     log.logger.error('Error: %s', err.message);
                     res.status(500).send({status: 'ERROR', data: err.message});
                 } else {
-                    res.status(200).send({
-                        status: 'OK',
-                        totalCount: prices.length,
-                        data: prices
-                    });
+
+                    if (req.query.output === 'csv') {
+                        response = "CODIGO|PRECIO|FECHA|UNIDAD|ASOCIADO|DESCRIPCION\n";
+
+                        prices.forEach(function (item) {
+                            let matches = '';
+                            if (item.matches !== undefined && item.matches !== null && item.matches.length > 0) {
+                                if (item.matches[0].match.length > 0) {
+                                    matches = item.matches[0].match.join('-').toString();
+                                } else {
+                                    matches = "";
+                                }
+                            }
+                            response = response +
+                                item.code +
+                                "|" +
+                                item.topPrices[0].price +
+                                "|" +
+                                moment(item.topPrices[0].from).format("YYYY-MM-DD") +
+                                "|" +
+                                item.unit +
+                                "|" +
+                                matches +
+                                "|" +
+                                item.description.split("\n").join(" ") +
+                                "\n";
+                        });
+                        res.header('content-type', 'text/csv');
+                        res.header('content-disposition', 'attachment; filename=report.csv');
+                        res.status(200).send(response);
+                    } else {
+                        res.status(200).send({
+                            status: 'OK',
+                            totalCount: prices.length,
+                            data: prices
+                        });
+                    }
+
                 }
             });
     }
