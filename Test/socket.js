@@ -52,8 +52,8 @@ server.listen(port, function () {
 
         addOnline(socket.id);
         socket.on('sayHello', function (param1, cb) {
-            console.log("Online: %s", JSON.stringify(online));
-            socket.broadcast.emit('sayHello', param1);
+            console.log("Server sayHello: %s", JSON.stringify(online));
+//            socket.broadcast.emit('sayHello', param1);
             return cb(param1);
         });
         socket.on('disconnect', function (reason) {

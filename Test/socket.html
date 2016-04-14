@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+	<meta charset="UTF-8">
+	<title></title>
+	<script src="https://cdn.socket.io/socket.io-1.4.5.js" />
+	<script >
+		window.onload = fnInit;
+		console.log("@");
+		function fnInit() {
+
+			var conn = io.connect("http://localhost:8090");
+			conn.on('connect', function (param) {
+				document.getElementById("h1").innerHTML = conn.id;
+			});
+		}
+	</script>
+</head>
+<body>
+<h1 id="h1"></h1>
+</body>
+</html>
