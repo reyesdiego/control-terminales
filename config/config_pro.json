@@ -1,0 +1,52 @@
+{
+  "ttl": 3600000,
+  "resetTokenExpiresMinutes": 20,
+  "processes": 0,
+  "url": "http://10.1.0.61:8080",
+  "socket_url": "http://10.1.0.61:8090",
+  "domain": "terminales.puertobuenosaires.gob.ar",
+  "emailTurnos": {
+    "user":    "",
+    "password": "",
+    "host":    "10.10.0.176",
+    "port": "25",
+    "domain": "",
+    "from": "Administración General de Puertos <noreply@puertobuenosaires.gob.ar>",
+    "ssl":     false,
+    "status": true,
+    "throughBcc": true
+  },
+  "email": {
+    "user":    "",
+    "password": "",
+    "host":    "10.10.0.176",
+    "port": "25",
+    "domain": "",
+    "from": "Administración General de Puertos <noreply@puertobuenosaires.gob.ar>",
+    "ssl":     false,
+    "status": true,
+    "throughBcc": true
+  },
+  "log": {
+    "path": "log/",
+    "filename": "nohup.out",
+    "toConsole": false,
+    "toFile": true
+  },
+  "mongo_url": "mongodb://10.1.0.60:27017/terapi",
+  "mongo_opts": {
+    "user": "admin",
+    "pass": "Pt trend 54",
+    "auth": {"authdb": "admin"},
+    "server": { "socketOptions": { "keepAlive": 1, "connectTimeoutMS": 30000 }}
+  },
+  "mongo_url_log": "mongodb://10.1.60.27017:27017/logging",
+  "mongo_opts_log": {
+    "user": "admin",
+    "pass": "Pt trend 54",
+    "auth": {"authdb": "admin"}
+  },
+  "server_port_ter": 8080,
+  "server_port_web": 8090,
+  "server_ssl_port": 443
+}
