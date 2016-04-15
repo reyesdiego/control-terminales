@@ -26,6 +26,7 @@ var detalleSchema = new Schema({
 
 var invoiceSchema = new Schema({
     terminal: {type: String, required: true},
+    tipo: {type: String, enum: ['EXPO', 'IMPO']},
     codTipoComprob: {type: Number, required: true},
     nroPtoVenta: {type: Number},
     nroComprob: {type: Number, required: true},
