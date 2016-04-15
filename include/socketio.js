@@ -4,14 +4,21 @@
 
 module.exports = function (server, log) {
     "use strict";
+
+    //transports: [
+    //    'websocket',
+    //    'flashsocket',
+    //    'htmlfile',
+    //    'xhr-polling',
+    //    'jsonp-polling',
+    //    'polling'
+    //]
+
     var Account = require('../models/account'),
         io = require('socket.io')(server, {
             transports: [
                 'websocket',
-                'flashsocket',
-                'htmlfile',
                 'xhr-polling',
-                'jsonp-polling',
                 'polling'
             ]
         });
@@ -35,7 +42,7 @@ module.exports = function (server, log) {
         });
 
         socket.on('logoff', function (user, cb) {
-            var offline = RemoveOnline(socket.id, user);
+            var offline = RemoveOnline(socket.id);
             Account.findOne({user: user}, function (err, loggedUser) {
                 loggedUser.lastLogin = new Date();
                 loggedUser.save(function (err, userSaved) {
@@ -50,7 +57,10 @@ module.exports = function (server, log) {
         });
 
         socket.on('newUser', function (cb) {
-            return cb(socket.id);
+            console.log("newUser %s", socket.id);
+            if (typeof cb === 'function') {
+                return cb(socket.id);
+            }
         });
 
         socket.on('gate', function (param) {
@@ -96,7 +106,7 @@ function addOnline(id, user) {
     return logged;
 }
 
-function RemoveOnline(id, user) {
+function RemoveOnline(id) {
     "use strict";
     var i,
         item;

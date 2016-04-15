@@ -29,8 +29,11 @@ ioClient = io.connect(config.socket_url, { 'forceNew': false});
 ioClient.once('connect', function () {
     log.logger.info("Conectado al socket IO %s", config.socket_url);
 });
-ioClient.once('reconnect', function() {
+ioClient.on('reconnect', function() {
     log.logger.info("RE Conectado al socket IO %s", config.socket_url);
+});
+ioClient.once('connect_error', function() {
+    log.logger.error("Error Conectando al socket IO %s", config.socket_url);
 });
 
 /** Conexion a ORACLE */

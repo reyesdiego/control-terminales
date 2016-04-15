@@ -18,7 +18,6 @@ conn.on('reconnect', function() {
 
 });
 
-
 conn.on('reconnect_error', function () {
     console.log("reconnect_error");
 });
@@ -28,8 +27,6 @@ conn.on('reconnect_attempt', function (a) {
 conn.on('reconnect_failed', function (a) {
     console.log("reconnect_failed %s", a);
 });
-
-
 
 conn.on('disconnect', function() {
     console.log("CHAU");
