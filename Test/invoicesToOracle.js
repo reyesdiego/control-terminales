@@ -2,7 +2,7 @@
  * Created by diego on 1/27/16.
  */
 
-'use strict';
+"use strict";
 
 var config = require('../config/config.js'),
     log4n = require('../include/log/log4node.js'),

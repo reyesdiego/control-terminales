@@ -8,23 +8,24 @@ var async = require('async');
 
 var invoice = require('./../models/invoice.js');
 
-console.log('Running mongoose version %s', mongoose.version);
-
 /**
  * Connect to the console database on localhost with
  * the default port (27017)
  */
 
-//mongoose.connect('mongodb://localhost/terapi', function (err) {
-mongoose.connect('mongodb://10.1.0.51/terapi', {
-	user: 'admin',
-	pass: 'Pt trend 54',
-	auth:{authdb:"admin"}
-}, function (err) {
+//mongoose.connect('mongodb://10.1.0.51/terapi', {
+//	user: 'admin',
+//	pass: 'Pt trend 54',
+//	auth:{authdb:"admin"}
+//}, function (err) {
+mongoose.connect('mongodb://localhost:27017/admin',function (err) {
 
-	if (err) throw err;
-	console.log("Connected");
-	updateData();
+	if (err) {
+		throw err;
+	} else {
+		console.log("Running Mongoose");
+	}
+	//updateData();
 })
 
 

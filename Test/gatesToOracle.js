@@ -9,13 +9,14 @@ var config = require('../config/config.js'),
     log = new log4n.log(config.log),
     async = require("async"),
     moment = require("moment");
+var dateTime = require('../include/moment');
 
-require('../include/mongoose.js')(log);
+require('../include/mongoose.js')(config.mongo.url, config.mongo.options, log);
 var Gates = require("../models/gate.js");
 var Invoices = require("../models/invoice.js");
 
 var oracledb = require('oracledb');
-oracledb.maxRows = 103;
+//oracledb.maxRows = 103;
 //oracledb.outFormat = ;
 oracledb.getConnection(
     {
@@ -28,86 +29,111 @@ oracledb.getConnection(
         ") " +
         ")"
     },
-    function(err, connection)
-    {
-        var gates,
-            counter=0;
+    function(err, connection) {
+
+        var counter = [],
+            gates,
+            gap = 1000,
+            i;
+
         if (err) {
             console.error(err.message);
             return;
         }
-        console.log("pid %s", process.pid);
 
-        gates = Gates.find({}, {
-            _id: false,
-            __v: false
-        }, {timeOut: false})
-            .sort({_id: 1})
-            .skip(750000)
-            .limit(100000)
-            .stream();
+        for (i = 0; i < 3; i++) {
+            counter.push({skip: i * gap, limit: gap});
+        }
+        i = 0;
+        async.eachSeries(counter, function (rango, asyncCallback_round) {
 
-        gates.on('data', function (gate) {
-            let strSql,
-                param;
+                gates = Gates.find({
+                    gateTimestamp: { $gte: moment("2016-04-29").toDate(), $lt: moment("2016-05-02").toDate()}
+                })
+                    .sort({_id: 1})
+                    .skip(rango.skip)
+                    .limit(rango.limit)
+                    .lean();
+                gates.exec(function (err, gatesData) {
+                    let strSql,
+                        param;
 
-            strSql = "insert into GATES " +
-                "(ID," +
-                "TERMINAL," +
-                "BUQUE," +
-                "VIAJE," +
-                "CONTENEDOR," +
-                "CARGA," +
-                "MOV," +
-                "TIPO," +
-                "GATETIMESTAMP," +
-                "TURNOINICIO," +
-                "TURNOFIN," +
-                "PATENTECAMION," +
-                "TREN) VALUES (" +
-                "gates_seq.nextval," +
-                ":terminal, " +
-                ":buque, " +
-                ":viaje, " +
-                ":contenedor, " +
-                ":carga, " +
-                ":mov, " +
-                ":tipo, " +
-                "to_date(:gateTimestamp, 'YYYY-MM-DD HH24:MI:SS'), " +
-                "to_date(:turnoInicio, 'YYYY-MM-DD HH24:MI:SS'), " +
-                "to_date(:turnoFin, 'YYYY-MM-DD HH24:MI:SS'), " +
-                ":patenteCamion, " +
-                ":tren) RETURNING ID INTO :outputID";
-            param = {
-                outputID : {type: oracledb.NUMBER, dir: oracledb.BIND_OUT},
-                terminal: gate.terminal,
-                buque: gate.buque,
-                viaje: gate.viaje,
-                contenedor: gate.contenedor,
-                carga: gate.carga,
-                mov: gate.mov,
-                tipo: gate.tipo,
-                gateTimestamp: moment(gate.gateTimestamp).format("YYYY-MM-DD hh:mm:ss"),
-                turnoInicio: (gate.turnoInicio === null ) ? null : moment(gate.turnoInicio).format("YYYY-MM-DD hh:mm:ss"),
-                turnoFin: (gate.turnoFin === null ) ? null : moment(gate.turnoFin).format("YYYY-MM-DD hh:mm:ss"),
-                patenteCamion: gate.patenteCamion,
-                tren: gate.tren
-            };
-            connection.execute(strSql, param, {autoCommit:true}, function(err, result) {
-                if (err) {
-                    console.error("%s, ERROR %s, %j", process.pid, err.message, gate);
-                } else {
-                    if ((counter++ % 1000) === 0)
-                        console.log("Process %d", counter-1);
-                    ;
-                }
+                    if (err) {
+                        console.log(err);
+                        doRelease(connection);
+                        process.exit();
+                    } else {
+//                        doRelease(connection);
+                        async.eachSeries(gatesData, function (gate, asyncCallback) {
+                                i++;
+
+                                strSql = "insert into GATES " +
+                                    "(ID," +
+                                    "TERMINAL," +
+                                    "BUQUE," +
+                                    "VIAJE," +
+                                    "CONTENEDOR," +
+                                    "CARGA," +
+                                    "MOV," +
+                                    "TIPO," +
+                                    "GATETIMESTAMP," +
+                                    "TURNOINICIO," +
+                                    "TURNOFIN," +
+                                    "PATENTECAMION," +
+                                    "TREN," +
+                                    "REGISTRADO_EN) VALUES (" +
+                                    "gates_seq.nextval," +
+                                    ":terminal, " +
+                                    ":buque, " +
+                                    ":viaje, " +
+                                    ":contenedor, " +
+                                    ":carga, " +
+                                    ":mov, " +
+                                    ":tipo, " +
+                                    "to_date(:gateTimestamp, 'YYYY-MM-DD HH24:MI:SS'), " +
+                                    "to_date(:turnoInicio, 'YYYY-MM-DD HH24:MI:SS'), " +
+                                    "to_date(:turnoFin, 'YYYY-MM-DD HH24:MI:SS'), " +
+                                    ":patenteCamion, " +
+                                    ":tren," +
+                                    ":registrado_en) RETURNING ID INTO :outputID";
+                                param = {
+                                    outputID : {type: oracledb.NUMBER, dir: oracledb.BIND_OUT},
+                                    terminal: gate.terminal,
+                                    buque: gate.buque,
+                                    viaje: gate.viaje,
+                                    contenedor: gate.contenedor,
+                                    carga: gate.carga,
+                                    mov: gate.mov,
+                                    tipo: gate.tipo,
+                                    gateTimestamp: moment(gate.gateTimestamp).format("YYYY-MM-DD hh:mm:ss"),
+                                    turnoInicio: (gate.turnoInicio === null ) ? null : moment(gate.turnoInicio).format("YYYY-MM-DD hh:mm:ss"),
+                                    turnoFin: (gate.turnoFin === null ) ? null : moment(gate.turnoFin).format("YYYY-MM-DD hh:mm:ss"),
+                                    patenteCamion: gate.patenteCamion,
+                                    tren: gate.tren,
+                                    registrado_en: dateTime.getDateTimeFromObjectId(gate._id)
+                                };
+                                connection.execute(strSql, param, {autoCommit:true}, function(err, result) {
+                                    if (err) {
+                                        console.error("%s, ERROR %s, %j", process.pid, err.message, gate);
+                                    } else {
+                                        asyncCallback();
+                                    }
+                                });
+                            },
+                            function () {
+                                console.log("TERMINO %j, %d", rango, gatesData.length);
+//                                doRelease(connection);
+                                asyncCallback_round();
+                            });
+                    }
+
+                });
+            },
+            function () {
+                console.log("TERMINO %d", i);
+                doRelease(connection);
+                process.exit(0);
             });
-        });
-
-        gates.on('close', function (data) {
-            console.log("TERMINO");
-        });
-
     });
 
 

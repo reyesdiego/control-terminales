@@ -9,8 +9,6 @@
 'use strict';
 
 var config = require('../config/config.js'),
-    log4n = require('../include/log/log4node.js'),
-    log = new log4n.log(config.log),
     async = require("async"),
     moment = require("moment");
 var dateTime = require('../include/moment');
@@ -58,27 +56,31 @@ oracledb.getConnection(
                 });
         }
 
-        strSql = "SELECT CONTENEDOR, FECHA_EMISION " +
-            "FROM INVOICE_DETAIL INVD " +
-            "INNER JOIN INVOICE_HEADER INVH ON INVD.INVOICE_HEADER_ID = INVH.ID " +
-            "WHERE TERMINAL = :1 AND " +
-            "       CODE IN (SELECT TT.CODE " +
-            "               FROM TARIFARIO_TERMINAL TT " +
-            "                   INNER JOIN TARIFARIO T ON TT.TARIFARIO_ID = T.ID " +
-            "               WHERE TT.TERMINAL = INVH.TERMINAL AND RATE IS NOT NULL ) AND " +
-            "   NOT EXISTS (SELECT * " +
-            "        FROM GATES G " +
-            "       WHERE CARGA = 'LL' AND " +
-            "           G.CONTENEDOR = INVD.CONTENEDOR AND " +
-            "           G.TERMINAL = INVH.TERMINAL )";
-        connection.execute(strSql, ['BACTSSA'], {outFormat: oracledb.OBJECT, resultSet: true}, function (err, data) {
+        if (err) {
+            console.error(err);
+        } else {
+            strSql = "SELECT CONTENEDOR, FECHA_EMISION " +
+                "FROM INVOICE_DETAIL INVD " +
+                "INNER JOIN INVOICE_HEADER INVH ON INVD.INVOICE_HEADER_ID = INVH.ID " +
+                "WHERE TERMINAL = :1 AND " +
+                "       CODE IN (SELECT TT.CODE " +
+                "               FROM TARIFARIO_TERMINAL TT " +
+                "                   INNER JOIN TARIFARIO T ON TT.TARIFARIO_ID = T.ID " +
+                "               WHERE TT.TERMINAL = INVH.TERMINAL AND RATE IS NOT NULL ) AND " +
+                "   NOT EXISTS (SELECT * " +
+                "        FROM GATES G " +
+                "       WHERE CARGA = 'LL' AND " +
+                "           G.CONTENEDOR = INVD.CONTENEDOR AND " +
+                "           G.TERMINAL = INVH.TERMINAL )";
+            connection.execute(strSql, ['BACTSSA'], {outFormat: oracledb.OBJECT, resultSet: true}, function (err, data) {
 
-            if (err) {
-                console.log(err);
-            } else {
-                fetchRowsFromRS(connection, data.resultSet, 5);
-            }
-        });
+                if (err) {
+                    console.log(err);
+                } else {
+                    fetchRowsFromRS(connection, data.resultSet, 5);
+                }
+            });
+        }
     });
 
 function doRelease(connection) {
