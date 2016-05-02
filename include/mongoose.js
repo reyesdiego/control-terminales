@@ -1,15 +1,18 @@
 /**
  * Created by diego on 7/3/15.
  */
-module.exports = function (log) {
+module.exports = function (url, options, log) {
     'use strict';
-    var config = require('../config/config.js'),
-        mongoose = require('mongoose');
+    var mongoose = require('mongoose');
 
-    mongoose.connect(config.mongo_url, config.mongo_opts);
+    if (options) {
+        mongoose.connect(url, options);
+    } else {
+        mongoose.connect(url);
+    }
 
     mongoose.connection.on('connected', function () {
-        log.logger.info("Mongoose %s Connected to Database. %s", mongoose.version, config.mongo_url);
+        log.logger.info("Mongoose %s Connected to Database. %s", mongoose.version, url);
         global.mongoose.connected = true;
     });
 
