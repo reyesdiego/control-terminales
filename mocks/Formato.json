@@ -1,8 +1,0 @@
-{"status":"OK","data":[
-  {"code":"1465","rate":"IMPO","terminal":"BACTSSA","fecha":"2015-07-02T03:00:00.000Z","ton":385,"total":1540},
-  {"code":"TASAI","rate":"IMPO","terminal":"TRP","fecha":"2015-07-02T03:00:00.000Z","ton":180,"total":720},
-  {"code":"TASAE","rate":"EXPO","terminal":"TRP","fecha":"2015-07-02T03:00:00.000Z","ton":451,"total":902},
-  {"code":"1466","rate":"EXPO","terminal":"BACTSSA","fecha":"2015-07-02T03:00:00.000Z","ton":50.5,"total":101},
-  {"code":"NAGPE","rate":"EXPO","terminal":"TERMINAL4","fecha":"2015-07-02T03:00:00.000Z","ton":582.5,"total":1165},
-  {"code":"NAGPI","rate":"IMPO","terminal":"TERMINAL4","fecha":"2015-07-02T03:00:00.000Z","ton":310,"total":1240}
-]}

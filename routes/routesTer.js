@@ -38,4 +38,3 @@ module.exports = function (log, app, io, oracle, params) {
     app.use('/invoice', isValidToken, invoice);
 
 }
-
