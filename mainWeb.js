@@ -21,7 +21,7 @@ global.cache = {
 };
 
 /** Conecta a la base de datos MongoDb */
-require('./include/mongoose.js')(log);
+require('./include/mongoose.js')(config.mongo.url, config.mongo.options, log);
 /** Crea un servidor http sobre express en puerto 8090 */
 httpExpress = require('./include/httpExpress.js')(log, port, true);
 /** Crea el Servidor Socket sobre el servidor http*/
@@ -64,9 +64,13 @@ oracle.oracledb.createPool({
         voucherType.lean();
         voucherType.exec(function (err, data) {
             var result = {};
-            data.forEach(function (item) {
-                result[item._id] = item.description;
-            });
+            if (err) {
+                log.logger.error(err);
+            } else {
+                data.forEach(function (item) {
+                    result[item._id] = item.description;
+                });
+            }
             global.cache.voucherTypes = result;
             require('./routes/routesTer')(log, httpExpress.app, io, oracle, params);
         });

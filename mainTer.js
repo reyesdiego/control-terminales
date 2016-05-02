@@ -19,7 +19,7 @@ var config = require('./config/config.js'),
 
 //moment.locale('es');
 /** Conecta a la base de datos MongoDb */
-require('./include/mongoose.js')(log);
+require('./include/mongoose.js')(config.mongo.url, config.mongo.options, log);
 
 /** Crea un servidor http en puerto 8080 */
 httpExpress = require('./include/httpExpress.js')(log, port, true);
@@ -77,9 +77,13 @@ oracle.oracledb.createPool({
         voucherType.lean();
         voucherType.exec(function (err, data) {
             var result = [];
-            data.forEach(function (item) {
-                result.push(item._id);
-            });
+            if (err) {
+                log.logger.error(err);
+            } else {
+                data.forEach(function (item) {
+                    result[item._id] = item.description;
+                });
+            }
             global.cache.voucherTypes = result;
             require('./routes/routesTer')(log, httpExpress.app, ioClient, oracle, params);
         });
