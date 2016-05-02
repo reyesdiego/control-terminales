@@ -45,7 +45,6 @@ module.exports = function (log, io, oracle) {
                 log.logger.insert('Gate ORA INS: %s - %s - %s', gate._id, usr.terminal, moment(gate.gateTimestamp).format("YYYY-MM-DD hh:mm:ss"));
             }
         });
-
     }
 
     /*

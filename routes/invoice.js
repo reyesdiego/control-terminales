@@ -74,7 +74,6 @@ module.exports = function (log, io, oracle) {
                 }
             });
         }
-
     }
 
     function getInvoice(req, res) {
