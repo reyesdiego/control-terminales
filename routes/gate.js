@@ -16,7 +16,7 @@ module.exports = function (log, oracle) {
         linq = require('linq'),
         async = require('async');
 
-    Gate = new Gate(oracle);
+    Gate = new Gate();
 
     function getGates(req, res) {
 

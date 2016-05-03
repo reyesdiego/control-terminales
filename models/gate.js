@@ -17,16 +17,17 @@ var gate = new mongoose.Schema({
     turnoInicio: {type: Date},
     turnoFin: {type: Date}
 });
-
+/*
 gate.index({
     terminal : 1,
     buque : 1,
     viaje : 1,
     contenedor : 1,
     mov : 1,
-    gateTimestamp : 1
+    gateTimestamp : 1,
+    patenteCamion: 1
 }, {unique: true});
-
+*/
 gate.statics.insert = function (gate, cb) {
     'use strict';
     if (gate !== undefined) {
