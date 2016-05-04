@@ -41,14 +41,14 @@ oracledb.getConnection(
             return;
         }
 
-        for (i = 0; i < 3; i++) {
+        for (i = 0; i < 200; i++) {
             counter.push({skip: i * gap, limit: gap});
         }
         i = 0;
         async.eachSeries(counter, function (rango, asyncCallback_round) {
 
                 gates = Gates.find({
-                    gateTimestamp: { $gte: moment("2016-04-29").toDate(), $lt: moment("2016-05-02").toDate()}
+                    gateTimestamp: { $gte: moment("2016-01-01").toDate(), $lt: moment("2016-06-01").toDate()}
                 })
                     .sort({_id: 1})
                     .skip(rango.skip)
@@ -115,6 +115,7 @@ oracledb.getConnection(
                                 connection.execute(strSql, param, {autoCommit:true}, function(err, result) {
                                     if (err) {
                                         console.error("%s, ERROR %s, %j", process.pid, err.message, gate);
+                                        asyncCallback();
                                     } else {
                                         asyncCallback();
                                     }
