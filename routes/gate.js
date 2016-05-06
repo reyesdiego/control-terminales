@@ -70,9 +70,15 @@ module.exports = function (log, oracle) {
         }
 
         if (req.query.ontime === '1') {
+            param.ontime = req.query.ontime;
             param.$where = 'this.gateTimestamp>=this.turnoInicio && this.gateTimestamp<=this.turnoFin';
         } else if (req.query.ontime === '0') {
+            param.ontime = req.query.ontime;
             param.$where = 'this.gateTimestamp<this.turnoInicio || this.gateTimestamp>this.turnoFin';
+        }
+
+        if (req.query.size) {
+            param.size = req.query.size;
         }
 
         if (usr.role === 'agp') {

@@ -41,14 +41,14 @@ oracledb.getConnection(
             return;
         }
 
-        for (i = 0; i < 200; i++) {
+        for (i = 0; i < 15; i++) {
             counter.push({skip: i * gap, limit: gap});
         }
         i = 0;
         async.eachSeries(counter, function (rango, asyncCallback_round) {
 
                 gates = Gates.find({
-                    gateTimestamp: { $gte: moment("2016-01-01").toDate(), $lt: moment("2016-06-01").toDate()}
+                    gateTimestamp: { $gte: moment("2016-05-04").toDate(), $lt: moment("2016-06-01").toDate()}
                 })
                     .sort({_id: 1})
                     .skip(rango.skip)
@@ -105,9 +105,9 @@ oracledb.getConnection(
                                     carga: gate.carga,
                                     mov: gate.mov,
                                     tipo: gate.tipo,
-                                    gateTimestamp: moment(gate.gateTimestamp).format("YYYY-MM-DD hh:mm:ss"),
-                                    turnoInicio: (gate.turnoInicio === null ) ? null : moment(gate.turnoInicio).format("YYYY-MM-DD hh:mm:ss"),
-                                    turnoFin: (gate.turnoFin === null ) ? null : moment(gate.turnoFin).format("YYYY-MM-DD hh:mm:ss"),
+                                    gateTimestamp: moment(gate.gateTimestamp).format("YYYY-MM-DD HH:mm:ss"),
+                                    turnoInicio: (gate.turnoInicio === null ) ? null : moment(gate.turnoInicio).format("YYYY-MM-DD HH:mm:ss"),
+                                    turnoFin: (gate.turnoFin === null ) ? null : moment(gate.turnoFin).format("YYYY-MM-DD HH:mm:ss"),
                                     patenteCamion: gate.patenteCamion,
                                     tren: gate.tren,
                                     registrado_en: dateTime.getDateTimeFromObjectId(gate._id)
