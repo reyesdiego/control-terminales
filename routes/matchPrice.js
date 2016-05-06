@@ -34,7 +34,7 @@ module.exports = function (log) {
             }
         }
 
-        Price.find(param, {topPrices : {$slice: -1}})
+        Price.find(param /*{topPrices : {$slice: -1}}*/ )
             .populate({path: 'matches', match: {"terminal": paramTerminal}})
             .sort({terminal: 1, code: 1})
             .lean()
