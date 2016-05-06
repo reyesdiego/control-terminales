@@ -112,7 +112,9 @@ mail.prototype = {
                 }
             });
         } else {
-            return callback({status: "ERROR", data: 'Envío de email deshabilitado en Config'});
+            if (typeof callback === 'function') {
+                return callback({status: "ERROR", data: 'Envío de email deshabilitado en Config'});
+            }
         }
     }
 };
