@@ -14,7 +14,9 @@ var price = new mongoose.Schema({
         from: {type: Date},
         price: {type: Number, required: true},
         currency: {type: String}
-    }]
+    }],
+    aud_user: {type: String},
+    aud_time: {type: Date}
 });
 
 price.virtual('unitCurrency').get(function () {
