@@ -115,66 +115,21 @@ module.exports = function (log) {
     }
 
     function getMatches(req, res) {
-        var usr = req.usr,
-            paramTerminal = req.params.terminal,
-            paramMatchPrice,
-            paramPrice;
+        var matchPrice = require('../lib/matchPrice.js');
+        var params = {};
 
-        if (paramTerminal.toLowerCase() === 'all') {
-            paramMatchPrice = [
-                {$unwind: '$match'}
-            ];
-            paramPrice = {};
-        } else {
-            paramMatchPrice = [
-                {
-                    $match: {terminal: paramTerminal }
-                },
-                { $unwind: '$match' }
-            ];
-            paramPrice = {$or: [{terminal: "AGP"}, {terminal: paramTerminal }]};
+        params.terminal = req.params.terminal;
+
+        matchPrice = new matchPrice(params.terminal);
+
+        if (req.query.type) {
+            params.type = req.query.type;
         }
-
-        var s = MatchPrice.aggregate(paramMatchPrice);
-        s.exec(function (err, matches) {
-            var errMsg;
-            if (!err) {
-
-                Price.find(paramPrice)
-                    .exec(function (err, prices) {
-                        var result = {},
-                            Enumerable = require('linq'),
-                            response;
-
-                        if (!err) {
-                            response = Enumerable.from(matches)
-                                .join(Enumerable.from(prices), '$.price.id', '$._id.id', function (match, price) {
-                                    if (req.query.type) {
-                                        match.description = {
-                                            'currency': price.currency,
-                                            'price': price.topPrice
-                                        };
-                                    } else {
-                                        match.description = price.description;
-                                    }
-                                    return match;
-                                }).toArray();
-                            response.forEach(function (item) {
-                                result[item.match] = item.description;
-                            });
-
-                            res.status(200).send({status: 'OK', data: result});
-
-                        } else {
-                            log.logger.error('Error: %s', err.message);
-                            res.status(200).send({status: 'ERROR', data: err.message});
-                        }
-                    });
-
+        matchPrice.getMatches(params, function (err, data) {
+            if (err) {
+                res.status(200).send({status: "ERROR", message: err.message, data: err});
             } else {
-                errMsg = util.format('Error: %s', err.message);
-                log.logger.error(errMsg);
-                res.status(500).send({status: 'ERROR', data: errMsg});
+                res.status(200).send({status: "OK", data: data});
             }
         });
     }

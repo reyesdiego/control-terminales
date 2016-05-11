@@ -1306,6 +1306,7 @@ module.exports = function (log, io, oracle) {
 
     function getInvoicesByRatesTerminal (req, res) {
         var params = {};
+        var options = {};
         var Invoice = require('../lib/invoice2.js');
         Invoice = new Invoice();
 
@@ -1317,8 +1318,11 @@ module.exports = function (log, io, oracle) {
         if (req.query.month) {
             params.month = parseInt(req.query.month);
         }
+        if (req.query.output === 'csv') {
+            options = {output: 'csv'};
+        }
 
-        Invoice.getInvoicesByRatesTerminal(params, function (err, data) {
+        Invoice.getInvoicesByRatesTerminal(params, options, function (err, data) {
             if (err) {
                 res.status(500).send({
                     status: "ERROR",
@@ -1326,10 +1330,16 @@ module.exports = function (log, io, oracle) {
                     data: err
                 });
             } else {
-                res.status(200).send({
-                    status: "OK",
-                    data: data
-                });
+                if (options.output === 'csv') {
+                    res.header('content-type', 'text/csv');
+                    res.header('content-disposition', 'attachment; filename=report.csv');
+                    res.status(200).send(data);
+                } else {
+                    res.status(200).send({
+                        status: "OK",
+                        data: data
+                    });
+                }
             }
         });
     }
