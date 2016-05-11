@@ -41,14 +41,14 @@ oracledb.getConnection(
             return;
         }
 
-        for (i = 0; i < 15; i++) {
+        for (i = 0; i < 11; i++) {
             counter.push({skip: i * gap, limit: gap});
         }
         i = 0;
         async.eachSeries(counter, function (rango, asyncCallback_round) {
 
                 gates = Gates.find({
-                    gateTimestamp: { $gte: moment("2016-05-04").toDate(), $lt: moment("2016-06-01").toDate()}
+                    gateTimestamp: { $gte: moment("2016-05-01").toDate(), $lt: moment("2016-06-01").toDate()}
                 })
                     .sort({_id: 1})
                     .skip(rango.skip)
