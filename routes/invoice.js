@@ -1304,6 +1304,36 @@ module.exports = function (log, io, oracle) {
 
     }
 
+    function getInvoicesByRatesTerminal (req, res) {
+        var params = {};
+        var Invoice = require('../lib/invoice2.js');
+        Invoice = new Invoice();
+
+        params.terminal = req.params.terminal;
+
+        if (req.query.year) {
+            params.year = parseInt(req.query.year);
+        }
+        if (req.query.month) {
+            params.month = parseInt(req.query.month);
+        }
+
+        Invoice.getInvoicesByRatesTerminal(params, function (err, data) {
+            if (err) {
+                res.status(500).send({
+                    status: "ERROR",
+                    message: err.message,
+                    data: err
+                });
+            } else {
+                res.status(200).send({
+                    status: "OK",
+                    data: data
+                });
+            }
+        });
+    }
+
     function getDistincts( req, res) {
         var usr = req.usr,
             distinct = '',
@@ -1672,6 +1702,7 @@ module.exports = function (log, io, oracle) {
     router.get('/:terminal/shipTrips', getShipTrips);
     router.get('/:terminal/shipContainers', getShipContainers);
     router.post('/byRates', getInvoicesByRates);
+    router.get('/:terminal/byRates', getInvoicesByRatesTerminal);
     router.get('/containersNoRates/:terminal', getContainersNoRates);
     router.get('/totalClient', getTotals);
     router.get('/totalClientTop', getTotals);
