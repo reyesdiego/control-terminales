@@ -34,7 +34,7 @@ module.exports = function (log, io, oracle) {
                 res.status(200).send(gateNew);
             }
         });
-/*
+
         gateLibOra = new Gate(oracle);
         gateLibOra.add(gate2insert, {validate: true, trim: true}, function (err, gateNew) {
             if (err) {
@@ -45,7 +45,7 @@ module.exports = function (log, io, oracle) {
                 log.logger.insert('Gate ORA INS: %s - %s - %s', gate._id, usr.terminal, moment(gate2insert.gateTimestamp).format("YYYY-MM-DD hh:mm:ss"));
             }
         });
-*/
+
     }
 
     /*
