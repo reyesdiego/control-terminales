@@ -21,11 +21,9 @@ var asyncParallel = [];
 var terminalsName = ['bactssa', 't4', 'trp'];
 var sendMail = config.email;
 
-//var host = config.domain;
-var host = '10.10.0.223';
+var host = config.domain;
 
-mongoose.connect(config.mongo_url, config.mongo_opts);
-//mongoose.connect(config.mongo_url);
+mongoose.connect(config.mongo.url, config.mongo.options);
 
 VouchersType.find({}, function (err, vouchersDesc) {
     'use strict';
@@ -151,7 +149,7 @@ VouchersType.find({}, function (err, vouchersDesc) {
                                                                 alternative: true
                                                             };
                                                             mailer = new mail.mail(sendMail);
-                                                            to = ["dreyes@puertobuenosaires.gob.ar", user.email];
+                                                            to = ["dreyes@puertobuenosaires.gob.ar", "reclamo.uct@puertobuenosaires.gob.ar", user.email];
                                                             subject = voucherList[voucher.toString()] + " faltantes al " + date + " : " + totalCnt.toString();
                                                             mailer.send(to,
                                                                 subject,
