@@ -127,9 +127,9 @@ module.exports = function (log) {
         }
         matchPrice.getMatches(params, function (err, data) {
             if (err) {
-                res.status(200).send({status: "ERROR", message: err.message, data: err});
+                res.status(200).send(err);
             } else {
-                res.status(200).send({status: "OK", data: data});
+                res.status(200).send(data);
             }
         });
     }
