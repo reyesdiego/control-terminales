@@ -67,7 +67,7 @@ VouchersType.find({}, function (err, vouchersDesc) {
                                 console.log('%s, %s', user.terminal, result.data);
                                 if (result.data.length > 0) {
                                     mailer = new mail.mail(sendMail);
-                                    to = ["dreyes@puertobuenosaires.gob.ar", user.email];
+                                    to = ["dreyes@puertobuenosaires.gob.ar", "reclamos.uct@puertobuenosaires.gob.ar", user.email];
                                     mailer.send(to,
                                         result.data.length.toString() + " CÓDIGOS SIN ASOCIAR AL " + date,
                                         user.terminal + '\n\n' + result.data,
@@ -149,7 +149,7 @@ VouchersType.find({}, function (err, vouchersDesc) {
                                                                 alternative: true
                                                             };
                                                             mailer = new mail.mail(sendMail);
-                                                            to = ["dreyes@puertobuenosaires.gob.ar", "reclamo.uct@puertobuenosaires.gob.ar", user.email];
+                                                            to = ["dreyes@puertobuenosaires.gob.ar", "reclamos.uct@puertobuenosaires.gob.ar", user.email];
                                                             subject = voucherList[voucher.toString()] + " faltantes al " + date + " : " + totalCnt.toString();
                                                             mailer.send(to,
                                                                 subject,
