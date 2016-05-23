@@ -85,3 +85,7 @@ process.on('exit', function () {
 process.on('uncaughtException', function (err) {
     log.logger.error("Caught exception: %s", err.stack);
 });
+
+httpExpress.app.get("/killme", function (req,res) {
+    httpExpress.server.close();
+})
