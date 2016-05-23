@@ -86,6 +86,10 @@ process.on('uncaughtException', function (err) {
     log.logger.error("Caught exception: %s", err.stack);
 });
 
+/**
+ * Para tester el funcionamiento de PM2
+ *
 httpExpress.app.get("/killme", function (req,res) {
     httpExpress.server.close();
 })
+*/
