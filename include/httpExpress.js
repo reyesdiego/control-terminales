@@ -10,7 +10,6 @@ module.exports = function (log, port, withSocketIo) {
         app = express(),
         compress = require('compression'),
         server,
-        io,
         result,
         path = require('path'),
         moment = require('moment').locale('es');

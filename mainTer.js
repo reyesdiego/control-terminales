@@ -89,7 +89,7 @@ oracle.oracledb.createPool({
         });
     });
 
-process.on('exit', function () {
+process.on('exit', () => {
     log.logger.error('exiting');
 });
 
