@@ -3,8 +3,8 @@
   "resetTokenExpiresMinutes": 20,
   "processes": 0,
   "url": "http://terminales.puertobuenosaires.gob.ar:8080",
-  "socket_url": "terminales.puertobuenosaires.gob.ar:8090",
-  "domain": "terminales.puertobuenosaires.gob.ar",
+  "socket_url": "http://terminales.puertobuenosaires.gob.ar:8090",
+  "domain": "10.1.0.61",
   "emailTurnos": {
     "user":    "",
     "password": "",
