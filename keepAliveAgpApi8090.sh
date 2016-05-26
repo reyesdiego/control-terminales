@@ -1,2 +1,2 @@
 #!/bin/bash
-nohup node keepAliveAgp.js ApiWeb 10.10.0.223 8090 >> keepAliveAgpApi8090.out &
+pm2 start --name keepAliveApiWeb keepAliveAgp.js -- ApiWeb 10.10.0.223 8090

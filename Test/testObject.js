@@ -1,7 +1,7 @@
 /**
  * Created by diego on 6/10/14.
  */
-
+ console.info("First Arg %s", process.argv[2]);
 // Test Object
 //var per = require('./testObjectObject');
 //var persona = new per.person("Diego");
@@ -12,12 +12,12 @@
 console.time('f');
 
 var os = require('os');
-console.log(os.cpus());
-console.log(os.platform());
-console.log(os.type());
-console.log(os.hostname());
-console.log(os.release());
-console.log(os.networkInterfaces());
+//console.log(os.cpus());
+//console.log(os.platform());
+//console.log(os.type());
+//console.log(os.hostname());
+//console.log(os.release());
+//console.log(os.networkInterfaces());
 
 var e = console.timeEnd('f');
 
