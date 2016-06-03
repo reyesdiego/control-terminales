@@ -12,6 +12,7 @@ var oracledb = require('oracledb'),
     teardownScripts = [];
 
 module.exports.OBJECT = oracledb.OBJECT;
+module.exports.oracledb = oracledb;
 
 function createPool(config) {
     return new Promise(function (resolve, reject) {

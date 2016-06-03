@@ -430,7 +430,7 @@ module.exports = function (log, io, oracle) {
                 res.status(200).send(result);
             }
         });
-/*
+
         InvoiceO = new Invoice(oracle);
         InvoiceO.add(paramOracle, io, function (err, data) {
             if (err) {
@@ -444,7 +444,7 @@ module.exports = function (log, io, oracle) {
                 //res.status(200).send(result);
             }
         });
-*/
+
     }
 
     /*

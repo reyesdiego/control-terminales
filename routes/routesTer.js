@@ -17,7 +17,7 @@ module.exports = function (log, app, io, oracle, params) {
         Account.verifyToken(incomingToken, function (err, usr) {
             if (err) {
                 log.logger.error(err.message);
-                res.status(403).send({status: 'ERROR', code: err.code, data: err.message});
+                res.status(403).send({status: 'ERROR', code: err.code, messare: err.message, data: err.data});
             } else {
                 req.usr = usr;
                 next();
