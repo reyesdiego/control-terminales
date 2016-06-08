@@ -39,11 +39,10 @@
       "user": "admin",
       "pass": "Pt trend 54",
       "auth": {"authdb": "admin"},
-      "server": { "socketOptions": { "keepAlive": 1, "connectTimeoutMS": 30000 }
-      }
+      "server": { "socketOptions": { "keepAlive": 1, "connectTimeoutMS": 30000 }}
     }
   },
-  "mongo_url_log": "mongodb://10.1.60.27017:27017/logging",
+  "mongo_url_log": "mongodb://10.1.0.60.27017:27017/logging",
   "mongo_opts_log": {
     "user": "admin",
     "pass": "Pt trend 54",

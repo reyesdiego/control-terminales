@@ -34,15 +34,9 @@
     "toFile": false
   },
   "mongo": {
-    "url": "mongodb://10.1.0.60:27017/terapi",
-    "options": {
-      "user": "admin",
-      "pass": "Pt trend 54",
-      "auth": {"authdb": "admin"},
-      "server": { "socketOptions": { "keepAlive": 1, "connectTimeoutMS": 30000 }}
-    }
+    "url": "mongodb://10.10.0.223:27017/terapi"
   },
-  "mongo_url_log": "mongodb://10.1.0.60:27017/logging",
+  "mongo_url_log": "mongodb://10.10.0.223:27017/logging",
   "mongo_opts_log": {
     "user": "admin",
     "pass": "Pt trend 54",
