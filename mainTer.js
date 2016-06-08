@@ -71,9 +71,9 @@ oracle.oracledb.createPool({
                 timeElapsed: moment(moment(httpExpress.app.get('runtime'))).fromNow(true)
             },
             oracle: {pool: pool}
-        }
+        };
 
-        voucherType = VoucherType.find({type: -1}, {_id: 1});
+        voucherType = VoucherType.find({}, {description: true});
         voucherType.lean();
         voucherType.exec(function (err, data) {
             var result = [];

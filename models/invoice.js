@@ -80,28 +80,33 @@ invoiceSchema.index({nroPtoVenta: 1, codTipoComprob: 1, nroComprob: 1, terminal:
 
 invoiceSchema.pre('save', function (next, done) {
     'use strict';
-    this.total = this.importe.total;
+    var self = this;
 
-    if (this.isNew) {
-        if (this.cotiMoneda && this.codMoneda) {
-            if (this.codMoneda === 'DOL') {
-                if (this.cotiMoneda <= 1) {
+    if (self.isNew) {
+        self.total = self.importe.total;
+        if (self.cotiMoneda && self.codMoneda) {
+            if (self.codMoneda === 'DOL') {
+                if (self.cotiMoneda <= 1) {
                     //next(new Error("La cotización del dolar debe ser mayor a Uno (1)."));
                     next();
                 } else {
-                    this.total = this.importe.total * this.cotiMoneda;
+                    self.total = self.importe.total * self.cotiMoneda;
                 }
-            } else if (this.codMoneda === 'PES' && this.cotiMoneda !== 1) {
+            } else if (self.codMoneda === 'PES' && self.cotiMoneda !== 1) {
                 next(new Error("La cotización del peso debe ser Uno (1)."));
             }
         }
-
-        if (global.cache.voucherTypes.indexOf(this.codTipoComprob) >= 0) {
-            this.total = this.total * -1;
-        }
+        var VoucherType = require('../models/voucherType.js');
+        VoucherType.findOne({_id: self.codTipoComprob}, {type: true, _id: false})
+            .lean()
+            .exec((err, voucherType) => {
+                self.total = self.total * voucherType.type;
+                next();
+            });
+    } else {
+        next();
     }
 
-    next();
 });
 
 detalleSchema.pre('save', function (next, done) {
