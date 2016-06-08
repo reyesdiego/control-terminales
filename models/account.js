@@ -66,8 +66,11 @@ Account.statics.verifyToken = function (incomingToken, cb) {
         //Now do a lookup on that email in mongodb ... if exists it's a real user
         if (decoded && decoded.email) {
             this.findOne({email: decoded.email}, function (err, usr) {
-                if (err || !usr) {
-                    err = {message: 'Issue finding user.'};
+                if (err) {
+                    err = {message: 'Issue finding user.', data: err};
+                    return cb(err);
+                } else if (!usr) {
+                    err = {message: 'El Usuario no existe.'};
                     return cb(err);
                 } else if (incomingToken === usr.token.token) {
                     if (cb !== undefined) {
