@@ -17,9 +17,9 @@ describe('Classes', function () {
 
     before(function (done) {
         this.timeout(30000);
-        mongoose.connect(config.mongo_url, config.mongo_opts);
-        mongoose.connection.on('connected', function () {
 
+        mongoose.connect(config.mongo.url, config.mongo.options);
+        mongoose.connection.on('connected', function () {
             oracle = require('../include/oracle.js');
             oracle = new oracle();
             oracle.oracledb.createPool({
@@ -353,7 +353,7 @@ describe('Classes', function () {
                     data.should.have.have.property('status');
                     data.status.should.be.equal('OK');
                     data.data.should.have.property('length');
-                    data.data.length.should.be.equal(491);
+                    data.data.length.should.be.equal(410);
                 }
                 done();
             });
