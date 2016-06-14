@@ -120,7 +120,12 @@ module.exports = function (log) {
                     },
                 cnt : { $sum : 1 }
             }},
-            { $sort: {'_id.hour': 1, '_id.terminal': 1 }}
+            { $project: {
+                terminal: '$_id.terminal',
+                hour: '$_id.hour',
+                cnt: true
+            }},
+            { $sort: {'hour': 1, 'terminal': 1 }}
         ];
 
         Appointment.aggregate(jsonParam, function (err, data) {
@@ -163,7 +168,14 @@ module.exports = function (log) {
                     },
                 cnt : { $sum : 1 }
             }},
-            { $sort: {'_id.dia': 1, '_id.terminal': 1 }}
+            { $project: {
+                terminal: '$_id.terminal',
+                year: '$_id.year',
+                month: '$_id.month',
+                dia: '$_id.dia',
+                cnt: true
+                }},
+            { $sort: {'dia': 1, 'terminal': 1 }}
         ];
 
         Appointment.aggregate(jsonParam, function (err, data) {
