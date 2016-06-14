@@ -16,6 +16,9 @@ module.exports = function (log, io, oracle) {
         MatchPrice = require('../models/matchPrice.js'),
         VoucherType = require('../models/voucherType.js'),
         Enumerable = require('linq');
+        var Invoice2 = require('../lib/invoice2.js');
+
+    Invoice2 = new Invoice2(oracle);
 
     //GET - Return all invoice in the DB
     function getInvoices(req, res) {
@@ -26,11 +29,9 @@ module.exports = function (log, io, oracle) {
             skip = parseInt(req.params.skip, 10),
             ter = (usr.role === 'agp') ? paramTerminal : usr.terminal,
             param = {},
-            inv = require('../lib/invoice.js'),
-            inv2 = require('../lib/invoice2.js');
+            inv = require('../lib/invoice.js');
 
         inv = new inv(ter);
-        inv2 = new inv2(oracle);
 
         param.fechaInicio = req.query.fechaInicio;
         param.fechaFin = req.query.fechaFin;
@@ -55,7 +56,7 @@ module.exports = function (log, io, oracle) {
             param.skip = skip;
             param.limit = limit;
             log.time("tiempo");
-            inv2.getInvoices(param, function (err, result) {
+            Invoice2.getInvoices(param, function (err, result) {
                 if (err) {
                     res.status(500).send({status: "ERROR", data: err.message});
                 } else {
@@ -77,8 +78,7 @@ module.exports = function (log, io, oracle) {
     }
 
     function getInvoice(req, res) {
-        var Invoice = require('../lib/invoice2.js'),
-            usr = req.usr,
+        var usr = req.usr,
             param = {
                 _id: req.params.id
             },
@@ -87,8 +87,8 @@ module.exports = function (log, io, oracle) {
         if (usr.role !== 'agp') {
             param.terminal = usr.terminal;
         }
-        invoice = new Invoice(oracle);
-        invoice.getInvoice(param, function (err, data) {
+
+        Invoice2.getInvoice(param, function (err, data) {
             if (err) {
                 log.logger.error("%s", err);
                 res.status(500).send(err);
@@ -100,14 +100,11 @@ module.exports = function (log, io, oracle) {
 
     function getCounts(req, res) {
 
-        var param = {},
-            Invoice = require('../lib/invoice2.js');
-
-        Invoice = new Invoice(oracle);
+        var param = {};
 
         param.fecha = req.query.fecha;
 
-        Invoice.getCounts(param, function (err, data) {
+        Invoice2.getCounts(param, function (err, data) {
 
             if (err) {
                 log.logger.error(err);
@@ -120,15 +117,12 @@ module.exports = function (log, io, oracle) {
 
     function getCountByDate(req, res) {
 
-        var Invoice = require('../lib/invoice2.js');
         var param = {};
-
-        Invoice = new Invoice();
 
         if (req.query.fecha !== undefined) {
             param.fecha = req.query.fecha;
         }
-        Invoice.getCountByDate(param, function (err, data) {
+        Invoice2.getCountByDate(param, function (err, data) {
             if (err) {
                 res.status(500).send(err);
             } else {
@@ -139,16 +133,13 @@ module.exports = function (log, io, oracle) {
 
     function getCountByMonth(req, res) {
 
-        var Invoice = require('../lib/invoice2.js'),
-            param = {};
-
-        Invoice = new Invoice(oracle);
+        var param = {};
 
         if (req.query.fecha !== undefined) {
             param.fecha = req.query.fecha;
         }
 
-        Invoice.getCountByMonth(param, function (err, data) {
+        Invoice2.getCountByMonth(param, function (err, data) {
             if (err) {
                 res.status(500).send(err);
             } else {
@@ -1074,77 +1065,32 @@ module.exports = function (log, io, oracle) {
 
     }
 
-    function getCashbox(req, res){
-        var usr = req.usr;
-        var paramTerminal = req.params.terminal;
+    function getCashbox(req, res) {
+        var param = {}
+        var ter = (req.usr.role === 'agp') ? req.params.terminal : req.usr.terminal;
 
-        var fecha;
+        param.terminal = ter;
+        param.fechaInicio = req.query.fechaInicio;
+        param.fechaFin = req.query.fechaFin;
+        param.nroPtoVenta = req.query.nroPtoVenta;
+        param.codTipoComprob = req.query.codTipoComprob;
+        param.nroComprobante = req.query.nroComprobante;
+        param.razonSocial = req.query.razonSocial;
+        param.documentoCliente = req.query.documentoCliente;
+        param.contenedor = req.query.contenedor;
+        param.buqueNombre = req.query.buqueNombre;
+        param.viaje = req.query.viaje;
+        param.code = req.query.code;
+        param.resend = req.query.resend;
+        param.estado = req.query.estado;
 
-        var ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
-        var param = {terminal:	ter};
-
-        if (req.query.fechaInicio || req.query.fechaFin) {
-            param["fecha.emision"] = {};
-            if (req.query.fechaInicio) {
-                fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
-                param["fecha.emision"].$gte = fecha;
-            }
-            if (req.query.fechaFin) {
-                fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
-                param["fecha.emision"].$lte = fecha;
-            }
-        }
-        if (req.query.nroPtoVenta) {
-            param.nroPtoVenta = req.query.nroPtoVenta;
-        }
-        if (req.query.codTipoComprob) {
-            param.codTipoComprob = req.query.codTipoComprob;
-        }
-        if (req.query.nroComprobante) {
-            param.nroComprob = req.query.nroComprobante;
-        }
-        if (req.query.razonSocial) {
-            param.razon = {$regex:req.query.razonSocial};
-        }
-        if (req.query.documentoCliente) {
-            param.nroDoc = req.query.documentoCliente;
-        }
-
-        if (req.query.contenedor) {
-            param['detalle.contenedor'] = req.query.contenedor;
-        }
-
-        if (req.query.buqueNombre) {
-            param['detalle.buque.nombre'] = req.query.buqueNombre;
-        }
-
-        if (req.query.viaje) {
-            param['detalle.buque.viaje'] = req.query.viaje;
-        }
-
-        if (req.query.code) {
-            param['detalle.items.id'] = req.query.code;
-        }
-
-        if (req.query.resend) {
-            param.resend = req.query.resend;
-        }
-
-        if (req.query.estado){
-            var states = req.query.estado.split(",");
-            param['$or'] = [
-                { estado:{$size: 1, $elemMatch: {estado: {$in: states}, grupo:'ALL'} } },
-                { 'estado.1': { $exists: true } , estado: {$elemMatch: {estado: {$in: states}, grupo: usr.group} } }
-            ];
-        }
-
-        Invoice.distinct('nroPtoVenta', param, function (err, data){
-            if (err){
-                res.status(500).send({status: 'ERROR', data: err.message});
-            } else {
+        Invoice2.getCashbox(param)
+        .then(data => {
                 res.status(200).send({status: 'OK', data: data.sort()});
-            }
-        });
+            })
+        .catch(err => {
+                res.status(500).send({status: 'ERROR', data: err.message});
+            });
     }
 
     function updateInvoice (req, res) {
@@ -1348,7 +1294,6 @@ module.exports = function (log, io, oracle) {
         var usr = req.usr,
             distinct = '',
             param = {};
-        var Invoice = require('../lib/invoice2.js');
 
         if (req.route.path === '/:terminal/ships') {
             distinct = 'detalle.buque.nombre';
@@ -1364,10 +1309,8 @@ module.exports = function (log, io, oracle) {
             param.terminal = usr.terminal;
         }
 
-        Invoice = new Invoice();
-
         if (distinct !== '') {
-            Invoice.getDistinct(distinct, param, function (err, data) {
+            Invoice2.getDistinct(distinct, param, function (err, data) {
                 if (err) {
                     res.status(500).send(err);
                 } else {

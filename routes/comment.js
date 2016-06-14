@@ -2,7 +2,7 @@
  * Created by diego on 9/5/14.
  */
 
-module.exports = function (log) {
+module.exports = function (log, oracle) {
     'use strict';
     var express = require('express'),
         router = express.Router(),
@@ -10,31 +10,22 @@ module.exports = function (log) {
         Comment = require('../models/comment.js');
 
     function getComments(req, res) {
-        var usr = req.usr,
-            invoiceQueryParam = req.params.invoice;
+        var Comment = require('../lib/comment.js');
+        var param = {
+            terminal: req.usr.terminal,
+            invoice: req.params.invoice
+        }
 
-        Invoice.find({_id: invoiceQueryParam}, function (err, invoices) {
-            var comment;
-            if (!err) {
-                if (invoices.length > 0 && (invoices[0].terminal === usr.terminal || usr.terminal === 'AGP')) {
-                    comment = Comment.find({invoice : invoiceQueryParam});
-                    comment.sort({_id: -1});
-                    comment.exec(function (err, comments) {
-                        if (err) {
-                            log.logger.error("Error: %s", err.error);
-                            res.status(500).send({status: 'ERROR', data: err});
-                        } else {
-                            res.status(200).send({status: "OK", data: comments || null});
-                        }
-                    });
-                } else {
-                    res.status(200).send({status: "OK", data: null});
-                }
-            } else {
-                log.logger.error("Error: %s", err.message);
-                res.status(500).send({status: "ERROR", data: err.message});
-            }
-        });
+        Comment = new Comment(oracle);
+        Comment.getComments(param)
+        .then((data) => {
+                res.status(200).send(data);
+            })
+        .catch((err) => {
+                log.logger.error("Error: %s", err.error);
+                res.status(500).send(err);
+            });
+
     }
 
     function addComment(req, res) {

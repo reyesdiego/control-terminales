@@ -46,7 +46,7 @@ module.exports = function (log, app, io, oracle, params) {
     appointmentEmailQueue = require('./appointmentEmailQueue')(log);
     app.use('/appointmentEmailQueues', isValidToken, appointmentEmailQueue);
 
-    comment = require('./comment')(log);
+    comment = require('./comment')(log, oracle);
     app.use('/comments', isValidToken, comment);
 
     docType = require('./docType')(log);

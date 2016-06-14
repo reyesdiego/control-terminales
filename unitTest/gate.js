@@ -9,7 +9,8 @@ var Account = require('../models/account.js');
 
 var GATE = false;
 var INVOICE = false;
-var PRICE = true;
+var PRICE = false;
+var COMMENT = true;
 
 describe('Classes', function () {
     'use strict';
@@ -862,6 +863,69 @@ describe('Classes', function () {
             });
         });
 
+    });
+
+    describe('Comment MongoDB', () => {
+        if (!COMMENT) return;
+        var Comment = require('../lib/comment.js');
+
+        it('should exists class Comment', (done) => {
+            var comment = new Comment();
+            console.log(comment.toString());
+            comment.toString().length.should.greaterThan(0);
+            done();
+        });
+
+        it('should exists method getComments (for an invoice) and return OK with data', function (done) {
+            const param = {
+                terminal: 'TERMINAL4',
+                invoice: '54a16d9e9d2124c15b000b26'
+            };
+            this.timeout(60000);
+            var comment = new Comment();
+            comment.getComments(param)
+            .then((data) => {
+                    console.log(data);
+                    data.should.have.property('status');
+                    data.status.should.be.equal('OK');
+                    done();
+                })
+            .catch((err) => {
+                    console.log(err);
+                    done();
+            });
+        });
+    });
+    describe('Comment Oracle', () => {
+        if (!COMMENT) return;
+        var Comment = require('../lib/comment.js');
+
+        it('should exists class Comment', (done) => {
+            var comment = new Comment(oracle);
+            console.log(comment.toString());
+            comment.toString().length.should.greaterThan(0);
+            done();
+        });
+
+        it('should exists method getComments (for an invoice) and return OK with data', function (done) {
+            const param = {
+                terminal: 'TERMINAL4',
+                invoice: 20007559
+            };
+            this.timeout(60000);
+            var comment = new Comment(oracle);
+            comment.getComments(param)
+                .then((data) => {
+                    console.log(data);
+                    data.should.have.property('status');
+                    data.status.should.be.equal('OK');
+                    done();
+                })
+                .catch((err) => {
+                    console.log(err);
+                    done();
+                });
+        });
     });
 
 });
