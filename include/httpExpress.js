@@ -57,8 +57,10 @@ module.exports = function (log, port, withSocketIo) {
             next();
         }
     });
+    app.disable('x-powered-by');
 
     http.globalAgent.maxSockets = 100;
+
     server = http.createServer(app);
     server.listen(port, function () {
         log.logger.info("#%s Nodejs %s Running on %s://localhost:%s", process.pid, process.version, 'http', port);
