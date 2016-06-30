@@ -5,6 +5,7 @@
 var oracleUtils = function () {
     'use strict';
     this.oracledb = require('oracledb');
+    this.oracledb.maxRows = 1000;
     this.oracledb.outFormat = this.oracledb.OBJECT;
     //this.oracledb.outFormat = this.oracledb.ARRAY;
     this.pool;
