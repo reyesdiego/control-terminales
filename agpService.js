@@ -32,7 +32,9 @@ VouchersType.find({}, function (err, vouchersDesc) {
         voucherList[item._id] = item.description;
     });
 
-    Account.findAll({user: {$in: terminalsName}}, {terminal: 1, token: 1, email: 1, full_name: 1}, function (err, terminals) {
+    Account.find({user: {$in: terminalsName}}, {terminal: 1, token: 1, email: 1, full_name: 1})
+        .lean()
+        .exec(function (err, terminals) {
         var functionObject;
         asyncTerminals.eachSeries(terminals, function (user, callbackTerminal) {
 
@@ -67,7 +69,7 @@ VouchersType.find({}, function (err, vouchersDesc) {
                                 console.log('%s, %s', user.terminal, result.data);
                                 if (result.data.length > 0) {
                                     mailer = new mail.mail(sendMail);
-                                    to = ["dreyes@puertobuenosaires.gob.ar", "reclamos.uct@puertobuenosaires.gob.ar", user.email];
+                                    to = ["dreyes@puertobuenosaires.gob.ar", "reclamosuct@puertobuenosaires.gob.ar", user.email];
                                     mailer.send(to,
                                         result.data.length.toString() + " CÓDIGOS SIN ASOCIAR AL " + date,
                                         user.terminal + '\n\n' + result.data,
@@ -78,9 +80,9 @@ VouchersType.find({}, function (err, vouchersDesc) {
                                                 console.log(user.email);
                                                 console.log('Se envió mail a %s - %s', to, moment());
                                             }
+                                            return callback();
                                         });
 
-                                    return callback();
                                 } else {
                                     return callback();
                                 }
@@ -94,6 +96,7 @@ VouchersType.find({}, function (err, vouchersDesc) {
                 };
                 asyncParallel.push(functionObject);
 
+                callbackTerminal();
                 /** CORRELATIVIDAD */
                 Invoices.distinct('nroPtoVenta', {terminal: user.terminal}, function (err, data) {
                     if (!err) {
@@ -134,7 +137,6 @@ VouchersType.find({}, function (err, vouchersDesc) {
                                                         }
                                                         return response;
                                                     }).toArray();
-                                                    console.log('%s, %s', user.terminal, JSON.stringify(result));
 
                                                     if (result.length > 0) {
                                                         jade.renderFile(__dirname + '/public/correlatividadMail.jade', {
@@ -149,7 +151,7 @@ VouchersType.find({}, function (err, vouchersDesc) {
                                                                 alternative: true
                                                             };
                                                             mailer = new mail.mail(sendMail);
-                                                            to = ["dreyes@puertobuenosaires.gob.ar", "reclamos.uct@puertobuenosaires.gob.ar", user.email];
+                                                            to = ["dreyes@puertobuenosaires.gob.ar", "reclamosuct@puertobuenosaires.gob.ar", user.email];
                                                             subject = voucherList[voucher.toString()] + " faltantes al " + date + " : " + totalCnt.toString();
                                                             mailer.send(to,
                                                                 subject,
