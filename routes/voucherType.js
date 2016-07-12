@@ -51,10 +51,12 @@ module.exports = function (log) {
         }
 
         Invoice.distinct('codTipoComprob', param, function (err, data) {
+
             voucher = Voucher.find({_id: {$in: data}});
             voucher.sort({description: 1});
             voucher.lean();
             voucher.exec(function (err, vouchers) {
+
                 res.status(200).send({
                     status: "OK",
                     data: vouchers

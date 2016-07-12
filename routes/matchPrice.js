@@ -233,6 +233,8 @@ module.exports = function (log) {
                             asyncCallback();
                         });
                     }
+                } else {
+                    asyncCallback();
                 }
             });
         }, function (err) {
