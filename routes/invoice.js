@@ -262,20 +262,20 @@ module.exports = function (log, io, oracle) {
             desde = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
             hasta = moment(req.query.fechaFin, 'YYYY-MM-DD').add(1, 'days').toDate();
 
-            VoucherType.find({type: -1}, function (err, vouchertypes) {
+            VoucherType.find({type: -1}, (err, vouchertypes) => {
                 if (err) {
-                    res.status(500).send({status: 'ERROR', data : err.message});
+                    res.status(500).send({status: 'ERROR', data: err.message});
                 } else {
                     cond = Enumerable.from(vouchertypes)
-                        .select(function (item) {
+                        .select(item => {
                             if (item.type === -1) {
-                                return {$eq: [ "$codTipoComprob", item._id]};
+                                return {$eq: ["$codTipoComprob", item._id]};
                             }
                         }).toArray();
 
                     _price = require('../include/price.js');
                     _rates = new _price.price();
-                    _rates.ratePrices(function (err, prices) {
+                    _rates.ratePrices((err, prices) => {
                         var invoice,
                             param,
                             rates;
@@ -285,37 +285,44 @@ module.exports = function (log, io, oracle) {
                             .toArray();
 
                         if (err) {
-                            res.status(500).send({status: 'ERROR', data : err.message});
+                            res.status(500).send({status: 'ERROR', data: err.message});
                         } else {
                             param = [
-                                { $match : {
-                                    'fecha.emision': {$gte: desde, $lt: hasta}
-                                }},
-                                { $unwind : '$detalle'},
-                                { $unwind : '$detalle.items'},
-                                { $match : {
-                                    'detalle.items.id' : { $in : rates}
-                                }},
-                                {$project : {
-                                    terminal: '$terminal',
-                                    code: '$detalle.items.id',
-                                    cotiMoneda: '$cotiMoneda',
-                                    cnt: { $cond: [
-                                        {$or : cond },
-                                        {$multiply: ['$detalle.items.cnt', -1]},
-                                        '$detalle.items.cnt'
-                                    ]},
-                                    impUnit: '$detalle.items.impUnit',
-                                    impTot: '$detalle.items.impTot'
-                                }}];
+                                {
+                                    $match: {
+                                        'fecha.emision': {$gte: desde, $lt: hasta}
+                                    }
+                                },
+                                {$unwind: '$detalle'},
+                                {$unwind: '$detalle.items'},
+                                {
+                                    $match: {
+                                        'detalle.items.id': {$in: rates}
+                                    }
+                                },
+                                {
+                                    $project: {
+                                        terminal: '$terminal',
+                                        code: '$detalle.items.id',
+                                        cotiMoneda: '$cotiMoneda',
+                                        cnt: {
+                                            $cond: [
+                                                {$or: cond},
+                                                {$multiply: ['$detalle.items.cnt', -1]},
+                                                '$detalle.items.cnt'
+                                            ]
+                                        },
+                                        impUnit: '$detalle.items.impUnit',
+                                        impTot: '$detalle.items.impTot'
+                                    }
+                                }];
                             invoice = Invoice.aggregate(param);
 
                             invoice.exec(function (err, data) {
-                                var mp,
-                                    result;
+                                var result;
 
                                 if (err) {
-                                    res.status(500).send({status: 'ERROR', data : err.message});
+                                    res.status(500).send({status: 'ERROR', data: err.message});
                                 } else {
 
                                     result = Enumerable.from(data)
@@ -328,55 +335,67 @@ module.exports = function (log, io, oracle) {
                                             return tasaInvoice;
                                         })
                                         .groupBy('x=>JSON.stringify({code: x.code, terminal: x.terminal})', null,
-                                            function (key, g) {
-                                                var r;
-                                                key = JSON.parse(key);
-                                                r = {
-                                                    _id: {code: key.code, terminal: key.terminal},
-                                                    cnt: g.sum("$.cnt"),
-                                                    total: g.sum("$.tasa"),
-                                                    totalPeso: g.sum("$.totalTasa"),
-                                                    totalAgp: g.sum("$.tasaAgp"),
-                                                    totalPesoAgp: g.sum("$.totalTasaAgp")
-                                                };
-                                                r.cnt = Math.abs(r.cnt);
-                                                return r;
-                                            }).toArray();
+                                        function (key, g) {
+                                            var r;
+                                            key = JSON.parse(key);
+                                            r = {
+                                                _id: {code: key.code, terminal: key.terminal},
+                                                cnt: g.sum("$.cnt"),
+                                                total: g.sum("$.tasa"),
+                                                totalPeso: g.sum("$.totalTasa"),
+                                                totalAgp: g.sum("$.tasaAgp"),
+                                                totalPesoAgp: g.sum("$.totalTasaAgp")
+                                            };
+                                            r.cnt = Math.abs(r.cnt);
+                                            return r;
+                                        }).toArray();
 
-                                    mp = MatchPrice.find({match: {$in: rates}}, {price: true, match : true});
-                                    mp.populate({path: 'price', match: {rate: {$exists: true}}});
-                                    mp.exec(function (err, dataMatch) {
+                                    MatchPrice.aggregate([
+                                        {$project: {price: true, match: true}},
+                                        {$match: {match: {$in: rates}}},
+                                        {$unwind: '$match'},
+                                        {
+                                            $project: {
+                                                code: '$match',
+                                                price: '$price'
+                                            }
+                                        }
+                                    ])
+                                        .exec((err, data) => {
+                                            MatchPrice.populate(data, {
+                                                path: 'price',
+                                                match: {rate: {$exists: true}}
+                                            }, (err, data) => {
+                                                let mp = data.map(item => {
+                                                    return {code: item.code, rate: item.price.rate};
+                                                });
 
-                                        mp = Enumerable.from(dataMatch)
-                                            .select(function (item) {
-                                                return {code: item.match[0], rate: item.price.toObject().rate};
-                                            }).toArray();
-                                        mp = Enumerable.from(result)
-                                            .join(Enumerable.from(mp), '$._id.code', '$.code', function (left, right){
-                                                return {
-                                                    code : right.code,
-                                                    rate: right.rate,
-                                                    terminal: left._id.terminal,
-                                                    ton: left.cnt,
-                                                    total: left.total,
-                                                    totalPeso: left.totalPeso,
-                                                    totalAgp: left.totalAgp,
-                                                    totalPesoAgp: left.totalPesoAgp
-                                                };
-                                            }).toArray();
+                                                mp = Enumerable.from(result)
+                                                    .join(Enumerable.from(mp), '$._id.code', '$.code', function (left, right) {
+                                                        return {
+                                                            code: right.code,
+                                                            rate: right.rate,
+                                                            terminal: left._id.terminal,
+                                                            ton: left.cnt,
+                                                            total: left.total,
+                                                            totalPeso: left.totalPeso,
+                                                            totalAgp: left.totalAgp,
+                                                            totalPesoAgp: left.totalPesoAgp
+                                                        };
+                                                    }).toArray();
 
-                                        res.status(200).send({status: 'OK', data : mp});
-                                    });
+                                                res.status(200).send({status: 'OK', data: mp});
+                                            });
+                                        });
                                 }
                             });
+
                         }
                     });
 
                 }
             });
-
         }
-
     }
 
     function getRatesDate(req, res) {
@@ -393,12 +412,12 @@ module.exports = function (log, io, oracle) {
             desde = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
             hasta = moment(req.query.fechaFin, 'YYYY-MM-DD').add(1, 'days').toDate();
 
-            VoucherType.find({type: -1}, function (err, vouchertypes) {
+            VoucherType.find({type: -1}, (err, vouchertypes) => {
                 if (err) {
                     res.status(500).send({status: 'ERROR', data : err.message});
                 } else {
                     cond = Enumerable.from(vouchertypes)
-                        .select(function (item) {
+                        .select(item => {
                             if (item.type === -1) {
                                 return {$eq: [ "$codTipoComprob", item._id]};
                             }
@@ -406,7 +425,7 @@ module.exports = function (log, io, oracle) {
 
                     _price = require('../include/price.js');
                     _rates = new _price.price();
-                    _rates.ratePrices(function (err, prices) {
+                    _rates.ratePrices((err, prices) => {
                         var invoice,
                             param,
                             rates;
@@ -451,7 +470,7 @@ module.exports = function (log, io, oracle) {
                                 } else {
 
                                     result = Enumerable.from(data)
-                                        .join(Enumerable.from(prices), '$.code', '$.code', function (tasaInvoice, price) {
+                                        .join(Enumerable.from(prices), '$.code', '$.code', (tasaInvoice, price) => {
                                             tasaInvoice.impUnitAgp = price.price.topPrices[0].price;
                                             tasaInvoice.tasa = tasaInvoice.impUnit * tasaInvoice.cnt;
                                             tasaInvoice.tasaAgp = tasaInvoice.impUnitAgp * tasaInvoice.cnt;
@@ -477,14 +496,14 @@ module.exports = function (log, io, oracle) {
 
                                     mp = MatchPrice.find({match: {$in: rates}}, {price: true, match : true});
                                     mp.populate({path: 'price', match: {rate: {$exists: true}}});
-                                    mp.exec(function (err, dataMatch) {
+                                    mp.exec((err, dataMatch) => {
 
                                         mp = Enumerable.from(dataMatch)
-                                            .select(function (item) {
+                                            .select( item => {
                                                 return {code: item.match[0], rate: item.price.toObject().rate};
                                             }).toArray();
                                         mp = Enumerable.from(result)
-                                            .join(Enumerable.from(mp), '$._id.code', '$.code', function (left, right) {
+                                            .join(Enumerable.from(mp), '$._id.code', '$.code', (left, right) => {
                                                 return {
                                                     code : right.code,
                                                     rate: right.rate,
@@ -994,7 +1013,6 @@ module.exports = function (log, io, oracle) {
                 invoices.sort({nroComprob: 1});
                 invoices.lean();
 
-                log.time("logTimeBase");
                 invoices.exec(function (err, invoicesData) {
                     var fecha,
                         faltantes = [],
@@ -1035,8 +1053,7 @@ module.exports = function (log, io, oracle) {
                             status: 'OK',
                             nroPtoVenta: cash,
                             totalCount: contadorFaltantes,
-                            data: faltantes,
-                            time: log.timeEnd("logTimeBase")
+                            data: faltantes
                         };
                         //io.sockets.emit('correlative', result);
                         io.sockets.emit('correlative_'+req.query.x, result);
@@ -1491,70 +1508,22 @@ module.exports = function (log, io, oracle) {
 
     function getContainersNoRates (req, res) {
 
-        var paramTerminal = req.params.terminal,
-            Invoice = require('../lib/invoice2.js');
-        var paramTotal,
-            fecha;
+        var usr = req.usr;
+        var paramTerminal = req.params.terminal;
 
-        _rates.rates(function (err, rates){
+        var _invoice2 = require('../lib/invoice2.js');
+        _invoice2 = new _invoice2();
 
-            var param = {
-                    terminal : paramTerminal,
-                    codTipoComprob : 1
-                },
-                fecha='';
+        var ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
 
-            if (req.query.razonSocial) {
-                param.razon = {$regex:req.query.razonSocial};
+        _invoice2.getContainersNoRates({terminal: ter}, (err, data) => {
+            if (err) {
+                res.status(500).json(err);
+            } else {
+                res.status(200).json(data);
             }
-
-            paramTotal = [
-                { $match: param },
-                { $project : {'detalle.items.id': 1, 'detalle.contenedor': 1, _id: 0}},
-                { $unwind: '$detalle' },
-                { $unwind: '$detalle.items' },
-                { $match : {'detalle.items.id' : {$in: rates }}},
-                { $project : {contenedor : '$detalle.contenedor'} }
-            ];
-
-            var inv = Invoice.aggregate(paramTotal);
-            inv.exec(function (err, data1){
-                //Solo filtra fecha de este lado, en el aggregate trae todas las tasas a las cargas de contenedor históricas.
-                if (req.query.fechaInicio || req.query.fechaFin) {
-                    param["fecha.emision"] = {};
-                    if (req.query.fechaInicio) {
-                        fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
-                        param["fecha.emision"]['$gte'] = fecha;
-                    }
-                    if (req.query.fechaFin) {
-                        fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
-                        param["fecha.emision"]['$lte'] = fecha;
-                    }
-                }
-
-                if (req.query.buqueNombre) {
-                    param['detalle.buque.nombre'] = req.query.buqueNombre;
-                }
-                if (req.query.viaje) {
-                    param['detalle.buque.viaje'] = req.query.viaje;
-                }
-
-                Invoice.distinct('detalle.contenedor', param, function (err, data2){
-
-                    var contes = Enumerable.from(data1).select('$.contenedor');
-                    var contDist = Enumerable.from(data2);
-
-                    var dife = contDist.except(contes)
-                        .orderBy()
-                        .select(function (item){
-                            return {contenedor: {contenedor: item}};})
-                        .toArray();
-
-                    res.status(200).json({status: 'OK', totalCount: dife.length, data: dife});
-                });
-
-            });
         });
+
     }
 
     function getTotals (req, res) {
