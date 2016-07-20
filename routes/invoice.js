@@ -81,8 +81,7 @@ module.exports = function (log, io, oracle) {
         var usr = req.usr,
             param = {
                 _id: req.params.id
-            },
-            invoice;
+            };
 
         if (usr.role !== 'agp') {
             param.terminal = usr.terminal;
@@ -960,7 +959,7 @@ module.exports = function (log, io, oracle) {
         });
     }
 
-    function getCorrelative(req, res) {
+    function getCorrelativeORI(req, res) {
         var usr = req.usr,
             fecha,
             param = {},
@@ -1039,7 +1038,7 @@ module.exports = function (log, io, oracle) {
                                         faltantes.push({n: item2Add, d: fecha});
                                     } else {
                                         len=invoice.nroComprob;
-                                        for (i=control; i<len; i++){
+                                        for (i=control; i<len; i++) {
                                             faltantes.push({n: i.toString(), d: fecha});
                                             contadorFaltantes++;
                                         }
@@ -1080,6 +1079,87 @@ module.exports = function (log, io, oracle) {
 
         });
 
+    }
+
+    function getCorrelative(req, res) {
+        var usr = req.usr,
+            fecha,
+            param = {},
+            cashBoxes,
+            cashboxExecs,
+            contadorFaltantesTotal,
+            async;
+
+        log.time("totalTime");
+
+        if (usr.role === 'agp') {
+            param.terminal = req.params.terminal;
+        } else {
+            param.terminal = usr.terminal;
+        }
+
+        if (req.query.fechaInicio || req.query.fechaFin) {
+            param["fecha.emision"] = {};
+            if (req.query.fechaInicio) {
+                fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
+                param["fecha.emision"]['$gte'] = fecha;
+            }
+            if (req.query.fechaFin) {
+                fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
+                param["fecha.emision"]['$lte'] = fecha;
+            }
+        }
+        cashBoxes = [];
+        if (req.query.nroPtoVenta) {
+            cashBoxes = req.query.nroPtoVenta.split(',');
+        } else {
+            log.logger.error("El nro de punto de venta no ha sido enviado");
+            res.status(403).send({status: "ERROR", data: "El nro de punto de venta no ha sido enviado" });
+        }
+        if (req.query.codTipoComprob) {
+            param.codTipoComprob = parseInt(req.query.codTipoComprob, 10);
+        }
+
+        cashboxExecs = [];
+        contadorFaltantesTotal = 0;
+
+        cashBoxes.forEach(function (cash) {
+            //funcion que calcula la correlatividad por cada caja que sera ejecutada en paralelo async
+            var cashboxExec = function (callback) {
+
+                param.nroPtoVenta = parseInt(cash, 10);
+
+                Invoice2.getCorrelative(param)
+                .then(data => {
+                        let result = {
+                            status: 'OK',
+                            nroPtoVenta: cash,
+                            totalCount: data.length,
+                            data: data
+                        };
+
+                        io.sockets.emit('correlative_'+req.query.x, result);
+                        return callback(null, result);
+                    })
+                .catch(err => {
+                        log.logger.error("%s", err.message);
+                        callback({status: "ERROR", data: {name: err.name, message: err.message} });
+                    });
+            };
+
+            cashboxExecs.push(cashboxExec);
+        });
+
+        async = require('async');
+        async.parallel(cashboxExecs, function (err, results) {
+            var response = {
+                status: "OK",
+                totalCount: contadorFaltantesTotal,
+                data: results,
+                time: log.timeEnd("totalTime")
+            };
+            res.status(200).send(response);
+        });
     }
 
     function getCashbox(req, res) {
@@ -1509,14 +1589,15 @@ module.exports = function (log, io, oracle) {
     function getContainersNoRates (req, res) {
 
         var usr = req.usr;
-        var paramTerminal = req.params.terminal;
+        var ter = (usr.role === 'agp') ? req.params.terminal : usr.terminal;
+        var params = {
+            terminal: ter,
+            fechaInicio: req.query.fechaInicio,
+            fechaFin: req.query.fechaFin,
+            razonSocial: req.query.razonSocial
+        };
 
-        var _invoice2 = require('../lib/invoice2.js');
-        _invoice2 = new _invoice2();
-
-        var ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
-
-        _invoice2.getContainersNoRates({terminal: ter}, (err, data) => {
+        Invoice2.getContainersNoRates(params, (err, data) => {
             if (err) {
                 res.status(500).json(err);
             } else {

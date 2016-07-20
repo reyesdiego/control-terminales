@@ -7,7 +7,8 @@ module.exports = function (log, app, io, oracle, params) {
     var serverMain,
         appointment,
         gate,
-        invoice
+        invoice,
+        ePuertoBue;
 
     function isValidToken(req, res, next) {
 
@@ -36,5 +37,8 @@ module.exports = function (log, app, io, oracle, params) {
 
     invoice = require('./impact/invoice')(log, io, oracle);
     app.use('/invoice', isValidToken, invoice);
+
+    ePuertoBue = require('./impact/ePuertoBue')(log, io, oracle);
+    app.use('/ePuertoBue', ePuertoBue);
 
 }

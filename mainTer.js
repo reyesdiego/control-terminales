@@ -70,7 +70,9 @@ oracle.oracledb.createPool({
                 runtime: httpExpress.app.get('runtime'),
                 timeElapsed: moment(moment(httpExpress.app.get('runtime'))).fromNow(true)
             },
-            oracle: {pool: pool}
+            oracle: {
+                pool: pool
+            }
         };
 
         voucherType = VoucherType.find({}, {description: true});
