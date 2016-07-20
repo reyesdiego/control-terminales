@@ -105,10 +105,8 @@ function fetchRowsFromRS(connection, resultSet, numRows, ret, callback) {
         });
 }
 
-function doRelease(connection)
-{
-    connection.release(
-        function(err) {
+function doRelease(connection) {
+    connection.release(err => {
             if (err) {
                 console.error(err.message);
             }
