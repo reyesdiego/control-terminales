@@ -18,7 +18,11 @@ var jade = require('jade');
 var date = moment().format('DD-MM-YYYY');
 
 var asyncParallel = [];
-var terminalsName = ['bactssa', 't4', 'trp'];
+//var terminalsName = ['bactssa', 't4', 'trp'];
+var terminalsName = ['trp'];
+//var to = ["dreyes@puertobuenosaires.gob.ar", "reclamosuct@puertobuenosaires.gob.ar"];
+var to = ["dreyes@puertobuenosaires.gob.ar"];
+var sendToClient = false;
 var sendMail = config.email;
 
 var host = config.domain;
@@ -62,22 +66,20 @@ VouchersType.find({}, function (err, vouchersDesc) {
 
                         res.on('end', function () {
                             var result = JSON.parse(resData),
-                                mailer,
-                                to;
+                                mailer;
 
                             if (result.status === 'OK') {
-                                console.log('%s, %s', user.terminal, result.data);
                                 if (result.data.length > 0) {
                                     mailer = new mail.mail(sendMail);
-                                    to = ["dreyes@puertobuenosaires.gob.ar", "reclamosuct@puertobuenosaires.gob.ar", user.email];
-                                    mailer.send(to,
-                                        result.data.length.toString() + " CÓDIGOS SIN ASOCIAR AL " + date,
-                                        user.terminal + '\n\n' + result.data,
-                                        function (err, dataMail) {
+                                    if (sendToClient === true) {
+                                        to.push(user.email);
+                                    }
+                                    let subject = result.data.length.toString() + " CÓDIGOS SIN ASOCIAR AL " + date;
+                                    let html = user.terminal + '\n\n' + result.data;
+                                    mailer.send(to, subject, html, err => {
                                             if (err) {
-                                                console.log('No se envió mail. %s', err.data);
+                                                console.log('No se envió mail. %s', subject);
                                             } else {
-                                                console.log(user.email);
                                                 console.log('Se envió mail a %s - %s', to, moment());
                                             }
                                             return callback();
@@ -96,7 +98,6 @@ VouchersType.find({}, function (err, vouchersDesc) {
                 };
                 asyncParallel.push(functionObject);
 
-                callbackTerminal();
                 /** CORRELATIVIDAD */
                 Invoices.distinct('nroPtoVenta', {terminal: user.terminal}, function (err, data) {
                     if (!err) {
@@ -125,8 +126,7 @@ VouchersType.find({}, function (err, vouchersDesc) {
                                                 var result = JSON.parse(resData),
                                                     totalCnt,
                                                     mailer,
-                                                    subject,
-                                                    to;
+                                                    subject;
 
                                                 if (result.status === 'OK') {
                                                     totalCnt = result.totalCount;
@@ -151,16 +151,17 @@ VouchersType.find({}, function (err, vouchersDesc) {
                                                                 alternative: true
                                                             };
                                                             mailer = new mail.mail(sendMail);
-                                                            to = ["dreyes@puertobuenosaires.gob.ar", "reclamosuct@puertobuenosaires.gob.ar", user.email];
+                                                            if (sendToClient === true) {
+                                                                to.push(user.email);
+                                                            }
                                                             subject = voucherList[voucher.toString()] + " faltantes al " + date + " : " + totalCnt.toString();
                                                             mailer.send(to,
                                                                 subject,
                                                                 html,
                                                                 function (err, dataMail) {
                                                                     if (err) {
-                                                                        console.log('No se envió mail. %s', err.data);
+                                                                        console.log('No se envió mail. %s, %s', err.data, JSON.stringify(result));
                                                                     } else {
-                                                                        console.log(user.email);
                                                                         console.log('Se envió mail a %s - %s', to, moment());
                                                                     }
                                                                     return callback();
@@ -196,7 +197,6 @@ VouchersType.find({}, function (err, vouchersDesc) {
                 process.exit();
             });
         });
-
 
     });
 
