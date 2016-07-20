@@ -25,20 +25,20 @@ oracledb.getConnection(
             console.error(err.message);
             return;
         }
-        let strSql = "SELECT DISTINCT ID1.CONTENEDOR " +
-            "   FROM INVOICE_DETAIL ID1 " +
-            "       INNER JOIN INVOICE_HEADER IH1 ON ID1.INVOICE_HEADER_ID = IH1.ID " +
-            "   WHERE NOT EXISTS ( " +
-            "           SELECT * " +
-            "           FROM INVOICE_DETAIL INVD " +
-            "               INNER JOIN INVOICE_HEADER INVH ON INVD.INVOICE_HEADER_ID = INVH.ID " +
-            "               INNER JOIN TARIFARIO_TERMINAL TT ON TT.CODE = INVD.CODE AND TT.TERMINAL = INVH.TERMINAL " +
-            "               INNER JOIN TARIFARIO T ON T.ID = TT.TARIFARIO_ID " +
-            "           WHERE RATE is not null AND " +
-            "                   INVD.CONTENEDOR = ID1.CONTENEDOR AND " +
-            "                   INVH.TERMINAL = IH1.TERMINAL ) AND " +
-            "   IH1.TERMINAL = 'TRP' and " +
-            "   CONTENEDOR IS NOT NULL ";
+        let strSql =   `SELECT DISTINCT ID1.CONTENEDOR
+                           FROM INVOICE_DETAIL ID1
+                               INNER JOIN INVOICE_HEADER IH1 ON ID1.INVOICE_HEADER_ID = IH1.ID
+                           WHERE NOT EXISTS (
+                                   SELECT *
+                                   FROM INVOICE_DETAIL INVD
+                                       INNER JOIN INVOICE_HEADER INVH ON INVD.INVOICE_HEADER_ID = INVH.ID
+                                       INNER JOIN TARIFARIO_TERMINAL TT ON TT.CODE = INVD.CODE AND TT.TERMINAL = INVH.TERMINAL
+                                       INNER JOIN TARIFARIO T ON T.ID = TT.TARIFARIO_ID
+                                   WHERE RATE is not null AND
+                                           INVD.CONTENEDOR = ID1.CONTENEDOR AND
+                                           INVH.TERMINAL = IH1.TERMINAL ) AND
+                           IH1.TERMINAL = 'TRP' and
+                           CONTENEDOR IS NOT NULL`;
         connection.execute(
             strSql,
             [],
