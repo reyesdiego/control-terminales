@@ -892,9 +892,8 @@ module.exports = function (log, io, oracle) {
         s = MatchPrice.aggregate(param);
         s.exec(function (err, noMatches) {
             if (!err) {
-                var arrResult = [];
-                noMatches.forEach(function (item) {
-                    arrResult.push(item.match);
+                var arrResult = noMatches.map(item => {
+                    return item.match;
                 });
 
                 if (req.query.fechaInicio || req.query.fechaFin) {
@@ -922,18 +921,17 @@ module.exports = function (log, io, oracle) {
 
                 inv = Invoice.aggregate(parametro);
 
-                inv.exec(function (err, data) {
-                    var ids = [];
-                    data.forEach(function (item) {
-                        ids.push(item._id._id);
+                inv.exec((err, data) => {
+                    var ids = data.map(item => {
+                        return  item._id._id;
                     });
                     if (!err) {
                         if (data.length > 0) {
                             inv._pipeline.splice(6, 2);
                             inv.group({_id: null, cnt: {$sum: 1}});
-                            inv.exec(function (err, data2) {
+                            inv.exec((err, data2) => {
 
-                                Invoice.find({_id : {$in: ids}}, function (err, invoices){
+                                Invoice.find({_id : {$in: ids}}, (err, invoices) => {
                                     var cnt = data2[0].cnt,
                                         pageCount = data.length,
                                         result = {
@@ -1084,48 +1082,46 @@ module.exports = function (log, io, oracle) {
     function getCorrelative(req, res) {
         var usr = req.usr,
             fecha,
-            param = {},
-            cashBoxes,
-            cashboxExecs,
-            contadorFaltantesTotal,
+            cashBoxes = [],
+            cashboxExecs = [],
+            contadorFaltantesTotal = 0,
             async;
 
         log.time("totalTime");
 
-        if (usr.role === 'agp') {
-            param.terminal = req.params.terminal;
-        } else {
-            param.terminal = usr.terminal;
-        }
-
-        if (req.query.fechaInicio || req.query.fechaFin) {
-            param["fecha.emision"] = {};
-            if (req.query.fechaInicio) {
-                fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
-                param["fecha.emision"]['$gte'] = fecha;
-            }
-            if (req.query.fechaFin) {
-                fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
-                param["fecha.emision"]['$lte'] = fecha;
-            }
-        }
-        cashBoxes = [];
         if (req.query.nroPtoVenta) {
             cashBoxes = req.query.nroPtoVenta.split(',');
         } else {
             log.logger.error("El nro de punto de venta no ha sido enviado");
             res.status(403).send({status: "ERROR", data: "El nro de punto de venta no ha sido enviado" });
         }
-        if (req.query.codTipoComprob) {
-            param.codTipoComprob = parseInt(req.query.codTipoComprob, 10);
-        }
-
-        cashboxExecs = [];
-        contadorFaltantesTotal = 0;
 
         cashBoxes.forEach(function (cash) {
             //funcion que calcula la correlatividad por cada caja que sera ejecutada en paralelo async
             var cashboxExec = function (callback) {
+                var param = {};
+
+                if (usr.role === 'agp') {
+                    param.terminal = req.params.terminal;
+                } else {
+                    param.terminal = usr.terminal;
+                }
+
+                if (req.query.fechaInicio || req.query.fechaFin) {
+                    if (req.query.fechaInicio) {
+                        fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
+                        param.fechaInicio = fecha;
+                    } else {
+                        param.fechaInicio = moment("2000-01-01", 'YYYY-MM-DD').toDate();
+                    }
+                    if (req.query.fechaFin) {
+                        fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
+                        param.fechaFin = fecha;
+                    }
+                }
+                if (req.query.codTipoComprob) {
+                    param.codTipoComprob = parseInt(req.query.codTipoComprob, 10);
+                }
 
                 param.nroPtoVenta = parseInt(cash, 10);
 
@@ -1134,8 +1130,8 @@ module.exports = function (log, io, oracle) {
                         let result = {
                             status: 'OK',
                             nroPtoVenta: cash,
-                            totalCount: data.length,
-                            data: data
+                            totalCount: data.totalCount,
+                            data: data.data
                         };
 
                         io.sockets.emit('correlative_'+req.query.x, result);

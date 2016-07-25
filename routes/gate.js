@@ -92,7 +92,7 @@ module.exports = function (log, oracle) {
         param.order = req.query.order;
 
         log.time("logTime");
-        Gate.getGates(param, function (err, data) {
+        Gate.getGates(param, (err, data) => {
             let timeEnd = log.timeEnd("logTime");
             if (err) {
                 err.time = timeEnd;
@@ -125,7 +125,7 @@ module.exports = function (log, oracle) {
             params.fechaFin = moment(params.fechaInicio).add(1, 'days').format('YYYY-MM-DD');
         }
 
-        Gate.getByHour(params, function (err, data) {
+        Gate.getByHour(params, (err, data) => {
             let result;
             if (err) {
                 result = {
@@ -157,7 +157,7 @@ module.exports = function (log, oracle) {
         }
         params.fechaInicio = moment([date.year(), date.month(), 1]).subtract(4, 'months').format("YYYY-MM-DD");
         params.fechaFin = moment([date.year(), date.month(), 1]).format("YYYY-MM-DD");
-        Gate.getByMonth(params, function (err, data) {
+        Gate.getByMonth(params, (err, data) => {
             let result;
             if (err) {
                 result = {
@@ -195,7 +195,7 @@ module.exports = function (log, oracle) {
 
         if (param.distinct !== '') {
 
-            Gate.getDistinct(param, function (err, data) {
+            Gate.getDistinct(param, (err, data) => {
                 if (err) {
                     res.status(500).send({status: 'ERROR', data: err.message});
                 } else {
@@ -222,9 +222,12 @@ module.exports = function (log, oracle) {
             terminal = usr.terminal;
         }
         param = {
-            terminal: terminal
+            terminal: terminal,
+            skip: parseInt(req.params.skip, 10),
+            limit: parseInt(req.params.limit, 10)
         };
-        Gate.getMissingGates(param, function (err, data) {
+
+        Gate.getMissingGates(param, (err, data) => {
 
             if (err) {
                 res.status(500).send(err);
@@ -234,6 +237,7 @@ module.exports = function (log, oracle) {
             }
         });
     }
+
     function getMissingGatesORI(req, res) {
 
         var Gate = require('../models/gate.js');
@@ -346,7 +350,7 @@ module.exports = function (log, oracle) {
         param = {
             terminal: terminal
         }
-        Gate.getMissingInvoices(param, function (err, data) {
+        Gate.getMissingInvoices(param, (err, data) => {
 
             if (err) {
                 res.status(500).send(err);
@@ -436,7 +440,7 @@ router.use(function timeLog(req, res, next){
     router.get('/:terminal/:skip/:limit', getGates);
     router.get('/ByHour', getGatesByHour);
     router.get('/ByMonth', getGatesByMonth);
-    router.get('/:terminal/missingGates', getMissingGates);
+    router.get('/:terminal/missingGates/:skip/:limit', getMissingGates);
     router.get('/:terminal/missingInvoices', getMissingInvoices);
     router.get('/:terminal/missingAppointments', getMissingAppointments);
     router.get('/:terminal/ships', getDistincts);
