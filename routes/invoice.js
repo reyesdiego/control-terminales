@@ -1084,7 +1084,6 @@ module.exports = function (log, io, oracle) {
             fecha,
             cashBoxes = [],
             cashboxExecs = [],
-            contadorFaltantesTotal = 0,
             async;
 
         log.time("totalTime");
@@ -1096,9 +1095,9 @@ module.exports = function (log, io, oracle) {
             res.status(403).send({status: "ERROR", data: "El nro de punto de venta no ha sido enviado" });
         }
 
-        cashBoxes.forEach(function (cash) {
+        cashBoxes.forEach(cash => {
             //funcion que calcula la correlatividad por cada caja que sera ejecutada en paralelo async
-            var cashboxExec = function (callback) {
+            var cashboxExec = callback => {
                 var param = {};
 
                 if (usr.role === 'agp') {
@@ -1147,14 +1146,26 @@ module.exports = function (log, io, oracle) {
         });
 
         async = require('async');
-        async.parallel(cashboxExecs, function (err, results) {
-            var response = {
-                status: "OK",
-                totalCount: contadorFaltantesTotal,
-                data: results,
-                time: log.timeEnd("totalTime")
-            };
-            res.status(200).send(response);
+        async.parallel(cashboxExecs, (err, results) => {
+            let response;
+            let Enumerable = require('linq');
+            if (err) {
+                response = {
+                    status: "ERROR",
+                    message: err.message,
+                    data: err
+                };
+                res.status(500).send(response);
+            } else {
+                let contadorFaltantesTotal = Enumerable.from(results).sum(item => {return item.totalCount;});
+                response = {
+                    status: "OK",
+                    totalCount: contadorFaltantesTotal,
+                    data: results,
+                    time: log.timeEnd("totalTime")
+                };
+                res.status(200).send(response);
+            }
         });
     }
 
