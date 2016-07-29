@@ -20,6 +20,7 @@ var date = moment().format('DD-MM-YYYY');
 var asyncParallel = [];
 var terminalsName = ['bactssa', 't4', 'trp'];
 var to = ["dreyes@puertobuenosaires.gob.ar", "reclamosuct@puertobuenosaires.gob.ar"];
+
 var sendToClient = true;
 var sendMail = config.email;
 
@@ -47,6 +48,13 @@ VouchersType.find({}, (err, vouchersDesc) => {
                         if (err) {
                             console.error(err);
                         } else {
+
+                            let toLocal = [];
+                            if (sendToClient === true) {
+                                toLocal.push(user.email);
+                            }
+                            to.forEach(item => {toLocal.push(item);});
+
                             /** CODIGOS NO ASOCIADOS */
                             functionObject = callback =>  {
                                 var optionsget,
@@ -73,20 +81,16 @@ VouchersType.find({}, (err, vouchersDesc) => {
                                         if (result.status === 'OK') {
                                             if (result.data.length > 0) {
                                                 mailer = new mail.mail(sendMail);
-                                                if (sendToClient === true) {
-                                                    to.push(user.email);
-                                                }
                                                 let subject = `${result.data.length.toString()} códigos no asociados al ${date}`;
                                                 let html = user.terminal + '\n\n' + result.data;
-                                                mailer.send(to, subject, html, err => {
+                                                mailer.send(toLocal, subject, html, err => {
                                                     if (err) {
                                                         console.log('No se envió mail. %s', subject);
                                                     } else {
-                                                        console.log('Se envió mail a %s - %s', to, moment());
+                                                        console.log('Se envió mail a %s - %s', toLocal, moment());
                                                     }
                                                     return callback(err, result.data);
                                                 });
-
                                             } else {
                                                 return callback(undefined, result.data);
                                             }
@@ -153,18 +157,15 @@ VouchersType.find({}, (err, vouchersDesc) => {
                                                                             alternative: true
                                                                         };
                                                                         mailer = new mail.mail(sendMail);
-                                                                        if (sendToClient === true) {
-                                                                            to.push(user.email);
-                                                                        }
                                                                         subject = `${voucherList[voucher.toString()]}: ${totalCnt.toString()} faltantes al ${date}`;
-                                                                        mailer.send(to,
+                                                                        mailer.send(toLocal,
                                                                             subject,
                                                                             html,
                                                                             function (err, dataMail) {
                                                                                 if (err) {
                                                                                     console.log('No se envió mail. %s, %s', err.data, JSON.stringify(result));
                                                                                 } else {
-                                                                                    console.log('Se envió mail a %s - %s', to, moment());
+                                                                                    console.log('Se envió mail a %s - %s', toLocal, moment());
                                                                                 }
                                                                                 return callback(err, result);
                                                                             });
