@@ -422,12 +422,12 @@ module.exports = function (log, io, oracle) {
         InvoiceM.add(paramMongo, io, function (err, data) {
             if (err) {
                 log.logger.error("Invoice INS: %s", err.data);
-                res.status(500).send(err);
+                //res.status(500).send(err);
             } else {
                 let result = data;
                 data = data.data;
                 log.logger.insert("Invoice INS: %s - %s - Tipo: %s Nro: %s - %s", data._id, data.terminal, data.codTipoComprob, data.nroComprob, data.fecha.emision.toString());
-                res.status(200).send(result);
+                //res.status(200).send(result);
             }
         });
 
@@ -435,13 +435,13 @@ module.exports = function (log, io, oracle) {
         InvoiceO.add(paramOracle, io, function (err, data) {
             if (err) {
                 log.logger.error("Invoice ORA INS: %s, %s", err.message, JSON.stringify(err.data));
-                //res.status(500).send(err);
+                res.status(500).send(err);
             } else {
                 let result = data;
                 data = data.data;
                 log.logger.insert("Invoice ORA INS: %s - %s - Tipo: %s Nro: %s - %s", data._id, data.terminal, data.codTipoComprob, data.nroComprob, data.fechaEmision.toString());
 
-                //res.status(200).send(result);
+                res.status(200).send(result);
             }
         });
 
