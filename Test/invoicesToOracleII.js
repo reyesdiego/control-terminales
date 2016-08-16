@@ -16,8 +16,7 @@ var Invoice = require("../models/invoice.js");
 var Comment = require("../models/comment.js");
 
 var oracle = require('../include/oracledbWrap');
-oracle.createPool(
-    {
+oracle.createPool({
         user          : "afip",
         password      : "afip_",
         connectString : "(DESCRIPTION = " +
@@ -36,7 +35,7 @@ oracle.createPool(
                     gap = 1000,
                     i;
 
-                for (i = 0; i < 1; i++) {
+                for (i = 0; i < 4; i++) {
                     counter.push({skip: i * gap, limit: gap});
                 }
                 i = 0;
@@ -44,7 +43,7 @@ oracle.createPool(
                 async.eachSeries(counter, function (rango, asyncCallback_round) {
 
                         invoices = Invoice.find({
-                            'fecha.emision': { $gte: moment("2016-06-03").toDate(), $lt: moment("2016-06-04").toDate()}
+                            'fecha.emision': { $gte: moment("2016-08-01").toDate(), $lt: moment("2016-09-01").toDate()}
                         })
                             .sort({_id: 1})
                             .skip(rango.skip)
@@ -182,9 +181,9 @@ oracle.createPool(
                                                         ":VIAJE, " +
                                                         ":FECHA," +
                                                         ":CODE, " +
-                                                        ":IMPUNIT, " +
-                                                        ":UNIMED," +
                                                         ":CNT, " +
+                                                        ":UNIMED," +
+                                                        ":IMPUNIT, " +
                                                         ":IMPTOT)";
                                                     param = {
                                                         INVOICE_HEADER_ID: result.outBinds.outputId[0],
@@ -195,10 +194,10 @@ oracle.createPool(
                                                         VIAJE: detalle.buque.viaje,
                                                         FECHA: detalle.buque.fecha,
                                                         CODE: item.id,
-                                                        IMPUNIT: item.impUnit,
-                                                        IMPTOT: item.impTot,
+                                                        CNT: item.cnt,
                                                         UNIMED: item.uniMed,
-                                                        CNT: item.cnt
+                                                        IMPUNIT: item.impUnit,
+                                                        IMPTOT: item.impTot
                                                     };
                                                     connection.execute(strSql, param, {autoCommit: _autoCommit}, function(err, resultDetail) {
                                                         if (err) {
