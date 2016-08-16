@@ -97,6 +97,36 @@ module.exports = function (log, io, oracle) {
         });
     }
 
+    function getClients (req, res) {
+        var param = {
+                terminal: req.params.terminal
+            };
+
+        Invoice2.getClients(param)
+            .then(data => {
+                res.status(200).send(data);
+            })
+            .catch(err => {
+                log.logger.error("%s", err);
+                res.status(500).send(err);
+            });
+    }
+
+    function getContainers (req, res) {
+        var param = {
+            terminal: req.params.terminal
+        };
+
+        Invoice2.getContainers(param)
+            .then(data => {
+                res.status(200).send(data);
+            })
+            .catch(err => {
+                log.logger.error("%s", err);
+                res.status(500).send(err);
+            });
+    }
+
     function getCounts(req, res) {
 
         var param = {};
@@ -1138,7 +1168,7 @@ module.exports = function (log, io, oracle) {
                     })
                 .catch(err => {
                         log.logger.error("%s", err.message);
-                        callback({status: "ERROR", data: {name: err.name, message: err.message} });
+                        callback(err);
                     });
             };
 
@@ -1150,12 +1180,7 @@ module.exports = function (log, io, oracle) {
             let response;
             let Enumerable = require('linq');
             if (err) {
-                response = {
-                    status: "ERROR",
-                    message: err.message,
-                    data: err
-                };
-                res.status(500).send(response);
+                res.status(500).send(err);
             } else {
                 let contadorFaltantesTotal = Enumerable.from(results).sum(item => {return item.totalCount;});
                 response = {
@@ -1394,52 +1419,42 @@ module.exports = function (log, io, oracle) {
         });
     }
 
-    function getDistincts( req, res) {
-        var usr = req.usr,
-            distinct = '',
-            param = {};
+    function getShips (req, res) {
+        var param = {
+            terminal: req.params.terminal
+        };
 
-        if (req.route.path === '/:terminal/ships') {
-            distinct = 'detalle.buque.nombre';
-        }
-
-        if (req.route.path === '/:terminal/clients') {
-            distinct = 'razon';
-        }
-
-        if (usr.role === 'agp') {
-            param.terminal = req.params.terminal;
-        } else {
-            param.terminal = usr.terminal;
-        }
-
-        if (distinct !== '') {
-            Invoice2.getDistinct(distinct, param, function (err, data) {
-                if (err) {
-                    res.status(500).send(err);
-                } else {
-                    res.status(200).send(data);
-                }
+        Invoice2.getShips(param)
+            .then(data => {
+                res.status(200).send(data);
+            })
+            .catch(err => {
+                log.logger.error("%s", err);
+                res.status(500).send(err);
             });
-        } else {
-            res.status(400).send({status: 'ERROR', message: 'El ruta es inválida', data: []});
-        }
     }
 
     function getShipTrips (req, res) {
         var usr = req.usr;
         var paramTerminal = req.params.terminal;
+        var moment = require('moment');
+
+        let mayor20140801 = new Date(2014, 7, 1);
 
         var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
-        var param = {terminal: ter, 'detalle.buque.nombre': {$ne: null}};
+        var param = {
+                    terminal: ter,
+                    'detalle.buque.nombre': {$ne: null},
+                    'fecha.emision': {$gte: mayor20140801}
+        };
 
         Invoice.aggregate([
             { $match: param },
             { $unwind : '$detalle'},
             { $group: {_id: {buque: '$detalle.buque.nombre', viaje: '$detalle.buque.viaje', fecha: '$detalle.buque.fecha'} } },
-            { $sort: { '_id.buque': 1, '_id.viaje': 1} },
-            { $project : {buque: '$_id.buque', viaje: '$_id.viaje', fecha: '$_id.fecha', _id:false}}
-        ], function (err, data){
+            { $sort: { '_id.buque': 1, '_id.fecha': 1} },
+            { $project : {buque: '$_id.buque', viaje: '$_id.viaje', fecha: '$_id.fecha', _id: false}}
+        ], (err, data) => {
             var Enumerable,
                 resultTer;
             if (err) {
@@ -1447,15 +1462,15 @@ module.exports = function (log, io, oracle) {
             } else {
                 Enumerable = require('linq');
                 resultTer = Enumerable.from(data)
-                    .groupBy("$.buque" , null,
-                    function (key, g) {
+                    .groupBy("$.buque" , null, (key, g) => {
                         var prop = g.getSource();
                         var ter = {buque: key, viajes: []};
-                        prop.forEach(function (item){
-                            var viaje = {
-                                viaje : item.viaje,
-                                fecha : item.fecha
-                            }
+                        prop.forEach(item => {
+                            //let viaje = {
+                            //    viaje : item.viaje,
+                            //    fecha : item.fecha
+                            //};
+                            let viaje = [item.viaje, moment(item.fecha).format("DD-MM-YYYY")];
                             ter.viajes.push(viaje);
                             //for (var pro in item){
                             //    if (pro !== 'buque')
@@ -1466,7 +1481,7 @@ module.exports = function (log, io, oracle) {
                     }).toArray();
 
                 if (oracle.pool) {
-                    oracle.pool.getConnection(function (err, connection) {
+                    oracle.pool.getConnection((err, connection) => {
                         var strSql;
                         if (err) {
                             console.log("%s, Error en Oracle getShipTrips.", new Date());
@@ -1478,17 +1493,17 @@ module.exports = function (log, io, oracle) {
                                 "	group by nombrebuque, fechaarribo " +
                                 "	order by nombrebuque,fechaarribo";
 
-                            connection.execute(strSql, [], function (err, dataOra) {
+                            connection.execute(strSql, [], (err, dataOra) => {
                                 var dataQ;
                                 if (err) {
                                     oracle.doRelease(connection);
                                     res.status(500).send({status: 'ERROR', data: err});
                                 } else {
                                     oracle.doRelease(connection);
-                                    dataOra = Enumerable.from(dataOra.rows).select(function (item) {
+                                    dataOra = Enumerable.from(dataOra.rows).select(item => {
                                         return {"buque": item.BUQUE, fecha: item.FECHA};
                                     }).toArray();
-                                    dataQ = Enumerable.from(resultTer).groupJoin(dataOra, '$.buque', '$.buque', function (item, g) {
+                                    dataQ = Enumerable.from(resultTer).groupJoin(dataOra, '$.buque', '$.buque', (item, g) => {
                                         var both = false;
                                         if (g.getSource !== undefined)
                                             both = true;
@@ -1515,82 +1530,32 @@ module.exports = function (log, io, oracle) {
     }
 
     function getShipContainers (req, res) {
+
+        var InvoiceLocal = require('../lib/invoice2.js');
+        InvoiceLocal = new InvoiceLocal();
+
         var usr = req.usr,
-            paramTerminal,
             ter,
-            param,
-            buque,
-            viaje,
-            query,
-            price,
-            rates;
+            param;
 
-        price = require('../include/price.js');
+        log.time('getShipContainers');
 
-        log.startElapsed();
+        ter = (usr.role === 'agp')?req.params.terminal:usr.terminal;
+        param = {
+            terminal: ter,
+            buque: req.query.buqueNombre,
+            viaje: req.query.viaje
+        };
 
-        paramTerminal = req.params.terminal;
-
-        ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
-
-        rates = new price.price(ter);
-
-        buque = req.query.buqueNombre;
-        viaje = req.query.viaje;
-        param = {terminal:	ter, 'detalle.buque.nombre': buque};
-
-        rates.rates(function (err, ratesArray) {
-
-            query = [
-                { $match: param },
-                { $unwind : '$detalle'},
-                { $match: {'detalle.buque.nombre': buque}},
-                { $unwind : '$detalle.items'},
-                { $match: {"detalle.buque.viaje" : viaje, 'detalle.items.id': {$in: ratesArray } } },
-                { $group: {_id: {buque: '$detalle.buque.nombre', viaje: "$detalle.buque.viaje", contenedor: '$detalle.contenedor' }, tonelada: {$sum: '$detalle.items.cnt'} } },
-                { $project: {contenedor: '$_id.contenedor', toneladas: '$tonelada', _id: false}},
-                { $sort: {contenedor: 1} }
-            ];
-
-            Invoice.aggregate(query , function (err, dataContainers) {
-                if (err) {
-                    res.status(500).send({status: 'ERROR', data: err.message});
-                } else {
-                    Gate.find({buque: buque, viaje: viaje}, function (err, dataGates) {
-                        var Enumerable,
-                            response;
-
-                        if (err) {
-                            res.status(500).send({status: 'ERROR', data: err.message});
-                        } else {
-                            Enumerable = require('linq');
-
-                            response = Enumerable.from(dataContainers)
-                                .groupJoin(dataGates, '$.contenedor', '$.contenedor', function (inner,outer) {
-                                    var result = {
-                                        contenedor:'',
-                                        gates: []
-                                    };
-                                    if (outer.getSource !== undefined) {
-                                        result.gates =outer.getSource();
-                                    }
-
-                                    result.contenedor = inner;
-                                    return result;
-                                }).toArray();
-
-                            res.status(200)
-                                .send({
-                                    status: 'OK',
-                                    elapsed: log.getElapsed(),
-                                    data: response});
-                        }
-                    });
-                }
+        InvoiceLocal.getShipContainers(param)
+            .then(data => {
+                data.time = log.timeEnd('getShipContainers');
+                res.status(200).send(data);
+            })
+            .catch(err => {
+                log.logger.error("%s", err);
+                res.status(500).send(err);
             });
-
-        });
-
     }
 
     function getContainersNoRates (req, res) {
@@ -1601,7 +1566,9 @@ module.exports = function (log, io, oracle) {
             terminal: ter,
             fechaInicio: req.query.fechaInicio,
             fechaFin: req.query.fechaFin,
-            razonSocial: req.query.razonSocial
+            razonSocial: req.query.razonSocial,
+            buqueNombre: req.query.buqueNombre,
+            viaje: req.query.viaje
         };
 
         Invoice2.getContainersNoRates(params, (err, data) => {
@@ -1640,7 +1607,11 @@ module.exports = function (log, io, oracle) {
         }
 
         if (req.query.clients) {
-            params.clients = req.query.clients;
+            if (typeof req.query.clients  === 'string') {
+                params.clients = [req.query.clients];
+            } else {
+                params.clients = req.query.clients;
+            }
         }
         if (req.query.top) {
             params.top = req.query.top;
@@ -1650,7 +1621,6 @@ module.exports = function (log, io, oracle) {
         }
 
         Invoice.getTotal(params, function (err, dataTotal) {
-            console.log("TOTAL %j", dataTotal);
 
             Invoice.getTotalByClient(params, options, function (err, data) {
                 if (err) {
@@ -1667,6 +1637,7 @@ module.exports = function (log, io, oracle) {
             });
         });
     }
+
     /*
      router.use(function timeLog(req, res, next){
      log.logger.info('Time: %s', Date.now());
@@ -1706,9 +1677,9 @@ module.exports = function (log, io, oracle) {
     router.put('/invoice/:terminal/:_id', updateInvoice);
     router.put('/setState/:terminal/:_id', setState);
     router.delete('/:_id', removeInvoices);
-    router.get('/:terminal/ships', getDistincts);
-    router.get('/:terminal/containers', getDistincts);
-    router.get('/:terminal/clients', getDistincts);
+    router.get('/:terminal/ships', getShips);
+    router.get('/:terminal/containers', getContainers);
+    router.get('/:terminal/clients', getClients);
     router.get('/:terminal/shipTrips', getShipTrips);
     router.get('/:terminal/shipContainers', getShipContainers);
     router.post('/byRates', getInvoicesByRates);
