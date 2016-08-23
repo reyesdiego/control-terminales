@@ -421,7 +421,7 @@ module.exports = function (log, io, oracle) {
         InvoiceM = new Invoice();
         InvoiceM.add(paramMongo, io, function (err, data) {
             if (err) {
-                log.logger.error("Invoice INS: %s", err.data);
+                log.logger.error("Invoice INS Mongo DB: %s - %s", err.message, err.data);
                 //res.status(500).send(err);
             } else {
                 let result = data;
