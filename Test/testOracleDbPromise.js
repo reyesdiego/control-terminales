@@ -26,7 +26,7 @@
     };
 
     database.createPool(dbconfig)
-        .then(function () {
+        .then(function (pool) {
             console.log('Se Conectó');
 
             console.log("ANTES %j", database.getPool());

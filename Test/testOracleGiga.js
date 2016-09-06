@@ -5,20 +5,34 @@
  * Created by diego on 6/10/15.
  */
 
+var con1 =     {
+    user          : "DIEGO",
+    password      : "DIEGO888",
+    connectString : "(DESCRIPTION = " +
+    "(ADDRESS = (PROTOCOL = TCP)(HOST = 10.10.0.191)(PORT = 1521)) " +
+    "(CONNECT_DATA = " +
+    "        (SID = PRODUC11) " +
+    ") " +
+    ")"
+};
+var strSql1 = "SELECT * FROM CRE_TESO_30 ";
+
+var con2 =     {
+    user          : "GIGA_IIT",
+    password      : "GIGA_IIT_",
+    connectString : "(DESCRIPTION = " +
+    "(ADDRESS = (PROTOCOL = TCP)(HOST = 10.10.0.188)(PORT = 1521)) " +
+    "(CONNECT_DATA = " +
+    "        (SID = PRODUC11) " +
+    ") " +
+    ")"
+};
+var strSql2 = "SELECT * FROM TARIFAS ";
+
 var oracledb = require('oracledb');
 oracledb.maxRows = 2000;
 //oracledb.outFormat = 2;
-oracledb.getConnection(
-    {
-        user          : "DIEGO",
-        password      : "DIEGO888",
-        connectString : "(DESCRIPTION = " +
-        "(ADDRESS = (PROTOCOL = TCP)(HOST = 10.10.0.191)(PORT = 1521)) " +
-        "(CONNECT_DATA = " +
-        "        (SID = PRODUC11) " +
-        ") " +
-        ")"
-    },
+oracledb.getConnection(con2,
     function(err, connection)
     {
         if (err) {
@@ -26,10 +40,10 @@ oracledb.getConnection(
             return;
         }
         connection.execute(
-//            "SELECT * FROM SIC_TESO_14 ",
-            "SELECT * FROM CRE_TESO_30 ",
+            strSql2,
             [],
             {
+                outFormat: oracledb.OBJECT
                // resultSet: true, // return a result set.  Default is false
                 //prefetchRows: 25 // the prefetch size can be set for each query
             },
@@ -41,7 +55,8 @@ oracledb.getConnection(
                     return;
                 }
                 console.log("metadata: %j", result.metaData);
-                console.log("rows: %j ", result.rows[0].join("|"));
+                console.log("data: %j", result.rows);
+                //console.log("rows: %j ", result.rows[0].join("|"));
                 doRelease(connection);
             });
     });
