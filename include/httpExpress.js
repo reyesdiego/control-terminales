@@ -33,8 +33,9 @@ module.exports = function (log, port, withSocketIo) {
     app.locals.moment = require('moment');
 
     app.use(compress({
-        level : 8
+        level : 1
     }));
+
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({ extended: true }));
     //app.use(multer());
