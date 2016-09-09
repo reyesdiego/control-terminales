@@ -134,7 +134,7 @@ module.exports = function (log) {
         });
     }
 
-    function getNoMatches (req, res) {
+    function getNoMatchesORI (req, res) {
         var usr = req.usr,
             paramTerminal = req.params.terminal,
             param = [
@@ -196,6 +196,25 @@ module.exports = function (log) {
                 });
             }
         });
+    }
+
+    function getNoMatches (req, res) {
+
+        var MatchPrice = require('../lib/matchPrice2.js');
+        MatchPrice = new MatchPrice();
+
+        var params = {
+            terminal: req.params.terminal,
+            fechaInicio: req.query.fechaInicio,
+            fechaFin: req.query.fechaFin
+        };
+        MatchPrice.getNoMatches(params)
+        .then(data => {
+                res.status(200).send(data);
+            })
+        .catch(err => {
+                res.status(500).send(err);
+            });
     }
 
     function addMatchPrice (req, res) {

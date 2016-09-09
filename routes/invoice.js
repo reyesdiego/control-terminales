@@ -899,7 +899,7 @@ module.exports = function (log, io, oracle) {
         });
     }
 
-    function getNoMatches(req, res) {
+    function getNoMatchesORI(req, res) {
 
         var paramTerminal = req.params.terminal,
             skip = parseInt(req.params.skip, 10),
@@ -985,6 +985,28 @@ module.exports = function (log, io, oracle) {
                 res.status(500).send({status: 'ERROR', data: err.message});
             }
         });
+    }
+
+    function getNoMatches(req, res) {
+
+        var Invoice3 = require('../lib/invoice2.js');
+        Invoice3 = new Invoice3();
+
+        var param ={
+                terminal: req.params.terminal,
+                skip: parseInt(req.params.skip, 10),
+                limit: parseInt(req.params.limit, 10),
+                fechaInicio: req.query.fechaInicio,
+                fechaFin: req.query.fechaFin
+            };
+
+        Invoice3.getNoMatches(param).
+        then(data => {
+                res.status(200).send(data);
+            })
+        .catch(err => {
+                res.status(200).send(err);
+            });
     }
 
     function getCorrelativeORI(req, res) {
