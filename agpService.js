@@ -56,7 +56,7 @@ VouchersType.find({}, (err, vouchersDesc) => {
                             to.forEach(item => {toLocal.push(item);});
 
                             /** CODIGOS NO ASOCIADOS */
-                            functionObject = callback =>  {
+                            functionObject = callbackNoAsociados =>  {
                                 var optionsget,
                                     reqGet;
 
@@ -74,6 +74,11 @@ VouchersType.find({}, (err, vouchersDesc) => {
                                         resData += d;
                                     });
 
+                                    res.on('error', (err) => {
+                                        console.error('NO_ASOCIADOS - NO mail a %s. %s', toLocal);
+                                        callbackNoAsociados(err);
+                                    });
+
                                     res.on('end', () => {
                                         var result = JSON.parse(resData),
                                             mailer;
@@ -85,17 +90,19 @@ VouchersType.find({}, (err, vouchersDesc) => {
                                                 let html = user.terminal + '\n\n' + result.data;
                                                 mailer.send(toLocal, subject, html, err => {
                                                     if (err) {
-                                                        console.log('No se envió mail. %s', subject);
+                                                        console.error('NO_ASOCIADOS - NO mail a %s. %s', toLocal, subject);
                                                     } else {
-                                                        console.log('Se envió mail a %s - %s', toLocal, moment());
+                                                        console.log('NO_ASOCIADOS - Mail a %s - %s', toLocal, moment());
                                                     }
-                                                    return callback(err, result.data);
+                                                    return callbackNoAsociados(err, result.data);
                                                 });
                                             } else {
-                                                return callback(undefined, result.data);
+                                                console.error('NO_ASOCIADOS NADA - NO Mail a %s - %s', toLocal, moment());
+                                                return callbackNoAsociados(undefined, result.data);
                                             }
                                         } else {
-                                            return callback();
+                                            console.error('NO_ASOCIADOS - NO Mail a %s - %s', toLocal, moment());
+                                            return callbackNoAsociados();
                                         }
                                     });
                                 });
@@ -107,10 +114,12 @@ VouchersType.find({}, (err, vouchersDesc) => {
                             /** CORRELATIVIDAD */
                             Invoices.distinct('nroPtoVenta', {terminal: user.terminal}, (err, data) => {
                                 if (!err) {
+                                    console.log("Puntos de Venta %s: %s", user.terminal, data);
                                     Invoices.distinct('codTipoComprob', {terminal: user.terminal}, (err, voucherTypes) => {
                                         if (!err) {
+                                            console.log("Tipo Comprobantes %s: %s", user.terminal, voucherTypes);
                                             voucherTypes.forEach( voucher => {
-                                                functionObject = callback => {
+                                                functionObject = callbackCorrelative => {
                                                     var optionsget,
                                                         reqGet;
 
@@ -128,6 +137,10 @@ VouchersType.find({}, (err, vouchersDesc) => {
                                                             resData += d;
                                                         });
 
+                                                        res.on('error', (err) => {
+                                                            console.error('CORRELATIVE - NO mail a %s. %s', toLocal);
+                                                            callbackCorrelative(err);
+                                                        });
                                                         res.on('end', () => {
                                                             var result = JSON.parse(resData),
                                                                 totalCnt,
@@ -167,15 +180,15 @@ VouchersType.find({}, (err, vouchersDesc) => {
                                                                                 } else {
                                                                                     console.log('Se envió mail a %s - %s', toLocal, moment());
                                                                                 }
-                                                                                return callback(err, result);
+                                                                                return callbackCorrelative(err, result);
                                                                             });
                                                                     });
                                                                 } else {
-                                                                    return callback(undefined, result.data);
+                                                                    return callbackCorrelative(undefined, result.data);
                                                                 }
                                                             } else {
                                                                 console.error('ERROR: %j', result.data);
-                                                                return callback();
+                                                                return callbackCorrelative();
                                                             }
                                                         });
                                                     });
@@ -184,12 +197,15 @@ VouchersType.find({}, (err, vouchersDesc) => {
                                                 asyncParallel.push(functionObject);
                                             });
                                             callbackTerminal();
+
                                         } else {
+                                            console.error("Error en carga de Voucher Types %s", err);
                                             callbackTerminal(err);
                                         }
                                     });
 
                                 } else {
+                                    console.error(err);
                                     callbackTerminal();
                                 }
                             });
@@ -197,9 +213,10 @@ VouchersType.find({}, (err, vouchersDesc) => {
 
                     },
                     () => {
-                        console.log('--------%s--------', moment().format("DD-MM-YYYY"));
+                        console.log('--------INICIO %s--------', moment().format("DD-MM-YYYY"));
                         async.parallel(asyncParallel, () => {
-                            process.exit();
+                            console.log('--------FIN %s--------', moment().format("DD-MM-YYYY"));
+                            process.exit(1);
                         });
                     });
 
