@@ -6,17 +6,17 @@ module.exports = function (log, oracle) {
     'use strict';
     var express = require('express'),
         router = express.Router(),
-        Invoice = require('../models/invoice.js'),
-        Comment = require('../models/comment.js');
+        Invoice = require('../models/invoice.js');
 
-    function getComments(req, res) {
-        var Comment = require('../lib/comment.js');
+    var Comment = require('../lib/comment.js');
+    Comment = new Comment(oracle);
+
+    let getComments = (req, res) => {
         var param = {
             terminal: req.usr.terminal,
-            invoice: req.params.invoice
+            invoice: req.params.invoiceId
         }
 
-        Comment = new Comment(oracle);
         Comment.getComments(param)
         .then((data) => {
                 res.status(200).send(data);
@@ -25,32 +25,28 @@ module.exports = function (log, oracle) {
                 log.logger.error("Error: %s", err.error);
                 res.status(500).send(err);
             });
-
     }
 
     function addComment(req, res) {
 
+        var param = {
+            user: req.usr.user,
+            group: req.usr.group,
+            title: req.body.title,
+            comment: req.body.comment,
+            estado: req.body.state,
+            invoiceId: req.body.invoice
+        }
         var usr = req.usr;
-        req.body.user = usr.user;
-        req.body.group = usr.group;
-        Comment.create(req.body, function (err, commentInserted) {
-            if (err) {
+
+        Comment.add(param)
+        .then(data => {
+                res.status(200).send(data);
+            })
+        .catch(err => {
                 log.logger.error("Error Comment INS: %s - %s", err.message, usr.user);
-                res.status(500).send({status: "ERROR", data: err.message});
-            } else {
-                Invoice.findOne({_id: req.body.invoice}, function (err, invoice) {
-                    invoice.comment.push(commentInserted._id);
-                    invoice.save(function (err) {
-                        if (err) {
-                            log.logger.error("Error Invoice UPD Adding Comment : %s", err.message);
-                            res.status(500).send({status: "ERROR", data: err.message});
-                        } else {
-                            res.status(200).send({status: 'OK', data: commentInserted});
-                        }
-                    });
-                });
-            }
-        });
+                res.status(500).send(err);
+            });
     }
 
 /*
@@ -60,7 +56,7 @@ router.use(function timeLog(req, res, next){
 });
 */
 
-    router.get('/:invoice', getComments);
+    router.get('/:invoiceId', getComments);
     router.post('/comment', addComment);
 
     return router;

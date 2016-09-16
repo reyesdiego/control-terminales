@@ -43,7 +43,7 @@ module.exports = function (log, oracle) {
             paramTerminal = req.params.terminal,
             ter = (usr.role === 'agp') ? paramTerminal : usr.terminal,
 
-        price = new Price(ter);
+        price = new Price(ter, oracle);
         price.getPrice(req.params.id, function (err, data) {
             if (err) {
                 log.logger.error('Error: %s', err.message);
@@ -88,30 +88,34 @@ module.exports = function (log, oracle) {
 
     function addPrice(req, res) {
         var usr = req.usr,
-            _price,
             Account = require('../models/account');
+
+        var Price = require('../lib/price.js');
+        Price = new Price(req.body.terminal, oracle);
 
         try {
             if (req.body.topPrices === undefined || req.body.topPrices.length < 1) {
                 res.status(403).send({status: "ERROR", data: "Debe proveer un precio válido."});
                 return;
             }
-            req.body.topPrices.forEach(function (item) {
+            req.body.topPrices.forEach(item => {
                 item.from = moment(item.from, "YYYY-MM-DD").toDate();
             });
 
             if (req.method === 'POST') {
-                _price = new price({
+
+                var param = {
                     terminal: req.body.terminal,
                     code: req.body.code.toUpperCase(),
                     description: req.body.description,
                     unit: req.body.unit,
                     topPrices: req.body.topPrices,
                     matches: null
-                });
-                _price.save(function (errSave, priceAdded) {
-                    if (!errSave) {
-                        log.logger.insert("Price INS:%s - %s", priceAdded._id, usr.terminal);
+                };
+
+                Price.add(param)
+                    .then(priceAdded => {
+                        log.logger.insert("Price INS:%s - %s", priceAdded.data._id, priceAdded.data.terminal);
 
                         Account.findEmailToApp('price', function (err, emails) {
                             var strSubject,
@@ -119,9 +123,8 @@ module.exports = function (log, oracle) {
                                 to;
 
                             if (!err) {
-
                                 if (emails.data.length > 0) {
-                                    res.render('priceAdd.jade', {code: priceAdded.code, description: priceAdded.description, terminal: usr.terminal, price: priceAdded.topPrices[0].price}, function (err, html) {
+                                    res.render('priceAdd.jade', {code: priceAdded.data.code, description: priceAdded.data.description, terminal: usr.terminal, price: priceAdded.data.topPrices[0].price}, function (err, html) {
                                         html = {
                                             data : html,
                                             alternative: true
@@ -135,29 +138,30 @@ module.exports = function (log, oracle) {
                             }
                         });
 
-                        res.status(200).send({"status": "OK", "data": _price});
-                    } else {
-                        log.logger.error(errSave.message);
-                        res.status(500).send({"status": "ERROR", "data": errSave.message});
-                    }
-                });
+                        res.status(200).send(priceAdded);
+                    })
+                    .catch(err =>  {
+                        log.logger.error(err.message);
+                        res.status(500).send(err);
+                    });
             } else {
 
-                _price = price.findOne({_id: req.params.id}, function (err, price2Upd) {
-                    price2Upd.description = req.body.description;
-                    price2Upd.code = req.body.code;
-                    price2Upd.topPrices = req.body.topPrices;
-                    price2Upd.unit = req.body.unit;
-                    price2Upd.save(function (errSave, dataSaved) {
-                        if (!errSave) {
-                            log.logger.update("Price UPD:%s - %s", dataSaved._id, usr.terminal);
-                            res.status(200).send({"status": "OK", "data": dataSaved});
-                        } else {
-                            log.logger.error('Error: %s - %s', errSave.message, usr.terminal);
-                            res.status(500).send({"status": "ERROR", "data": errSave.message});
-                        }
+                var params = {
+                    _id: req.params.id,
+                    description: req.body.description,
+                    code: req.body.code,
+                    topPrices: req.body.topPrices,
+                    unit: req.body.unit
+                }
+                Price.update(params).
+                    then(data => {
+                        log.logger.update("Price UPD:%s - %s", data.data._id, usr.terminal);
+                        res.status(200).send(data);
+                    })
+                .catch(err => {
+                        log.logger.error('Error: %s - %s', err.message, usr.terminal);
+                        res.status(500).send(err);
                     });
-                });
             }
         } catch (error) {
             res.status(500).send({"status": "ERROR", "data": "Error en addPrice " + error.message});
@@ -165,24 +169,21 @@ module.exports = function (log, oracle) {
     }
 
     function deletePrice(req, res) {
-        var usr = req.usr,
-            matchPrice = require('../models/matchPrice.js');
+        var usr = req.usr;
+        var Price = require('../lib/price.js'),
+            price;
+        var paramTerminal = req.params.terminal,
+            ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
 
-        price.remove({_id : req.params.id}, function (err) {
-            if (!err) {
-                matchPrice.remove({price: req.params.id}, function (err) {
-                    if (!err) {
-                        res.status(200).send({status: 'OK', data: {}});
-                    } else {
-                        log.logger.error('Error DELETE: %s - %s', err.message, usr.terminal);
-                        res.status(403).send({status: 'ERROR', data: err.message});
-                    }
-                });
-            } else {
-                log.logger.error('Error DELETE: %s - %s', err.message, usr.terminal);
-                res.status(403).send({status: 'ERROR', data: err.message});
-            }
-        });
+        price = new Price(ter);
+
+        price.delete(req.params.id)
+        .then(data => {
+                res.status(200).send(data);
+            })
+        .catch(err => {
+                res.status(403).send(err);
+            });
     }
 
 /*

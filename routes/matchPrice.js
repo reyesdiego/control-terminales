@@ -1,99 +1,79 @@
 /**
  * Created by Diego Reyes on 2/18/14.
  */
-module.exports = function (log) {
+module.exports = function (log, oracle) {
     'use strict';
 
     var express = require('express'),
         router = express.Router(),
         MatchPrice = require('../models/matchPrice.js'),
-        Invoice = require('../models/invoice.js'),
         util = require('util'),
         Price = require('../models/price.js'),
         moment = require('moment');
 
     function getMatchPrices(req, res) {
-        var usr = req.usr;
+        var MatchPrice2 = require('../lib/matchPrice2.js');
+        MatchPrice2 = new MatchPrice2(oracle);
 
-        var paramTerminal = req.params.terminal,
-            ter = (usr.role === 'agp') ? paramTerminal : usr.terminal,
-            param = {
-                $or : [
-                    {terminal: "AGP"},
-                    {terminal: ter}
-                ]
-            };
+        var param = {
+            terminal: req.params.terminal,
+            user: req.usr,
+            code: req.query.code,
+            onlyRates: req.query.onlyRates
+        };
 
-        if (req.query.code) {
-            param.code = req.query.code;
-        }
-
-        if (req.query.onlyRates) {
-            if (req.query.onlyRates !== false) {
-                param.rate = {$exists: true};
-            }
-        }
-
-        Price.find(param /*{topPrices : {$slice: -1}}*/ )
-            .populate({path: 'matches', match: {"terminal": paramTerminal}})
-            .sort({terminal: 1, code: 1})
-            .lean()
-            .exec(function (err, prices) {
+        MatchPrice2.getMatchPrices(param)
+        .then(data => {
                 var response;
-                if (err) {
-                    log.logger.error('Error: %s', err.message);
-                    res.status(500).send({status: 'ERROR', data: err.message});
-                } else {
 
-                    if (req.query.output === 'csv') {
-                        response = "CODIGO|PRECIO|FECHA|UNIDAD|ASOCIADO|DESCRIPCION\n";
+                if (req.query.output === 'csv') {
+                    response = "CODIGO|PRECIO|FECHA|UNIDAD|ASOCIADO|DESCRIPCION\n";
 
-                        prices.forEach(function (item) {
-                            let matches = '';
-                            if (item.matches !== undefined && item.matches !== null && item.matches.length > 0) {
-                                if (item.matches[0].match.length > 0) {
-                                    matches = item.matches[0].match.join('-').toString();
-                                } else {
-                                    matches = "";
-                                }
+                    data.data.forEach(item => {
+                        let matches = '';
+                        if (item.matches !== undefined && item.matches !== null && item.matches.length > 0) {
+                            if (item.matches[0].match.length > 0) {
+                                matches = item.matches[0].match.join('-').toString();
+                            } else {
+                                matches = "";
                             }
-                            response = response +
-                                item.code +
-                                "|" +
-                                item.topPrices[0].price +
-                                "|" +
-                                moment(item.topPrices[0].from).format("YYYY-MM-DD") +
-                                "|" +
-                                item.unit +
-                                "|" +
-                                matches +
-                                "|" +
-                                item.description.split("\n").join(" ") +
-                                "\n";
-                        });
-                        res.header('content-type', 'text/csv');
-                        res.header('content-disposition', 'attachment; filename=report.csv');
-                        res.status(200).send(response);
-                    } else {
-                        res.status(200).send({
-                            status: 'OK',
-                            totalCount: prices.length,
-                            data: prices
-                        });
-                    }
-
+                        }
+                        response = response +
+                            item.code +
+                            "|" +
+                            item.price +
+                            "|" +
+                            moment(item.from).format("YYYY-MM-DD") +
+                            "|" +
+                            item.unit +
+                            "|" +
+                            matches +
+                            "|" +
+                            item.description.split("\n").join(" ") +
+                            "\n";
+                    });
+                    res.header('content-type', 'text/csv');
+                    res.header('content-disposition', 'attachment; filename=report.csv');
+                    res.status(200).send(response);
+                } else {
+                    res.status(200).send(data);
                 }
+            })
+        .catch(err => {
+                res.status(500).send(err);
             });
+
     }
 
     function getMatchPricesPrice (req, res) {
 
-        var matchPrice = require('../lib/matchPrice.js'),
+        var matchPrice = require('../lib/matchPrice2.js'),
             usr = req.usr,
-            ter = (usr.role === 'agp') ? req.params.terminal : usr.terminal,
-            param = {};
+            param = {
+                terminal: (usr.role === 'agp') ? req.params.terminal : usr.terminal
+            };
 
-        matchPrice = new matchPrice(ter);
+        matchPrice = new matchPrice(oracle);
 
         if (req.query.code) {
             param.code = req.query.code;
@@ -104,104 +84,39 @@ module.exports = function (log) {
                 param.rate = true;
             }
         }
-        matchPrice.getPricesTerminal(param, function (err, result) {
-            if (err) {
-                res.status(500).send({status: "ERROR", data: err.message});
-            } else {
-                res.status(200).send(result);
-            }
-        });
-
+        matchPrice.getPricesTerminal(param)
+        .then(data => {
+                res.status(200).send(data);
+            })
+        .catch(err => {
+                res.status(500).send(err);
+            });
     }
 
     function getMatches(req, res) {
-        var matchPrice = require('../lib/matchPrice.js');
+        var matchPrice = require('../lib/matchPrice2.js');
         var params = {};
 
         params.terminal = req.params.terminal;
 
-        matchPrice = new matchPrice(params.terminal);
+        matchPrice = new matchPrice();
 
         if (req.query.type) {
             params.type = req.query.type;
         }
-        matchPrice.getMatches(params, function (err, data) {
-            if (err) {
-                res.status(200).send(err);
-            } else {
+        matchPrice.getMatches(params)
+            .then(data => {
                 res.status(200).send(data);
-            }
-        });
-    }
-
-    function getNoMatchesORI (req, res) {
-        var usr = req.usr,
-            paramTerminal = req.params.terminal,
-            param = [
-                {
-                    $match: {terminal: paramTerminal }
-                },
-                { $unwind: '$match' },
-                { $project: {match: '$match', _id: 0}}
-            ],
-            s = MatchPrice.aggregate(param);
-
-        s.exec(function (err, noMatches) {
-            var arrNoMatches = [],
-                fecha,
-                param = {},
-                parametro;
-
-            if (!err) {
-                noMatches.forEach(function (item) {
-                    arrNoMatches.push(item.match);
-                });
-
-                if (req.query.fechaInicio || req.query.fechaFin) {
-                    param["fecha.emision"] = {};
-                    if (req.query.fechaInicio) {
-                        fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
-                        param["fecha.emision"]["$gte"] = fecha;
-                    }
-                    if (req.query.fechaFin) {
-                        fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
-                        param["fecha.emision"]['$lte'] = fecha;
-                    }
-                }
-                param.terminal = paramTerminal;
-                parametro = [
-                    { $match: param},
-                    { $unwind: '$detalle'},
-                    { $unwind: '$detalle.items'},
-                    { $match: {'detalle.items.id' : {$nin: arrNoMatches } } },
-                    { $group: {
-                        _id: {
-                            code : '$detalle.items.id'
-                        }
-                    }},
-                    {$sort: {'_id.code': 1}}
-                ];
-                Invoice.aggregate(parametro, function (err, data) {
-                    var result = [];
-                    data.forEach(function (item) {
-                        result.push(item._id.code);
-                    });
-
-                    res.status(200)
-                        .send({
-                            status: 'OK',
-                            totalCount: result.length,
-                            data: result
-                        });
-                });
-            }
-        });
+            })
+            .catch(err => {
+                res.status(500).send(err);
+            });
     }
 
     function getNoMatches (req, res) {
 
         var MatchPrice = require('../lib/matchPrice2.js');
-        MatchPrice = new MatchPrice();
+        MatchPrice = new MatchPrice(oracle);
 
         var params = {
             terminal: req.params.terminal,

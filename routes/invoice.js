@@ -55,12 +55,12 @@ module.exports = function (log, io, oracle) {
         if (skip >= 0 && limit >= 0) {
             param.skip = skip;
             param.limit = limit;
-            log.time("tiempo");
+            log.time("getInvoices");
             Invoice2.getInvoices(param, function (err, result) {
                 if (err) {
                     res.status(500).send({status: "ERROR", data: err.message});
                 } else {
-                    result.time = log.timeEnd("tiempo");
+                    result.time = log.timeEnd("getInvoices");
                     res.status(200).send(result);
                 }
             });
@@ -1261,35 +1261,22 @@ module.exports = function (log, io, oracle) {
         });
     }
 
-    function setState (req, res) {
+    function addState (req, res) {
         var usr = req.usr;
 
-        Invoice.update({_id: req.params._id, 'estado.grupo': usr.group},
-            {$set: {'estado.$.estado' : req.body.estado}},
-            function (err, rowAffected, data){
-                if (err) {
-                    var errMsg = 'Error en cambio de estado. %s';
-                    log.logger.error(errMsg, err.message);
-                    res.status(500).send({status:'ERROR', data: 'Error en cambio de estado.'});
-                } else  {
-
-                    if (rowAffected === 0){
-                        Invoice.findByIdAndUpdate( req.params._id,
-                            { $push: { estado: { estado: req.body.estado, grupo: usr.group, user: usr.user } } },
-                            {safe: true, upsert: true},
-                            function (err, data ){
-                                if (err) {
-                                    var errMsg = 'Error en cambio de estado. %s';
-                                    log.logger.error(errMsg, err.message);
-                                    res.status(500).send({status:'ERROR', data: 'Error en cambio de estado.'});
-                                } else {
-                                    res.status(200).send({status:'OK', data: data});
-                                }
-                            });
-                    } else {
-                        res.status(200).send({status:'OK', data: data});
-                    }
-                }
+        var param = {
+            user: usr.user,
+            group: usr.group,
+            invoiceId: req.params._id,
+            estado: req.body.estado
+        };
+        Invoice2.addState(param).
+            then(data => {
+                res.status(200).send({status:'OK', data: data});
+            })
+        .catch(err => {
+                log.logger.error("INVOICE SET STATE %s", err.message);
+                res.status(500).send(err);
             });
     }
 
@@ -1697,7 +1684,7 @@ module.exports = function (log, io, oracle) {
     router.get('/correlative/:terminal', getCorrelative);
     router.get('/cashbox/:terminal', getCashbox);
     router.put('/invoice/:terminal/:_id', updateInvoice);
-    router.put('/setState/:terminal/:_id', setState);
+    router.put('/setState/:terminal/:_id', addState);
     router.delete('/:_id', removeInvoices);
     router.get('/:terminal/ships', getShips);
     router.get('/:terminal/containers', getContainers);

@@ -61,7 +61,7 @@ module.exports = function (log, app, io, oracle, params) {
     mat = require('./mat')(log);
     app.use('/mats', isValidToken, mat);
 
-    match = require('./matchPrice')(log);
+    match = require('./matchPrice')(log, oracle);
     app.use('/matchPrices', isValidToken, match);
 
     paying = require('./paying')(log);
