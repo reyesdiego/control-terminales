@@ -10,11 +10,11 @@ module.exports = function (log, oracle) {
         util = require('util'),
         moment = require('moment'),
         mail = require("../include/emailjs"),
-        config = require('../config/config.js'),
-        price = require('../models/price.js');
+        config = require('../config/config.js');
+
+    var Price = require('../lib/price.js');
 
     function getPrices(req, res) {
-        let Price = require('../lib/price.js');
 
         var usr = req.usr,
             paramTerminal = req.params.terminal,
@@ -24,7 +24,7 @@ module.exports = function (log, oracle) {
         param.code = req.query.code;
         param.onlyRates = req.query.onlyRates;
 
-        let price = new Price(ter);
+        let price = new Price(ter, oracle);
 
         price.getPrices(param, function (err, data) {
             if (err) {
@@ -37,13 +37,12 @@ module.exports = function (log, oracle) {
     }
 
     function getPrice(req, res) {
-        var Price = require('../lib/price.js'),
-            price;
+
         var usr = req.usr,
             paramTerminal = req.params.terminal,
-            ter = (usr.role === 'agp') ? paramTerminal : usr.terminal,
+            ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
 
-        price = new Price(ter, oracle);
+        let price = new Price(ter, oracle);
         price.getPrice(req.params.id, function (err, data) {
             if (err) {
                 log.logger.error('Error: %s', err.message);
@@ -55,9 +54,9 @@ module.exports = function (log, oracle) {
     }
 
     function getRates(req, res) {
-        var Price = require('../lib/price.js');
-        Price = new Price();
-        Price.getRates(function (err, data) {
+
+        let price = new Price();
+        price.getRates(function (err, data) {
             if (err) {
                 log.logger.error('Error: %s', err.message);
                 res.status(500).send(err);
@@ -68,14 +67,12 @@ module.exports = function (log, oracle) {
     }
 
     function getRates2(req, res) {
-        var price;
 
         if (req.usr.terminal !== 'AGP') {
             res.status(403).send({status: "ERROR", data: "No posee permisos para acceder a estos datos."});
             return;
         }
-        price = require('../lib/price.js');
-        price = new price();
+        let price = new Price();
         price.rates(true, function (err, data) {
             if (err) {
                 res.status(500).send({status: "ERROR", message: err.message});
@@ -90,8 +87,7 @@ module.exports = function (log, oracle) {
         var usr = req.usr,
             Account = require('../models/account');
 
-        var Price = require('../lib/price.js');
-        Price = new Price(req.body.terminal, oracle);
+        let Price = new Price(req.body.terminal, oracle);
 
         try {
             if (req.body.topPrices === undefined || req.body.topPrices.length < 1) {
@@ -170,12 +166,11 @@ module.exports = function (log, oracle) {
 
     function deletePrice(req, res) {
         var usr = req.usr;
-        var Price = require('../lib/price.js'),
-            price;
+
         var paramTerminal = req.params.terminal,
             ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
 
-        price = new Price(ter);
+        let price = new Price(ter);
 
         price.delete(req.params.id)
         .then(data => {
