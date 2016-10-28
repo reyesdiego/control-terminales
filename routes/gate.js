@@ -91,9 +91,9 @@ module.exports = function (log, oracle) {
         param.skip = parseInt(req.params.skip, 10);
         param.order = req.query.order;
 
-        log.time("logTime");
+        log.time("getGates");
         Gate.getGates(param, (err, data) => {
-            let timeEnd = log.timeEnd("logTime");
+            let timeEnd = log.timeEnd("getGates");
             if (err) {
                 err.time = timeEnd;
                 res.status(500).send(err);
