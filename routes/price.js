@@ -87,7 +87,8 @@ module.exports = function (log, oracle) {
         var usr = req.usr,
             Account = require('../models/account');
 
-        let Price = new Price(req.body.terminal, oracle);
+        //Price
+        let price = new Price(req.body.terminal, oracle);
 
         try {
             if (req.body.topPrices === undefined || req.body.topPrices.length < 1) {
@@ -109,7 +110,8 @@ module.exports = function (log, oracle) {
                     matches: null
                 };
 
-                Price.add(param)
+                //Price
+                price.add(param)
                     .then(priceAdded => {
                         log.logger.insert("Price INS:%s - %s", priceAdded.data._id, priceAdded.data.terminal);
 
@@ -149,7 +151,8 @@ module.exports = function (log, oracle) {
                     topPrices: req.body.topPrices,
                     unit: req.body.unit
                 }
-                Price.update(params).
+                //Price
+                price.update(params).
                     then(data => {
                         log.logger.update("Price UPD:%s - %s", data.data._id, usr.terminal);
                         res.status(200).send(data);
