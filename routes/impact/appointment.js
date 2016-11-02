@@ -1,7 +1,7 @@
 /**
  * Created by diego on 7/3/15.
  */
-module.exports = function (log, io) {
+module.exports = function (log, io, oracle) {
     'use strict';
 
     var express = require('express'),
@@ -140,11 +140,14 @@ module.exports = function (log, io) {
 
                     mailer = new mail.mail(emailConfig);
                     subject = util.format("Coordinación %s para %s.", appointmentEmail.contenedor, appointmentEmail.full_name);
-                    mailer.send(appointmentEmail.email, subject, html, function (err1) {
+                    mailer.send(appointmentEmail.email, subject, html, function (err1, emailData) {
                         if (err1) {
 
-                            if (err1.status === 'ERROR' && err1.code === 'AGP-0001') {
-                                log.logger.error('Envío de email a cliente %s, la cuenta no valida. %s, %s', appointmentEmail.email, appointmentEmail.contenedor, err1.data);
+                            if (err1.code === 'AGP-0001') {
+                                log.logger.error('No envió email a Cliente %s, Cuenta no valida. %s, %s', appointmentEmail.email, appointmentEmail.contenedor, err1.data);
+                                res.end();
+                            } else if (err1.code === 'AGP-0008') {
+                                log.logger.error('No envió email a Cliente %s, Desahibilado por Config. %s, %s', appointmentEmail.email, appointmentEmail.contenedor, err1.data);
                                 res.end();
                             } else {
                                 log.logger.error('Envío de email a cliente : %s, %s, %j, %s', appointmentEmail.email, appointmentEmail.contenedor, err1, err1);
@@ -187,13 +190,17 @@ module.exports = function (log, io) {
             errMsg,
             Account = require('../../models/account');
 
+        var Appointment = require('../../lib/appointment.js');
+
+        Appointment = new Appointment();
+
         appointment2insert.terminal = usr.terminal;
 
         if (appointment2insert) {
-            Appointment.insert(appointment2insert, function (errData, data) {
-                var str,
-                    result;
-                if (!errData) {
+            Appointment.add(appointment2insert)
+                .then(data => {
+                    var str,
+                        result;
                     str = util.format('Appointment INS: %s - Inicio: %s - Alta: %s - %s - %s', usr.terminal, data.inicio, data.alta, data._id, data.contenedor);
                     log.logger.insert(str);
 
@@ -211,14 +218,13 @@ module.exports = function (log, io) {
                             }
                         }
                     });
-
-                } else {
+                })
+                .catch(errData => {
                     errMsg = util.format('%s.-%s- \n%s', errData.toString(), usr.terminal, JSON.stringify(req.body));
                     log.logger.error(errMsg);
 
                     res.status(500).send({status: 'ERROR', data: errMsg});
-                }
-            });
+                });
         }
     }
 

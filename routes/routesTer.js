@@ -29,7 +29,7 @@ module.exports = function (log, app, io, oracle, params) {
     serverMain = require('./server')(log, params);
     app.use('/', serverMain);
 
-    appointment = require('./impact/appointment')(log, io);
+    appointment = require('./impact/appointment')(log, io, oracle);
     app.use('/appointment', isValidToken, appointment);
 
     gate = require('./impact/gate')(log, io, oracle);
