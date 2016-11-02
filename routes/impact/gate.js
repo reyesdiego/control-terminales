@@ -44,7 +44,6 @@ module.exports = function (log, io, oracle) {
                 res.status(200).send(gateNew);
             }
         });
-
     }
 
     /*
