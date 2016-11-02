@@ -113,7 +113,7 @@ mail.prototype = {
             });
         } else {
             if (typeof callback === 'function') {
-                return callback({status: "ERROR", data: 'Envío de email deshabilitado en Config'});
+                return callback({status: "ERROR", code: "AGP-0008", data: 'Envío de email deshabilitado en Config'});
             }
         }
     }
