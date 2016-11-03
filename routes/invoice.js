@@ -12,7 +12,6 @@ module.exports = function (log, io, oracle) {
         moment = require('moment'),
         config = require('../config/config.js'),
         Invoice = require('../models/invoice.js'),
-        Gate = require('../models/gate.js'),
         MatchPrice = require('../models/matchPrice.js'),
         VoucherType = require('../models/voucherType.js'),
         Enumerable = require('linq');
