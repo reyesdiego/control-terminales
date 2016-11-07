@@ -35,7 +35,7 @@ oracleUtils.prototype = {
     doRelease: function (connection) {
         'use strict';
         if (connection) {
-            connection.release(function (err) {
+            connection.release(err => {
                 if (err) {
                     console.error(err.message);
                 }
