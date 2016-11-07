@@ -57,6 +57,8 @@ oracle.oracledb.createPool({
     function (err, pool) {
 
         oracle.pool = pool;
+        log.logger.info("Oracle Connected to Database. Versión %s", oracle.oracledb.oracleClientVersion);
+
         if (err) {
             log.logger.error('Oracle: %s', err.message);
         }

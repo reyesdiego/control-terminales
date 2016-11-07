@@ -21,29 +21,29 @@ module.exports = function (log, io, oracle) {
         gate2insert.terminal = usr.terminal;
 
         gateLib = new Gate();
-        gateLib.add(gate2insert, {validate: true, trim: true}, function (err, gateNew) {
-            if (err) {
-                errMsg = util.format('%s: %j \n%s', err.message, err.data, usr.terminal, JSON.stringify(req.body));
-                log.logger.error(errMsg);
-            } else {
+        gateLib.add(gate2insert, {validate: true, trim: true})
+            .then(gateNew => {
                 let gate = gateNew.data;
                 log.logger.insert('Gate INS: %s - %s - %s', gate._id, usr.terminal, moment(gate.gateTimestamp).format("YYYY-MM-DD hh:mm:ss"));
                 io.emit('gate', gateNew);
-            }
-        });
-
-        gateLibOra = new Gate(oracle);
-        gateLibOra.add(gate2insert, {validate: true, trim: true}, function (err, gateNew) {
-            if (err) {
+            })
+            .catch(err => {
                 errMsg = util.format('%s: %j \n%s', err.message, err.data, usr.terminal, JSON.stringify(req.body));
                 log.logger.error(errMsg);
-                res.status(500).send({status: "ERROR", data: errMsg});
-            } else {
+            });
+
+        gateLibOra = new Gate(oracle);
+        gateLibOra.add(gate2insert, {validate: true, trim: true})
+            .then(gateNew => {
                 let gate = gateNew.data;
                 log.logger.insert('Gate ORA INS: %s - %s - %s', gate._id, usr.terminal, moment(gate2insert.gateTimestamp).format("YYYY-MM-DD hh:mm:ss"));
                 res.status(200).send(gateNew);
-            }
-        });
+            })
+            .catch(err => {
+                errMsg = util.format('%s: %j \n%s', err.message, err.data, usr.terminal, JSON.stringify(req.body));
+                log.logger.error(errMsg);
+                res.status(500).send({status: "ERROR", data: errMsg});
+            });
     }
 
     /*
