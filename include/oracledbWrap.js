@@ -4,8 +4,8 @@
 'use strict';
 
 var oracledb = require('oracledb'),
-    Promise = require('es6-promise').Promise,
-//    Promise = require('bluebird'),
+//Promise = require('es6-promise').Promise,
+//Promise = require('bluebird'),
     async = require('async'),
     pool,
     buildupScripts = [],
@@ -15,10 +15,10 @@ module.exports.OBJECT = oracledb.OBJECT;
 module.exports.oracledb = oracledb;
 
 function createPool(config) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         oracledb.createPool(
             config,
-            function (err, p) {
+            (err, p) => {
                 if (err) {
                     return reject(err);
                 }
@@ -34,9 +34,9 @@ function createPool(config) {
 module.exports.createPool = createPool;
 
 function terminatePool() {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         if (pool) {
-            pool.terminate(function (err) {
+            pool.terminate(err => {
                 if (err) {
                     return reject(err);
                 }
@@ -82,20 +82,17 @@ function addTeardownSql(statement) {
 module.exports.addTeardownSql = addTeardownSql;
 
 function getConnection() {
-    return new Promise(function (resolve, reject) {
-        pool.getConnection(function (err, connection) {
+    return new Promise((resolve, reject) => {
+        pool.getConnection((err, connection) => {
             if (err) {
                 return reject(err);
             }
 
-            async.eachSeries(
-                buildupScripts,
-                function (statement, callback) {
-                    connection.execute(statement.sql, statement.binds, statement.options, function(err) {
+            async.eachSeries( buildupScripts, (statement, callback) => {
+                    connection.execute(statement.sql, statement.binds, statement.options, err => {
                         callback(err);
                     });
-                },
-                function (err) {
+                }, err => {
                     if (err) {
                         return reject(err);
                     }
@@ -110,8 +107,8 @@ function getConnection() {
 module.exports.getConnection = getConnection;
 
 function execute(sql, bindParams, options, connection) {
-    return new Promise(function (resolve, reject) {
-        connection.execute(sql, bindParams, options, function (err, results) {
+    return new Promise((resolve, reject) => {
+        connection.execute(sql, bindParams, options, (err, results) => {
             if (err) {
                 return reject(err);
             }
@@ -124,19 +121,16 @@ function execute(sql, bindParams, options, connection) {
 module.exports.execute = execute;
 
 function releaseConnection(connection) {
-    async.eachSeries(
-        teardownScripts,
-        function (statement, callback) {
-            connection.execute(statement.sql, statement.binds, statement.options, function (err) {
+    async.eachSeries(teardownScripts, (statement, callback) => {
+            connection.execute(statement.sql, statement.binds, statement.options, err => {
                 callback(err);
             });
-        },
-        function (err) {
+        }, err => {
             if (err) {
                 console.error(err); //don't return as we still need to release the connection
             }
 
-            connection.release(function (err) {
+            connection.release(err => {
                 if (err) {
                     console.error(err);
                 }
@@ -148,28 +142,29 @@ function releaseConnection(connection) {
 module.exports.releaseConnection = releaseConnection;
 
 function simpleExecute(sql, bindParams, options) {
-    options.isAutoCommit = true;
+    options = options || {autoCommit: false, outFormat: oracledb.OBJECT};
+    bindParams = bindParams || [];
 
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         getConnection()
-            .then(function (connection) {
+            .then(connection => {
                 execute(sql, bindParams, options, connection)
-                    .then(function (results) {
+                    .then( results => {
                         resolve(results);
 
-                        process.nextTick(function () {
+                        process.nextTick(() => {
                             releaseConnection(connection);
                         });
                     })
-                    .catch(function (err) {
+                    .catch(err => {
                         console.log("ERROR %s", err);
                         reject(err);
-                        process.nextTick(function () {
+                        process.nextTick(() => {
                             releaseConnection(connection);
                         });
                     });
             })
-            .catch(function (err) {
+            .catch(err => {
                 console.log("ERROR %s", err);
                 reject(err);
             });
