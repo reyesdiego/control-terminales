@@ -136,13 +136,16 @@ module.exports = function (log) {
                         }
                         if (req.query.byContainer === '1') {
                             groupByContainer.container = '$detalle.contenedor';
+                            groupByContainer.nroComprob = '$nroComprob';
                             projectByContainer.container = '$_id.container';
+                            projectByContainer.nroComprob = '$_id.nroComprob';
                         }
 
                         param = [
                             {$match: match },
                             {$project: {
                                 terminal: 1,
+                                nroComprob: '$nroComprob',
                                 fecha: '$fecha.emision',
                                 estado: 1,
                                 codTipoComprob: 1,
@@ -157,6 +160,7 @@ module.exports = function (log) {
                                     _id: '$_id',
                                     terminal: '$terminal',
                                     fecha: '$fecha',
+                                    nroComprob: '$nroComprob',
                                     codTipoComprob: '$codTipoComprob',
                                     nroPtoVenta: '$nroPtoVenta',
                                     razon: '$razon',
@@ -168,6 +172,7 @@ module.exports = function (log) {
                             {$project: {
                                 '_id': '$_id._id',
                                 nroPtoVenta: '$_id.nroPtoVenta',
+                                nroComprob: '$_id.nroComprob',
                                 terminal: '$_id.terminal',
                                 fecha: '$_id.fecha',
                                 codTipoComprob: '$_id.codTipoComprob',
@@ -311,7 +316,7 @@ module.exports = function (log) {
 
                 if (download) {
                     if (req.query.byContainer === '1') {
-                        response = "FECHA|TIPO|BUQUE|RAZON|CONTENEDOR|TONELADAS|TARIFA|TASA|COTI_MONEDA|TOTAL\n";
+                        response = "FECHA|TIPO|SUCURSAL|COMPROBANTE|BUQUE|RAZON|CONTENEDOR|TONELADAS|TARIFA|TASA|COTI_MONEDA|TOTAL\n";
                     } else {
                         response = "FECHA|TIPO|BUQUE|RAZON|TONELADAS|TARIFA|TASA|COTI_MONEDA|TOTAL\n";
                     }
@@ -319,8 +324,14 @@ module.exports = function (log) {
                         response = response +
                             moment(item.emision).format("DD/MM/YYYY") +
                             "|" +
-                            global.cache.voucherTypes[item.codTipoComprob] +
-                            "|" +
+                            global.cache.voucherTypes[item.codTipoComprob];
+                        if (req.query.byContainer === '1') {
+                            response = response + "|" +
+                                item.nroPtoVenta +
+                                 "|" +
+                                item.nroComprob;
+                        }
+                        response = response + "|" +
                             item.buque +
                             "|" +
                             item.razon;
