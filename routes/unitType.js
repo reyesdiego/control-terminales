@@ -12,25 +12,32 @@ module.exports = function (log) {
     function getUnitTypes(req, res) {
         var Unit = require('../models/unitType.js');
 
-        Unit.find({}, function (err, data) {
-            if (err) {
-                res.status(500).send({status: "ERROR", data: err.message});
-            } else {
-                var result = data;
-                if (req.query.type === 'array') {
-                    result = {};
-                    data.forEach(function (item) {
-                        result[item._id] = item.description;
-                    });
+        Unit.find({})
+            .sort({description: 1})
+            .exec((err, data) => {
+                if (err) {
+                    response = {
+                        status: "ERROR",
+                        message: err.message,
+                        data: err
+                    };
+                    res.status(500).send(response);
+                } else {
+                    var result = data;
+                    if (req.query.type === 'array') {
+                        result = {};
+                        data.forEach(function (item) {
+                            result[item._id] = item.description;
+                        });
+                    }
+                    response = {
+                        status: 'OK',
+                        totalCount: data.length,
+                        data: result
+                    };
+                    res.status(200).send(response);
                 }
-                response = {
-                    status: 'OK',
-                    totalCount: data.length,
-                    data: result
-                };
-                res.status(200).send(response);
-            }
-        });
+            });
     }
 /*
 router.use(function timeLog(req, res, next){
