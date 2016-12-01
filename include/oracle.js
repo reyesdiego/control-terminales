@@ -37,7 +37,7 @@ oracleUtils.prototype = {
         if (connection) {
             connection.release(err => {
                 if (err) {
-                    console.error(err.message);
+                    console.error("doRelease " + err.message);
                 }
             });
         }
