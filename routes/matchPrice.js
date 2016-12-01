@@ -6,8 +6,7 @@ module.exports = function (log, oracle) {
 
     var express = require('express'),
         router = express.Router(),
-        util = require('util'),
-        moment = require('moment');
+        util = require('util'),        moment = require('moment');
 
     var MatchPrice = require('../lib/matchPrice2.js');
     MatchPrice = new MatchPrice(oracle);
@@ -21,6 +20,7 @@ module.exports = function (log, oracle) {
             onlyRates: req.query.onlyRates
         };
 
+        log.time("getMatchPrices");
         MatchPrice.getMatchPrices(param)
         .then(data => {
                 var response;
@@ -55,11 +55,12 @@ module.exports = function (log, oracle) {
                     res.header('content-disposition', 'attachment; filename=report.csv');
                     res.status(200).send(response);
                 } else {
-                    res.status(200).send(data);
+                    data.time = log.timeEnd("getMatchPrices");
+                    res.send(data);
                 }
             })
         .catch(err => {
-                res.status(500).send(err);
+                res.send(err);
             });
 
     }
@@ -123,10 +124,14 @@ module.exports = function (log, oracle) {
 
     function addMatchPrice (req, res) {
 
-        var params = req.body;
+        var params = {
+            price: req.body._idPrice,
+            terminal: req.body.terminal,
+            code: req.body.match[0]
+        };
 
         var MatchPrice3 = require('../lib/matchPrice2.js');
-        MatchPrice3 = new MatchPrice3();
+        MatchPrice3 = new MatchPrice3(oracle);
         MatchPrice3.add(params)
         .then(data => {
                 res.status(200).send(data);

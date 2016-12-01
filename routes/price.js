@@ -26,14 +26,14 @@ module.exports = function (log, oracle) {
 
         let price = new Price(ter, oracle);
 
-        price.getPrices(param, function (err, data) {
-            if (err) {
+        price.getPrices(param)
+            .then(data => {
+                res.status(200).send(data);
+            })
+        .catch(err => {
                 log.logger.error('Error: %s', err.message);
                 res.status(500).send(err);
-            } else {
-                res.status(200).send(data);
-            }
-        });
+            });
     }
 
     function getPrice(req, res) {
@@ -43,19 +43,19 @@ module.exports = function (log, oracle) {
             ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
 
         let price = new Price(ter, oracle);
-        price.getPrice(req.params.id, function (err, data) {
-            if (err) {
+        price.getPrice(req.params.id)
+            .then(data => {
+                res.status(200).send(data);
+            })
+            .catch(err => {
                 log.logger.error('Error: %s', err.message);
                 res.status(500).send(err);
-            } else {
-                res.status(200).send(data);
-            }
-        });
+            });
     }
 
     function getRates(req, res) {
 
-        let price = new Price();
+        let price = new Price(oracle);
         price.getRates(function (err, data) {
             if (err) {
                 log.logger.error('Error: %s', err.message);
@@ -72,7 +72,7 @@ module.exports = function (log, oracle) {
             res.status(403).send({status: "ERROR", data: "No posee permisos para acceder a estos datos."});
             return;
         }
-        let price = new Price();
+        let price = new Price(oracle);
         price.rates(true, function (err, data) {
             if (err) {
                 res.status(500).send({status: "ERROR", message: err.message});
@@ -86,34 +86,36 @@ module.exports = function (log, oracle) {
     function addPrice(req, res) {
         var usr = req.usr,
             Account = require('../models/account');
-
-        //Price
-        let price = new Price(req.body.terminal, oracle);
+        var paramTerminal = usr.terminal,
+            ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
 
         try {
             if (req.body.topPrices === undefined || req.body.topPrices.length < 1) {
-                res.status(403).send({status: "ERROR", data: "Debe proveer un precio válido."});
+                res.status(400).send({status: "ERROR", data: "Debe proveer un precio válido."});
                 return;
             }
             req.body.topPrices.forEach(item => {
                 item.from = moment(item.from, "YYYY-MM-DD").toDate();
             });
 
+            var priceORA = new Price(req.body.terminal, oracle);
+            var priceMongo = new Price(req.body.terminal);
+
             if (req.method === 'POST') {
 
-                var param = {
+                let param = {
                     terminal: req.body.terminal,
                     code: req.body.code.toUpperCase(),
                     description: req.body.description,
                     unit: req.body.unit,
                     topPrices: req.body.topPrices,
-                    matches: null
+                    matches: req.body.matches,
+                    usr: usr
                 };
-
-                //Price
-                price.add(param)
+                //Price Oracle
+                priceORA.add(param)
                     .then(priceAdded => {
-                        log.logger.insert("Price INS:%s - %s", priceAdded.data._id, priceAdded.data.terminal);
+                        log.logger.insert("Price ORA INS:%s - %s", priceAdded.data._id, priceAdded.data.terminal);
 
                         Account.findEmailToApp('price', function (err, emails) {
                             var strSubject,
@@ -139,28 +141,74 @@ module.exports = function (log, oracle) {
                         res.status(200).send(priceAdded);
                     })
                     .catch(err =>  {
-                        log.logger.error(err.message);
+                        log.logger.error("Price ORA INS:%s ", err.message);
                         res.status(500).send(err);
                     });
+
+                //Price MongoDB
+                priceMongo.add(param)
+                    .then(priceAdded => {
+                        log.logger.insert("Price INS:%s - %s", priceAdded.data._id, priceAdded.data.terminal);
+                    })
+                    .catch(err =>  {
+                        log.logger.error(err.message);
+                    });
+
             } else {
 
-                var params = {
-                    _id: req.params.id,
-                    description: req.body.description,
-                    code: req.body.code,
-                    topPrices: req.body.topPrices,
-                    unit: req.body.unit
-                }
-                //Price
-                price.update(params).
-                    then(data => {
-                        log.logger.update("Price UPD:%s - %s", data.data._id, usr.terminal);
-                        res.status(200).send(data);
-                    })
-                .catch(err => {
-                        log.logger.error('Error: %s - %s', err.message, usr.terminal);
-                        res.status(500).send(err);
+                //Price Oracle
+                priceORA.getPrice(req.body._id)
+                    .then(price => {
+
+                        let param = {
+                            _id: req.body._id,
+                            terminal: req.body.terminal,
+                            code: req.body.code.toUpperCase(),
+                            description: req.body.description,
+                            unit: req.body.unit,
+                            topPrices: req.body.topPrices,
+                            matches: req.body.matches,
+                            usr: usr
+                        };
+
+                        priceORA.update(param)
+                            .then(data => {
+                                log.logger.update("Price ORA UPD:%s - %s", req.body._id, usr.terminal);
+                                res.status(200).send(data);
+                            })
+                            .catch(err => {
+                                log.logger.error('Error: %s - %s', err.message, usr.terminal);
+                                res.status(500).send(err);
+                            });
+
+                        price = price.data;
+                        //Price MongoDB
+                        priceMongo.getPrices({code: price.code, terminal: ter})
+                            .then(prices => {
+
+                                prices = prices.data;
+                                if (prices.length > 0) {
+                                    let param = {
+                                        _id: prices[0]._id,
+                                        terminal: req.body.terminal,
+                                        code: req.body.code.toUpperCase(),
+                                        description: req.body.description,
+                                        unit: req.body.unit,
+                                        topPrices: req.body.topPrices,
+                                        matches: req.body.matches,
+                                        usr: usr
+                                    };
+                                    priceMongo.update(param)
+                                        .then(data => {
+                                            log.logger.update("Price UPD:%s - %s", data.data._id, usr.terminal);
+                                        })
+                                        .catch(err => {
+                                            log.logger.error('Error: %s - %s', err.message, usr.terminal);
+                                        });
+                                }});
                     });
+
+
             }
         } catch (error) {
             res.status(500).send({"status": "ERROR", "data": "Error en addPrice " + error.message});
@@ -170,17 +218,40 @@ module.exports = function (log, oracle) {
     function deletePrice(req, res) {
         var usr = req.usr;
 
-        var paramTerminal = req.params.terminal,
+        var paramTerminal = usr.terminal,
             ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
 
-        let price = new Price(ter);
+        let priceORA = new Price(ter, oracle);
 
-        price.delete(req.params.id)
-        .then(data => {
-                res.status(200).send(data);
+        priceORA.getPrice(req.params.id)
+        .then(price => {
+                price = price.data;
+                priceORA.delete(price._id)
+                    .then(data => {
+                        log.logger.info("Price ORA DEL:%s", price._id);
+                        res.status(200).send(data);
+                    })
+                    .catch(err => {
+                        res.status(400).send(err);
+                    });
+
+                let priceMongo = new Price(ter);
+                priceMongo.getPrices({code: price.code, terminal: ter})
+                .then(prices => {
+                        prices = prices.data;
+                        if (prices.length > 0) {
+                            priceMongo.delete(prices[0]._id)
+                                .then(data => {
+                                    log.logger.info("Price DEL:%s", req.params.id);
+                                })
+                                .catch(err => {
+                                });
+                        }
+                    });
+
             })
         .catch(err => {
-                res.status(403).send(err);
+                res.status(400).send(err);
             });
     }
 

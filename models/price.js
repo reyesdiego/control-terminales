@@ -7,7 +7,7 @@ var price = new mongoose.Schema({
     terminal: {type: String, required: true},
     code: {type: String, required: true},
     description: {type: String, required: true},
-    unit: {type: String},
+    unit: {type: Number},
     matches: [{ type: mongoose.Schema.ObjectId, ref: 'matchprices' }],
     rate: {type: String},
     topPrices: [{
@@ -23,10 +23,10 @@ price.virtual('unitCurrency').get(function () {
     'use strict';
 
     var cur, unit;
-    if (this.unit === 'TN') {
+    if (this.unit === 29) {
         unit = 'Tn';
-    } else if (this.unit === 'CONTAINER') {
-        unit = 'Container';
+    } else if (this.unit === 7) {
+        unit = 'Unidad';
     } else {
         unit = 'Cajón';
     }
