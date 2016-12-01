@@ -92,16 +92,15 @@ module.exports = function (log, oracle) {
         param.order = req.query.order;
 
         log.time("getGates");
-        Gate.getGates(param, (err, data) => {
-            let timeEnd = log.timeEnd("getGates");
-            if (err) {
-                err.time = timeEnd;
-                res.status(500).send(err);
-            } else {
-                data.time = timeEnd;
+        Gate.getGates(param)
+            .then(data => {
+                data.time = log.timeEnd("getGates");
                 res.status(200).send(data);
-            }
-        });
+            })
+            .catch(err => {
+                err.time = log.timeEnd("getGates");
+                res.status(500).send(err);
+            });
     }
 
     function getGatesByHour(req, res){
@@ -125,22 +124,16 @@ module.exports = function (log, oracle) {
             params.fechaFin = moment(params.fechaInicio).add(1, 'days').format('YYYY-MM-DD');
         }
 
-        Gate.getByHour(params, (err, data) => {
-            let result;
-            if (err) {
-                result = {
-                    status: 'ERROR',
-                    message: err.message
-                };
-                res.status(200).send(result);
-            } else {
-                result = {
-                    status: 'OK',
-                    data: data
-                };
-                res.status(200).send(result);
-            }
-        });
+        log.time("getByHour");
+        Gate.getByHour(params)
+            .then(data => {
+                data.time = log.timeEnd("getByHour");
+                res.status(200).send(data);
+            })
+            .catch(err => {
+                data.time = log.timeEnd("getByHour");
+                res.status(500).send(err);
+            });
     }
 
     function getGatesByMonth(req, res) {
@@ -157,28 +150,27 @@ module.exports = function (log, oracle) {
         }
         params.fechaInicio = moment([date.year(), date.month(), 1]).subtract(4, 'months').format("YYYY-MM-DD");
         params.fechaFin = moment([date.year(), date.month(), 1]).format("YYYY-MM-DD");
-        Gate.getByMonth(params, (err, data) => {
-            let result;
-            if (err) {
-                result = {
-                    status: 'ERROR',
-                    message: err.message
-                };
-                res.status(200).send(result);
-            } else {
-                result = {
-                    status: 'OK',
-                    data: data
-                };
-                res.status(200).send(result);
-            }
-        });
+
+        log.time("getByMonth");
+        Gate.getByMonth(params)
+        .then(data => {
+                data.time = log.timeEnd("getByMonth");
+                res.status(200).send(data);
+            })
+        .catch(err => {
+                err.time = log.timeEnd("getByMonth");
+                res.status(500).send(err);
+            });
+
     }
 
     function getDistincts(req, res) {
 
         var usr = req.usr,
-            param = {};
+            param = {
+                terminal: null,
+                distinct: null
+            };
 
         if (req.route.path === '/:terminal/ships') {
             param.distinct = 'buque';
@@ -195,17 +187,22 @@ module.exports = function (log, oracle) {
 
         if (param.distinct !== '') {
 
-            Gate.getDistinct(param, (err, data) => {
-                if (err) {
-                    res.status(500).send({status: 'ERROR', data: err.message});
-                } else {
+            log.time("getDistincts");
+            Gate.getDistinct(param)
+            .then(data => {
                     res.status(200).send({
                         status: 'OK',
                         totalCount: data.length,
+                        time: log.timeEnd("getDistincts"),
                         data: data.sort()
                     });
-                }
-            });
+                })
+            .catch(err => {
+                    res.status(500).send({
+                        status: 'ERROR',
+                        time: log.timeEnd("getDistincts"),
+                        data: err.message});
+                });
         } else {
             res.status(400).send({status: 'ERROR', message: 'El ruta es inválida', data: []});
         }
@@ -227,15 +224,17 @@ module.exports = function (log, oracle) {
             limit: parseInt(req.params.limit, 10)
         };
 
-        Gate.getMissingGates(param, (err, data) => {
-
-            if (err) {
-                res.status(500).send(err);
-            } else {
+        log.time("getMissingGates");
+        Gate.getMissingGates(param)
+        .then(data => {
+                data.time = log.timeEnd("getMissingGates")
                 res.status(200).send(data);
                 res.flush();
-            }
-        });
+            })
+        .catch(err => {
+                err.time = log.timeEnd("getMissingGates")
+                res.status(500).send(err);
+            });
     }
 
     function getMissingGatesORI(req, res) {
@@ -349,16 +348,19 @@ module.exports = function (log, oracle) {
         }
         param = {
             terminal: terminal
-        }
-        Gate.getMissingInvoices(param, (err, data) => {
+        };
 
-            if (err) {
-                res.status(500).send(err);
-            } else {
+        log.time("getMissingGates");
+        Gate.getMissingInvoices(param)
+        .then(data => {
+                data.time = log.timeEnd("getMissingGates")
                 res.status(200).send(data);
                 res.flush();
-            }
-        });
+            })
+        .catch(err => {
+                err.time = log.timeEnd("getMissingGates")
+                res.status(500).send(err);
+            });
     }
 
     function getMissingAppointments(req, res) {
