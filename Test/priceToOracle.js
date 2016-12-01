@@ -10,12 +10,12 @@ var config = require('../config/config.js'),
     async = require("async"),
     moment = require("moment");
 
-require('../include/mongoose.js')(log);
+require('../include/mongoose.js')(config.mongo.url, config.mongo.options, log);
 var Price = require("../models/price.js");
 var MatchPrice = require("../models/matchPrice.js");
 
 var oracledb = require('oracledb');
-oracledb.maxRows = 103;
+oracledb.maxRows = 3000;
 //oracledb.outFormat = ;
 oracledb.getConnection(
     {
@@ -36,7 +36,6 @@ oracledb.getConnection(
         }
         var prices = Price.find();
         prices.populate('matches');
-        prices.lean();
         prices.exec( function (err, data) {
             let strSql, //jshint ignore:line
                 param;
@@ -52,7 +51,7 @@ oracledb.getConnection(
                     "UNIDAD, " +
                     "RATE" +
                     ") VALUES (" +
-                    "invoices_seq.nextval, " +
+                    "TARIFARIO_SEQ.nextval, " +
                     ":terminal, " +
                     ":code, " +
                     ":description, " +
@@ -74,78 +73,80 @@ oracledb.getConnection(
                     } else {
                         var tasks = [],
                             task;
-                        if (price.matches) {
-                            price.matches.forEach(function (match) {
-                                match.match.forEach(function (item) {
-                                    let param;
-                                    task = function (callbackMatch) {
-                                        strSql = "insert into TARIFARIO_TERMINAL " +
-                                            "(ID," +
-                                            "TARIFARIO_ID," +
-                                            "TERMINAL," +
-                                            "CODE " +
-                                            ") VALUES (" +
-                                            "invoices_seq.nextval," +
-                                            ":tarifario_id, " +
-                                            ":terminal, " +
-                                            ":code)";
-                                        param = {
-                                            tarifario_id :result.outBinds.outputId[0],
-                                            terminal: match.terminal,
-                                            code: item
-                                        };
-                                        connection.execute(strSql, param, {autoCommit:true}, function(err, resultDetail) {
-                                            if (err) {
-                                                console.error(err.message);
-                                                callbackMatch();
-                                            } else {
-                                                callbackMatch();
-                                            }
-                                        });
+                        if (price.matches === undefined || price.matches == null ) {
+                            price.matches = [];
+                        }
+                        if (price.topPrices === undefined || price.topPrices == null ) {
+                            price.topPrices = [];
+                        }
+                        price.matches.forEach(function (match) {
+                            match.match.forEach(function (item) {
+                                let param;
+                                task = function (callbackMatch) {
+                                    strSql = "insert into TARIFARIO_TERMINAL " +
+                                        "(ID," +
+                                        "TARIFARIO_ID," +
+                                        "TERMINAL," +
+                                        "CODE " +
+                                        ") VALUES (" +
+                                        "TARIFARIO_SEQ.nextval," +
+                                        ":tarifario_id, " +
+                                        ":terminal, " +
+                                        ":code)";
+                                    param = {
+                                        tarifario_id: result.outBinds.outputId[0],
+                                        terminal: match.terminal,
+                                        code: item
                                     };
-                                    tasks.push(task);
-                                });
+                                    connection.execute(strSql, param, {autoCommit: true}, function (err, resultDetail) {
+                                        if (err) {
+                                            console.error(err.message);
+                                            callbackMatch();
+                                        } else {
+                                            callbackMatch();
+                                        }
+                                    });
+                                };
+                                tasks.push(task);
                             });
-                            price.topPrices.forEach(function (topPrice) {
+                        });
+                        price.topPrices.forEach(function (topPrice) {
                                 task = function (callbackTopPrice) {
                                     let param;
                                     strSql = "insert into TARIFARIO_PRECIO " +
-                                            "(ID," +
-                                            "TARIFARIO_ID," +
-                                            "FECHA," +
-                                            "PRECIO," +
-                                            "MONEDA " +
-                                            ") VALUES (" +
-                                            "invoices_seq.nextval," +
-                                            ":tarifario_id, " +
-                                            "to_date(:fecha, 'YYYY-MM-DD'), " +
-                                            ":precio, " +
-                                            ":moneda)";
-                                        param = {
-                                            tarifario_id :result.outBinds.outputId[0],
-                                            fecha: moment(topPrice.from).format('YYYY-MM-DD'),
-                                            precio: (topPrice.price !== undefined && topPrice.price !== null) ? topPrice.price : 0,
-                                            moneda: (topPrice.currency !== undefined) ? topPrice.currency : null
-                                        };
+                                        "(ID," +
+                                        "TARIFARIO_ID," +
+                                        "FECHA," +
+                                        "PRECIO," +
+                                        "MONEDA " +
+                                        ") VALUES (" +
+                                        "TARIFARIO_SEQ.nextval," +
+                                        ":tarifario_id, " +
+                                        "to_date(:fecha, 'YYYY-MM-DD'), " +
+                                        ":precio, " +
+                                        ":moneda)";
+                                    param = {
+                                        tarifario_id: result.outBinds.outputId[0],
+                                        fecha: moment(topPrice.from).format('YYYY-MM-DD'),
+                                        precio: (topPrice.price !== undefined && topPrice.price !== null) ? topPrice.price : 0,
+                                        moneda: (topPrice.currency !== undefined) ? topPrice.currency : null
+                                    };
 
-                                        connection.execute(strSql, param, {autoCommit:true}, function(err, resultDetail) {
-                                            if (err) {
-                                                console.error(err.message);
-                                                callbackTopPrice();
-                                            } else {
-                                                callbackTopPrice();
-                                            }
-                                        });
+                                    connection.execute(strSql, param, {autoCommit: true}, function (err, resultDetail) {
+                                        if (err) {
+                                            console.error(err.message);
+                                            callbackTopPrice();
+                                        } else {
+                                            callbackTopPrice();
+                                        }
+                                    });
                                 };
                                 tasks.push(task);
                             });
 
-                            async.parallel(tasks, function (err, data) {
-                                callback();
-                            });
-                        } else {
+                        async.parallel(tasks, function (err, data) {
                             callback();
-                        }
+                        });
                     }
                 });
             }, function () {
