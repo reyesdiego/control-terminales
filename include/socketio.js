@@ -2,7 +2,7 @@
  * Created by diego on 4/12/16.
  */
 
-module.exports = function (server, log) {
+module.exports = (server, log) => {
     "use strict";
 
     //transports: [
@@ -23,14 +23,14 @@ module.exports = function (server, log) {
             ]
         });
 
-    io.on('connection', function (socket) {
+    io.on('connection', socket => {
         log.logger.info('Socket Client Connected: %s from: %s.', socket.id, socket.client.conn.remoteAddress);
 
-        socket.on('login', function (user, cb) {
+        socket.on('login', (user, cb) => {
             var logged = addOnline(socket.id, user);
-            Account.findOne({user: user}, function (err, loggedUser) {
+            Account.findOne({user: user}, (err, loggedUser) => {
                 loggedUser.lastLogin = new Date();
-                loggedUser.save(function (err, userSaved) {
+                loggedUser.save((err, userSaved) => {
                     socket.broadcast.emit('loggedIn', loggedUser);
                     log.logger.info('Socket Client Logged In: %s - %s - %s.', socket.id, user, socket.client.conn.remoteAddress);
 
@@ -41,11 +41,11 @@ module.exports = function (server, log) {
             });
         });
 
-        socket.on('logoff', function (user, cb) {
+        socket.on('logoff', (user, cb) => {
             var offline = RemoveOnline(socket.id);
-            Account.findOne({user: user}, function (err, loggedUser) {
+            Account.findOne({user: user}, (err, loggedUser) => {
                 loggedUser.lastLogin = new Date();
-                loggedUser.save(function (err, userSaved) {
+                loggedUser.save((err, userSaved) => {
                     socket.broadcast.emit('loggedOff', offline);
                     log.logger.info('Socket Client Logged Off: %s - %s - %s.', socket.id, user, socket.client.conn.remoteAddress);
 
@@ -56,42 +56,42 @@ module.exports = function (server, log) {
             });
         });
 
-        socket.on('newUser', function (cb) {
+        socket.on('newUser', cb => {
             console.log("newUser %s", socket.id);
             if (typeof cb === 'function') {
                 return cb(socket.id);
             }
         });
 
-        socket.on('gate', function (param) {
+        socket.on('gate', param => {
             socket.broadcast.emit('gate', param);
         });
 
-        socket.on('invoice', function (param) {
+        socket.on('invoice', param => {
             socket.broadcast.emit('invoice', param);
         });
 
-        socket.on('appointment', function (param) {
+        socket.on('appointment', param => {
             socket.broadcast.emit('appointment', param);
         });
 
-        socket.on('disconnect', function (reason) {
+        socket.on('disconnect', reason => {
             var offline
             if (reason === 'ping timeout') {
-                log.logger.info('Socket Client Disconnect (ping timeout) %s.', socket.id);
+                //log.logger.info('Socket Client Disconnect (ping timeout) %s.', socket.id);
             } else if (reason === 'transport close') {
                 offline = RemoveOnline(socket.id);
                 if (offline) {
-                    Account.findOne({user: offline.user}, function (err, loggedUser) {
+                    Account.findOne({user: offline.user}, (err, loggedUser) => {
                         loggedUser.lastLogin = new Date();
-                        loggedUser.save(function (err, userSaved) {
+                        loggedUser.save((err, userSaved) => {
                             socket.broadcast.emit('loggedOff', offline);
-                            log.logger.info('Socket Client Disconnect (transport close). %s.', socket.id);
+                            //log.logger.info('Socket Client Disconnect (transport close). %s.', socket.id);
                         });
                     });
                 }
             } else {
-                log.logger.info('Socket Client %s Disconnect. Reason: %s.', socket.id, reason);
+                //log.logger.info('Socket Client %s Disconnect. Reason: %s.', socket.id, reason);
             }
         });
     });
@@ -107,7 +107,6 @@ function addOnline(id, user) {
 }
 
 function RemoveOnline(id) {
-    "use strict";
     var i,
         item;
 
