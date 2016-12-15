@@ -86,14 +86,14 @@ module.exports = function (log, io, oracle) {
             param.terminal = usr.terminal;
         }
 
-        Invoice2.getInvoice(param, function (err, data) {
-            if (err) {
+        Invoice2.getInvoice(param)
+            .then(data => {
+                res.status(200).send(data);
+            })
+        .catch(err => {
                 log.logger.error("%s", err);
                 res.status(500).send(err);
-            } else {
-                res.status(200).send(data);
-            }
-        });
+            });
     }
 
     function getClients (req, res) {
@@ -929,11 +929,11 @@ module.exports = function (log, io, oracle) {
                     match["fecha.emision"] = {};
                     if (req.query.fechaInicio) {
                         fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
-                        match["fecha.emision"]['$gte'] = fecha;
+                        match["fecha.emision"].$gte = fecha;
                     }
                     if (req.query.fechaFin) {
                         fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
-                        match["fecha.emision"]['$lte'] = fecha;
+                        match["fecha.emision"].$lte = fecha;
                     }
                 }
 
@@ -988,19 +988,17 @@ module.exports = function (log, io, oracle) {
 
     function getNoMatches(req, res) {
 
-        var Invoice3 = require('../lib/invoice2.js');
-        Invoice3 = new Invoice3();
-
         var param ={
-                terminal: req.params.terminal,
-                skip: parseInt(req.params.skip, 10),
-                limit: parseInt(req.params.limit, 10),
-                fechaInicio: req.query.fechaInicio,
-                fechaFin: req.query.fechaFin
-            };
+            terminal: req.params.terminal,
+            skip: parseInt(req.params.skip, 10),
+            limit: parseInt(req.params.limit, 10),
+            fechaInicio: req.query.fechaInicio,
+            fechaFin: req.query.fechaFin,
+            order: req.query.order
+        };
 
-        Invoice3.getNoMatches(param).
-        then(data => {
+        Invoice2.getNoMatches(param)
+            .then(data => {
                 res.status(200).send(data);
             })
         .catch(err => {
@@ -1029,11 +1027,11 @@ module.exports = function (log, io, oracle) {
             param["fecha.emision"] = {};
             if (req.query.fechaInicio) {
                 fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
-                param["fecha.emision"]['$gte'] = fecha;
+                param["fecha.emision"].$gte = fecha;
             }
             if (req.query.fechaFin) {
                 fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
-                param["fecha.emision"]['$lte'] = fecha;
+                param["fecha.emision"].$lte = fecha;
             }
         }
         cashBoxes = [];
@@ -1137,7 +1135,7 @@ module.exports = function (log, io, oracle) {
             cashboxExecs = [],
             async;
 
-        log.time("totalTime");
+        log.time("getCorrelative");
 
         if (req.query.nroPtoVenta) {
             cashBoxes = req.query.nroPtoVenta.split(',');
@@ -1208,7 +1206,7 @@ module.exports = function (log, io, oracle) {
                     status: "OK",
                     totalCount: contadorFaltantesTotal,
                     data: results,
-                    time: log.timeEnd("totalTime")
+                    time: log.timeEnd("getCorrelative")
                 };
                 res.status(200).send(response);
             }
@@ -1216,10 +1214,9 @@ module.exports = function (log, io, oracle) {
     }
 
     function getCashbox(req, res) {
-        var param = {}
-        var ter = (req.usr.role === 'agp') ? req.params.terminal : req.usr.terminal;
+        var param = {};
 
-        param.terminal = ter;
+        param.terminal = (req.usr.role === 'agp') ? req.params.terminal : req.usr.terminal;
         param.fechaInicio = req.query.fechaInicio;
         param.fechaFin = req.query.fechaFin;
         param.nroPtoVenta = req.query.nroPtoVenta;
@@ -1255,7 +1252,7 @@ module.exports = function (log, io, oracle) {
                 log.logger.error(errMsg);
                 res.status(500).send({status: "ERROR", message: errMsg});
             } else {
-                res.status(200).send({"status": "OK", "data": data})
+                res.status(200).send({"status": "OK", "data": data});
             }
         });
     }
@@ -1373,8 +1370,9 @@ module.exports = function (log, io, oracle) {
                                 var ter = {terminal: key, data: {}};
                                 prop.forEach(function (item){
                                     for (var pro in item){
-                                        if (pro !== 'terminal')
-                                            ter.data[pro]= item[pro];
+                                        if (pro !== 'terminal') {
+                                            ter.data[pro] = item[pro];
+                                        }
                                     }
                                 });
                                 return (ter);
@@ -1513,8 +1511,9 @@ module.exports = function (log, io, oracle) {
                                     }).toArray();
                                     dataQ = Enumerable.from(resultTer).groupJoin(dataOra, '$.buque', '$.buque', (item, g) => {
                                         var both = false;
-                                        if (g.getSource !== undefined)
+                                        if (g.getSource !== undefined) {
                                             both = true;
+                                        }
                                         return {
                                             buque: item.buque,
                                             viajes: item.viajes,
