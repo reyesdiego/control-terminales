@@ -103,6 +103,9 @@ module.exports = function (log) {
                             if (req.query.razonSocial) {
                                 match.razon = req.query.razonSocial;
                             }
+                            if (req.query.contenedor) {
+                                match['detalle.contenedor'] = req.query.contenedor;
+                            }
                         }
 
                         groupByContainer = {
@@ -583,7 +586,9 @@ module.exports = function (log) {
             if (req.query.razonSocial) {
                 param.razon = req.query.razonSocial;
             }
-
+            if (req.query.contenedor) {
+                param['detalle.contenedor'] = req.query.contenedor;
+            }
         }
         calculatePrePayment(param, function (err, payment) {
             if (err) {
