@@ -53,9 +53,10 @@ module.exports = function (log) {
 
                     if (paginated) {
                         estados = ['todo'];
+                        estados = ['E', 'R', 'T'];
                         tipoDeSuma = '$detalle.items.impTot';
                     } else {
-                        estados = ['E', 'R', 'T'];
+                        estados = ['R', 'T'];
                         tipoDeSuma = {
                             $cond: { if: {$or: cond},
                                 then: {$multiply: ['$detalle.items.impTot', -1]},
@@ -217,15 +218,14 @@ module.exports = function (log) {
                         }
 
                         invoices = Invoice.aggregate(param);
-                        invoices.exec(function (err, data) {
-                            var countContainer;
+                        invoices.exec((err, data) => {
                             if (err) {
                                 callback(err);
                             } else {
                                 response = Enumerable.from(data)
-                                    .join(Enumerable.from(prices), '$.code', '$.code', function (tasaInvoice, price) {
+                                    .join(Enumerable.from(prices), '$.code', '$.code', (tasaInvoice, price) => {
                                         var top = Enumerable.from(price.price.topPrices)
-                                            .where(function (itemW) {
+                                            .where(itemW => {
                                                 if (itemW.from < tasaInvoice.emision) {
                                                     return true;
                                                 } else {
@@ -247,50 +247,23 @@ module.exports = function (log) {
                                     }).toArray();
 
                                 if (paginated) {
-                                    if (req.query.byContainer === '1') {
-                                        countContainer = [
-                                            {"$match": match},
-                                            {"$project": {
-                                                "estado": 1,
-                                                "detalle": 1
-                                            }},
-                                            {"$unwind": "$estado"},
-                                            { "$group": {
-                                                "_id": {"_id": "$_id",
-                                                    "detalle": "$detalle"},
-                                                "estado": {"$last": "$estado"}
-                                            }},
-                                            {"$project": {"_id": "$_id._id", "detalle": "$_id.detalle"}},
-                                            {"$match": {"estado.estado": {"$nin": ["todo"]}}},
-                                            {"$unwind": "$detalle"},
-                                            {"$unwind": "$detalle.items"},
-                                            {"$match": {"detalle.items.id": {"$in": rates}}},
-                                            {"$group": {
-                                                "_id": '',
-                                                cnt: {$sum: 1}
-                                            }}
-                                        ];
 
-                                        Invoice.aggregate(countContainer, function (err, count){
+                                    param = param.slice(0, param.length-2);
+                                    param.push({
+                                        $group: {_id: '', cnt: {$sum: 1}}
+                                    });
+                                    Invoice.aggregate(param)
+                                        .exec((err, cuenta) => {
                                             if (err) {
                                                 callback(err);
                                             } else {
                                                 let cnt = 0;
-                                                if (count[0]) {
-                                                    cnt = count[0].cnt;
+                                                if (cuenta[0]) {
+                                                    cnt = cuenta[0].cnt;
                                                 }
                                                 callback(null, {status: "OK", totalCount: cnt, data: response});
                                             }
                                         });
-                                    } else {
-                                        Invoice.count(match, function (err, count) {
-                                            if (err) {
-                                                callback(err);
-                                            } else {
-                                                callback(null, {status: "OK", totalCount: count, data: response});
-                                            }
-                                        });
-                                    }
                                 } else {
                                     callback(null, {status: "OK", data: response});
                                 }
@@ -484,11 +457,13 @@ module.exports = function (log) {
                             payment: 1,
                             fecha: '$fecha.emision',
                             cotiMoneda: 1,
-                            detalle: 1
+                            detalle: 1,
+                            estado: 1
                         }},
                         {$unwind: '$detalle'},
                         {$unwind: '$detalle.items'},
                         {$match: {'detalle.items.id': {$in: rates }}},
+                        {"$match":{"estado.estado":{"$nin":["R","T"]}}},
                         {$project: {
                             terminal: 1,
                             code: '$detalle.items.id',
@@ -504,6 +479,7 @@ module.exports = function (log) {
                             impUnit: '$detalle.items.impUnit'
                         }}
                     ];
+
                     totalPayment = Invoice.aggregate(param);
                     totalPayment.exec(function (err, totalPayment) {
                         var result = Enumerable.from(totalPayment)

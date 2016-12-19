@@ -66,7 +66,14 @@ var invoiceSchema = new Schema({
     }],
     estado : [
         {
-            estado : {type: String, default: 'Y', enum: ['R', 'Y', 'G', 'C', 'T']},
+            estado : {type: String, default: 'Y',
+                enum: [
+                    'R', //Error
+                    'Y', //Sin Ver
+                    'G', //OK
+                    'C', //Revisar
+                    'T' //Error en resultado
+                ]},
             grupo : {type: String },
             user : {type: String}
         }
