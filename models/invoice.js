@@ -78,7 +78,7 @@ var invoiceSchema = new Schema({
             user : {type: String}
         }
     ],
-    resend: {type: Number},
+    resend: {type: Number, enum:[0, 1]},
     comment: [{type: mongoose.Schema.ObjectId, ref: 'comments' }],
     payment: {type: mongoose.Schema.ObjectId, ref: 'payings' }
 });

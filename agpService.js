@@ -20,8 +20,9 @@ var date = moment().format('DD-MM-YYYY');
 var asyncParallel = [];
 var terminalsName = ['bactssa', 't4', 'trp'];
 var to = ["dreyes@puertobuenosaires.gob.ar", "reclamosuct@puertobuenosaires.gob.ar"];
+var to = ["dreyes@puertobuenosaires.gob.ar"];
 
-var sendToClient = true;
+var sendToClient = false;
 var sendMail = config.email;
 
 var host = config.domain;
@@ -194,7 +195,7 @@ VouchersType.find({}, (err, vouchersDesc) => {
                                                     });
                                                     reqGet.end(); // ejecuta el request
                                                 };
-                                                asyncParallel.push(functionObject);
+                                                //asyncParallel.push(functionObject);
                                             });
                                             callbackTerminal();
 

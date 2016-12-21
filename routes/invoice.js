@@ -994,11 +994,15 @@ module.exports = function (log, io, oracle) {
             limit: parseInt(req.params.limit, 10),
             fechaInicio: req.query.fechaInicio,
             fechaFin: req.query.fechaFin,
-            order: req.query.order
+            order: req.query.order,
+            razonSocial: req.query.razonSocial,
+            code: req.query.code
         };
 
+        log.time('invoice - getNoMatches');
         Invoice2.getNoMatches(param)
             .then(data => {
+                log.timeEnd('invoice - getNoMatches');
                 res.status(200).send(data);
             })
         .catch(err => {
@@ -1645,6 +1649,42 @@ module.exports = function (log, io, oracle) {
         });
     }
 
+    var setResend = (req, res) => {
+        var resend = parseInt(req.query.resend);
+        var id = parseInt(req.params.id);
+
+        if (resend !== 0 && resend !== 1) {
+            res.status(400).send({
+                status: 'ERROR',
+                message: 'El parámetro resend debe ser 0 o 1'
+            });
+        } else {
+            Invoice2.setResend(id, resend)
+                .then(data => {
+                    log.logger.info('UPDATE ORA RESEND: %s - %s', resend, req.params.id);
+                    res.status(200).send(data);
+                })
+                .catch(err => {
+                    log.logger.error('UPDATE ORA RESEND: %s - %s - %s', resend, req.params.id, err.message);
+                    res.status(500).send(err);
+                });
+
+/*
+            var InvoiceMongoDB = require('../lib/invoice2.js');
+            InvoiceMongoDB = new InvoiceMongoDB();
+            InvoiceMongoDB.setResend(req.params.id, resend)
+                .then(data => {
+                    log.logger.info('UPDATE MONGO RESEND: %s - %s', resend, req.params.id);
+                })
+                .catch(err => {
+                    log.logger.error('UPDATE MONGO RESEND: %s - %s - %s', resend, req.params.id, err.message);
+                });
+*/
+
+
+        }
+    }
+
     /*
      router.use(function timeLog(req, res, next){
      log.logger.info('Time: %s', Date.now());
@@ -1682,7 +1722,6 @@ module.exports = function (log, io, oracle) {
     router.get('/correlative/:terminal', getCorrelative);
     router.get('/cashbox/:terminal', getCashbox);
     router.put('/invoice/:terminal/:_id', updateInvoice);
-    router.put('/setState/:terminal/:_id', addState);
     router.delete('/:_id', removeInvoices);
     router.get('/:terminal/ships', getShips);
     router.get('/:terminal/containers', getContainers);
@@ -1694,6 +1733,8 @@ module.exports = function (log, io, oracle) {
     router.get('/containersNoRates/:terminal', getContainersNoRates);
     router.get('/totalClient', getTotals);
     router.get('/totalClientTop', getTotals);
+    router.put('/setState/:terminal/:_id', addState);
+    router.put('/setResend/:id', setResend);
 
 //	app.get('/invoices/log/:seconds', function( req, res) {
 //		logInvoiceBody = 1;

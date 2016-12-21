@@ -111,10 +111,14 @@ module.exports = function (log, oracle) {
         var params = {
             terminal: req.params.terminal,
             fechaInicio: req.query.fechaInicio,
-            fechaFin: req.query.fechaFin
+            fechaFin: req.query.fechaFin,
+            code: req.query.code,
+            razonSocial: req.query.razonSocial
         };
+        log.time('matchPrice - getNoMatches');
         MatchPrice.getNoMatches(params)
         .then(data => {
+                log.timeEnd('matchPrice - getNoMatches');
                 res.status(200).send(data);
             })
         .catch(err => {
