@@ -13,8 +13,6 @@ var config = require('./config/config.js'),
     moment = require('moment'),
     port = process.env.PORT || config.server_port_ter,
     httpExpress,
-    VoucherType = require('./models/voucherType.js'),
-    voucherType,
     oracle;
 
 //moment.locale('es');
@@ -54,7 +52,7 @@ oracle.oracledb.createPool({
     poolIncrement: 5,
     poolTimeout: 4
 }, //TODO check ORA-24418
-    function (err, pool) {
+    (err, pool) => {
 
         oracle.pool = pool;
         log.logger.info("Oracle Connected to Database. Versión %s", oracle.oracledb.oracleClientVersion);
@@ -77,20 +75,18 @@ oracle.oracledb.createPool({
             }
         };
 
-        voucherType = VoucherType.find({}, {description: true});
-        voucherType.lean();
-        voucherType.exec(function (err, data) {
-            var result = [];
-            if (err) {
+        var VoucherType = require('./lib/voucherType.js');
+        VoucherType = new VoucherType(oracle);
+
+        VoucherType.getAll({type: 'array'})
+            .then(data => {
+                global.cache.voucherTypes = data.data;
+                require('./routes/routesTer')(log, httpExpress.app, io, oracle, params);
+            })
+            .catch(err => {
                 log.logger.error(err);
-            } else {
-                data.forEach(function (item) {
-                    result[item._id] = item.description;
-                });
-            }
-            global.cache.voucherTypes = result;
-            require('./routes/routesTer')(log, httpExpress.app, ioClient, oracle, params);
-        });
+            });
+
     });
 
 process.on('exit', () => {

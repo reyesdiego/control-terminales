@@ -79,7 +79,7 @@ module.exports = function (log, app, io, oracle, params) {
     unitType = require('./unitType')(log);
     app.use('/unitTypes', unitType);
 
-    voucherType = require('./voucherType')(log);
+    voucherType = require('./voucherType')(log, oracle);
     app.use('/voucherTypes', isValidToken, voucherType);
 
 

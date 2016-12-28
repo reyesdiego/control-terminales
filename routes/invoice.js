@@ -1447,97 +1447,23 @@ module.exports = function (log, io, oracle) {
     function getShipTrips (req, res) {
         var usr = req.usr;
         var paramTerminal = req.params.terminal;
-        var moment = require('moment');
 
-        let mayor20140801 = new Date(2014, 7, 1);
+        var Invoice3 = require('../lib/invoice2.js');
+        Invoice3 = new Invoice3(oracle);
 
         var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
         var param = {
                     terminal: ter,
-                    'detalle.buque.nombre': {$ne: null},
-                    'fecha.emision': {$gte: mayor20140801}
+                    'detalle.buque.nombre': {$ne: null}
         };
 
-        Invoice.aggregate([
-            { $match: param },
-            { $unwind : '$detalle'},
-            { $group: {_id: {buque: '$detalle.buque.nombre', viaje: '$detalle.buque.viaje', fecha: '$detalle.buque.fecha'} } },
-            { $sort: { '_id.buque': 1, '_id.fecha': 1} },
-            { $project : {buque: '$_id.buque', viaje: '$_id.viaje', fecha: '$_id.fecha', _id: false}}
-        ], (err, data) => {
-            var Enumerable,
-                resultTer;
-            if (err) {
-                res.status(500).json({status: 'ERROR', data: err.message});
-            } else {
-                Enumerable = require('linq');
-                resultTer = Enumerable.from(data)
-                    .groupBy("$.buque" , null, (key, g) => {
-                        var prop = g.getSource();
-                        var ter = {buque: key, viajes: []};
-                        prop.forEach(item => {
-                            //let viaje = {
-                            //    viaje : item.viaje,
-                            //    fecha : item.fecha
-                            //};
-                            let viaje = [item.viaje, moment(item.fecha).format("DD-MM-YYYY")];
-                            ter.viajes.push(viaje);
-                            //for (var pro in item){
-                            //    if (pro !== 'buque')
-                            //        ter.viajes.push(item[pro]);
-                            //}
-                        });
-                        return (ter);
-                    }).toArray();
-
-                if (oracle.pool) {
-                    oracle.pool.getConnection((err, connection) => {
-                        var strSql;
-                        if (err) {
-                            console.log("%s, Error en Oracle getShipTrips.", new Date());
-                            res.status(200).send({status: 'OK', data: resultTer});
-                        } else {
-
-                            strSql = "select nombrebuque buque, fechaarribo fecha, count(*) cnt " +
-                                "	from registro1_sumimpomani " +
-                                "	group by nombrebuque, fechaarribo " +
-                                "	order by nombrebuque,fechaarribo";
-
-                            connection.execute(strSql, [], (err, dataOra) => {
-                                var dataQ;
-                                if (err) {
-                                    oracle.doRelease(connection);
-                                    res.status(500).send({status: 'ERROR', data: err});
-                                } else {
-                                    oracle.doRelease(connection);
-                                    dataOra = Enumerable.from(dataOra.rows).select(item => {
-                                        return {"buque": item.BUQUE, fecha: item.FECHA};
-                                    }).toArray();
-                                    dataQ = Enumerable.from(resultTer).groupJoin(dataOra, '$.buque', '$.buque', (item, g) => {
-                                        var both = false;
-                                        if (g.getSource !== undefined) {
-                                            both = true;
-                                        }
-                                        return {
-                                            buque: item.buque,
-                                            viajes: item.viajes,
-                                            both: both
-                                        };
-                                    }).toArray();
-
-                                    res.status(200).send({status: 'OK', data: dataQ});
-
-                                }
-                            });
-                        }
-                    });
-                } else {
-                    console.log("%s, Error en Oracle getShipTrips.", new Date());
-                    res.status(200).send({status: 'OK', data: resultTer});
-                }
-
-            }
-        });
+        Invoice3.getShipTrips(param)
+        .then(data => {
+                res.status(200).send(data);
+            })
+        .catch(err => {
+                res.status(500).send(err);
+            });
     }
 
     function getShipContainers (req, res) {

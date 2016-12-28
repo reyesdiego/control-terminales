@@ -2,67 +2,43 @@
  * Created by diego on 6/3/14.
  */
 
-module.exports = function (log) {
+module.exports = function (log, oracle) {
     'use strict';
 
     var express = require('express'),
         router = express.Router(),
-        Voucher = require('../models/voucherType.js');
+        VoucherType = require('../lib/voucherType.js');
+
+    VoucherType = new VoucherType(oracle);
 
     function getVoucherTypes(req, res) {
-        var response,
-            result,
-            vouchers;
 
-        vouchers = Voucher.find();
-        vouchers.sort({description: 1});
-        vouchers.lean();
-        vouchers.exec(function (err, data) {
-            if (err) {
-                res.status(500).send({status: "ERROR", data: err.message});
-            } else {
-                result = data;
-                if (req.query.type === 'array') {
-                    result = {};
-                    data.forEach(function (item) {
-                        result[item._id] = item;
-                    });
-                }
-                response = {
-                    status: 'OK',
-                    totalCount: data.length,
-                    data: result
-                };
-                res.status(200).send(response);
-            }
-        });
+        VoucherType.getAll({type: req.query.type})
+        .then(data => {
+                res.status(200).send(data);
+            })
+        .catch(err => {
+                res.status(500).send(err);
+            });
     }
 
     function getVoucherByTerminal (req, res) {
         var usr = req.usr,
-            param = {},
-            Invoice = require('../models/invoice.js'),
-            voucher;
+            terminal = '';
 
         if (usr.role === 'agp') {
-            param.terminal = req.params.terminal;
+            terminal = req.params.terminal;
         } else {
-            param.terminal = usr.terminal;
+            terminal = usr.terminal;
         }
 
-        Invoice.distinct('codTipoComprob', param, function (err, data) {
-
-            voucher = Voucher.find({_id: {$in: data}});
-            voucher.sort({description: 1});
-            voucher.lean();
-            voucher.exec(function (err, vouchers) {
-
-                res.status(200).send({
-                    status: "OK",
-                    data: vouchers
-                });
+        VoucherType.getByTerminal(terminal)
+            .then(data => {
+                res.status(200).send(data);
+            })
+            .catch(err => {
+                res.status(500).send(err);
             });
-        });
     }
 
 /*

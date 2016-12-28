@@ -10,6 +10,9 @@ module.exports = function (log, oracle) {
         util = require("util"),
         moment = require('moment');
 
+    var Registro1SumImpoMani = require('../../lib/afip/registro1_sumImpoMani.js');
+    Registro1SumImpoMani = new Registro1SumImpoMani(oracle);
+
     function getRegistro1_sumimpomani(req, res) {
 
         oracle.pool.getConnection(function (err, connection) {
@@ -198,41 +201,15 @@ module.exports = function (log, oracle) {
         });
     }
 
-    function getShipsTrips(req, res) {
-        oracle.pool.getConnection(function (err, connection) {
-            var strSql = '';
-            if (err) {
-                console.log(err, "Error acquiring from pool.");
-                res.status(500).json({ status: 'ERROR', data: err });
-            } else {
-                strSql = "select nombrebuque buque, fechaarribo fecha, count(*) cnt " +
-                            "    from registro1_sumimpomani " +
-                            "    group by nombrebuque, fechaarribo " +
-                            "    order by nombrebuque,fechaarribo";
-
-                connection.execute(strSql, [], function (err, data) {
-                    var Enumerate,
-                        dataQ,
-                        result;
-
-                    if (err) {
-                        oracle.doRelease(connection);
-                        res.status(500).send({ status: 'ERROR', data: err });
-                    } else {
-                        oracle.doRelease(connection);
-                        Enumerate = require("linq");
-                        dataQ = Enumerate.from(data.rows);
-                        result = dataQ.select(function (item) {
-                                return { "buque": item.BUQUE, fecha: item.FECHA};
-                            }).toArray();
-
-                        result = {status: "OK", totalCount : result.length, data : result};
-                        res.status(200).json(result);
-                    }
-                });
-            }
-        });
-    }
+    let getShipsTrips = (req, res) => {
+        Registro1SumImpoMani.getShipsTrips({})
+        .then(data => {
+                res.status(200).send(data);
+            })
+        .catch(err => {
+                res.status(500).send(err);
+            });
+    };
 
     // Se deja comentado el middleware ya que no tiene utilidad hasta este momento
     //router.use(function timeLog(req, res, next){

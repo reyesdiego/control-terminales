@@ -12,8 +12,6 @@ var config = require('./config/config.js'),
     passport = null,
     httpExpress,
     oracle,
-    VoucherType = require('./models/voucherType.js'),
-    voucherType,
     io;
 
 global.cache = {
@@ -45,7 +43,7 @@ oracle.oracledb.createPool({
     poolIncrement: 5,
     poolTimeout: 4
 },
-    function (err, pool) {
+    (err, pool) => {
 
         oracle.pool = pool;
         if (err) {
@@ -61,20 +59,17 @@ oracle.oracledb.createPool({
             oracle: {pool: pool}
         };
 
-        voucherType = VoucherType.find({}, {_id: 1, description: 1});
-        voucherType.lean();
-        voucherType.exec(function (err, data) {
-            var result = {};
-            if (err) {
+        var VoucherType = require('./lib/voucherType.js');
+        VoucherType = new VoucherType(oracle);
+
+        VoucherType.getAll({type: 'array'})
+            .then(data => {
+                global.cache.voucherTypes = data.data;
+                require('./routes/routesTer')(log, httpExpress.app, io, oracle, params);
+            })
+            .catch(err => {
                 log.logger.error(err);
-            } else {
-                data.forEach(function (item) {
-                    result[item._id] = item.description;
-                });
-            }
-            global.cache.voucherTypes = result;
-            require('./routes/routesTer')(log, httpExpress.app, io, oracle, params);
-        });
+            });
 
         require('./routes/routesWeb')(log, httpExpress.app, io, oracle, params);
     });
