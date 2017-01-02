@@ -16,7 +16,7 @@ var gate = new mongoose.Schema({
     gateTimestamp: {type: Date, required: true},
     turnoInicio: {type: Date},
     turnoFin: {type: Date},
-    size: {type: Number}
+    largo: {type: Number}
 });
 /*
 gate.index({
