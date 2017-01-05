@@ -26,7 +26,7 @@ module.exports = function (log, app, io, oracle, params) {
         var Account = require('../models/account.js'),
             incomingToken = req.headers.token;
 
-        Account.verifyToken(incomingToken, function (err, usr) {
+        Account.verifyToken(incomingToken, (err, usr) => {
             if (err) {
                 log.logger.error(err);
                 res.status(403).send({status: 'ERROR', data: err});
@@ -64,7 +64,7 @@ module.exports = function (log, app, io, oracle, params) {
     match = require('./matchPrice')(log, oracle);
     app.use('/matchPrices', isValidToken, match);
 
-    paying = require('./paying')(log);
+    paying = require('./paying')(log, oracle);
     app.use('/paying', isValidToken, paying);
 
     price = require('./price')(log, oracle);

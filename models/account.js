@@ -75,6 +75,7 @@ Account.statics.verifyToken = function (incomingToken, cb) {
                 } else if (incomingToken === usr.token.token) {
                     if (cb !== undefined) {
                         return cb(false, {
+                            _id: usr._id,
                             terminal: usr.terminal,
                             email: usr.email,
                             user: usr.user,

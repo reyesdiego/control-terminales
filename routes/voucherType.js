@@ -13,7 +13,7 @@ module.exports = function (log, oracle) {
 
     function getVoucherTypes(req, res) {
 
-        VoucherType.getAll({type: req.query.type})
+        VoucherType.getAll({}, {format: req.query.type})
         .then(data => {
                 res.status(200).send(data);
             })

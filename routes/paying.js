@@ -4,768 +4,298 @@
  * @module Paying
  */
 
-module.exports = function (log) {
+module.exports = function (log, oracle) {
     'use strict';
     var express = require('express'),
         router = express.Router(),
-        Invoice = require('../models/invoice.js'),
-        Paying = require('../models/paying.js'),
-        priceUtils = require('../include/price.js'),
-        moment = require('moment'),
-        VoucherType = require('../models/voucherType.js'),
-        Enumerable = require('linq');
+        moment = require('moment');
 
-    function _getNotPayed(req, paginated, callback) {
+    var PayingClass = require('../lib/paying.js');
 
-        var paramTerminal = req.params.terminal,
-            invoices,
-            price = new priceUtils.price(paramTerminal),
-            skip,
-            limit,
-            order,
-            estados,
-            desde,
-            hasta,
-            tipoDeSuma,
-            cond,
-            mongoose = require("mongoose"),
-            response,
-            groupByContainer,
-            projectByContainer;
+    var addPrePayment = (req, res) => {
+        var param,
+            fecha = new Date();
+        var moment = require('moment');
 
-        //var matchPrice = require('../lib/matchPrice.js');
-        //matchPrice = new matchPrice(paramTerminal);
+        var payingClass = new PayingClass(req.body.terminal);
+
+        if (req.body.fecha) {
+            fecha = moment(req.body.fecha, 'YYYY-MM-DD HH:mm:SS').toDate();
+        }
+        param = {
+            fecha: fecha,
+            user: req.usr
+        };
+
+        payingClass.addPrePayment(param)
+            .then(data => {
+                log.logger.info("Payment INS MongoDB %s", data.data._id);
+                res.status(200).send(data);
+            })
+            .catch(err => {
+                log.logger.error("Payment INS MongoDB %s", err);
+                res.status(500).send(err);
+            });
+    };
+
+    var add2PrePayment = (req, res) => {
+        var params = {},
+            options = {
+                paginated: false,
+                download: false
+            };
+
+        var payingClass = new PayingClass(req.params.terminal);
+
+        params.fechaInicio = req.query.fechaInicio;
+        params.fechaFin = req.query.fechaFin;
+        params.codTipoComprob = req.query.codTipoComprob;
+        params.buqueNombre = req.query.buqueNombre;
+        params.razonSocial = req.query.razonSocial;
+        params.contenedor = req.query.contenedor;
 
         if ((req.query.fechaInicio === undefined || req.query.fechaFin === undefined) && req.params._id === undefined) {
-            callback({status: "ERROR", message: "Debe proveer parametros de fecha"});
+            res.status(400).send({status: "ERROR", message: "Debe proveer parametros de fecha"});
         } else {
 
-            VoucherType.find({type: -1}, function (err, vouchertypes) {
-                if (err) {
-                    callback({status: "ERROR", message: err.message});
-                } else {
-                    cond = Enumerable.from(vouchertypes)
-                        .select(function (item) {
-                            if (item.type === -1) {
-                                return {$eq: ["$codTipoComprob", item._id]};
-                            }
-                        }).toArray();
-
-                    if (paginated) {
-                        estados = ['todo'];
-                        estados = ['E', 'R', 'T'];
-                        tipoDeSuma = '$detalle.items.impTot';
-                    } else {
-                        estados = ['R', 'T'];
-                        tipoDeSuma = {
-                            $cond: { if: {$or: cond},
-                                then: {$multiply: ['$detalle.items.impTot', -1]},
-                                else: '$detalle.items.impTot'}
-                        };
-                    }
-
-                    price.ratePrices(function (err, prices) {
-                        var param,
-                            match,
-                            _id,
-                            rates;
-
-                        rates = Enumerable.from(prices)
-                            .select('z=>z.code')
-                            .toArray();
-
-                        _id = mongoose.Types.ObjectId(req.params._id);
-
-                        if (req.params._id) {
-                            match = {
-                                payment: _id
-                            };
-                        } else {
-
-                            desde = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
-                            if (desde < new Date(2015, 1, 0, 0, 0)) {
-                                desde = new Date(2015, 1, 0, 0, 0);
-                            }
-                            hasta = moment(req.query.fechaFin, 'YYYY-MM-DD').add(1, 'days').toDate();
-
-                            match = {
-                                terminal: paramTerminal,
-                                'fecha.emision': {$gte: desde, $lt: hasta},
-                                'detalle.items.id': {$in: rates},
-                                'payment': {$exists: false}
-                            };
-
-                            if (req.query.codTipoComprob) {
-                                match.codTipoComprob = parseInt(req.query.codTipoComprob, 10);
-                            }
-                            if (req.query.buqueNombre) {
-                                match['detalle.buque.nombre'] = req.query.buqueNombre;
-                            }
-                            if (req.query.razonSocial) {
-                                match.razon = req.query.razonSocial;
-                            }
-                            if (req.query.contenedor) {
-                                match['detalle.contenedor'] = req.query.contenedor;
-                            }
-                        }
-
-                        groupByContainer = {
-                            _id: '$_id',
-                            terminal: '$terminal',
-                            nroPtoVenta: '$nroPtoVenta',
-                            codTipoComprob: '$codTipoComprob',
-                            razon: '$razon',
-                            fecha: '$fecha',
-                            estado: '$estado',
-                            code: '$detalle.items.id',
-                            impUnit: '$detalle.items.impUnit',
-                            cotiMoneda: '$cotiMoneda',
-                            buque: '$detalle.buque.nombre'
-                        };
-                        projectByContainer = {
-                            _id: '$_id._id',
-                            terminal: '$_id.terminal',
-                            emision: '$_id.fecha',
-                            nroPtoVenta: '$_id.nroPtoVenta',
-                            codTipoComprob: '$_id.codTipoComprob',
-                            buque: '$_id.buque',
-                            razon: '$_id.razon',
-                            cotiMoneda: '$_id.cotiMoneda',
-                            code: '$_id.code',
-                            impUnit: '$_id.impUnit',
-                            tasa: {$multiply: ['$_id.impUnit', '$cnt']},
-                            cnt: '$cnt',
-                            cantidad: '$cantidad',
-                            estado: '$_id.estado'
-                        }
-                        if (req.query.byContainer === '1') {
-                            groupByContainer.container = '$detalle.contenedor';
-                            groupByContainer.nroComprob = '$nroComprob';
-                            projectByContainer.container = '$_id.container';
-                            projectByContainer.nroComprob = '$_id.nroComprob';
-                        }
-
-                        param = [
-                            {$match: match },
-                            {$project: {
-                                terminal: 1,
-                                nroComprob: '$nroComprob',
-                                fecha: '$fecha.emision',
-                                estado: 1,
-                                codTipoComprob: 1,
-                                nroPtoVenta: 1,
-                                razon: 1,
-                                detalle: 1,
-                                cotiMoneda: 1
-                            }},
-                            {$unwind: '$estado'},
-                            {$group: {
-                                _id:   {
-                                    _id: '$_id',
-                                    terminal: '$terminal',
-                                    fecha: '$fecha',
-                                    nroComprob: '$nroComprob',
-                                    codTipoComprob: '$codTipoComprob',
-                                    nroPtoVenta: '$nroPtoVenta',
-                                    razon: '$razon',
-                                    detalle: '$detalle',
-                                    cotiMoneda: '$cotiMoneda'
-                                },
-                                estado: {$last: '$estado'}
-                            }},
-                            {$project: {
-                                '_id': '$_id._id',
-                                nroPtoVenta: '$_id.nroPtoVenta',
-                                nroComprob: '$_id.nroComprob',
-                                terminal: '$_id.terminal',
-                                fecha: '$_id.fecha',
-                                codTipoComprob: '$_id.codTipoComprob',
-                                razon: '$_id.razon',
-                                detalle: '$_id.detalle',
-                                cotiMoneda: '$_id.cotiMoneda',
-                                estado: true
-                            }},
-                            {$match: {'estado.estado': {$nin: estados}}},
-                            {$unwind: '$detalle'},
-                            {$unwind: '$detalle.items'},
-                            {$match: {'detalle.items.id': {$in: rates}}},
-                            {$group: {
-                                _id: groupByContainer,
-                                cnt: {
-                                    $sum: {
-                                        $cond: { if: {$or: cond},
-                                            then: {$multiply: ['$detalle.items.cnt', -1]},
-                                            else: '$detalle.items.cnt'}
-                                    }
-                                },
-                                cantidad: {$sum: 1}
-                            }},
-                            {$project: projectByContainer}
-                        ];
-
-                        if (req.query.order) {
-                            order = JSON.parse(req.query.order);
-                            param.push({$sort: order[0]});
-                        } else {
-                            param.push({$sort: {'fecha.emision': 1}});
-                        }
-
-                        if (paginated) {
-                            limit = parseInt(req.params.limit, 10);
-                            skip = parseInt(req.params.skip, 10);
-                            param.push({$skip: skip});
-                            param.push({$limit: limit});
-                        }
-
-                        invoices = Invoice.aggregate(param);
-                        invoices.exec((err, data) => {
-                            if (err) {
-                                callback(err);
-                            } else {
-                                response = Enumerable.from(data)
-                                    .join(Enumerable.from(prices), '$.code', '$.code', (tasaInvoice, price) => {
-                                        var top = Enumerable.from(price.price.topPrices)
-                                            .where(itemW => {
-                                                if (itemW.from < tasaInvoice.emision) {
-                                                    return true;
-                                                } else {
-                                                    return false;
-                                                }
-                                            })
-                                            .orderByDescending('$.from')
-                                            .toArray();
-
-                                        tasaInvoice.impUnitAgp = 0;
-                                        if (top.length > 0) {
-                                            tasaInvoice.impUnitAgp = top[0].price;
-                                        }
-                                        tasaInvoice.tasaAgp = tasaInvoice.impUnitAgp * tasaInvoice.cnt;
-                                        tasaInvoice.totalTasa = tasaInvoice.tasa * tasaInvoice.cotiMoneda;
-                                        tasaInvoice.totalTasaAgp = tasaInvoice.tasaAgp * tasaInvoice.cotiMoneda;
-                                        tasaInvoice.cnt = Math.abs(tasaInvoice.cnt);
-                                        return tasaInvoice;
-                                    }).toArray();
-
-                                if (paginated) {
-
-                                    param = param.slice(0, param.length-2);
-                                    param.push({
-                                        $group: {_id: '', cnt: {$sum: 1}}
-                                    });
-                                    Invoice.aggregate(param)
-                                        .exec((err, cuenta) => {
-                                            if (err) {
-                                                callback(err);
-                                            } else {
-                                                let cnt = 0;
-                                                if (cuenta[0]) {
-                                                    cnt = cuenta[0].cnt;
-                                                }
-                                                callback(null, {status: "OK", totalCount: cnt, data: response});
-                                            }
-                                        });
-                                } else {
-                                    callback(null, {status: "OK", data: response});
-                                }
-                            }
+            payingClass.getNotPayed(params, options)
+                .then(data => {
+                    var invoiceIds = data.data.map(item => (item._id));
+                    payingClass.setPayment2Invoice(invoiceIds, req.body.paymentId)
+                        .then(data => {
+                            res.status(200).send(data);
+                        })
+                        .catch(err => {
+                            res.status(500).send(err);
                         });
-                    });
-
-                }
-            });
+                })
+                .catch(err => {
+                    res.status(500).send(err);
+                });
         }
-    }
+    };
 
-    function getNotPayed(req, res) {
-        var paginated = true,
-            download = false,
+    var deletePrePayment = (req, res) => {
+
+        var payingClass = new PayingClass();
+        var _id = req.params._id;
+
+        payingClass.deletePrePayment(_id)
+            .then(data => {
+                log.logger.info("Payment DEL MongoDB %s", _id);
+                res.status(200).send(data);
+            })
+            .catch(err => {
+                log.logger.error("Payment DEL MongoDB %s", err);
+                res.status(500).send(err);
+            });
+    };
+
+    var getNotPayed = (req, res) => {
+        var params = {},
+            options = {
+                paginated: true,
+                download: false
+            },
             response;
 
+        var payingClass = new PayingClass(req.params.terminal, oracle);
+
         if (req.route.path.indexOf('/download') > 0) {
-            paginated = false;
-            download = true;
+            options.paginated = false;
+            options.download = true;
         }
-        _getNotPayed(req, paginated, function (err, data) {
-            if (err) {
-                res.status(500).send({status: "ERROR", message: err.message, data: null});
-            } else {
 
-                if (download) {
-                    if (req.query.byContainer === '1') {
-                        response = "FECHA|TIPO|SUCURSAL|COMPROBANTE|BUQUE|RAZON|CONTENEDOR|TONELADAS|TARIFA|TASA|COTI_MONEDA|TOTAL\n";
-                    } else {
-                        response = "FECHA|TIPO|BUQUE|RAZON|TONELADAS|TARIFA|TASA|COTI_MONEDA|TOTAL\n";
-                    }
-                    data.data.forEach(function (item) {
-                        response = response +
-                            moment(item.emision).format("DD/MM/YYYY") +
-                            "|" +
-                            global.cache.voucherTypes[item.codTipoComprob];
-                        if (req.query.byContainer === '1') {
-                            response = response + "|" +
-                                item.nroPtoVenta +
-                                 "|" +
-                                item.nroComprob;
-                        }
-                        response = response + "|" +
-                            item.buque +
-                            "|" +
-                            item.razon;
-                        if (req.query.byContainer === '1') {
-                            response = response + "|" +
-                                    item.container;
-                        }
-                        response = response + "|" +
-                            item.cnt +
-                            "|" +
-                            item.impUnit +
-                            "|" +
-                            item.tasa +
-                            "|" +
-                            item.cotiMoneda +
-                            "|" +
-                            item.totalTasa +
-                            "\n";
-                    });
-                    res.header('content-type', 'text/csv');
-                    res.header('content-disposition', 'attachment; filename=report.csv');
-                    res.status(200).send(response);
-                } else {
-                        res.status(200).send({
-                            status: "OK",
-                            totalCount: (data.totalCount) ? data.totalCount : data.data.length,
-                            data: data.data
-                        });
-                    }
+        params.fechaInicio = req.query.fechaInicio;
+        params.fechaFin = req.query.fechaFin;
+        params.codTipoComprob = req.query.codTipoComprob;
+        params.buqueNombre = req.query.buqueNombre;
+        params.razonSocial = req.query.razonSocial;
+        params.contenedor = req.query.contenedor;
 
-            }
-        });
-    }
+        if (options.paginated) {
+            options.skip = parseInt(req.params.skip, 10);
+            options.limit = parseInt(req.params.limit, 10);
+            options.byContainer = req.query.byContainer;
+            options.order = req.query.order;
+        }
 
-    function getPayed(req, res) {
-/*
-        var invoices,
-            skip = parseInt(req.params.skip, 10),
-            limit = parseInt(req.params.limit, 10),
-            order;
-
-        invoices = Invoice.find({'payment': req.params._id, terminal: req.params.terminal});
-
-        if (req.query.order) {
-            order = JSON.parse(req.query.order);
-            invoices.sort(order[0]);
+        if ((req.query.fechaInicio === undefined || req.query.fechaFin === undefined) && req.params._id === undefined) {
+            res.status(400).send({status: "ERROR", message: "Debe proveer parametros de fecha"});
         } else {
-            invoices.sort({'codTipoComprob': 1, 'nroComprob': 1});
-        }
-        invoices.skip(skip).limit(limit)
 
-        invoices.exec(function (err, data) {
-            if (err) {
-                res.status(500).send({
-                    status: 'ERROR',
-                    message: err.message
-                });
-            } else {
-                Invoice.count({'payment': req.params._id, terminal: req.params.terminal}, function (err, cnt) {
-                    var pageCount = data.length,
-                        result = {
-                            status: 'OK',
-                            totalCount: cnt,
-                            pageCount: (limit > pageCount) ? pageCount : limit,
-                            page: skip,
-                            data: data
-                        };
-                    res.status(200).send(result);
-                });
-            }
-        });
-*/
-        var paginated = true;
-        _getNotPayed(req, paginated, function (err, data) {
-            if (err) {
-                res.status(500).send({status: "ERROR", message: err.message, data: null});
-            } else {
-                res.status(200).send({status: "OK", totalCount: data.totalCount, data: data.data});
-            }
-        });
-
-    }
-
-    function add2PrePayment(req, res) {
-        var async = require('async'),
-            paginated = false,
-            invoicesCnt;
-
-        _getNotPayed(req, paginated, function (err, data) {
-            if (err) {
-                res.status(400).send({status: "ERROR", message: err.message, data: null});
-            } else {
-                invoicesCnt = data.data.length;
-                if (invoicesCnt > 0) {
-                    async.forEach(data.data, function (item, callback) {
-                        Invoice.update({_id: item._id},
-                            {$set: {
-                                'payment': req.body.paymentId
-                            }},
-                            function (err, rowAffected, data) {
-                                callback();
-                            });
-                    }, function () {
-                        res.status(200).send({status: "OK",  message: "Se agregaron " + invoicesCnt.toString() + " a la preliquidación."});
-                    });
-                } else {
-                    res.status(500).send({
-                        status: 'ERROR',
-                        data: null,
-                        message: "No hay comprobantes sin Liquidar."
-                    });
-                }
-            }
-        });
-    }
-
-    function calculatePrePayment(param, callback) {
-        var totalPayment,
-            price,
-            cond;
-
-        VoucherType.find({type: -1}, function (err, vouchertypes) {
-            if (err) {
-                callback({status: "ERROR", message: err.message});
-            } else {
-                cond = Enumerable.from(vouchertypes)
-                    .select(function (item) {
-                        if (item.type === -1) {
-                            return {$eq: ["$codTipoComprob", item._id]};
-                        }
-                    }).toArray();
-
-                price = new priceUtils.price(param.terminal);
-                price.ratePrices(function (err, prices) {
-                    var rates;
-
-                    rates = Enumerable.from(prices)
-                        .select('z=>z.code')
-                        .toArray();
-
-                    param = [
-                        {$match: param},
-                        {$project: {
-                            terminal: 1,
-                            codTipoComprob: 1,
-                            nroComprob: 1,
-                            payment: 1,
-                            fecha: '$fecha.emision',
-                            cotiMoneda: 1,
-                            detalle: 1,
-                            estado: 1
-                        }},
-                        {$unwind: '$detalle'},
-                        {$unwind: '$detalle.items'},
-                        {$match: {'detalle.items.id': {$in: rates }}},
-                        {"$match":{"estado.estado":{"$nin":["R","T"]}}},
-                        {$project: {
-                            terminal: 1,
-                            code: '$detalle.items.id',
-                            nroComprob: 1,
-                            cotiMoneda: 1,
-                            fecha: 1,
-                            payment: 1,
-                            cnt: {
-                                $cond: { if: {  $or: cond },
-                                        then: {$multiply: ['$detalle.items.cnt', -1]},
-                                        else: '$detalle.items.cnt'}
-                            },
-                            impUnit: '$detalle.items.impUnit'
-                        }}
-                    ];
-
-                    totalPayment = Invoice.aggregate(param);
-                    totalPayment.exec(function (err, totalPayment) {
-                        var result = Enumerable.from(totalPayment)
-                            .join(Enumerable.from(prices), '$.code', '$.code', function (tasaInvoice, price) {
-
-                                var top = Enumerable.from(price.price.topPrices)
-                                    .where(function (itemW) {
-                                        if (itemW.from < tasaInvoice.fecha) {
-                                            return true;
-                                        } else {
-                                            return false;
-                                        }
-                                    })
-                                    .orderByDescending('$.from')
-                                    .toArray();
-                                tasaInvoice.type = price.price._doc.rate;
-                                price.price.topPrices = top[0];
-                                tasaInvoice.impUnitAgp = price.price.topPrices[0].price;
-                                tasaInvoice.tasa = tasaInvoice.impUnit * tasaInvoice.cnt;
-                                tasaInvoice.tasaAgp = tasaInvoice.impUnitAgp * tasaInvoice.cnt;
-                                tasaInvoice.totalTasa = tasaInvoice.tasa * tasaInvoice.cotiMoneda;
-                                tasaInvoice.totalTasaAgp = tasaInvoice.tasaAgp * tasaInvoice.cotiMoneda;
-                                return tasaInvoice;
-                            })
-                            .groupBy("$.code", null,
-                                function (key, g) {
-                                    var r = {
-                                        _id: {code: key},
-                                        cnt: g.sum("$.cnt"),
-                                        total: g.sum("$.tasa"),
-                                        totalPeso: g.sum("$.totalTasa"),
-                                        totalAgp: g.sum("$.tasaAgp"),
-                                        totalPesoAgp: g.sum("$.totalTasaAgp")
-                                    };
-                                    r.cnt = Math.abs(r.cnt);
-                                    return r;
-                                }).toArray();
-
-                        if (err) {
-                            callback(err);
+            payingClass.getNotPayed(params, options)
+                .then(data => {
+                    if (options.download) {
+                        if (req.query.byContainer === '1') {
+                            response = "FECHA|TIPO|SUCURSAL|COMPROBANTE|BUQUE|RAZON|CONTENEDOR|TONELADAS|TARIFA|TASA|COTI_MONEDA|TOTAL\n";
                         } else {
-                            callback(null,  result);
+                            response = "FECHA|TIPO|BUQUE|RAZON|TONELADAS|TARIFA|TASA|COTI_MONEDA|TOTAL\n";
                         }
-                    });
+                        data.data.forEach(item => {
+                            response = response +
+                                moment(item.emision).format("DD/MM/YYYY") +
+                                "|" +
+                                global.cache.voucherTypes[item.codTipoComprob];
+                            if (req.query.byContainer === '1') {
+                                response = response + "|" +
+                                    item.nroPtoVenta +
+                                    "|" +
+                                    item.nroComprob;
+                            }
+                            response = response + "|" +
+                                item.buque +
+                                "|" +
+                                item.razon;
+                            if (req.query.byContainer === '1') {
+                                response = response + "|" +
+                                    item.container;
+                            }
+                            response = response + "|" +
+                                item.cnt +
+                                "|" +
+                                item.impUnit +
+                                "|" +
+                                item.tasa +
+                                "|" +
+                                item.cotiMoneda +
+                                "|" +
+                                item.totalTasa +
+                                "\n";
+                        });
+                        res.header('content-type', 'text/csv');
+                        res.header('content-disposition', 'attachment; filename=report.csv');
+                        res.status(200).send(response);
+                    } else {
+                        res.status(200).send(data);
+                    }
+                })
+                .catch(err => {
+                    res.status(500).send(err);
                 });
-            }
-        });
-    }
+        }
+    };
 
-    function getPrePayment(req, res) {
-        var mongoose = require("mongoose"),
-            moment = require("moment"),
-            param = {},
-            desde,
-            hasta;
+    var getPayed = (req, res) => {
+
+        var payingClass = new PayingClass(req.params.terminal);
+
+        var options = {
+            paginated: true,
+            skip: parseInt(req.params.skip, 10),
+            limit: parseInt(req.params.limit, 10),
+            byContainer: req.query.byContainer,
+            order: req.query.order
+        };
+
+        payingClass.getNotPayed({_id: req.params._id}, options)
+        .then(data => {
+                res.status(200).send({status: "OK", totalCount: data.totalCount, data: data.data});
+            })
+        .catch(err => {
+                res.status(500).send({status: "ERROR", message: err.message, data: null});
+            });
+    };
+
+    var getPrePayment = (req, res) => {
+
+        var payingClass = new PayingClass(req.params.terminal);
+
+        var params = {};
 
         if (req.query.paymentId) {
-            param.payment = mongoose.Types.ObjectId(req.query.paymentId);
-            param.terminal = req.params.terminal;
+            params.paymentId = req.query.paymentId;
         } else {
-            desde = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
-            if (desde < new Date(2015, 1, 0, 0, 0)) {
-                desde = new Date(2015, 1, 0, 0, 0);
-            }
-            hasta = moment(req.query.fechaFin, 'YYYY-MM-DD').add(1, 'days').toDate();
 
-            param = {
-                terminal: req.params.terminal,
-                'fecha.emision': {$gte: desde, $lt: hasta},
-                //'detalle.items.id': {$in: rates},
-                'payment': {$exists: false}
+            params = {
+                fechaInicio: req.query.fechaInicio,
+                fechaFin: req.query.fechaFin,
+                payment: false
             };
 
             if (req.query.codTipoComprob) {
-                param.codTipoComprob = parseInt(req.query.codTipoComprob, 10);
+                params.codTipoComprob = parseInt(req.query.codTipoComprob, 10);
             }
             if (req.query.buqueNombre) {
-                param['detalle.buque.nombre'] = req.query.buqueNombre;
+                params.buqueNombre = req.query.buqueNombre;
             }
             if (req.query.razonSocial) {
-                param.razon = req.query.razonSocial;
+                params.razon = req.query.razonSocial;
             }
             if (req.query.contenedor) {
-                param['detalle.contenedor'] = req.query.contenedor;
+                params.contenedor = req.query.contenedor;
             }
         }
-        calculatePrePayment(param, function (err, payment) {
-            if (err) {
-                res.status(500).send(
-                    {
-                        status: "ERROR",
-                        message: "Ha ocurrido un error al obtener los datos de la pre liquidación."
-                    }
-                );
-            } else {
-                res.status(200).send(
-                    {
-                        status: "OK",
-                        data: payment
-                    }
-                );
-            }
-        });
-    }
 
-    function setPrePayment(req, res) {
-        var param,
-            payment,
-            paramTerminal,
-            nextPaymentNumber;
-
-        paramTerminal = req.body.terminal;
-
-        param = [{$match: {terminal: paramTerminal}}, {$group: {_id: '', max: {$max: '$preNumber'}}}];
-        payment = Paying.aggregate(param);
-        payment.exec(function (err, maxNumber) {
-            nextPaymentNumber = 0;
-            if (maxNumber.length > 0) {
-                nextPaymentNumber = maxNumber[0].max;
-            }
-            Paying.create({
-                terminal: paramTerminal,
-                date: moment(req.body.fecha, 'YYYY-MM-DD HH:mm:SS Z').toDate(),
-                preNumber: ++nextPaymentNumber,
-                vouchers: 0,
-                tons: 0,
-                total: 0
-            }, function (err, newPaying) {
-                if (err) {
-                    res.status(500).send({status: "ERROR", message: err.message});
-                } else {
-                    res.status(200).send({status: "OK", data: newPaying});
-                }
+        payingClass.getPrePayment(params)
+        .then(data => {
+                res.status(200).send(data);
+            })
+        .catch(err => {
+                res.status(500).send(err);
             });
-        });
-    }
+    };
 
-    function setPayment(req, res) {
-        var param,
-            payment,
-            paramTerminal,
-            nextPaymentNumber;
+    var getPayments = (req, res) => {
+        var options = {
+                skip: parseInt(req.params.skip, 10),
+                limit: parseInt(req.params.limit, 10),
+                order: req.query.order
+            },
+            params = {};
 
-        paramTerminal = req.body.terminal;
+        var payingClass = new PayingClass(req.params.terminal);
 
-        param = [{$match: {terminal: paramTerminal}}, {$group: {_id: '', max: {$max: '$number'}}}];
-        payment = Paying.aggregate(param);
-        payment.exec(function (err, maxNumber) {
-            nextPaymentNumber = 0;
-            if (maxNumber.length > 0) {
-                nextPaymentNumber = (maxNumber[0].max === null) ? 0 : maxNumber[0].max;
-            }
-            Paying.findOne({terminal: paramTerminal, preNumber: req.body.preNumber}, function (err, payment) {
-                if (payment.number !== undefined && payment.number !== null) {
-                    res.status(500).send({
-                        status: "ERROR",
-                        message: "La Preliquidación ya se encuentra liquidada",
-                        data: payment
-                    });
-                } else {
-                    calculatePrePayment({terminal: paramTerminal, payment: payment._id}, function (err, prePayment) {
-                        var detail;
-                        payment.number = ++nextPaymentNumber;
-                        payment.date = Date.now();
-                        payment.detail = [];
-                        prePayment.forEach(function (item) {
-                            detail = {
-                                _id: item._id.code,
-                                cant: item.cnt,
-                                totalDol: item.total,
-                                totalPes: item.totalPeso,
-                                iva: item.totalPeso * 21 / 100,
-                                total: item.totalPeso + (item.totalPeso * 21 / 100)
-                            };
-                            payment.detail.push(detail);
-                        });
-                        payment.save(function (err, paymentSaved) {
-                            if (err) {
-                                res.status(500).send({
-                                    status: "ERROR",
-                                    message: err.message
-                                });
-                            } else {
-                                res.status(200).send({
-                                    status: "OK",
-                                    message: "Se ha generado la Liquidación nro " + nextPaymentNumber,
-                                    data: paymentSaved
-                                });
-                            }
-                        });
-                    });
-                }
-            });
-        });
-    }
-
-    function getPayments(req, res) {
-        var paying,
-            skip = parseInt(req.params.skip, 10),
-            limit = parseInt(req.params.limit, 10),
-            paramTerminal = req.params.terminal,
-            isNumberExists = true,
-            param;
-
-        if (req.route.path.indexOf('rePayments') > 0) {
-            isNumberExists = false;
+        params.modo = req.query.modo;
+        if (req.query.numero) {
+            params.preNumber = parseInt(req.query.numero, 10);
+            params.number = parseInt(req.query.numero, 10);
         }
 
-        param ={terminal: paramTerminal, number: {$exists: isNumberExists}};
+        if (req.query.fechaInicio) {
+            params.fechaInicio = req.query.fechaInicio;
+        }
+        if (req.query.fechaFin) {
+            params.fechaFin = req.query.fechaFin;
+        }
 
-        paying = Paying.find(param);
-        paying.skip(skip);
-        paying.limit(limit);
-        paying.exec(function (err, payings) {
-            if (err) {
-                res.status(500).send({
-                    status: 'ERROR',
-                    message: err.message,
-                    data: null
-                });
-            } else {
-                Paying.count(param, function (err, cnt) {
-                    var pageCount = payings.length,
-                        result = {
-                            status: 'OK',
-                            totalCount: cnt,
-                            pageCount: (limit > pageCount) ? pageCount : limit,
-                            page: skip,
-                            data: payings
-                        };
-                    res.status(200).send(result);
-                });
-            }
-        });
-    }
+        payingClass.getPayments(params, options)
+            .then(data => {
+                res.status(200).send(data);
+            })
+            .catch(err => {
+                res.status(500).send(err);
+            });
+    };
 
-    function deletePrePayment(req, res) {
+    var setPayment = (req, res) => {
+        var param;
 
-        var _id = req.params._id;
+        var payingClass = new PayingClass(req.body.terminal);
 
-        Paying.find({_id: _id}, function (err, payings) {
-            if (err) {
-                res.status(500).send({
-                    status: 'ERROR',
-                    message: err.message
-                });
-            } else {
-                if (payings.length !== 1) {
-                    res.status(500).send({
-                        status: 'ERROR',
-                        message: "La Liquidación no existe."
-                    });
-                } else {
-                    Invoice.update({payment: _id}, {$unset: {payment: ''}}, {multi: true}, function (err, rowAffected) {
-                        if (err) {
-                            res.status(500).send({
-                                status: 'ERROR',
-                                message: err.message
-                            });
-                        } else {
-                            Paying.remove({_id: _id}, function (err) {
-                                var msg = 'La Liquidación ha sido eliminada y ' + rowAffected + ' comprobantes han sido liberados.';
-                                log.logger.info(msg);
-                                res.status(200).send({
-                                    status: 'OK',
-                                    message: msg,
-                                    data: null
-                                });
-                            });
-                        }
-                    });
-                }
-            }
-        });
-    }
+        param = {
+            preNumber: req.body.preNumber,
+            user: req.usr
+        };
+        payingClass.setPayment(param)
+        .then(data => {
+                res.status(200).send(data);
+            })
+        .catch(err => {
+                res.status(500).send(err);
+            });
+    };
 
     router.get('/payed/:terminal/:_id/:skip/:limit', getPayed);
     router.get('/notPayed/:terminal/:skip/:limit', getNotPayed);
     router.get('/notPayed/:terminal/download', getNotPayed);
     router.get('/payments/:terminal/:skip/:limit', getPayments);
     router.get('/prePayments/:terminal/:skip/:limit', getPayments);
+    router.get('/getPrePayment/:terminal', getPrePayment);
 
-    router.post('/prePayment', setPrePayment);
+    router.post('/prePayment', addPrePayment);
     router.delete('/prePayment/:_id', deletePrePayment);
     router.put('/payment', setPayment);
-    router.get('/getPrePayment/:terminal', getPrePayment);
     router.put('/addToPrePayment/:terminal', add2PrePayment);
 
     return router;

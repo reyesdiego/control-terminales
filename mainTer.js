@@ -78,7 +78,7 @@ oracle.oracledb.createPool({
         var VoucherType = require('./lib/voucherType.js');
         VoucherType = new VoucherType(oracle);
 
-        VoucherType.getAll({type: 'array'})
+        VoucherType.getAll({},{format: 'array'})
             .then(data => {
                 global.cache.voucherTypes = data.data;
                 require('./routes/routesTer')(log, httpExpress.app, io, oracle, params);
