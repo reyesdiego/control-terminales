@@ -9,7 +9,7 @@ var con1 =     {
     user          : "DIEGO",
     password      : "DIEGO888",
     connectString : "(DESCRIPTION = " +
-    "(ADDRESS = (PROTOCOL = TCP)(HOST = 10.10.0.191)(PORT = 1521)) " +
+    "(ADDRESS = (PROTOCOL = TCP)(HOST = 10.10.0.188)(PORT = 1521)) " +
     "(CONNECT_DATA = " +
     "        (SID = PRODUC11) " +
     ") " +
@@ -32,7 +32,7 @@ var strSql2 = "SELECT * FROM TARIFAS ";
 var oracledb = require('oracledb');
 oracledb.maxRows = 2000;
 //oracledb.outFormat = 2;
-oracledb.getConnection(con2,
+oracledb.getConnection(con1,
     function(err, connection)
     {
         if (err) {
