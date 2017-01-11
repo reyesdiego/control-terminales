@@ -4,7 +4,7 @@
  * @module Paying
  */
 
-module.exports = function (log, oracle) {
+module.exports = (log, oracle) => {
     'use strict';
     var express = require('express'),
         router = express.Router(),
@@ -17,7 +17,7 @@ module.exports = function (log, oracle) {
             fecha = new Date();
         var moment = require('moment');
 
-        var payingClass = new PayingClass(req.body.terminal);
+        var payingClass = new PayingClass(req.body.terminal, oracle);
 
         if (req.body.fecha) {
             fecha = moment(req.body.fecha, 'YYYY-MM-DD HH:mm:SS').toDate();
@@ -29,11 +29,11 @@ module.exports = function (log, oracle) {
 
         payingClass.addPrePayment(param)
             .then(data => {
-                log.logger.info("Payment INS MongoDB %s", data.data._id);
+                log.logger.info("Pre Payment INS MongoDB %s", data.data._id);
                 res.status(200).send(data);
             })
             .catch(err => {
-                log.logger.error("Payment INS MongoDB %s", err);
+                log.logger.error("Pre Payment INS MongoDB %s", err);
                 res.status(500).send(err);
             });
     };
@@ -45,7 +45,7 @@ module.exports = function (log, oracle) {
                 download: false
             };
 
-        var payingClass = new PayingClass(req.params.terminal);
+        var payingClass = new PayingClass(req.params.terminal, oracle);
 
         params.fechaInicio = req.query.fechaInicio;
         params.fechaFin = req.query.fechaFin;
@@ -77,7 +77,7 @@ module.exports = function (log, oracle) {
 
     var deletePrePayment = (req, res) => {
 
-        var payingClass = new PayingClass();
+        var payingClass = new PayingClass(oracle);
         var _id = req.params._id;
 
         payingClass.deletePrePayment(_id)
@@ -178,7 +178,7 @@ module.exports = function (log, oracle) {
 
     var getPayed = (req, res) => {
 
-        var payingClass = new PayingClass(req.params.terminal);
+        var payingClass = new PayingClass(req.params.terminal, oracle);
 
         var options = {
             paginated: true,
@@ -199,7 +199,7 @@ module.exports = function (log, oracle) {
 
     var getPrePayment = (req, res) => {
 
-        var payingClass = new PayingClass(req.params.terminal);
+        var payingClass = new PayingClass(req.params.terminal, oracle);
 
         var params = {};
 
@@ -244,7 +244,7 @@ module.exports = function (log, oracle) {
             },
             params = {};
 
-        var payingClass = new PayingClass(req.params.terminal);
+        var payingClass = new PayingClass(req.params.terminal, oracle);
 
         params.modo = req.query.modo;
         if (req.query.numero) {
@@ -268,10 +268,24 @@ module.exports = function (log, oracle) {
             });
     };
 
+    var getPayment = (req, res) => {
+
+        var payingClass = new PayingClass(oracle);
+        var id = req.params._id;
+
+        payingClass.getPayment(id)
+            .then(data => {
+                res.status(200).send(data);
+            })
+            .catch(err => {
+                res.status(500).send(err);
+            });
+    };
+
     var setPayment = (req, res) => {
         var param;
 
-        var payingClass = new PayingClass(req.body.terminal);
+        var payingClass = new PayingClass(req.body.terminal, oracle);
 
         param = {
             preNumber: req.body.preNumber,
@@ -279,9 +293,11 @@ module.exports = function (log, oracle) {
         };
         payingClass.setPayment(param)
         .then(data => {
+                log.logger.info("Payment INS MongoDB");
                 res.status(200).send(data);
             })
         .catch(err => {
+                log.logger.error("Payment INS MongoDB %s", err);
                 res.status(500).send(err);
             });
     };
@@ -290,6 +306,7 @@ module.exports = function (log, oracle) {
     router.get('/notPayed/:terminal/:skip/:limit', getNotPayed);
     router.get('/notPayed/:terminal/download', getNotPayed);
     router.get('/payments/:terminal/:skip/:limit', getPayments);
+    router.get('/payment/:_id', getPayment);
     router.get('/prePayments/:terminal/:skip/:limit', getPayments);
     router.get('/getPrePayment/:terminal', getPrePayment);
 
@@ -299,4 +316,4 @@ module.exports = function (log, oracle) {
     router.put('/addToPrePayment/:terminal', add2PrePayment);
 
     return router;
-}
+};
