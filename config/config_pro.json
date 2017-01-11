@@ -30,7 +30,7 @@
   "log": {
     "path": "log/",
     "filename": "nohup.out",
-    "toConsole": false,
+    "toConsole": true,
     "toFile": true
   },
   "mongo": {
