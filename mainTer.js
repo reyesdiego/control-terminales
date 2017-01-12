@@ -81,7 +81,7 @@ oracle.oracledb.createPool({
         VoucherType.getAll({},{format: 'array'})
             .then(data => {
                 global.cache.voucherTypes = data.data;
-                require('./routes/routesTer')(log, httpExpress.app, io, oracle, params);
+                require('./routes/routesTer')(log, httpExpress.app, ioClient, oracle, params);
             })
             .catch(err => {
                 log.logger.error(err);
