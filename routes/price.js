@@ -115,14 +115,12 @@ module.exports = function (log, oracle) {
                 //Price Oracle
                 priceORA.add(param)
                     .then(priceAdded => {
-                        log.logger.insert("Price ORA INS:%s - %s", priceAdded.data._id, priceAdded.data.terminal);
-
-                        Account.findEmailToApp('price', function (err, emails) {
-                            var strSubject,
-                                mailer,
-                                to;
-
-                            if (!err) {
+                        log.logger.insert("Price ORA INS:%s - %s - %s", priceAdded.data._id, priceAdded.data.terminal, priceAdded.data.code);
+                        Account.findEmailToApp('price')
+                            .then(emails => {
+                                var strSubject,
+                                    mailer,
+                                    to;
                                 if (emails.data.length > 0) {
                                     res.render('priceAdd.jade', {code: priceAdded.data.code, description: priceAdded.data.description, terminal: usr.terminal, price: priceAdded.data.topPrices[0].price}, function (err, html) {
                                         html = {
@@ -132,11 +130,15 @@ module.exports = function (log, oracle) {
                                         strSubject = util.format("AGP - %s - Tarifa Nueva", usr.terminal);
                                         mailer = new mail.mail(config.email);
                                         to = emails.data;
-                                        mailer.send(to, strSubject, html);
+                                        mailer.send(to, strSubject, html, (err, data) => {
+                                            log.logger.insert("Price INS MailTo:%s", to.join('-'));
+                                        });
                                     });
                                 }
-                            }
-                        });
+                            })
+                        .catch(err => {
+                                console.log(err);
+                            });
 
                         res.status(200).send(priceAdded);
                     })
@@ -148,10 +150,10 @@ module.exports = function (log, oracle) {
                 //Price MongoDB
                 priceMongo.add(param)
                     .then(priceAdded => {
-                        log.logger.insert("Price INS:%s - %s", priceAdded.data._id, priceAdded.data.terminal);
+                        log.logger.insert("Price MongoDb INS:%s - %s", priceAdded.data._id, priceAdded.data.terminal);
                     })
                     .catch(err =>  {
-                        log.logger.error(err.message);
+                        log.logger.error("Price MongoDb INS %s", err.message);
                     });
 
             } else {

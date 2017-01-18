@@ -36,7 +36,7 @@ var TokenModel = mongoose.model('Token', Token),
         status: {type: Boolean},
         acceso: [{type: String}],
         lastLogin: {type: Date},
-        emailToApp: [{type: String}]
+        emailToApp: {type: Object}
     });
 
 Account.plugin(passportLocalMongoose, {usernameField: 'email'});
@@ -65,7 +65,7 @@ Account.statics.verifyToken = function (incomingToken, cb) {
         }
         //Now do a lookup on that email in mongodb ... if exists it's a real user
         if (decoded && decoded.email) {
-            this.findOne({email: decoded.email}, function (err, usr) {
+            this.findOne({email: decoded.email}, (err, usr) => {
                 if (err) {
                     err = {message: 'Issue finding user.', data: err};
                     return cb(err);
@@ -83,7 +83,8 @@ Account.statics.verifyToken = function (incomingToken, cb) {
                             token: usr.token,
                             date_created: usr.date_created,
                             full_name: usr.full_name,
-                            role: usr.role
+                            role: usr.role,
+                            emailToApp: usr.emailToApp || []
                         });
                     }
                 }// else {
@@ -269,38 +270,36 @@ Account.statics.generateResetToken = function (email, cb) {
     });
 };
 
-function getEmailToAppList(self, param, cb) {
+Account.statics.findEmailToApp = function (nameApp) {
     'use strict';
-    var result = [],
-        accounts = self.find(param, {_id: 0, email: 1});
-    accounts.exec(function (err, data) {
-        if (err) {
-            if (typeof cb  === 'function') {
-                return cb(err);
-            }
-        } else {
-            for (var i = 0, len = data.length; i < len; i++) {
-                result.push(data[i].email);
-            }
-            if (typeof cb  === 'function') {
-                return cb(null, {status: 'OK' , data: result});
-            }
-        }
-    });
-}
+    return new Promise((resolve, reject) => {
+        var result = [];
 
-Account.statics.findEmailToApp = function (app, cb) {
-    'use strict';
-    getEmailToAppList(this, {emailToApp: app}, function (err, data) {
-        cb(err, data);
+        var param = {
+            emailToApp: {}
+        };
+        param.emailToApp[nameApp] = true;
+
+        this.find(param, {_id: 0, email: 1})
+            .exec((err, data) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    result = data.map(item => ((item.email)));
+                    //for (var i = 0, len = data.length; i < len; i++) {
+                    //    result.push(data[i].email);
+                    //}
+                    resolve({status: 'OK' , data: result});
+                }
+            });
     });
 };
-
+/*
 Account.statics.findEmailToAppByUser = function (user, app, cb) {
     'use strict';
     getEmailToAppList(this, {user: user, emailToApp: app}, function (err, data) {
         cb(err, data);
     });
 };
-
+*/
 module.exports = mongoose.model('accounts', Account);
