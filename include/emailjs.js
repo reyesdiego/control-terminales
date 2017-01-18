@@ -77,7 +77,9 @@ mail.prototype = {
             }
         }
 
-        if (typeof to === 'string') {
+        if (to === undefined) {
+            return callback({status: "ERROR", code: "AGP-0001", data: "La cuenta de email es inválida"});
+        } else if (typeof to === 'string') {
             to = to.trim();
             if (!this.emailSimpleValidate(to)) {
                 return callback({status: "ERROR", code: "AGP-0001", data: "La cuenta de email es inválida"});
