@@ -37,9 +37,9 @@ appointment.statics.insert = function (appointment, cb) {
             }
         });
     }
-}
+};
 
-appointment.pre('save', function (next, done) {
+//appointment.pre('save', function (next, done) {
     /*
     var self = this;
     var moment = require("moment"),
@@ -67,7 +67,7 @@ appointment.pre('save', function (next, done) {
         });
     }
     */
-    next();
-});
+//    next();
+//});
 
 module.exports = mongoose.model('appointments', appointment);

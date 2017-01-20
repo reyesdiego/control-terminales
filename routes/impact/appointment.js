@@ -9,11 +9,11 @@ module.exports = function (log, io, oracle) {
         moment = require('moment'),
         Appointment = require('../../models/appointment.js'),
         AppointmentEmailQueue = require('../../models/appointmentEmailQueue.js'),
-        util = require('util'),
         mail = require("../../include/emailjs"),
         config = require('../../config/config.js');
 
     function validateSanitize(req, res, next) {
+        var util = require('util');
         var errors;
         var Validr = require('../../include/validation.js');
         var validate = new Validr.validation(req.body, {
@@ -121,7 +121,7 @@ module.exports = function (log, io, oracle) {
             emailConfig,
             subject;
 
-        res.render('comprobanteTurno.jade', appointmentEmail, function (err, html) {
+        res.render('comprobanteTurno.jade', appointmentEmail, (err, html) => {
             if (err) {
                 log.logger.error("Se produjo un error en la creacion del comprobante, Email No enviado. %s", err.message);
                 res.end();
@@ -131,16 +131,14 @@ module.exports = function (log, io, oracle) {
                     alternative: true
                 };
 
-//            appointmentEmail.email = "agpdesarrollo@gmail.com";
-
                 if (appointmentEmail.email !== undefined && appointmentEmail.email !== '' && appointmentEmail.email !== null) {
                     //Successfully appointment inserted
                     emailConfig = Object.create(config.emailTurnos);
                     emailConfig.throughBcc = false;
 
                     mailer = new mail.mail(emailConfig);
-                    subject = util.format("Coordinación %s para %s.", appointmentEmail.contenedor, appointmentEmail.full_name);
-                    mailer.send(appointmentEmail.email, subject, html, function (err1, emailData) {
+                    subject = `Coordinación ${appointmentEmail.contenedor} para ${appointmentEmail.full_name}.`;
+                    mailer.send(appointmentEmail.email, subject, html, (err1, emailData) => {
                         if (err1) {
 
                             if (err1.code === 'AGP-0001') {
@@ -152,9 +150,9 @@ module.exports = function (log, io, oracle) {
                             } else {
                                 log.logger.error('Envío de email a cliente : %s, %s, %j, %s', appointmentEmail.email, appointmentEmail.contenedor, err1, err1);
                                 mailer = new mail.mail(emailConfig);
-                                mailer.send(appointmentEmail.email, subject, html, function (err2) {
+                                mailer.send(appointmentEmail.email, subject, html, err2 => {
                                     if (err2) {
-                                        addAppointmentEmailQueue(appointmentEmail, function (err) {
+                                        addAppointmentEmailQueue(appointmentEmail, err => {
                                             if (err) {
                                                 log.logger.error('REENVIO - a: %s, No ha sido encolado, no se reenviara nuevamente. %s, %j, %s', appointmentEmail.email, appointmentEmail.contenedor, err2, err2);
                                             } else {
@@ -163,7 +161,7 @@ module.exports = function (log, io, oracle) {
                                         });
                                     } else {
                                         log.logger.info('REENVIO - Confirmación enviada correctamente, %s, se envió mail a %s - %s', appointmentEmail.full_name, appointmentEmail.email, appointmentEmail.contenedor);
-                                        Appointment.update({_id: appointmentEmail._id}, {$set: {emailStatus: true}}, function (err, data) {
+                                        Appointment.update({_id: appointmentEmail._id}, {$set: {emailStatus: true}}, (err, data) => {
                                             res.end();
                                         });
                                     }
@@ -173,7 +171,7 @@ module.exports = function (log, io, oracle) {
                         } else {
 
                             log.logger.info('Confirmación enviada correctamente, %s, se envió mail a %s - %s - %s', appointmentEmail.full_name, appointmentEmail.email, appointmentEmail.contenedor, appointmentEmail._id.toString());
-                            Appointment.update({_id: appointmentEmail._id}, {$set: {emailStatus: true}}, function (err, data) {
+                            Appointment.update({_id: appointmentEmail._id}, {$set: {emailStatus: true}}, (err, data) => {
                                 res.end();
                             });
                         }
@@ -184,48 +182,51 @@ module.exports = function (log, io, oracle) {
         });
     }
 
-    function addAppointment(req, res, next) {
+    let addAppointment = (req, res, next) => {
         var usr = req.usr,
             appointment2insert = req.body,
-            errMsg,
-            Account = require('../../models/account');
+            errMsg;
 
         var Appointment = require('../../lib/appointment.js');
-
         Appointment = new Appointment();
 
         appointment2insert.terminal = usr.terminal;
 
-        if (appointment2insert) {
-            Appointment.add(appointment2insert)
-                .then(data => {
-                    var str,
-                        result;
-                    str = util.format('Appointment INS: %s - Inicio: %s - Alta: %s - %s - %s', usr.terminal, data.inicio, data.alta, data._id, data.contenedor);
-                    log.logger.insert(str);
+        Appointment.add(appointment2insert)
+            .then(data => {
+                var str,
+                    appointment;
 
-                    result = {status: 'OK', data: data};
-                    io.emit('appointment', result);
-                    res.status(200).send(result);
+                appointment = data.data;
+                str = `Appointment INS: ${appointment.terminal} - Alta: ${appointment.alta} - ${appointment._id} - ${appointment.contenedor}`;
+                log.logger.insert(str);
 
-                    Account.findEmailToAppByUser(usr.user, 'emailAppointmentToApp', function (err, emails) {
-                        if (!err) {
+                io.emit('appointment', appointment);
 
-                            if (emails.data.length > 0) {
-                                data.full_name = usr.full_name;
-                                req.appointment = data;
-                                next(); // en reportClient function se enviará email
-                            }
-                        }
-                    });
-                })
-                .catch(errData => {
-                    errMsg = util.format('%s.-%s- \n%s', errData.toString(), usr.terminal, JSON.stringify(req.body));
-                    log.logger.error(errMsg);
+                res.status(200).send(data);
 
-                    res.status(500).send({status: 'ERROR', data: errMsg});
-                });
-        }
+                /**
+                 * with next() reportClient function se enviará email
+                 * */
+                var emailAppointmentToApp = usr.emailToApp.emailAppointmentToApp;
+                if (emailAppointmentToApp) {
+                    appointment.full_name = usr.full_name;
+                    req.appointment = appointment;
+                    next();
+                }
+            })
+            .catch(err => {
+                errMsg = `Appointment ERROR: ${usr.terminal} - ${err.message} - ${JSON.stringify(req.body)}`;
+                log.logger.error(errMsg);
+                res.status(500).send(err);
+
+                var appointmentError = usr.emailToApp.appointmentError;
+                if (appointmentError) {
+                    var mailer = new mail.mail(config.emailTurnos);
+                    var subject = `Appointment Insert ERROR ${moment().format("DD-MM-YYYY HH:m:ss")}`;
+                    mailer.send(usr.email, subject, err.message);
+                }
+            });
     }
 
     /*
