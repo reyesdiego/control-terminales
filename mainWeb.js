@@ -31,7 +31,7 @@ oracle = require('./include/oracle.js');
 oracle = new oracle();
 oracle.oracledb.createPool({
     user: "afip",
-    password: "afip_",
+    password: "AFIP_",
     connectString: "(DESCRIPTION = " +
                     "(ADDRESS = (PROTOCOL = TCP)(HOST = 10.1.0.60)(PORT = 1521)) " +
                     "(CONNECT_DATA = " +
