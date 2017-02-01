@@ -176,6 +176,22 @@ module.exports = function (log, io, oracle) {
         });
     }
 
+    var getLastInsert = (req, res) => {
+        var terminal = req.params.terminal;
+        var lastHours = req.query.lastHours;
+
+        var Invoice3 = require('../lib/invoice2.js');
+        Invoice3 = new Invoice3();
+
+        Invoice3.getLastInsert(terminal, lastHours)
+        .then(data => {
+                res.status(200).send(data);
+            })
+        .catch(err => {
+                res.status(500).send(err);
+            });
+    };
+
     function getNoRates(req, res) {
 
         var terminal = req.params.terminal,
@@ -1005,7 +1021,7 @@ module.exports = function (log, io, oracle) {
                 log.timeEnd('invoice - getNoMatches');
                 res.status(200).send(data);
             })
-        .catch(err => {
+            .catch(err => {
                 res.status(200).send(err);
             });
     }
@@ -1661,6 +1677,7 @@ module.exports = function (log, io, oracle) {
     router.get('/totalClientTop', getTotals);
     router.put('/setState/:terminal/:_id', addState);
     router.put('/setResend/:id', setResend);
+    router.get('/lastInsert/:terminal', getLastInsert);
 
 //	app.get('/invoices/log/:seconds', function( req, res) {
 //		logInvoiceBody = 1;
