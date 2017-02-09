@@ -5,8 +5,7 @@
 module.exports = function (log, oracle) {
     'use strict';
     var express = require('express'),
-        router = express.Router(),
-        Invoice = require('../models/invoice.js');
+        router = express.Router();
 
     var Comment = require('../lib/comment.js');
     Comment = new Comment(oracle);
@@ -15,7 +14,7 @@ module.exports = function (log, oracle) {
         var param = {
             terminal: req.usr.terminal,
             invoice: req.params.invoiceId
-        }
+        };
 
         Comment.getComments(param)
         .then((data) => {
@@ -25,9 +24,9 @@ module.exports = function (log, oracle) {
                 log.logger.error("Error: %s", err.error);
                 res.status(500).send(err);
             });
-    }
+    };
 
-    function addComment(req, res) {
+    let addComment = (req, res) => {
 
         var param = {
             user: req.usr.user,
@@ -36,7 +35,7 @@ module.exports = function (log, oracle) {
             comment: req.body.comment,
             estado: req.body.state,
             invoiceId: req.body.invoice
-        }
+        };
         var usr = req.usr;
 
         Comment.add(param)
@@ -47,7 +46,7 @@ module.exports = function (log, oracle) {
                 log.logger.error("Error Comment INS: %s - %s", err.message, usr.user);
                 res.status(500).send(err);
             });
-    }
+    };
 
 /*
 router.use(function timeLog(req, res, next){
