@@ -208,6 +208,19 @@ module.exports = function (log, oracle) {
         }
     }
 
+    var getLastInsert = (req, res) => {
+        var terminal = req.params.terminal;
+        var lastHours = req.query.lastHours;
+
+        Gate.getLastInsert(terminal, lastHours)
+            .then(data => {
+                res.status(200).send(data);
+            })
+            .catch(err => {
+                res.status(500).send(err);
+            });
+    };
+
     function getMissingGates(req, res) {
         var usr = req.usr,
             terminal,
@@ -447,6 +460,7 @@ router.use(function timeLog(req, res, next){
     router.get('/:terminal/missingAppointments', getMissingAppointments);
     router.get('/:terminal/ships', getDistincts);
     router.get('/:terminal/trains', getDistincts);
+    router.get('/lastInsert/:terminal', getLastInsert);
 
     return router;
 };
