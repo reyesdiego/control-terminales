@@ -6,6 +6,7 @@ var mongoose = require('mongoose'),
 
 var detalleSchema = new Schema({
     contenedor: {type: String},
+    iso: {type: String},
     IMO: {type: Number},
     buque: {
         codigo: {type: String},
