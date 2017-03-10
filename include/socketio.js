@@ -1,9 +1,9 @@
 /**
  * Created by diego on 4/12/16.
  */
+"use strict";
 
 module.exports = (server, log) => {
-    "use strict";
 
     //transports: [
     //    'websocket',
@@ -100,7 +100,6 @@ module.exports = (server, log) => {
 };
 
 function addOnline(id, user) {
-    "use strict";
     var logged = {socketId: id, user: user};
     global.cache.online.push(logged);
     return logged;
