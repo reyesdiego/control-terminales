@@ -18,7 +18,7 @@ var Comment = require("../models/comment.js");
 var oracle = require('../include/oracledbWrap');
 oracle.createPool({
         user          : "afip",
-        password      : "afip_",
+        password      : "AFIP_",
         connectString : "(DESCRIPTION = " +
         "(ADDRESS = (PROTOCOL = TCP)(HOST = 10.1.0.60)(PORT = 1521)) " +
         "(CONNECT_DATA = " +
@@ -32,10 +32,10 @@ oracle.createPool({
                 var invoices,
                     _autoCommit = true,
                     counter = [],
-                    gap = 1000,
+                    gap = 30,
                     i;
 
-                for (i = 0; i < 4; i++) {
+                for (i = 0; i < 22; i++) {
                     counter.push({skip: i * gap, limit: gap});
                 }
                 i = 0;
@@ -43,7 +43,8 @@ oracle.createPool({
                 async.eachSeries(counter, function (rango, asyncCallback_round) {
 
                         invoices = Invoice.find({
-                            'fecha.emision': { $gte: moment("2016-08-01").toDate(), $lt: moment("2016-09-01").toDate()}
+                            nroComprob: {$gte:225221, $lte: 225241}, nroPtoVenta: 24, terminal: "BACTSSA", codTipoComprob: 1
+                            //'fecha.emision': { $gte: moment("2016-08-01").toDate(), $lt: moment("2016-09-01").toDate()}
                         })
                             .sort({_id: 1})
                             .skip(rango.skip)
