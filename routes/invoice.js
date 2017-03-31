@@ -15,8 +15,8 @@ module.exports = function (log, io, oracle) {
         MatchPrice = require('../models/matchPrice.js'),
         VoucherType = require('../models/voucherType.js'),
         Enumerable = require('linq');
-        var Invoice2 = require('../lib/invoice2.js');
 
+    var Invoice2 = require('../lib/invoice2.js');
     Invoice2 = new Invoice2(oracle);
 
     //GET - Return all invoice in the DB
@@ -143,38 +143,52 @@ module.exports = function (log, io, oracle) {
         });
     }
 
-    function getCountByDate(req, res) {
+    let getCountByDate = (req, res) => {
 
-        var param = {};
+        var seneca = require("seneca")();
+        seneca.client(config.microService.statisticOracle.port, config.microService.statisticOracle.host);
+
+        var param = {
+            role: "statistic",
+            cmd: "getCountsByDate",
+            entity: "invoice"
+        };
 
         if (req.query.fecha !== undefined) {
             param.fecha = req.query.fecha;
         }
-        Invoice2.getCountByDate(param, function (err, data) {
+        seneca.act(param, (err, data) => {
             if (err) {
                 res.status(500).send(err);
             } else {
                 res.status(200).send(data);
             }
         });
-    }
+    };
 
-    function getCountByMonth(req, res) {
+    let getCountByMonth = (req, res) => {
 
-        var param = {};
+        var seneca = require("seneca")();
+        seneca.client(config.microService.statisticOracle.port, config.microService.statisticOracle.host);
+
+        var param = {
+            role: "statistic",
+            cmd: "getCountByMonth",
+            entity: "invoice"
+        };
 
         if (req.query.fecha !== undefined) {
             param.fecha = req.query.fecha;
         }
 
-        Invoice2.getCountByMonth(param, function (err, data) {
+        seneca.act(param, (err, data) => {
             if (err) {
                 res.status(500).send(err);
             } else {
                 res.status(200).send(data);
             }
         });
-    }
+    };
 
     var getLastInsert = (req, res) => {
         var terminal = req.params.terminal;
@@ -1315,9 +1329,7 @@ module.exports = function (log, io, oracle) {
             dateIni,
             dateFin;
 
-        if (ratesParam.length<1) {
-
-        } else {
+        if (ratesParam.length>=1) {
 
             dateIni = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
             dateFin = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
@@ -1625,7 +1637,7 @@ module.exports = function (log, io, oracle) {
 
 
         }
-    }
+    };
 
     /*
      router.use(function timeLog(req, res, next){

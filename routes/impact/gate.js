@@ -42,7 +42,7 @@ module.exports = function (log, io, oracle) {
             .catch(err => {
                 errMsg = util.format('%s: %j \n%s', err.message, err.data, usr.terminal, JSON.stringify(req.body));
                 log.logger.error(errMsg);
-                res.status(500).send({status: "ERROR", data: errMsg});
+                res.status(500).send(err);
             });
     }
 

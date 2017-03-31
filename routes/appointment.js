@@ -11,6 +11,7 @@ module.exports = function (log) {
         Account = require('../models/account'),
         Appointment = require('../models/appointment.js'),
         Invoice = require('../models/invoice.js'),
+        config = require('../config/config.js'),
         util = require('util'),
         linq = require('linq');
 
@@ -90,96 +91,72 @@ module.exports = function (log) {
     }
 
     function getAppointmentsByHour(req, res) {
-        var usr = req.usr,
-            fechaInicio,
-            fechaFin,
-            param = {},
-            jsonParam;
+
+        var seneca = require("seneca")();
+        seneca.client(config.microService.statisticMongo.port, config.microService.statisticMongo.host);
+
+        var usr = req.usr;
+        var moment = require("moment");
+
+        var param = {
+            role: "statistic",
+            cmd: "getCountByHour",
+            entity: "appointment"
+        };
 
         if (req.query.fechaInicio) {
-            fechaInicio = moment(moment(req.query.fechaInicio, ['YYYY-MM-DD'])).toDate();
+            param.fechaInicio = req.query.fechaInicio;
         }
 
         if (req.query.fechaFin) {
-            fechaFin = moment(moment(req.query.fechaFin, ['YYYY-MM-DD']).add(1, 'days')).toDate();
+            param.fechaFin = req.query.fechaFin;
         }
 
         if (req.query.fecha !== undefined) {
-            fechaInicio = moment(moment(req.query.fecha, ['YYYY-MM-DD'])).toDate();
-            fechaFin = moment(fechaInicio).add(1, 'days').toDate();
+            param.fechaInicio = moment(moment(req.query.fecha, ['YYYY-MM-DD'])).toDate();
+            param.fechaFin = moment(param.fechaInicio).add(1, 'days').toDate();
         }
 
-        param.terminal = usr.terminal;
-
-        jsonParam = [
-            {$match: { 'inicio': {$gte: fechaInicio, $lt: fechaFin} }},
-            { $project: {'accessDate': { $subtract: [ '$inicio', 180 * 60 * 1000 ] }, terminal: '$terminal'} },
-            { $group : {
-                _id : { terminal: '$terminal',
-                    hour: { $hour : "$accessDate" }
-                    },
-                cnt : { $sum : 1 }
-            }},
-            { $project: {
-                terminal: '$_id.terminal',
-                hour: '$_id.hour',
-                cnt: true
-            }},
-            { $sort: {'hour': 1, 'terminal': 1 }}
-        ];
-
-        Appointment.aggregate(jsonParam, function (err, data) {
-            res.status(200).send(data);
+        seneca.act(param, (err, data) => {
+            if (err) {
+                res.status(500).send(err);
+            } else {
+                res.status(200).send(data);
+            }
         });
     }
 
     function getAppointmentsByMonth(req, res) {
 
-        var date,
-            monthsAgo,
-            date5MonthsAgo,
-            nextMonth,
-            jsonParam;
+        var seneca = require("seneca")();
+        seneca.client(config.microService.statisticMongo.port, config.microService.statisticMongo.host);
+
+        var date;
+
+        var param = {
+            role: "statistic",
+            cmd: "getCountByMonth",
+            entity: "appointment"
+        };
 
         date = moment().subtract(moment().date() - 1, 'days').format('YYYY-MM-DD');
         if (req.query.fecha !== undefined) {
-            date = moment(req.query.fecha, 'YYYY-MM-DD').subtract(moment(req.query.fecha).date() - 1, 'days');
+            date = moment(req.query.fecha, 'YYYY-MM-DD').format('YYYY-MM-DD');
         }
-        monthsAgo = 4;
+        var monthsAgo = 4;
         if (req.query.monthsAgo) {
             monthsAgo = req.query.monthsAgo;
         }
 
-        date5MonthsAgo = moment(date).subtract(monthsAgo, 'months').toDate();
-        nextMonth = moment(date).add(1, 'months').toDate();
+        param.fecha = date;
+        param.monthsAgo = monthsAgo;
 
-        jsonParam = [
-            {$match: { 'inicio': {$gte: date5MonthsAgo, $lt: nextMonth} }},
-            { $project: {
-                accessDate: { $subtract: [ '$inicio', 180 * 60 * 1000 ] },
-                dia: {$dateToString: { format: "%Y%m", date: {$subtract: ['$inicio', 180 * 60 * 1000]} }},
-                terminal: '$terminal'
-            }},
-            { $group : {
-                _id : { terminal: '$terminal',
-                    year: { $year : "$accessDate" },
-                    month: { $month : "$accessDate" },
-                    dia: '$dia'
-                    },
-                cnt : { $sum : 1 }
-            }},
-            { $project: {
-                terminal: '$_id.terminal',
-                year: '$_id.year',
-                month: '$_id.month',
-                dia: '$_id.dia',
-                cnt: true
-                }},
-            { $sort: {'dia': 1, 'terminal': 1 }}
-        ];
-
-        Appointment.aggregate(jsonParam, function (err, data) {
-            res.status(200).send(data);
+        seneca.act(param, (err, data) => {
+            if (err) {
+                res.status(500).send(err);
+            } else {
+                res.status(200).send(data);
+            }
         });
     }
 

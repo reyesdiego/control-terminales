@@ -8,7 +8,6 @@ module.exports = function (log, oracle) {
     var express = require('express'),
         router = express.Router(),
         moment = require('moment'),
-        Invoice = require('../models/invoice.js'),
         Gate = require('../lib/gate.js'),
         Appointment = require('../models/appointment.js'),
         util = require('util'),
@@ -18,7 +17,7 @@ module.exports = function (log, oracle) {
 
     Gate = new Gate(oracle);
 
-    function getGates(req, res) {
+    let getGates = (req, res) => {
 
         var usr = req.usr,
             fecha,
@@ -101,70 +100,77 @@ module.exports = function (log, oracle) {
                 err.time = log.timeEnd("getGates");
                 res.status(500).send(err);
             });
-    }
+    };
 
-    function getGatesByHour(req, res){
+    let getGatesByHour = (req, res) => {
 
-        var params = {
-            fechaInicio: null,
-            fechaFin: null,
-            fecha: null
+        var seneca = require("seneca")();
+        seneca.client(config.microService.statisticOracle.port, config.microService.statisticOracle.host);
+
+        var param = {
+            role: "statistic",
+            cmd: "getCountByHour",
+            entity: "gate"
         };
 
         if (req.query.fechaInicio) {
-            params.fechaInicio = moment(req.query.fechaInicio, ['YYYY-MM-DD']).format('YYYY-MM-DD');
+            param.fechaInicio = moment(req.query.fechaInicio, ['YYYY-MM-DD']).format('YYYY-MM-DD');
         }
 
         if (req.query.fechaFin) {
-            params.fechaFin = moment(req.query.fechaFin, ['YYYY-MM-DD']).add(1, 'days').format('YYYY-MM-DD');
+            param.fechaFin = moment(req.query.fechaFin, ['YYYY-MM-DD']).add(1, 'days').format('YYYY-MM-DD');
         }
 
         if (req.query.fecha !== undefined) {
-            params.fechaInicio = moment(req.query.fecha, ['YYYY-MM-DD']).format('YYYY-MM-DD');
-            params.fechaFin = moment(params.fechaInicio).add(1, 'days').format('YYYY-MM-DD');
+            param.fechaInicio = moment(req.query.fecha, ['YYYY-MM-DD']).format('YYYY-MM-DD');
+            param.fechaFin = moment(param.fechaInicio).add(1, 'days').format('YYYY-MM-DD');
         }
 
         log.time("getByHour");
-        Gate.getByHour(params)
-            .then(data => {
+        seneca.act(param, (err, data) => {
+            if (err) {
+                err.time = log.timeEnd("getByHour");
+                res.status(500).send(err);
+            } else {
                 data.time = log.timeEnd("getByHour");
                 res.status(200).send(data);
-            })
-            .catch(err => {
-                data.time = log.timeEnd("getByHour");
-                res.status(500).send(err);
-            });
-    }
+            }
+        });
+    };
 
-    function getGatesByMonth(req, res) {
+    let getGatesByMonth = (req, res) => {
 
-        var params = {
-                fechaInicio: null,
-                fechaFin: null,
-                fecha: null
-            },
-            date = moment(moment().format("YYYY-MM-DD"));
+        var seneca = require("seneca")();
+        seneca.client(config.microService.statisticOracle.port, config.microService.statisticOracle.host);
+
+        var param = {
+            role: "statistic",
+            cmd: "getCountByMonth",
+            entity: "gate"
+        };
+
+        var date = moment(moment().format("YYYY-MM-DD"));
 
         if (req.query.fecha !== undefined) {
             date = moment(moment(req.query.fecha).format("YYYY-MM-DD"));
         }
-        params.fechaInicio = moment([date.year(), date.month(), 1]).subtract(4, 'months').format("YYYY-MM-DD");
-        params.fechaFin = moment([date.year(), date.month(), 1]).format("YYYY-MM-DD");
+        param.fechaInicio = moment([date.year(), date.month(), 1]).subtract(4, 'months').format("YYYY-MM-DD");
+        param.fechaFin = moment([date.year(), date.month(), 1]).format("YYYY-MM-DD");
 
-        log.time("getByMonth");
-        Gate.getByMonth(params)
-        .then(data => {
-                data.time = log.timeEnd("getByMonth");
-                res.status(200).send(data);
-            })
-        .catch(err => {
-                err.time = log.timeEnd("getByMonth");
+        log.time("getCountByMonth");
+        seneca.act(param, (err, data) => {
+            if (err) {
+                err.time = log.timeEnd("getCountByMonth");
                 res.status(500).send(err);
-            });
+            } else {
+                data.time = log.timeEnd("getCountByMonth");
+                res.status(200).send(data);
+            }
+        });
 
-    }
+    };
 
-    function getDistincts(req, res) {
+    let getDistincts = (req, res) => {
 
         var usr = req.usr,
             param = {
@@ -208,7 +214,7 @@ module.exports = function (log, oracle) {
         }
     }
 
-    var getLastInsert = (req, res) => {
+    let getLastInsert = (req, res) => {
         var terminal = req.params.terminal;
         var lastHours = req.query.lastHours;
 
@@ -221,7 +227,7 @@ module.exports = function (log, oracle) {
             });
     };
 
-    function getMissingGates(req, res) {
+    let getMissingGates = (req, res) => {
         var usr = req.usr,
             terminal,
             param;
@@ -240,17 +246,17 @@ module.exports = function (log, oracle) {
         log.time("getMissingGates");
         Gate.getMissingGates(param)
         .then(data => {
-                data.time = log.timeEnd("getMissingGates")
+                data.time = log.timeEnd("getMissingGates");
                 res.status(200).send(data);
                 res.flush();
             })
         .catch(err => {
-                err.time = log.timeEnd("getMissingGates")
+                err.time = log.timeEnd("getMissingGates");
                 res.status(500).send(err);
             });
-    }
+    };
 
-    function getMissingGatesORI(req, res) {
+    /*function getMissingGatesORI(req, res) {
 
         var Gate = require('../models/gate.js');
         var usr = req.usr,
@@ -347,9 +353,9 @@ module.exports = function (log, oracle) {
             });
 
         });
-    }
+    }*/
 
-    function getMissingInvoices(req, res) {
+    let getMissingInvoices = (req, res) => {
         var usr = req.usr,
             terminal,
             param;
@@ -366,17 +372,17 @@ module.exports = function (log, oracle) {
         log.time("getMissingGates");
         Gate.getMissingInvoices(param)
         .then(data => {
-                data.time = log.timeEnd("getMissingGates")
+                data.time = log.timeEnd("getMissingGates");
                 res.status(200).send(data);
                 res.flush();
             })
         .catch(err => {
-                err.time = log.timeEnd("getMissingGates")
+                err.time = log.timeEnd("getMissingGates");
                 res.status(500).send(err);
             });
-    }
+    };
 
-    function getMissingAppointments(req, res) {
+    let getMissingAppointments = (req, res) => {
 
         var Gate = require('../models/gate.js');
         var usr = req.usr,
@@ -433,13 +439,15 @@ module.exports = function (log, oracle) {
                 });
             }
         });
-    }
+    };
+
 /*
 router.use(function timeLog(req, res, next){
     log.logger.info('Time: %s', Date.now());
     next();
 });
 */
+
     router.param('terminal', function (req, res, next, terminal) {
         var usr = req.usr;
 
