@@ -50,5 +50,15 @@
   },
   "server_port_ter": 8080,
   "server_port_web": 8090,
-  "server_ssl_port": 443
+  "server_ssl_port": 443,
+  "microService": {
+    "statisticOracle": {
+      "port": 10002,
+      "host": "10.1.0.61"
+    },
+    "statisticMongo": {
+      "port": 10001,
+      "host": "10.1.0.61"
+    }
+  }
 }
