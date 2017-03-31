@@ -108,6 +108,7 @@ module.exports = function (log, oracle) {
                     code: req.body.code.toUpperCase(),
                     description: req.body.description,
                     unit: req.body.unit,
+                    largo: req.body.largo,
                     topPrices: req.body.topPrices,
                     matches: req.body.matches,
                     usr: usr
@@ -168,6 +169,7 @@ module.exports = function (log, oracle) {
                             code: req.body.code.toUpperCase(),
                             description: req.body.description,
                             unit: req.body.unit,
+                            largo: req.body.largo,
                             topPrices: req.body.topPrices,
                             matches: req.body.matches,
                             usr: usr
@@ -196,6 +198,7 @@ module.exports = function (log, oracle) {
                                         code: req.body.code.toUpperCase(),
                                         description: req.body.description,
                                         unit: req.body.unit,
+                                        largo: req.body.largo,
                                         topPrices: req.body.topPrices,
                                         matches: req.body.matches,
                                         usr: usr
