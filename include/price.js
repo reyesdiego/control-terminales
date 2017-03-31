@@ -1,9 +1,8 @@
 /**
  * Created by diego on 6/12/14.
  */
-
+"use strict";
 var price = function (terminal) {
-    'use strict';
 
     this.Price = require("../models/price.js");
     this.matchPrice = require("../models/matchPrice.js");
@@ -59,22 +58,26 @@ var price = function (terminal) {
                             }).toArray();
                         } else if (parametro.fecha) {
                             a = Enumerable.from(result).select(function(item) {
-                                var top = Enumerable.from(item.price.topPrices)
-                                    .where(function (itemW) {
-                                        if (itemW.from < parametro.fecha) {
-                                            return true;
-                                        } else {
-                                            return false;
-                                        }
-                                    })
-                                    .orderByDescending('$.from')
-                                    .toArray();
-                                item.price.topPrices = top;
+                                console.log(item);
+                                ratesDesc = {};
+                                if (item.price){
+                                    var top = Enumerable.from(item.price.topPrices)
+                                        .where(function (itemW) {
+                                            if (itemW.from < parametro.fecha) {
+                                                return true;
+                                            } else {
+                                                return false;
+                                            }
+                                        })
+                                        .orderByDescending('$.from')
+                                        .toArray();
+                                    item.price.topPrices = top;
 
-                                ratesDesc = {
-                                    code: item.match,
-                                    price: item.price
-                                };
+                                    ratesDesc = {
+                                        code: item.match,
+                                        price: item.price
+                                    };
+                                }
                                 return ratesDesc;
                             }).toArray();
                             result = a;
@@ -86,7 +89,7 @@ var price = function (terminal) {
             });
         }
     };
-}
+};
 
 price.prototype = {
 	rates: function (withDescription, callback) {
@@ -112,6 +115,6 @@ price.prototype = {
         });
     }
 
-}
+};
 
 exports.price = price;
