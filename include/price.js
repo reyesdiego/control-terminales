@@ -32,7 +32,7 @@ var price = function (terminal) {
             params.push({ $project: {match: 1, price: 1}});
             params.push({$unwind: '$match'});
             selfMatchPrice.aggregate(params, function (err, data) {
-                selfMatchPrice.populate(data, [{ path: 'price', match: {rate: {$exists: true}}, select: '_id terminal description unit rate topPrices' }], function (err, matchprices) {
+                selfMatchPrice.populate(data, [{ path: 'price', match: {rate: {$exists: true}}, select: '_id terminal code description unit rate topPrices' }], function (err, matchprices) {
                     var ratesDesc = {},
                         result,
                         a;
@@ -58,7 +58,6 @@ var price = function (terminal) {
                             }).toArray();
                         } else if (parametro.fecha) {
                             a = Enumerable.from(result).select(function(item) {
-                                console.log(item);
                                 ratesDesc = {};
                                 if (item.price){
                                     var top = Enumerable.from(item.price.topPrices)
