@@ -307,6 +307,5 @@ oracle.createPool({
                         process.exit(0);
                     });
             });
-
     });
 

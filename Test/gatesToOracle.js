@@ -21,7 +21,7 @@ var oracledb = require('oracledb');
 oracledb.getConnection(
     {
         user          : "afip",
-        password      : "afip_",
+        password      : "AFIP_",
         connectString : "(DESCRIPTION = " +
         "(ADDRESS = (PROTOCOL = TCP)(HOST = 10.1.0.60)(PORT = 1521)) " +
         "(CONNECT_DATA = " +
@@ -48,7 +48,8 @@ oracledb.getConnection(
         async.eachSeries(counter, function (rango, asyncCallback_round) {
 
                 gates = Gates.find({
-                    gateTimestamp: { $gte: moment("2016-08-01").toDate(), $lt: moment("2016-08-02").toDate()}
+                    gateTimestamp: { $gte: moment("2017-03-26").toDate(), $lt: moment("2017-03-29").toDate()},
+                    terminal: 'TERMINAL4'
                 })
                     .sort({_id: 1})
                     .skip(rango.skip)
