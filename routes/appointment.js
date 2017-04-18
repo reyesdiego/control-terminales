@@ -92,7 +92,7 @@ module.exports = function (log) {
 
     function getAppointmentsByHour(req, res) {
 
-        var seneca = require("seneca")();
+        var seneca = require("seneca")({timeout: config.microService.statisticMongo.timeout});
         seneca.client(config.microService.statisticMongo.port, config.microService.statisticMongo.host);
 
         var usr = req.usr;
@@ -128,7 +128,7 @@ module.exports = function (log) {
 
     function getAppointmentsByMonth(req, res) {
 
-        var seneca = require("seneca")();
+        var seneca = require("seneca")({timeout: config.microService.statisticMongo.timeout});
         seneca.client(config.microService.statisticMongo.port, config.microService.statisticMongo.host);
 
         var date;

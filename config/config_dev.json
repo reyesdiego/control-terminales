@@ -13,7 +13,7 @@
     "domain": "",
     "from": "Administración General de Puertos <noreply@puertobuenosaires.gob.ar>",
     "ssl":     false,
-    "status": false,
+    "status": true,
     "throughBcc": true
   },
   "email": {
@@ -24,7 +24,7 @@
     "domain": "",
     "from": "Administración General de Puertos <noreply@puertobuenosaires.gob.ar>",
     "ssl":     false,
-    "status": false,
+    "status": true,
     "throughBcc": true
   },
   "log": {
@@ -34,13 +34,7 @@
     "toFile": false
   },
   "mongo": {
-    "url": "mongodb://10.1.0.60:27017/terapi",
-    "options": {
-      "user": "admin",
-      "pass": "Pt trend 54",
-      "auth": {"authdb": "admin"},
-      "server": { "socketOptions": { "keepAlive": 1, "connectTimeoutMS": 30000 }}
-    }
+    "url": "mongodb://10.10.0.223:27017/terapi"
   },
   "mongo_url_log": "mongodb://10.1.0.60.27017:27017/logging",
   "mongo_opts_log": {
@@ -50,5 +44,18 @@
   },
   "server_port_ter": 8080,
   "server_port_web": 8090,
-  "server_ssl_port": 443
+  "server_ssl_port": 443,
+  "microService": {
+    "statisticOracle": {
+      "timeout": 15000,
+      "port": 10002,
+      "host": "10.10.0.223"
+    },
+    "statisticMongo": {
+      "timeout": 15000,
+      "port": 10001,
+      "host": "10.10.0.223"
+    }
+  }
+
 }

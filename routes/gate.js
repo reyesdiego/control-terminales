@@ -104,7 +104,7 @@ module.exports = function (log, oracle) {
 
     let getGatesByHour = (req, res) => {
 
-        var seneca = require("seneca")();
+        var seneca = require("seneca")({timeout: config.microService.statisticOracle.timeout});
         seneca.client(config.microService.statisticOracle.port, config.microService.statisticOracle.host);
 
         var param = {
@@ -140,7 +140,7 @@ module.exports = function (log, oracle) {
 
     let getGatesByMonth = (req, res) => {
 
-        var seneca = require("seneca")();
+        var seneca = require("seneca")({timeout: config.microService.statisticOracle.timeout});
         seneca.client(config.microService.statisticOracle.port, config.microService.statisticOracle.host);
 
         var param = {

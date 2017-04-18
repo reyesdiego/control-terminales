@@ -4,7 +4,7 @@
   "processes": 0,
   "url": "http://terminales.puertobuenosaires.gob.ar:8080",
   "socket_url": "http://terminales.puertobuenosaires.gob.ar:8090",
-  "domain": "10.1.0.61",
+  "domain": "190.221.146.243",
   "emailTurnos": {
     "user":    "",
     "password": "",
@@ -53,10 +53,12 @@
   "server_ssl_port": 443,
   "microService": {
     "statisticOracle": {
+      "timeout": 15000,
       "port": 10002,
       "host": "10.1.0.61"
     },
     "statisticMongo": {
+      "timeout": 15000,
       "port": 10001,
       "host": "10.1.0.61"
     }
