@@ -230,7 +230,8 @@ module.exports = function (log, oracle) {
     let getMissingGates = (req, res) => {
         var usr = req.usr,
             terminal,
-            param;
+            param,
+            fecha;
 
         if (usr.role === 'agp') {
             terminal = req.params.terminal;
@@ -242,6 +243,15 @@ module.exports = function (log, oracle) {
             skip: parseInt(req.params.skip, 10),
             limit: parseInt(req.params.limit, 10)
         };
+
+        if (req.query.fechaInicio) {
+            fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').format('YYYY-MM-DD');
+            param.fechaInicio = fecha;
+        }
+        if (req.query.fechaFin) {
+            fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').format('YYYY-MM-DD');
+            param.fechaFin = fecha;
+        }
 
         log.time("getMissingGates");
         Gate.getMissingGates(param)
