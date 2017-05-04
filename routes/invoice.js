@@ -831,100 +831,28 @@ module.exports = function (log, io, oracle) {
         });
     }
 
-    function getInvoicesByRates (req, res) {
+    let getInvoicesByRates = (req, res) => {
 
-        var ratesParam = req.body.data,
-            param,
-            dateIni,
-            dateFin;
+        var seneca = require("seneca")({timeout: config.microService.statisticOracle.port});
+        seneca.client(config.microService.statisticOracle.port, config.microService.statisticOracle.host);
 
-        if (ratesParam.length>=1) {
+        var param = {
+            role: 'statistic',
+            entity: 'invoice',
+            cmd: 'getByRates'
+        };
+        param.rates = req.body.data;
+        param.fechaInicio = req.query.fechaInicio;
+        param.fechaFin = req.query.fechaFin;
 
-            dateIni = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
-            dateFin = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
-
-            param = [
-                { $match: { code: {$in: ratesParam } } },
-                { $unwind: '$match'},
-                { $project : {code: '$code',  match: '$match', _id: false}}
-            ];
-            MatchPrice.aggregate(param, function (err, matchprices) {
-                var ids =[];
-                matchprices.forEach(function (item){
-                    ids.push(item.match);
-                });
-
-                param = [
-                    {
-                        $match : { 'fecha.emision': { $gte: dateIni, $lte: dateFin }  }
-                    },
-                    {
-                        $unwind : '$detalle'
-                    },
-                    {
-                        $unwind : '$detalle.items'
-                    },
-                    {
-                        $match : {
-                            'detalle.items.id' : {$in: ids }
-                        }
-                    },
-                    {
-                        $group  : {
-                            _id: { terminal: '$terminal', code: '$detalle.items.id'},
-                            total: { $sum : '$detalle.items.impTot'}
-                        }
-                    },
-                    {
-                        $project : { _id:0, terminal: '$_id.terminal', code: '$_id.code', total:1}
-                    }
-                ];
-
-                var rates = Invoice.aggregate(param);
-                rates.exec( function (err, ratesData) {
-                    var response,
-                        result,
-                        result2;
-
-                    if (err){
-                        log.logger.error(err);
-                        res.status(500).json({status:"ERROR", data: err.message});
-                    }
-                    else {
-                        response = Enumerable.from(ratesData)
-                            .join(Enumerable.from(matchprices), '$.code', '$.match', function (rate, matchprice){
-                                rate.code = matchprice.code;
-                                return rate;
-                            }).toArray();
-                        result = Enumerable.from(response).groupBy("{code: $.code, terminal: $.terminal}", null,
-                            function (key, g) {
-                                var result = {
-                                    terminal: key.terminal
-                                };
-                                result[key.code] = g.sum("$.total");
-                                return result;
-                            }).toArray();
-
-                        result2 = Enumerable.from(result).groupBy("$.terminal" , null,
-                            function (key, g) {
-                                var prop = g.getSource();
-                                var ter = {terminal: key, data: {}};
-                                prop.forEach(function (item){
-                                    for (var pro in item){
-                                        if (pro !== 'terminal') {
-                                            ter.data[pro] = item[pro];
-                                        }
-                                    }
-                                });
-                                return (ter);
-                            }).toArray();
-                        res.status(200).json({status:'OK', data: result2});
-                    }
-                });
-            });
-        }
-
-    }
+        seneca.act(param, (err, data) => {
+            if (err) {
+                res.status(500).send(err);
+            } else {
+                res.status(200).send(data);
+            }
+        });
+    };
 
     let getInvoicesByRatesTerminal = (req, res) => {
         var params = {};
@@ -1168,6 +1096,7 @@ module.exports = function (log, io, oracle) {
     router.get('/rates/month', getRatesPeriod);
     router.get('/rates/year', getRatesPeriod);
     router.get('/rates/:terminal/:container/:currency', getRatesByContainer);
+    router.post('/byRates', getInvoicesByRates);
     router.get('/noMatches/:terminal/:skip/:limit', getNoMatches);
     router.get('/correlative/:terminal', getCorrelative);
     router.get('/cashbox/:terminal', getCashbox);
@@ -1178,7 +1107,6 @@ module.exports = function (log, io, oracle) {
     router.get('/:terminal/clients', getClients);
     router.get('/:terminal/shipTrips', getShipTrips);
     router.get('/:terminal/shipContainers', getShipContainers);
-    router.post('/byRates', getInvoicesByRates);
     router.get('/:terminal/byRates', getInvoicesByRatesTerminal);
     router.get('/containersNoRates/:terminal', getContainersNoRates);
     router.get('/totalClient', getTotals);
