@@ -130,7 +130,11 @@ module.exports = function (log, oracle) {
         seneca.act(param, (err, data) => {
             if (err) {
                 err.time = log.timeEnd("getByHour");
-                res.status(500).send(err);
+                res.status(500).send({
+                    status: "ERROR",
+                    message: err.msg,
+                    data: err
+                });
             } else {
                 data.time = log.timeEnd("getByHour");
                 res.status(200).send(data);

@@ -847,7 +847,38 @@ module.exports = function (log, io, oracle) {
 
         seneca.act(param, (err, data) => {
             if (err) {
-                res.status(500).send(err);
+                res.status(500).send({
+                    status: "ERROR",
+                    message: err.msg,
+                    data: err
+                });
+            } else {
+                res.status(200).send(data);
+            }
+        });
+    };
+
+    let getInvoicesByRatesPivot = (req, res) => {
+
+        var seneca = require("seneca")({timeout: config.microService.statisticOracle.port});
+        seneca.client(config.microService.statisticOracle.port, config.microService.statisticOracle.host);
+
+        var param = {
+            role: 'statistic',
+            entity: 'invoice',
+            cmd: 'getByRatesPivot'
+        };
+        param.rates = req.body.data;
+        param.fechaInicio = req.query.fechaInicio;
+        param.fechaFin = req.query.fechaFin;
+
+        seneca.act(param, (err, data) => {
+            if (err) {
+                res.status(500).send({
+                    status: "ERROR",
+                    message: err.msg,
+                    data: err
+                });
             } else {
                 res.status(200).send(data);
             }
@@ -1097,6 +1128,7 @@ module.exports = function (log, io, oracle) {
     router.get('/rates/year', getRatesPeriod);
     router.get('/rates/:terminal/:container/:currency', getRatesByContainer);
     router.post('/byRates', getInvoicesByRates);
+    router.post('/byRates/pivot', getInvoicesByRatesPivot);
     router.get('/noMatches/:terminal/:skip/:limit', getNoMatches);
     router.get('/correlative/:terminal', getCorrelative);
     router.get('/cashbox/:terminal', getCashbox);

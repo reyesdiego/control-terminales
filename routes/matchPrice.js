@@ -17,7 +17,9 @@ module.exports = function (log, oracle) {
             terminal: req.params.terminal,
             user: req.usr,
             code: req.query.code,
-            onlyRates: req.query.onlyRates
+            onlyRates: req.query.onlyRates,
+            onlyMedida: req.query.onlyMedida,
+            onlyNorma: req.query.onlyNorma
         };
 
         log.time("getMatchPrices");

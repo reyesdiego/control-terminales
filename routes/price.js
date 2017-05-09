@@ -109,6 +109,7 @@ module.exports = function (log, oracle) {
                     description: req.body.description,
                     unit: req.body.unit,
                     largo: req.body.largo,
+                    norma: req.body.norma,
                     topPrices: req.body.topPrices,
                     matches: req.body.matches,
                     usr: usr
@@ -170,6 +171,7 @@ module.exports = function (log, oracle) {
                             description: req.body.description,
                             unit: req.body.unit,
                             largo: req.body.largo,
+                            norma: req.body.norma,
                             topPrices: req.body.topPrices,
                             matches: req.body.matches,
                             usr: usr
@@ -199,6 +201,7 @@ module.exports = function (log, oracle) {
                                         description: req.body.description,
                                         unit: req.body.unit,
                                         largo: req.body.largo,
+                                        norma: req.body.norma,
                                         topPrices: req.body.topPrices,
                                         matches: req.body.matches,
                                         usr: usr

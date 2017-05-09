@@ -16,6 +16,7 @@ var price = new mongoose.Schema({
         currency: {type: String}
     }],
     largo: {type: Number},
+    norma: {type: String},
     aud_user: {type: String},
     aud_time: {type: Date}
 });
