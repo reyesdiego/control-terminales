@@ -136,9 +136,7 @@ module.exports = function (log, oracle) {
             code: req.body.match[0]
         };
 
-        var MatchPrice3 = require('../lib/matchPrice2.js');
-        MatchPrice3 = new MatchPrice3(oracle);
-        MatchPrice3.add(params)
+        MatchPrice.add(params)
         .then(data => {
                 res.status(200).send(data);
             })
@@ -153,6 +151,7 @@ module.exports = function (log, oracle) {
         next();
     });
     */
+
     router.get('/:terminal', getMatchPrices);
     router.get('/price/:terminal', getMatchPricesPrice);
     router.get('/matches/:terminal', getMatches);

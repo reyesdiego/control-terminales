@@ -98,8 +98,8 @@ module.exports = function (log, oracle) {
                 item.from = moment(item.from, "YYYY-MM-DD").toDate();
             });
 
-            var priceORA = new Price(req.body.terminal, oracle);
-            var priceMongo = new Price(req.body.terminal);
+            var priceORA = new Price(ter, oracle);
+            var priceMongo = new Price(ter);
 
             if (req.method === 'POST') {
 
@@ -138,7 +138,7 @@ module.exports = function (log, oracle) {
                                     });
                                 }
                             })
-                        .catch(err => {
+                            .catch(err => {
                                 console.log(err);
                             });
 
@@ -176,7 +176,7 @@ module.exports = function (log, oracle) {
                             matches: req.body.matches,
                             usr: usr
                         };
-
+                        console.log(req.body.matches);
                         priceORA.update(param)
                             .then(data => {
                                 log.logger.update("Price ORA UPD:%s - %s", req.body._id, usr.terminal);
@@ -186,7 +186,6 @@ module.exports = function (log, oracle) {
                                 log.logger.error('Error: %s - %s', err.message, usr.terminal);
                                 res.status(500).send(err);
                             });
-
                         price = price.data;
                         //Price MongoDB
                         priceMongo.getPrices({code: price.code, terminal: ter})
