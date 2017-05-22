@@ -153,7 +153,11 @@ module.exports = function (log) {
 
         seneca.act(param, (err, data) => {
             if (err) {
-                res.status(500).send(err);
+                res.status(500).send({
+                    status: "ERROR",
+                    message: err.msg,
+                    data: err
+                });
             } else {
                 res.status(200).send(data);
             }
@@ -197,6 +201,24 @@ module.exports = function (log) {
             });
         }
     }
+
+    let getByPatente = (req, res) => {
+        var param = {
+            patenteCamion: req.params.patente.toUpperCase(),
+            inicio: {$gte: moment(moment().format("YYYY-MM-DD")).toDate()}
+        };
+
+        Appointment
+            .find(param, {_id: false,patenteCamion: 1, contenedor: 1, inicio: 1, fin: 1, dniCamion:1, celular: 1})
+            .sort({inicio: 1})
+            .exec((err, data) => {
+            if (err) {
+                res.status(500).send({status: 'ERROR', data: err.message});
+            } else {
+                res.status(200).send({status: 'OK', data: data});
+            }
+        });
+    };
 
     function getDistincts(req, res) {
 
@@ -301,6 +323,7 @@ module.exports = function (log) {
     router.get('/:terminal/ships', getDistincts);
     router.get('/container/:container', getByContainer);
     router.get('/:terminal/missingAppointments', getMissingAppointments);
+    router.get('/patente/:patente', getByPatente);
 
     return router;
 };
