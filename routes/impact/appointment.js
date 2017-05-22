@@ -25,7 +25,7 @@ module.exports = function (log, io, oracle) {
         // use string with dot-notation to validate nested fields
         validate
             .validate('buque', 'buque is required.')
-            .isLength(1)
+            .isLength(1);
         validate
             .validate('viaje', 'viaje is required.')
             .isLength(1);
@@ -227,8 +227,45 @@ module.exports = function (log, io, oracle) {
                     mailer.send(usr.email, subject, err.message);
                 }
             });
-    }
+    };
 
+    let setTransporte = (req, res) => {
+        var params = {};
+        var Appointment = require('../../lib/appointment.js');
+        Appointment = new Appointment();
+
+        if (req.body.patenteCamion) {
+            params.camion = req.body.patenteCamion;
+        }
+        if (req.body.patenteSemi) {
+            params.semi = req.body.patenteSemi;
+        }
+        if (req.body.dni) {
+            params.dni = req.body.dni;
+        }
+        if (req.body.celular) {
+            params.celular = req.body.celular;
+        }
+        if (req.body._id) {
+            params._id = req.body._id;
+        } else {
+            params.contenedor = req.body.contenedor;
+            params.buque = req.body.buque;
+        }
+
+        Appointment.setTransporte(params)
+        .then(data => {
+                let str = `Appointment UPDATE Transporte: - : ${JSON.stringify(req.body)}`;
+                log.logger.insert(str);
+
+                res.status(200).send(data);
+            })
+        .catch(err => {
+                let errMsg = `Appointment UPDATE Transporte ERROR: - ${err.message} - ${JSON.stringify(req.body)}`;
+                log.logger.error(errMsg);
+                res.status(500).send(err);
+            });
+    };
     /*
      router.use(function timeLog(req, res, next){
      log.logger.info('Time: %s', Date.now());
@@ -237,6 +274,7 @@ module.exports = function (log, io, oracle) {
      */
 
     router.post('/', validateSanitize, addAppointment, reportClient);
+    router.put('/patente', setTransporte);
 
     return router;
 };

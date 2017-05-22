@@ -209,7 +209,7 @@ module.exports = function (log) {
         };
 
         Appointment
-            .find(param, {_id: false,patenteCamion: 1, contenedor: 1, inicio: 1, fin: 1, dniCamion:1, celular: 1})
+            .find(param, {_id: false, 'transporte.camion': 1, contenedor: 1, inicio: 1, fin: 1, 'transporte.dni':1, 'transporte.celular': 1})
             .sort({inicio: 1})
             .exec((err, data) => {
             if (err) {
