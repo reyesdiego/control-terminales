@@ -1,6 +1,6 @@
-    /**
-    * Created by Diego Reyes on 3/21/14.
-    */
+/**
+ * Created by Diego Reyes on 3/21/14.
+ */
 
 module.exports = function (log) {
     'use strict';
@@ -212,12 +212,12 @@ module.exports = function (log) {
             .find(param, {_id: false, 'transporte.camion': 1, contenedor: 1, inicio: 1, fin: 1, 'transporte.dni':1, 'transporte.celular': 1})
             .sort({inicio: 1})
             .exec((err, data) => {
-            if (err) {
-                res.status(500).send({status: 'ERROR', data: err.message});
-            } else {
-                res.status(200).send({status: 'OK', data: data});
-            }
-        });
+                if (err) {
+                    res.status(500).send({status: 'ERROR', data: err.message});
+                } else {
+                    res.status(200).send({status: 'OK', data: data});
+                }
+            });
     };
 
     function getDistincts(req, res) {
@@ -310,11 +310,11 @@ module.exports = function (log) {
     }
 
     /*
-    router.use(function timeLog(req, res, next){
-        log.logger.info('Time: %s', Date.now());
-        next();
-    });
-    */
+     router.use(function timeLog(req, res, next){
+     log.logger.info('Time: %s', Date.now());
+     next();
+     });
+     */
 
     router.get('/ByHour', getAppointmentsByHour);
     router.get('/ByMonth', getAppointmentsByMonth);

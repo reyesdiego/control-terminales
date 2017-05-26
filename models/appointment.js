@@ -1,6 +1,8 @@
 /**
  * Created by Diego Reyes on 3/21/14.
  */
+"use strict";
+
 var mongoose = require('mongoose');
 
 var appointment = new mongoose.Schema({
@@ -13,11 +15,11 @@ var appointment = new mongoose.Schema({
         semi: {type: String, uppercase: true},
         dni: {type: Number},
         celular: {type: Number},
-        date: {type: Date}
+        date: {type: Date, default: new Date()}
     },
     inicio: {type: Date, required: true},
     fin: {type: Date},
-    mov: {type: String, enum: ['IMPO', 'EXPO']},
+    mov: {type: String, enum: ['IMPO', 'EXPO', 'VACIO']},
     alta: {type: Date},
     shipTrip: {
         altaInicio: {type: Number},
@@ -32,6 +34,30 @@ var appointment = new mongoose.Schema({
     verifica_turno: {type: String, enum: ['MA', 'TA']},
     verifica_tipo: {type: String, enum: ['PISO', 'CAMION']}
 });
+
+appointment.pre('save', function (next, done) {
+
+    var moment = require("moment");
+
+    var fecha = moment().format("YYYY-MM-DD HH:mm:ssZ");
+    var inicio = moment(this.inicio).format("YYYY-MM-DD HH:mm:ss");
+    var fin = moment(this.fin).format("YYYY-MM-DD HH:mm:ss");
+    var alta = moment(this.alta).format("YYYY-MM-DD HH:mm:ssZ");
+    var verifica = moment(this.verifica).format("YYYY-MM-DD HH:mm:ss");
+
+    if (moment().add('minute', -1) > moment(this.alta)) {
+        next(new Error(`La Fecha de Alta del Turno "${alta}" es Menor a la Fecha Actual "${fecha}"`));
+    } else if (this.inicio > this.fin) {
+        next(new Error(`La Fecha de Inicio del Turno "${inicio}" es Mayor a la de Fin "${fin}"`));
+    } else if (new Date() > this.inicio) {
+        next(new Error(`La Fecha de Inicio del Turno "${inicio}" es Menor a la Fecha Actual "${fecha}"`));
+    } else if (this.verifica !== undefined && this.verifica < this.inicio) {
+        next(new Error(`La Fecha de Verificacion del Turno "${verifica}" es Menor a la Fecha de Inicio del Turno "${inicio}"`));
+    } else {
+        next();
+    }
+});
+
 
 //appointment.pre('save', function (next, done) {
     /*
