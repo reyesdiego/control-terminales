@@ -7,7 +7,8 @@ var matchPrice = new mongoose.Schema({
     terminal: {type: String},
     code: {type: String},
     match: [{type: String}],
-    price: {type: mongoose.Schema.ObjectId, ref: 'prices'}
+    price: {type: mongoose.Schema.ObjectId, ref: 'prices'},
+    approvedBy: {type: String}
 });
 
 module.exports = mongoose.model('matchprices', matchPrice);

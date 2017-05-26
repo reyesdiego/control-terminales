@@ -5,14 +5,12 @@ html(lang='fr')
 	body(style="font-family:arial")
 		p(style="font-size:24px")
 			b Control Terminales Portuarias
-		p(style="font-size:18px")
-			b Administración General de Puertos
-		p Ha sido dada de alta una nueva Tarifa/Servicio.
+		p #{titulo}
 		p
 			b Terminal:
 			span &nbsp;#{terminal}
 		p
-			b Código:
+			b Tarifa:
 			span &nbsp;#{code}
 		p
 			b Descripción:
@@ -20,3 +18,13 @@ html(lang='fr')
 		p
 			b Valor:
 			span &nbsp;#{price}
+		p
+			b Código Asociados:&nbsp;
+			- var total = asociados.length - 1;
+			- each val2, index2 in asociados
+				- if (val2.new)
+					span(style="font-weight: bolder") #{val2.code} (nueva asociacion)&nbsp;
+				- else
+					span #{val2.code}&nbsp;
+				- if (total !== index2)
+					span -&nbsp;

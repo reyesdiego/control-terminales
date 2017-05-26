@@ -124,17 +124,25 @@ module.exports = function (log, oracle) {
                                     mailer,
                                     to;
                                 if (emails.data.length > 0) {
-                                    res.render('priceAdd.jade', {code: priceAdded.data.code, description: priceAdded.data.description, terminal: usr.terminal, price: priceAdded.data.topPrices[0].price}, function (err, html) {
-                                        html = {
-                                            data : html,
-                                            alternative: true
-                                        };
-                                        strSubject = util.format("AGP - %s - Tarifa Nueva", usr.terminal);
-                                        mailer = new mail.mail(config.email);
-                                        to = emails.data;
-                                        mailer.send(to, strSubject, html, (err, data) => {
-                                            log.logger.insert("Price INS MailTo:%s", to.join('-'));
-                                        });
+                                    res.render('priceAdd.jade', {
+                                            titulo: "Ha sido dada de alta una nueva Tarifa o Servicio",
+                                            code: priceAdded.data.code,
+                                            description: priceAdded.data.description,
+                                            terminal: usr.terminal,
+                                            price: priceAdded.data.topPrices[0].price,
+                                            asociados: priceAdded.data.matches.match
+                                        },
+                                        (err, html) => {
+                                            html = {
+                                                data : html,
+                                                alternative: true
+                                            };
+                                            strSubject = util.format("AGP - %s - Tarifa Nueva", usr.terminal);
+                                            mailer = new mail.mail(config.email);
+                                            to = emails.data;
+                                            mailer.send(to, strSubject, html, (err, data) => {
+                                                log.logger.insert("Price INS MailTo:%s", to.join('-'));
+                                            });
                                     });
                                 }
                             })
@@ -160,7 +168,7 @@ module.exports = function (log, oracle) {
 
             } else {
 
-                //Price Oracle
+                /**Price Oracle Update */
                 priceORA.getPrice(req.body._id)
                     .then(price => {
 
@@ -176,16 +184,55 @@ module.exports = function (log, oracle) {
                             matches: req.body.matches,
                             usr: usr
                         };
-                        console.log(req.body.matches);
+
+                        /** Se hace operacion de Update en OracleDB **/
                         priceORA.update(param)
-                            .then(data => {
+                            .then(priceUpdated => {
+                                let Enumerable = require("linq");
                                 log.logger.update("Price ORA UPD:%s - %s", req.body._id, usr.terminal);
-                                res.status(200).send(data);
+
+                                if (Enumerable.from(priceUpdated.data.matches.match).contains(true, "$.new")) {
+                                    Account.findEmailToApp('price')
+                                        .then(emails => {
+                                            var strSubject,
+                                                mailer,
+                                                to;
+                                            if (emails.data.length > 0) {
+                                                res.render('priceAdd.jade', {
+                                                        titulo: "Ha sido modificada una Tarifa o Servicio",
+                                                        code: priceUpdated.data.code,
+                                                        description: priceUpdated.data.description,
+                                                        terminal: usr.terminal,
+                                                        price: priceUpdated.data.topPrices[0].price,
+                                                        asociados: priceUpdated.data.matches.match
+                                                    },
+                                                    (err, html) => {
+                                                        html = {
+                                                            data : html,
+                                                            alternative: true
+                                                        };
+                                                        strSubject = util.format("AGP - %s - Tarifa Nueva", usr.terminal);
+                                                        mailer = new mail.mail(config.email);
+                                                        to = emails.data;
+                                                        mailer.send(to, strSubject, html, (err, data) => {
+                                                            log.logger.insert("Price UPDATE MailTo:%s", to.join('-'));
+                                                        });
+                                                    });
+                                            }
+                                        })
+                                        .catch(err => {
+                                            console.log(err);
+                                        });
+                                }
+
+                                res.status(200).send(priceUpdated);
                             })
                             .catch(err => {
-                                log.logger.error('Error: %s - %s', err.message, usr.terminal);
+                                log.logger.error('Error Price ORA UPD: %s - %s', err.message, usr.terminal);
                                 res.status(500).send(err);
                             });
+
+                        /** Se hace la misma operacion de Update en Mongodb **/
                         price = price.data;
                         //Price MongoDB
                         priceMongo.getPrices({code: price.code, terminal: ter})
@@ -214,8 +261,6 @@ module.exports = function (log, oracle) {
                                         });
                                 }});
                     });
-
-
             }
         } catch (error) {
             res.status(500).send({"status": "ERROR", "data": "Error en addPrice " + error.message});
