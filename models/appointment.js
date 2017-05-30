@@ -42,17 +42,14 @@ appointment.pre('save', function (next, done) {
     var fecha = moment().format("YYYY-MM-DD HH:mm:ssZ");
     var inicio = moment(this.inicio).format("YYYY-MM-DD HH:mm:ss");
     var fin = moment(this.fin).format("YYYY-MM-DD HH:mm:ss");
-    var alta = moment(this.alta).format("YYYY-MM-DD HH:mm:ssZ");
     var verifica = moment(this.verifica).format("YYYY-MM-DD HH:mm:ss");
 
-    if (moment().add('minute', -1) > moment(this.alta)) {
-        next(new Error(`La Fecha de Alta del Turno "${alta}" es Menor a la Fecha Actual "${fecha}"`));
-    } else if (this.inicio > this.fin) {
+    if (this.inicio > this.fin) {
         next(new Error(`La Fecha de Inicio del Turno "${inicio}" es Mayor a la de Fin "${fin}"`));
     } else if (new Date() > this.inicio) {
         next(new Error(`La Fecha de Inicio del Turno "${inicio}" es Menor a la Fecha Actual "${fecha}"`));
-    } else if (this.verifica !== undefined && this.verifica < this.inicio) {
-        next(new Error(`La Fecha de Verificacion del Turno "${verifica}" es Menor a la Fecha de Inicio del Turno "${inicio}"`));
+    } else if (this.verifica !== undefined && this.verifica > this.fin) {
+        next(new Error(`La Fecha de Verificacion del Turno "${verifica}" es Mayor a la Fecha de Retiro del Contenedor "${fin}"`));
     } else {
         next();
     }
