@@ -275,10 +275,7 @@ Account.statics.findEmailToApp = function (nameApp) {
     return new Promise((resolve, reject) => {
         var result = [];
 
-        var param = {
-            emailToApp: {}
-        };
-        param.emailToApp[nameApp] = true;
+        var param = JSON.parse(`{"emailToApp.${nameApp}": true}`);
 
         this.find(param, {_id: 0, email: 1})
             .exec((err, data) => {
