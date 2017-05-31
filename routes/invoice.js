@@ -12,9 +12,7 @@ module.exports = function (log, io, oracle) {
         moment = require('moment'),
         config = require('../config/config.js'),
         Invoice = require('../models/invoice.js'),
-        MatchPrice = require('../models/matchPrice.js'),
-        VoucherType = require('../models/voucherType.js'),
-        Enumerable = require('linq');
+        MatchPrice = require('../models/matchPrice.js');
 
     var Invoice2 = require('../lib/invoice2.js');
     Invoice2 = new Invoice2(oracle);
@@ -1094,6 +1092,19 @@ module.exports = function (log, io, oracle) {
         }
     };
 
+    let getByCode = (req, res) => {
+        var code = req.query.code;
+        var terminal = req.query.terminal;
+
+        Invoice2.getByCode(code, terminal)
+            .then(data => {
+                res.status(200).send(data);
+            })
+            .catch(err => {
+                res.status(500).send(err);
+            });
+    };
+
     /*
      router.use(function timeLog(req, res, next){
      log.logger.info('Time: %s', Date.now());
@@ -1146,6 +1157,7 @@ module.exports = function (log, io, oracle) {
     router.put('/setState/:terminal/:_id', addState);
     router.put('/setResend/:id', setResend);
     router.get('/lastInsert/:terminal', getLastInsert);
+    router.get('/byCode', getByCode);
 
 //	app.get('/invoices/log/:seconds', function( req, res) {
 //		logInvoiceBody = 1;
