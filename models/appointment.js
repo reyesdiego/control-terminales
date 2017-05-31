@@ -46,8 +46,6 @@ appointment.pre('save', function (next, done) {
 
     if (this.inicio > this.fin) {
         next(new Error(`La Fecha de Inicio del Turno "${inicio}" es Mayor a la de Fin "${fin}"`));
-    } else if (new Date() > this.inicio) {
-        next(new Error(`La Fecha de Inicio del Turno "${inicio}" es Menor a la Fecha Actual "${fecha}"`));
     } else if (this.verifica !== undefined && this.verifica > this.fin) {
         next(new Error(`La Fecha de Verificacion del Turno "${verifica}" es Mayor a la Fecha de Retiro del Contenedor "${fin}"`));
     } else {
