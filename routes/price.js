@@ -84,8 +84,8 @@ module.exports = function (log, oracle) {
     }
 
     function addPrice(req, res) {
-        var usr = req.usr,
-            Account = require('../models/account');
+        var usr = req.usr;
+        var moment = require("moment");
         var paramTerminal = usr.terminal,
             ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
 
@@ -118,36 +118,25 @@ module.exports = function (log, oracle) {
                 priceORA.add(param)
                     .then(priceAdded => {
                         log.logger.insert("Price ORA INS:%s - %s - %s", priceAdded.data._id, priceAdded.data.terminal, priceAdded.data.code);
-                        Account.findEmailToApp('price')
-                            .then(emails => {
-                                var strSubject,
-                                    mailer,
-                                    to;
-                                if (emails.data.length > 0) {
-                                    res.render('priceAdd.jade', {
-                                            titulo: "Ha sido dada de alta una nueva Tarifa o Servicio",
-                                            code: priceAdded.data.code,
-                                            description: priceAdded.data.description,
-                                            terminal: usr.terminal,
-                                            price: priceAdded.data.topPrices[0].price,
-                                            asociados: priceAdded.data.matches.match
-                                        },
-                                        (err, html) => {
-                                            html = {
-                                                data : html,
-                                                alternative: true
-                                            };
-                                            strSubject = util.format("AGP - %s - Tarifa Nueva", usr.terminal);
-                                            mailer = new mail.mail(config.email);
-                                            to = emails.data;
-                                            mailer.send(to, strSubject, html, (err, data) => {
-                                                log.logger.insert("Price INS MailTo:%s", to.join('-'));
-                                            });
+
+                        /** Envia al Notificador aviso del Alta de la Tarifa/Servicio*/
+                        var notificador = require("../include/notificador.js");
+                        notificador.login(config.notificador.user, config.notificador.password)
+                            .then(notificaLogin => {
+                                var priceNew = priceAdded.data;
+                                notificador.notificaAddPrice(notificaLogin.data.token, {
+                                    date: moment().format("DD-MM-YYYY"),
+                                    description: `Código: ${priceNew.code} - Descripción: ${priceNew.description} - Precio: ${priceNew.topPrices[priceNew.topPrices.length-1].price} ${priceNew.topPrices[priceNew.topPrices.length-1].currency} - Terminal: ${priceAdded.data.terminal}`
+                                })
+                                    .then(data => {
+                                        log.logger.insert("Price INS Notificó");
+                                    })
+                                    .catch(err => {
+                                        log.logger.error("Falló la Notificación");
                                     });
-                                }
                             })
                             .catch(err => {
-                                console.log(err);
+                                console.error(err);
                             });
 
                         res.status(200).send(priceAdded);
@@ -191,40 +180,34 @@ module.exports = function (log, oracle) {
                                 let Enumerable = require("linq");
                                 log.logger.update("Price ORA UPD:%s - %s", req.body._id, usr.terminal);
 
-                                if (Enumerable.from(priceUpdated.data.matches.match).contains(true, "$.new")) {
-                                    Account.findEmailToApp('price')
-                                        .then(emails => {
-                                            var strSubject,
-                                                mailer,
-                                                to;
-                                            if (emails.data.length > 0) {
-                                                res.render('priceAdd.jade', {
-                                                        titulo: "Ha sido modificada una Tarifa o Servicio",
-                                                        code: priceUpdated.data.code,
-                                                        description: priceUpdated.data.description,
-                                                        terminal: usr.terminal,
-                                                        price: priceUpdated.data.topPrices[0].price,
-                                                        asociados: priceUpdated.data.matches.match
-                                                    },
-                                                    (err, html) => {
-                                                        html = {
-                                                            data : html,
-                                                            alternative: true
-                                                        };
-                                                        strSubject = util.format("AGP - %s - Tarifa Nueva", usr.terminal);
-                                                        mailer = new mail.mail(config.email);
-                                                        to = emails.data;
-                                                        mailer.send(to, strSubject, html, (err, data) => {
-                                                            log.logger.insert("Price UPDATE MailTo:%s", to.join('-'));
-                                                        });
-                                                    });
-                                            }
+                                var asocs = Enumerable
+                                    .from(priceUpdated.data.matches.match)
+                                    .where("x=>x.new")
+                                    .select(item => (item.code))
+                                    .toArray()
+                                    .join('-');
+
+                                if (asocs !== '') {
+                                    /** Envia al Notificador aviso de las nuevas Asociaciones en la Tarifa/Servicio*/
+                                    var notificador = require("../include/notificador.js");
+                                    notificador.login(config.notificador.user, config.notificador.password)
+                                        .then(notificaLogin => {
+                                            var priceUpd = priceUpdated.data;
+                                            notificador.notificaAddPriceMatch(notificaLogin.data.token, {
+                                                date: moment().format("DD-MM-YYYY"),
+                                                description: `Código: ${priceUpd.code} - Descripción: ${priceUpd.description} - Precio: ${priceUpd.topPrices[priceUpd.topPrices.length-1].price} ${priceUpd.topPrices[priceUpd.topPrices.length-1].currency} - Asociaciones: ${asocs} - Terminal: ${priceUpd.terminal}`
+                                            })
+                                                .then(data => {
+                                                    log.logger.insert("Price INS Notificó");
+                                                })
+                                                .catch(err => {
+                                                    log.logger.error("Falló la Notificación");
+                                                });
                                         })
                                         .catch(err => {
-                                            console.log(err);
+                                            console.error(err);
                                         });
                                 }
-
                                 res.status(200).send(priceUpdated);
                             })
                             .catch(err => {
@@ -257,7 +240,7 @@ module.exports = function (log, oracle) {
                                             log.logger.update("Price UPD:%s - %s", data.data._id, usr.terminal);
                                         })
                                         .catch(err => {
-                                            log.logger.error('Error: %s - %s', err.message, usr.terminal);
+                                            log.logger.error('Error Price UPD: %s - %s', err.message, usr.terminal);
                                         });
                                 }});
                     });
