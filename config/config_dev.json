@@ -47,15 +47,32 @@
   "server_ssl_port": 443,
   "microService": {
     "statisticOracle": {
-      "timeout": 15000,
+      "timeout": 20000,
       "port": 10002,
       "host": "10.10.0.223"
     },
     "statisticMongo": {
-      "timeout": 15000,
+      "timeout": 20000,
       "port": 10001,
       "host": "10.10.0.223"
+    },
+    "impactOracle": {
+      "timeout": 20000,
+      "port": 10003,
+      "host": "10.10.0.223"
+    },
+    "impactMongo": {
+      "timeout": 20000,
+      "port": 10004,
+      "host": "10.10.0.223"
     }
+
+  },
+  "notificador": {
+    "host": "10.10.0.223",
+    "port": 8073,
+    "user": "dreyes@puertobuenosaires.gob.ar",
+    "password": "123456"
   }
 
 }

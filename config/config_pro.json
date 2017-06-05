@@ -62,5 +62,11 @@
       "port": 10001,
       "host": "10.1.0.61"
     }
+  },
+  "notificador": {
+    "host": "10.10.0.223",
+    "port": 8073,
+    "user": "dreyes@puertobuenosaires.gob.ar",
+    "password": "123456"
   }
 }
