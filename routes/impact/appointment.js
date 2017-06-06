@@ -235,10 +235,10 @@ module.exports = function (log, io, oracle) {
         Appointment = new Appointment();
 
         if (req.body.patenteCamion) {
-            params.camion = req.body.patenteCamion;
+            params.patenteCamion = req.body.patenteCamion;
         }
         if (req.body.patenteSemi) {
-            params.semi = req.body.patenteSemi;
+            params.patenteSemi = req.body.patenteSemi;
         }
         if (req.body.dni) {
             params.dni = req.body.dni;
