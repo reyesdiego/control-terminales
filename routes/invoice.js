@@ -866,7 +866,7 @@ module.exports = function (log, io, oracle) {
             entity: 'invoice',
             cmd: 'getByRatesPivot'
         };
-        param.rates = req.body.data;
+        param.rates = req.body;
         param.fechaInicio = req.query.fechaInicio;
         param.fechaFin = req.query.fechaFin;
 
@@ -1035,6 +1035,12 @@ module.exports = function (log, io, oracle) {
         }
         if (req.query.top) {
             params.top = req.query.top;
+        }
+        if (req.query.order) {
+            params.order = req.query.order;
+        }
+        if (req.query.campo) {
+            params.campo = req.query.campo;
         }
         if (req.query.output === 'csv') {
             options.output = 'csv';
