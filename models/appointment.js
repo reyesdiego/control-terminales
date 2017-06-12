@@ -9,7 +9,7 @@ var appointment = new mongoose.Schema({
     terminal: {type: String, required: true},
     buque: {type: String},
     viaje: {type: String},
-    contenedor: {type: String, uppercase: true, required: true},
+    contenedor: {type: String, uppercase: true},
     transporte: {
         camion: {type: String, uppercase: true},
         semi: {type: String, uppercase: true},

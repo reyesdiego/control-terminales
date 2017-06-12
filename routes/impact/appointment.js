@@ -18,7 +18,7 @@ module.exports = function (log, io, oracle) {
         var Validr = require('../../include/validation.js');
         var validate = new Validr.validation(req.body, {
             isContainer: function (container) {
-                return /\D{4}\d{7}/.test(container);
+                return container === undefined || container === null || container === '' || /\D{4}\d{7}/.test(container);
             }
         });
 
@@ -79,8 +79,7 @@ module.exports = function (log, io, oracle) {
             .validate('email', 'email must be a valid email account.', {ignoreEmpty: true})
             .isEmail();
         validate
-            .validate('contenedor', 'container is not valid')
-            .isLength(1)
+            .validate('contenedor', 'container is not valid', {ignoreEmpty: true})
             .isContainer();
 
         errors = validate.validationErrors();
