@@ -19,7 +19,7 @@ var appointment = new mongoose.Schema({
     },
     inicio: {type: Date, required: true},
     fin: {type: Date},
-    mov: {type: String, enum: ['IMPO', 'EXPO', 'VACIO']},
+    mov: {type: String, enum: ['IMPO', 'EXPO', 'VACIO_OUT', 'VACIO_IN']},
     alta: {type: Date},
     shipTrip: {
         altaInicio: {type: Number},
