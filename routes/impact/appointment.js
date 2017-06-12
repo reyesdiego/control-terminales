@@ -23,19 +23,19 @@ module.exports = function (log, io, oracle) {
         });
 
         // use string with dot-notation to validate nested fields
-        validate
-            .validate('buque', 'buque is required.')
-            .isLength(1);
-        validate
-            .validate('viaje', 'viaje is required.')
-            .isLength(1);
+        //validate
+        //    .validate('buque', 'buque is required.')
+        //    .isLength(1);
+        //validate
+        //    .validate('viaje', 'viaje is required.')
+        //    .isLength(1);
         validate
             .validate('mov', {
                 isLenght: 'mov is required.',
-                isIn: 'mov must be in "IMPO" or "EXPO" values.'
+                isIn: 'mov must be in "IMPO", "EXPO", "VACIO_IN" or "VACIO_OUT" values.'
             }, {ignoreEmpty: true})
             .isLength(1)
-            .isIn(['EXPO', 'IMPO']);
+            .isIn(['EXPO', 'IMPO', 'VACIO_IN', 'VACIO_OUT']);
         validate
             .validate('inicio', {
                 isLength: 'inicio is required.',
@@ -191,6 +191,19 @@ module.exports = function (log, io, oracle) {
         Appointment = new Appointment();
 
         appointment2insert.terminal = usr.terminal;
+
+        if (req.body.patenteCamion) {
+            appointment2insert.patenteCamion = req.body.patenteCamion;
+        }
+        if (req.body.patenteSemi) {
+            appointment2insert.patenteSemi = req.body.patenteSemi;
+        }
+        if (req.body.dni) {
+            appointment2insert.dni = req.body.dni;
+        }
+        if (req.body.celular) {
+            appointment2insert.celular = req.body.celular;
+        }
 
         Appointment.add(appointment2insert)
             .then(data => {

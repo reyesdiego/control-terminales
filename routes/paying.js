@@ -95,7 +95,7 @@ module.exports = (log, oracle) => {
         var params = {},
             options = {
                 paginated: true,
-                download: false
+                byContainer: req.query.byContainer
             },
             response;
 
@@ -103,7 +103,7 @@ module.exports = (log, oracle) => {
 
         if (req.route.path.indexOf('/download') > 0) {
             options.paginated = false;
-            options.download = true;
+            //options.download = true;
         }
 
         params.fechaInicio = req.query.fechaInicio;
@@ -124,9 +124,10 @@ module.exports = (log, oracle) => {
             res.status(400).send({status: "ERROR", message: "Debe proveer parametros de fecha"});
         } else {
 
+            log.time('getNotPayed');
             payingClass.getNotPayed(params, options)
                 .then(data => {
-                    if (options.download) {
+                    if (!options.paginated) {
                         if (req.query.byContainer === '1') {
                             response = "FECHA|TIPO|SUCURSAL|COMPROBANTE|BUQUE|RAZON|CONTENEDOR|TONELADAS|TARIFA|TASA|COTI_MONEDA|TOTAL\n";
                         } else {
@@ -136,7 +137,8 @@ module.exports = (log, oracle) => {
                             response = response +
                                 moment(item.emision).format("DD/MM/YYYY") +
                                 "|" +
-                                global.cache.voucherTypes[item.codTipoComprob];
+                                //global.cache.voucherTypes[item.codTipoComprob].abbrev;
+                                item.abbrev;
                             if (req.query.byContainer === '1') {
                                 response = response + "|" +
                                     item.nroPtoVenta +
@@ -169,6 +171,7 @@ module.exports = (log, oracle) => {
                     } else {
                         res.status(200).send(data);
                     }
+                    log.timeEnd('getNotPayed');
                 })
                 .catch(err => {
                     res.status(500).send(err);
@@ -226,9 +229,10 @@ module.exports = (log, oracle) => {
                 params.contenedor = req.query.contenedor;
             }
         }
-
+        log.time('getPrepayment');
         payingClass.getPrePayment(params)
         .then(data => {
+                log.timeEnd('getPrepayment');
                 res.status(200).send(data);
             })
         .catch(err => {
