@@ -1008,7 +1008,7 @@ module.exports = function (log, io, oracle) {
 
     let getTotals = (req, res) => {
         var paramTerminal = req.query.terminal,
-            fechaInicio = moment(moment("2013-01-01").format('YYYY-MM-DD')),
+            fechaInicio = moment(moment("2014-08-01").format('YYYY-MM-DD')),
             fechaFin = moment(moment().format('YYYY-MM-DD')),
             params = {},
             options = {};
@@ -1111,6 +1111,54 @@ module.exports = function (log, io, oracle) {
             });
     };
 
+    let getByContainer = (req, res) => {
+        var params = {
+            container: req.query.contenedor,
+            terminal: req.query.terminal,
+            buque: req.query.buqueNombre,
+            viaje: req.query.viaje
+        };
+
+        Invoice2.getByContainer(params)
+            .then(data => {
+                res.status(200).send(data);
+            })
+            .catch(err => {
+                res.status(500).send(err);
+            });
+    };
+
+    let getTotalByContainer = (req, res) => {
+
+        var options = {};
+
+        var params = {
+            terminal: req.query.terminal,
+            top: req.query.top,
+            order: req.query.order
+        };
+
+        if (req.query.fechaInicio) {
+            params.fechaInicio = req.query.fechaInicio;
+        }
+        if (req.query.fechaFin) {
+            params.fechaFin = req.query.fechaFin;
+        }
+
+        if (req.query.output === 'csv') {
+            options.output = 'csv';
+        }
+        log.time("getTotalByContainer");
+        Invoice2.getTotalByContainer(params, options)
+            .then(data => {
+                log.timeEnd("getTotalByContainer");
+                res.status(200).send(data);
+            })
+            .catch(err => {
+                res.status(500).send(err);
+            });
+    };
+
     /*
      router.use(function timeLog(req, res, next){
      log.logger.info('Time: %s', Date.now());
@@ -1164,6 +1212,9 @@ module.exports = function (log, io, oracle) {
     router.put('/setResend/:id', setResend);
     router.get('/lastInsert/:terminal', getLastInsert);
     router.get('/byCode', getByCode);
+    router.get('/byContainer', getByContainer);
+    router.get('/byContainerTotales', getTotalByContainer);
+
 
 //	app.get('/invoices/log/:seconds', function( req, res) {
 //		logInvoiceBody = 1;
