@@ -43,7 +43,9 @@ oracle.createPool({
                 async.eachSeries(counter, function (rango, asyncCallback_round) {
 
                         invoices = Invoice.find({
-                            nroComprob: {$gte:225221, $lte: 225241}, nroPtoVenta: 24, terminal: "BACTSSA", codTipoComprob: 1
+                            nroComprob: {$gte:  1163 , $lte:  1168 }, nroPtoVenta: 29, terminal: "BACTSSA", codTipoComprob: 3
+                            //nroComprob: {$in: [239731 , 239734 , 239737 , 239741 , 239768 , 239772 , 240175 , 240219 , 240572 , 240643 , 240646 , 240648] }, nroPtoVenta: 5, terminal: "TERMINAL4", codTipoComprob: 1
+
                             //'fecha.emision': { $gte: moment("2016-08-01").toDate(), $lt: moment("2016-09-01").toDate()}
                         })
                             .sort({_id: 1})
