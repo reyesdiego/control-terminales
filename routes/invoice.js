@@ -858,8 +858,8 @@ module.exports = function (log, io, oracle) {
 
     let getInvoicesByRatesPivot = (req, res) => {
 
-        var seneca = require("seneca")({timeout: config.microService.statisticOracle.port});
-        seneca.client(config.microService.statisticOracle.port, config.microService.statisticOracle.host);
+        var seneca = require("seneca")({timeout: config.microService.statisticOracle.timeout});
+        seneca.client({port: config.microService.statisticOracle.port, host: config.microService.statisticOracle.host} );
 
         var param = {
             role: 'statistic',
