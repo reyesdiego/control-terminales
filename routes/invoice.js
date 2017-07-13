@@ -829,9 +829,10 @@ module.exports = function (log, io, oracle) {
         });
     }
 
+    /** Seneca */
     let getInvoicesByRates = (req, res) => {
 
-        var seneca = require("seneca")({timeout: config.microService.statisticOracle.port});
+        var seneca = require("seneca")({timeout: config.microService.statisticOracle.timeout});
         seneca.client(config.microService.statisticOracle.port, config.microService.statisticOracle.host);
 
         var param = {
@@ -856,6 +857,7 @@ module.exports = function (log, io, oracle) {
         });
     };
 
+    /** Seneca */
     let getInvoicesByRatesPivot = (req, res) => {
 
         var seneca = require("seneca")({timeout: config.microService.statisticOracle.timeout});
@@ -882,6 +884,7 @@ module.exports = function (log, io, oracle) {
             }
         });
     };
+
 
     let getInvoicesByRatesTerminal = (req, res) => {
         var params = {};
