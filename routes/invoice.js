@@ -671,87 +671,56 @@ module.exports = function (log, io, oracle) {
 
     function getCorrelative(req, res) {
         var usr = req.usr,
-            fecha,
-            cashBoxes = [],
-            cashboxExecs = [],
-            async;
+            fecha;
 
-        log.time("getCorrelative");
+        log.time(`getCorrelative ${req.query.codTipoComprob}`);
 
-        if (req.query.nroPtoVenta) {
-            cashBoxes = req.query.nroPtoVenta.split(',');
-        } else {
-            log.logger.error("El nro de punto de venta no ha sido enviado");
-            res.status(403).send({status: "ERROR", data: "El nro de punto de venta no ha sido enviado" });
+        if (req.query.codTipoComprob === undefined) {
+            log.logger.error("El Tipo de Comprobante no ha sido enviado");
+            res.status(403).send({status: "ERROR", data: "El Tipo de Comprobante no ha sido enviado" });
         }
 
-        cashBoxes.forEach(cash => {
-            //funcion que calcula la correlatividad por cada caja que sera ejecutada en paralelo async
-            var cashboxExec = callback => {
-                var param = {};
+        var param = {};
 
-                if (usr.role === 'agp') {
-                    param.terminal = req.params.terminal;
-                } else {
-                    param.terminal = usr.terminal;
-                }
+        if (usr.role === 'agp') {
+            param.terminal = req.params.terminal;
+        } else {
+            param.terminal = usr.terminal;
+        }
 
-                if (req.query.fechaInicio || req.query.fechaFin) {
-                    if (req.query.fechaInicio) {
-                        fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
-                        param.fechaInicio = fecha;
-                    } else {
-                        param.fechaInicio = moment("2000-01-01", 'YYYY-MM-DD').toDate();
-                    }
-                    if (req.query.fechaFin) {
-                        fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
-                        param.fechaFin = fecha;
-                    }
-                }
-                if (req.query.codTipoComprob) {
-                    param.codTipoComprob = parseInt(req.query.codTipoComprob, 10);
-                }
-
-                param.nroPtoVenta = parseInt(cash, 10);
-
-                Invoice2.getCorrelative(param)
-                .then(data => {
-                        let result = {
-                            status: 'OK',
-                            nroPtoVenta: cash,
-                            totalCount: data.totalCount,
-                            data: data.data
-                        };
-
-                        io.sockets.emit('correlative_'+req.query.x, result);
-                        return callback(null, result);
-                    })
-                .catch(err => {
-                        log.logger.error("%s", err.message);
-                        callback(err);
-                    });
-            };
-
-            cashboxExecs.push(cashboxExec);
-        });
-
-        async = require('async');
-        async.parallel(cashboxExecs, (err, results) => {
-            let response;
-            let Enumerable = require('linq');
-            if (err) {
-                res.status(500).send(err);
+        if (req.query.fechaInicio || req.query.fechaFin) {
+            if (req.query.fechaInicio) {
+                fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
+                param.fechaInicio = fecha;
             } else {
-                let contadorFaltantesTotal = Enumerable.from(results).sum(item => {return item.totalCount;});
-                response = {
-                    status: "OK",
-                    totalCount: contadorFaltantesTotal,
-                    data: results,
-                    time: log.timeEnd("getCorrelative")
-                };
-                res.status(200).send(response);
+                param.fechaInicio = moment("2000-01-01", 'YYYY-MM-DD').toDate();
             }
-        });
+            if (req.query.fechaFin) {
+                fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
+                param.fechaFin = fecha;
+            }
+        }
+        if (req.query.codTipoComprob) {
+            param.codTipoComprob = parseInt(req.query.codTipoComprob, 10);
+        }
+
+        log.time(`getCorrelative ${req.query.codTipoComprob}`);
+        Invoice2.getCorrelative(param)
+        .then(data => {
+                let result = {
+                    status: 'OK',
+                    totalCount: data.totalCount,
+                    data: data.data,
+                    time: log.timeEnd(`getCorrelative ${req.query.codTipoComprob}`)
+                };
+                io.sockets.emit('correlative_'+req.query.x, result);
+                res.status(200).send(data);
+            })
+        .catch(err => {
+                log.logger.error("%s", err.message);
+                res.status(500).send(err);
+            });
+
     }
 
     function getCashbox(req, res) {

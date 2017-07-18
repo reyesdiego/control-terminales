@@ -1,6 +1,7 @@
 /**
- * Created by diego on 8/28/14.
+ * Created by diego on 18/07/17.
  */
+"use strict";
 
 var mongoose = require('mongoose');
 var Account = require('./models/account.js');
@@ -19,7 +20,7 @@ var date = moment().format('DD-MM-YYYY');
 
 var asyncParallel = [];
 var terminalsName = ['bactssa', 't4', 'trp'];
-var terminalsName = ['trp'];
+
 var to = ["dreyes@puertobuenosaires.gob.ar", "reclamosuct@puertobuenosaires.gob.ar"];
 var to = ["dreyes@puertobuenosaires.gob.ar"];
 
@@ -59,69 +60,64 @@ VouchersType.find({}, (err, vouchersDesc) => {
                             to.forEach(item => {toLocal.push(item);});
 
                             /** CODIGOS NO ASOCIADOS */
-                            /*
-                            functionObject = callbackNoAsociados =>  {
-                                var optionsget,
-                                    reqGet;
+                             functionObject = callbackNoAsociados =>  {
+                             var optionsget,
+                             reqGet;
 
-                                optionsget = {
-                                    host : host, // here only the domain name (no http/https !)
-                                    port : 8090,
-                                    path : '/matchPrices/noMatches/' + user.terminal,
-                                    method : 'GET',
-                                    headers : {
-                                        Connection: 'keep-alive',
-                                        token: user.token.token}
-                                };
+                             optionsget = {
+                             host : host, // here only the domain name (no http/https !)
+                             port : 8090,
+                             path : '/matchPrices/noMatches/' + user.terminal,
+                             method : 'GET',
+                             headers : {
+                             Connection: 'keep-alive',
+                             token: user.token.token}
+                             };
 
-                                reqGet = http.request(optionsget, res => {
-                                    var resData = '';
-                                    res.on('data', d => {
-                                        resData += d;
-                                    });
+                             reqGet = http.request(optionsget, res => {
+                             var resData = '';
+                             res.on('data', d => {
+                             resData += d;
+                             });
 
-                                    res.on('error', (err) => {
-                                        console.error('ERROR RESPONSE NO_ASOCIADOS - NO mail a %s. %s', toLocal);
-                                        callbackNoAsociados(err);
-                                    });
+                             res.on('error', (err) => {
+                             console.error('ERROR RESPONSE NO_ASOCIADOS - NO mail a %s. %s', toLocal);
+                             callbackNoAsociados(err);
+                             });
 
-                                    res.on('end', () => {
-                                        var result = JSON.parse(resData),
-                                            mailer;
-                                        if (result.status === 'OK') {
-                                            if (result.data.length > 0) {
-                                                mailer = new mail.mail(sendMail);
-                                                let subject = `${result.data.length.toString()} códigos no asociados al ${date}`;
-                                                let html = user.terminal + '\n\n' + result.data;
-                                                mailer.send(toLocal, subject, html, err => {
-                                                    if (err) {
-                                                        console.error('ERROR MAIL NO_ASOCIADOS - NO mail a %s. %s', toLocal, subject);
-                                                    } else {
-                                                        console.log('NO_ASOCIADOS - Mail a %s - %s', toLocal, moment());
-                                                    }
-                                                    return callbackNoAsociados(err, result.data);
-                                                });
-                                            } else {
-                                                console.log('NO_ASOCIADOS NADA - NO Mail a %s - %s - CERO', toLocal, moment());
-                                                return callbackNoAsociados(undefined, result.data);
-                                            }
-                                        } else {
-                                            console.error('NO_ASOCIADOS - NO Mail a %s - %s, STATUS: %s', toLocal, moment(), result.status);
-                                            return callbackNoAsociados();
-                                        }
-                                    });
-                                });
+                             res.on('end', () => {
+                             var result = JSON.parse(resData),
+                             mailer;
+                             if (result.status === 'OK') {
+                             if (result.data.length > 0) {
+                             mailer = new mail.mail(sendMail);
+                             let subject = `${result.data.length.toString()} códigos no asociados al ${date}`;
+                             let html = user.terminal + '\n\n' + result.data;
+                             mailer.send(toLocal, subject, html, err => {
+                             if (err) {
+                             console.error('ERROR MAIL NO_ASOCIADOS - NO mail a %s. %s', toLocal, subject);
+                             } else {
+                             console.log('NO_ASOCIADOS - Mail a %s - %s', toLocal, moment());
+                             }
+                             return callbackNoAsociados(err, result.data);
+                             });
+                             } else {
+                             console.log('NO_ASOCIADOS NADA - NO Mail a %s - %s - CERO', toLocal, moment());
+                             return callbackNoAsociados(undefined, result.data);
+                             }
+                             } else {
+                             console.error('NO_ASOCIADOS - NO Mail a %s - %s, STATUS: %s', toLocal, moment(), result.status);
+                             return callbackNoAsociados();
+                             }
+                             });
+                             });
 
-                                reqGet.end(); // ejecuta el request
-                            };
-                            asyncParallel.push(functionObject);*/
+                             reqGet.end(); // ejecuta el request
+                             };
+                             asyncParallel.push(functionObject);
 
                             /** CORRELATIVIDAD */
-                            Invoices.distinct('nroPtoVenta', {terminal: user.terminal}, (err, ptosVenta) => {
-                                if (!err) {
-                                    ptosVenta = [34, 43, 42,30, 54, 51, 57, 44, 28, 29, 47, 59, 31];
-                                    console.log("Puntos de Venta %s: %s", user.terminal, ptosVenta);
-                                    Invoices.distinct('codTipoComprob', {terminal: user.terminal}, (err, voucherTypes) => {
+                            Invoices.distinct('codTipoComprob', {terminal: user.terminal}, (err, voucherTypes) => {
                                         if (!err) {
                                             console.log("Tipo Comprobantes %s: %s", user.terminal, voucherTypes);
                                             voucherTypes.forEach( voucher => {
@@ -132,14 +128,13 @@ VouchersType.find({}, (err, vouchersDesc) => {
                                                     optionsget = {
                                                         host: host, // here only the domain name (no http/https !)
                                                         port: 8090,
-                                                        path: `/invoices/correlative/${user.terminal}?codTipoComprob=${voucher}&nroPtoVenta=${ptosVenta}&fechaInicio=2014-08-01&fechaFin=2020-01-01`,
+                                                        path: `/invoices/correlative/${user.terminal}?codTipoComprob=${voucher}&fechaInicio=2014-08-01&fechaFin=2020-01-01`,
                                                         method: 'GET',
                                                         headers: {
                                                             Connection: 'keep-alive',
                                                             token: user.token.token
                                                         }
                                                     };
-//console.log(optionsget)
                                                     reqGet = http.request(optionsget, res => {
                                                         var resData = '';
                                                         res.on('data', d => {
@@ -165,7 +160,6 @@ VouchersType.find({}, (err, vouchersDesc) => {
                                                                     }
                                                                     return response;
                                                                 }).toArray();
-
                                                                 if (result.length > 0) {
                                                                     jade.renderFile(__dirname + '/public/correlatividadMail.jade', {
                                                                         param: result,
@@ -214,12 +208,6 @@ VouchersType.find({}, (err, vouchersDesc) => {
                                         }
                                     });
 
-                                } else {
-                                    console.error(err);
-                                    callbackTerminal();
-                                }
-                            });
-
                         },
                         () => {
                             console.log('--------INICIO %s- Tareas: %s-------', moment().format("DD-MM-YYYY"), asyncParallel.length);
@@ -228,7 +216,7 @@ VouchersType.find({}, (err, vouchersDesc) => {
                                     console.error("ERROR PARALLEL %s", err);
                                 }
                                 console.log('--------FIN %s---------', moment().format("DD-MM-YYYY"));
-                               // process.exit(1);
+                                // process.exit(1);
                             });
                         });
                 }
