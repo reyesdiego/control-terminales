@@ -108,24 +108,40 @@ module.exports = function (log, app, io, oracle, params) {
         var Appointment = require('../models/appointment.js');
         var param = {};
 
-        if (req.params.container === undefined || req.params.container === '') {
-            res.status(400).send({status: 'ERROR', data: 'Debe proveer el dato del Contenedor para obtener el/los turnos.'});
-        } else {
-            param.contenedor = req.params.container.toUpperCase();
-            param.inicio = {$gte: moment(moment().format("YYYY-MM-DD")).toDate()};
+        param.contenedor = req.params.container.toUpperCase();
+        param.inicio = {$gte: moment(moment().format("YYYY-MM-DD")).toDate()};
 
-            Appointment
-                .find(param)
-                .sort({_id: -1})
-                .lean()
-                .exec((err, data) => {
-                    if (err) {
-                        res.status(500).send({status: 'ERROR', data: err.message});
-                    } else {
-                        res.status(200).send({status: 'OK', data: data || []});
-                    }
-                });
-        }
+        Appointment
+            .find(param)
+            .sort({_id: -1})
+            .lean()
+            .exec((err, data) => {
+                if (err) {
+                    res.status(500).send({status: 'ERROR', data: err.message});
+                } else {
+                    res.status(200).send({status: 'OK', data: data || []});
+                }
+            });
+    });
+
+    app.get('/camionTurno/:camion', (req, res) => {
+        var Appointment = require('../models/appointment.js');
+        var param = {};
+
+        param['transporte.camion'] = req.params.camion.toUpperCase();
+        param.inicio = {$gte: moment(moment().format("YYYY-MM-DD")).toDate()};
+
+        Appointment
+            .find(param)
+            .sort({_id: -1})
+            .lean()
+            .exec((err, data) => {
+                if (err) {
+                    res.status(500).send({status: 'ERROR', data: err.message});
+                } else {
+                    res.status(200).send({status: 'OK', data: data || []});
+                }
+            });
     });
 
     app.get('/containerTurnoList', (req, res) => {
@@ -135,6 +151,22 @@ module.exports = function (log, app, io, oracle, params) {
         param.inicio = {$gte: moment(moment().format("YYYY-MM-DD")).toDate()};
 
         Appointment.distinct('contenedor', param)
+            .exec((err, data) => {
+                if (err) {
+                    res.status(500).send({status: 'ERROR', data: err.message});
+                } else {
+                    res.status(200).send({status: 'OK', totalCount: data.length, data: data || []});
+                }
+            });
+    });
+
+    app.get('/camionTurnoList', (req, res) => {
+        var Appointment = require('../models/appointment.js');
+        var param = {};
+
+        param.inicio = {$gte: moment(moment().format("YYYY-MM-DD")).toDate()};
+
+        Appointment.distinct('transporte.camion', param)
             .exec((err, data) => {
                 if (err) {
                     res.status(500).send({status: 'ERROR', data: err.message});
