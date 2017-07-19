@@ -128,4 +128,20 @@ module.exports = function (log, app, io, oracle, params) {
         }
     });
 
+    app.get('/containerTurnoList', (req, res) => {
+        var Appointment = require('../models/appointment.js');
+        var param = {};
+
+        param.inicio = {$gte: moment(moment().format("YYYY-MM-DD")).toDate()};
+
+        Appointment.distinct('contenedor', param)
+            .exec((err, data) => {
+                if (err) {
+                    res.status(500).send({status: 'ERROR', data: err.message});
+                } else {
+                    res.status(200).send({status: 'OK', totalCount: data.length, data: data || []});
+                }
+            });
+    });
+
 };
