@@ -110,6 +110,7 @@ module.exports = function (log, app, io, oracle, params) {
 
         param.contenedor = req.params.container.toUpperCase();
         param.inicio = {$gte: moment(moment().format("YYYY-MM-DD")).toDate()};
+        param['status.status'] = {$ne: 9};
 
         Appointment
             .find(param)
@@ -132,6 +133,7 @@ module.exports = function (log, app, io, oracle, params) {
         param['transporte.camion'] = req.params.camion.toUpperCase();
         param.inicio = {$gte: moment(moment().format("YYYY-MM-DD")).toDate()};
 
+        param['status.status'] = {$ne: 9};
         Appointment
             .find(param)
             .sort({_id: -1})
@@ -167,7 +169,11 @@ module.exports = function (log, app, io, oracle, params) {
 
                             res.on('end', () => {
                                 var result = JSON.parse(resData);
+                                console.log(result);
                                 if (result && result.length > 0) {
+                                    console.log(result[0]);
+                                    io.sockets.emit('cnrt', result[0]);
+                                } else if (result.code === 404) {
                                     console.log(result[0]);
                                     io.sockets.emit('cnrt', result[0]);
                                 }
@@ -186,6 +192,7 @@ module.exports = function (log, app, io, oracle, params) {
         var param = {};
 
         param.inicio = {$gte: moment(moment().format("YYYY-MM-DD")).toDate()};
+        param['status.status'] = {$ne: 9};
 
         Appointment.distinct('contenedor', param)
             .exec((err, data) => {
@@ -202,6 +209,7 @@ module.exports = function (log, app, io, oracle, params) {
         var param = {};
 
         param.inicio = {$gte: moment(moment().format("YYYY-MM-DD")).toDate()};
+        param['status.status'] = {$ne: 9};
 
         Appointment.distinct('transporte.camion', param)
             .exec((err, data) => {

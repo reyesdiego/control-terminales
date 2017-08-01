@@ -17,6 +17,10 @@ var appointment = new mongoose.Schema({
         celular: {type: Number},
         date: {type: Date, default: new Date()}
     },
+    hold: {
+        status: {type: Boolean, default: true},
+        date: {type: Date, default: new Date()}
+    },
     inicio: {type: Date, required: true},
     fin: {type: Date},
     mov: {type: String, enum: ['IMPO', 'EXPO', 'VACIO_OUT', 'VACIO_IN']},
@@ -32,7 +36,11 @@ var appointment = new mongoose.Schema({
     emailStatus: {type: Boolean},
     verifica: {type: Date},
     verifica_turno: {type: String, enum: ['MA', 'TA']},
-    verifica_tipo: {type: String, enum: ['PISO', 'CAMION']}
+    verifica_tipo: {type: String, enum: ['PISO', 'CAMION']},
+    status: {
+        status: {type: Number}, //0 Enabled 9 Canceled
+        date: {type: Date}
+    }
 });
 
 appointment.pre('save', function (next, done) {

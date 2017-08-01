@@ -204,6 +204,9 @@ module.exports = function (log, io, oracle) {
             appointment2insert.celular = req.body.celular;
         }
 
+        /** Default Status Enabled*/
+        appointment2insert.status = 0;
+
         Appointment.add(appointment2insert)
             .then(data => {
                 var str,
@@ -241,6 +244,69 @@ module.exports = function (log, io, oracle) {
             });
     };
 
+    let updateAppointment = (req, res, next) => {
+        var usr = req.usr,
+            appointment2insert = req.body,
+            errMsg;
+
+        var Appointment = require('../../lib/appointment.js');
+        Appointment = new Appointment();
+
+        appointment2insert.terminal = usr.terminal;
+
+        if (req.body._id) {
+            appointment2insert._id = req.body._id;
+        }
+        if (req.body.patenteCamion) {
+            appointment2insert.patenteCamion = req.body.patenteCamion;
+        }
+        if (req.body.patenteSemi) {
+            appointment2insert.patenteSemi = req.body.patenteSemi;
+        }
+        if (req.body.dni) {
+            appointment2insert.dni = req.body.dni;
+        }
+        if (req.body.celular) {
+            appointment2insert.celular = req.body.celular;
+        }
+        console.log(appointment2insert);
+        Appointment.update(appointment2insert)
+            .then(data => {
+                var str,
+                    appointment;
+
+                appointment = data.data;
+                str = `Appointment UPD: ${appointment.terminal} - Alta: ${appointment.alta} - ${appointment._id} - ${appointment.contenedor}`;
+                log.logger.insert(str);
+
+                //io.emit('appointment', appointment);
+
+                res.status(200).send(data);
+
+                /**
+                 * with next() reportClient function se enviará email
+                 * */
+                var emailAppointmentToApp = usr.emailToApp.emailAppointmentToApp;
+                if (emailAppointmentToApp) {
+                    appointment.full_name = usr.full_name;
+                    req.appointment = appointment;
+                    next();
+                }
+            })
+            .catch(err => {
+                errMsg = `Appointment UPD ERROR: ${usr.terminal} - ${err.message} - ${JSON.stringify(req.body)}`;
+                log.logger.error(errMsg);
+                res.status(500).send(err);
+
+                var appointmentError = usr.emailToApp.appointmentError;
+                if (appointmentError) {
+                    var mailer = new mail.mail(config.emailTurnos);
+                    var subject = `Appointment Update ERROR ${moment().format("DD-MM-YYYY HH:m:ss")}`;
+                    mailer.send(usr.email, subject, err.message);
+                }
+            });
+    };
+
     let setTransporte = (req, res) => {
         var params = {};
         var Appointment = require('../../lib/appointment.js');
@@ -268,7 +334,7 @@ module.exports = function (log, io, oracle) {
         Appointment.setTransporte(params)
         .then(data => {
                 let str = `Appointment UPDATE Transporte: - : ${JSON.stringify(req.body)}`;
-                log.logger.insert(str);
+                log.logger.update(str);
 
                 res.status(200).send(data);
             })
@@ -278,6 +344,58 @@ module.exports = function (log, io, oracle) {
                 res.status(500).send(err);
             });
     };
+
+    let setCancel = (req, res) => {
+        var params = {};
+        var Appointment = require('../../lib/appointment.js');
+        Appointment = new Appointment();
+
+        if (req.body._id) {
+            params._id = req.body._id;
+        }
+
+        Appointment.setCancel(params)
+            .then(data => {
+                let str = `Appointment CANCEL: - : ${JSON.stringify(params)}`;
+                log.logger.update(str);
+
+                res.status(200).send(data);
+            })
+            .catch(err => {
+                let errMsg = `Appointment UPDATE CANCEL ERROR: - ${err.message} - ${JSON.stringify(params)}`;
+                log.logger.error(errMsg);
+                res.status(500).send(err);
+            });
+    };
+
+    let setHold = (req, res) => {
+        var params = {};
+        var Appointment = require('../../lib/appointment.js');
+        Appointment = new Appointment();
+
+        if (req.body._id) {
+            params._id = req.body._id;
+        }
+        if (req.route.path === '/release') {
+            params.hold = false;
+        } else if (req.route.path === '/hold') {
+            params.hold = true;
+        }
+
+        Appointment.setHold(params)
+            .then(data => {
+                let str = `Appointment UPDATE Hold: - : ${JSON.stringify(params)}`;
+                log.logger.insert(str);
+
+                res.status(200).send(data);
+            })
+            .catch(err => {
+                let errMsg = `Appointment UPDATE Hold ERROR: - ${err.message} - ${JSON.stringify(params)}`;
+                log.logger.error(errMsg);
+                res.status(500).send(err);
+            });
+    };
+
     /*
      router.use(function timeLog(req, res, next){
      log.logger.info('Time: %s', Date.now());
@@ -286,7 +404,11 @@ module.exports = function (log, io, oracle) {
      */
 
     router.post('/', validateSanitize, addAppointment, reportClient);
+    router.put('/', updateAppointment, reportClient);
+    router.put('/cancel', setCancel);
     router.put('/patente', setTransporte);
+    router.put('/release', setHold);
+    router.put('/hold', setHold);
 
     return router;
 };
