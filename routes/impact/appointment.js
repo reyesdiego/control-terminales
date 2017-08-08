@@ -269,7 +269,7 @@ module.exports = function (log, io, oracle) {
         if (req.body.celular) {
             appointment2insert.celular = req.body.celular;
         }
-        console.log(appointment2insert);
+
         Appointment.update(appointment2insert)
             .then(data => {
                 var str,

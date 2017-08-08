@@ -2,7 +2,7 @@
  * Created by Diego Reyes on 3/21/14.
  */
 
-module.exports = function (log) {
+module.exports = log => {
     'use strict';
 
     var express = require('express'),
@@ -14,6 +14,9 @@ module.exports = function (log) {
         config = require('../config/config.js'),
         util = require('util'),
         linq = require('linq');
+
+    var AppointmentLib = require('../lib/appointment.js');
+    AppointmentLib = new AppointmentLib();
 
     function getAppointments(req, res) {
 
@@ -89,6 +92,22 @@ module.exports = function (log) {
             }
         });
     }
+
+    let getAppointmentById = (req, res) => {
+
+        if ( req.params._id === undefined) {
+            res.status(400).send({status: 'ERROR', data: 'Debe proveer el dato del id para obtener el turnos.'});
+        } else {
+
+            AppointmentLib.getById(req.params._id)
+                .then(data => {
+                    res.status(200).send(data);
+                })
+                .catch(err => {
+                    res.status(500).send({status: 'ERROR', data: err.message});
+                });
+        }
+    };
 
     function getAppointmentsByHour(req, res) {
 
@@ -316,6 +335,7 @@ module.exports = function (log) {
      });
      */
 
+    router.get('/ById/:_id', getAppointmentById);
     router.get('/ByHour', getAppointmentsByHour);
     router.get('/ByMonth', getAppointmentsByMonth);
     router.get('/:terminal/:skip/:limit', getAppointments);

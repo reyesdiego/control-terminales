@@ -2,71 +2,79 @@ doctype html
 html(lang='es')
     head
         title Servicio Terminales Portuarias
-    body(style="font-family: 'Open Sans',sans-serif; font-size: 12px; background-color:white !important")
+    body(style="font-family: 'Open Sans',sans-serif; font-size:12px; background-color:white !important")
         - var fecha = moment(inicio).format("DD-MM-YYYY")
         - var horario = moment(inicio).format("HH:mm") + 'hs. a ' + moment(fin).format("HH:mm") + "hs.";
         - var altal = moment(alta).format("DD-MM-YYYY HH:mm") + " hs.";
         - verifica = (verifica !== undefined && verifica !== null && verifica !== "") ? moment(verifica).format("DD-MM-YYYY") : verifica;
-        table
-                tr(style="background-color: white !important;")
-                    td
-                        img(src="http://terminales.puertobuenosaires.gob.ar/images/logo.png")
-                    td
-                        h1(style="font-family: inherit; font-weight: 400; font-size: 30px; line-height: 1.1; background-color:white !important; color: #0099d7;") &nbsp;Comprobante de Coordinación
-            p(style="text-align: left") Solicitud generada en&nbsp;
-                b #{full_name}
-                | &nbsp;el día
-                b &nbsp;#{altal}
-                |. Se contaba con&nbsp;
-                b #{disponibles_t1}
-                | &nbsp;turnos disponibles dentro del período de la Tarifa 1.
-            table(style="background-color: #ffffff; border-collapse: separate; border-spacing: 2px !important; border-color: gray !important; font-size: 16px; font-weight:bolder; color: #000000")
+
+        p(style="font-size:35px; color:#2D82FD !important;") Turno
+            if mov == "IMPO"
+                |&nbsp;Importación
+            if mov == "EXPO"
+                |&nbsp;Exportación
+            if mov == "VACIO_IN"
+                |&nbsp;Devolución
+            |&nbsp;#{contenedor}
+
+        p(style="text-align: left") Solicitud generada en&nbsp;
+            b #{full_name}
+            | &nbsp;el día
+            b &nbsp;#{altal}
+            |. Se contaba con&nbsp;
+            b #{disponibles_t1}
+            | &nbsp;turnos disponibles dentro del período de la Tarifa 1.
+        table(style="border-collapse: separate; background-color: #ffffff; border-color: gray !important; font-size: 18px; font-weight:bolder; color: #000000")
+            tr
+                td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Terminal
+                td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{full_name}
+            tr
+                td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Fecha
+                td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{fecha}&nbsp;&nbsp;#{horario}
+            tr
+                td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Buque
+                td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{buque}
+            tr
+                td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Viaje
+                td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{viaje}
+            if transporte.camion != "" && transporte.camion != null
                 tr
-                    td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Terminal:
-                    td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{full_name}
+                    td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Camión
+                    td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{transporte.camion}
+            if transporte.semi != "" && transporte.semi != null
                 tr
-                    td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Fecha:
-                    td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{fecha}
+                    td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Semi
+                    td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{transporte.semi}
+            if transporte.dni != "" && transporte.dni != null
                 tr
-                    td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Horario:
-                    td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{horario}
+                    td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") DNI
+                    td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{transporte.dni}
+
+            if verifica != "" && verifica != null
                 tr
-                    td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Contenedor:
-                    td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{contenedor}
+                    td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Verificación
+                    td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left")
+                        span #{verifica}
+                        if verifica_turno == "MA"
+                            | &nbsp;MAÑANA
+                        if verifica_turno == "TA"
+                            | &nbsp;TARDE
                 tr
-                    td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Buque:
-                    td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{buque}
+                    td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Tipo
+                    if verifica_tipo == "PISO"
+                        td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") PISO
+                    if verifica_tipo == "CAMION"
+                        td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") CAMIÓN
+            if email != "" && email != null
                 tr
-                    td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Viaje:
-                    td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{viaje}
-                tr
-                    td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Movimiento:
-                    if mov == "IMPO"
-                        td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left")  Importación
-                    if mov == "EXPO"
-                        td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left")  Exportación
-                if verifica != "" && verifica != null
-                    tr
-                        td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Verificación:
-                        td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left")
-                            span #{verifica}
-                            if verifica_turno == "MA"
-                                | &nbsp;MAÑANA
-                            if verifica_turno == "TA"
-                                | &nbsp;TARDE
-                    tr
-                        td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") Tipo:
-                        if verifica_tipo == "PISO"
-                            td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") PISO
-                        if verifica_tipo == "CAMION"
-                            td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") CAMIÓN
-                if email != "" && email != null
-                    tr
-                        td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") e-Mail:
-                        td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{email}
+                    td(style="padding: 4px; font-size: 70% !important; text-align:right; background-color:#C8C8C8") e-Mail
+                    td(style="padding: 4px; font-size: 70% !important; border:1px solid #C8C8C8; background-color:#ffffff; text-align: left") #{email}
 
         p
             p(style="text-align: left") Administración General de Puertos pone en conocimiento que el Turno solicitado ha sido generado correctamente. Este comprobante deberá ser presentado ante cualquier reclamo.
-            p Posteriormente podrá consultar, aportando datos de email y contenedor, éste y otros comprobantes haciendo click&nbsp;
-                a(href="http://www.e-puertobue.com.ar/turnos") aquí
-                |, o vía telefónica con la Unidad de Control de Terminales en los siguientes números: 4313-6122 4313-6928
+            p Posteriormente podrá consultar&nbsp;
+                a(href="http://turnos.puertobuenosaires.gob.ar") aquí
+                | &nbsp;éste y comprobantes anteriores.
+        br
+        img(style="width:200px; height:80px" src="http://terminales.puertobuenosaires.gob.ar/images/logoPuerto.png")
+        p &nbsp&nbspUnidad de Control de Terminales<br/>&nbsp&nbspTeléfonos 4313-6122 4313-6928

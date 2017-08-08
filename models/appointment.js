@@ -15,7 +15,7 @@ var appointment = new mongoose.Schema({
         semi: {type: String, uppercase: true},
         dni: {type: Number},
         celular: {type: Number},
-        date: {type: Date, default: new Date()}
+        date: {type: Date}
     },
     hold: {
         status: {type: Boolean, default: true},
