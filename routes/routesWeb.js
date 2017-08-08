@@ -120,6 +120,47 @@ module.exports = function (log, app, io, oracle, params) {
                 if (err) {
                     res.status(500).send({status: 'ERROR', data: err.message});
                 } else {
+
+                    var options,
+                        reqGet;
+                    var https = require("https");
+
+                    if (data.transporte) {
+                        if (data.transporte.camion !== undefined) {
+                            options = {
+                                host: 'consultapme.cnrt.gob.ar',
+                                port : 443,
+                                path : `/api/vehiculo_cargas_habilitados/${data.transporte.camion.toUpperCase()}/pais/AR`,
+                                method : 'GET',
+                                headers : {'Content-Type': 'application/json'}
+                            };
+
+                            reqGet = https.request(options, res => {
+                                var resData = '';
+                                res.on('data', d => {
+                                    resData += d;
+                                });
+
+                                res.on('error', (err) => {
+                                    console.error('ERROR RESPONSE CNRT %s', err);
+                                });
+
+                                res.on('end', () => {
+                                    var result = JSON.parse(resData);
+                                    console.log(result);
+                                    if (result && result.length > 0) {
+                                        console.log(result[0]);
+                                        io.sockets.emit('cnrt', result[0]);
+                                    } else if (result.code === 404) {
+                                        console.log(result[0]);
+                                        io.sockets.emit('cnrt', result[0]);
+                                    }
+                                });
+                            });
+                            reqGet.end(); // ejecuta el request
+                        }
+                    }
+
                     res.status(200).send({status: 'OK', data: data || []});
                 }
             });
@@ -148,7 +189,6 @@ module.exports = function (log, app, io, oracle, params) {
                             reqGet;
 
                         var https = require("https");
-
                         options = {
                             host: 'consultapme.cnrt.gob.ar',
                             port : 443,
