@@ -37,7 +37,6 @@ module.exports = function (log, oracle) {
     }
 
     function getPrice(req, res) {
-
         var usr = req.usr,
             paramTerminal = req.params.terminal,
             ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
@@ -65,6 +64,77 @@ module.exports = function (log, oracle) {
             }
         });
     }
+
+    function getHeaders (req, res) {
+        var usr = req.usr,
+            paramTerminal = req.params.terminal,
+            ter = (usr.role === 'agp') ? paramTerminal : usr.terminal,
+            param = {};
+
+        let price = new Price(ter, oracle);
+
+        price.getHeaders(param)
+            .then(data => {
+                res.status(200).send(data);
+            })
+            .catch(err => {
+                log.logger.error('Error: %s', err.message);
+                res.status(500).send(err);
+            });
+    }
+
+    let getGroup = (req, res) => {
+        var usr = req.usr,
+            paramTerminal = req.params.terminal,
+            ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
+
+        let price = new Price(ter, oracle);
+
+        price.getHeadersGroups(req.params.tarifario_header_id)
+            .then(data => {
+                res.status(200).send(data);
+            })
+            .catch(err => {
+                log.logger.error('Error: %s', err.message);
+                res.status(500).send(err);
+            });
+    };
+
+    let addHeader = (req, res) => {
+        var usr = req.usr;
+
+        var params = req.body;
+        var paramTerminal = usr.terminal,
+            ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
+
+        let price = new Price(ter, oracle);
+
+        price.addHeader(params)
+            .then(price => {
+                res.status(200).send(price);
+            })
+            .catch(err => {
+                res.status(400).send(err);
+            });
+    };
+
+    let addGroup = (req, res) => {
+        var usr = req.usr;
+
+        var params = req.body;
+        var paramTerminal = usr.terminal,
+            ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
+
+        let price = new Price(ter, oracle);
+
+        price.addGroup(params)
+            .then(price => {
+                res.status(200).send(price);
+            })
+            .catch(err => {
+                res.status(400).send(err);
+            });
+    };
 
     function getRates2(req, res) {
 
@@ -296,6 +366,7 @@ router.use(function timeLog(req, res, next){
     next();
 });
 */
+
     router.param('terminal', function (req, res, next, terminal) {
         var usr = req.usr;
 
@@ -309,10 +380,15 @@ router.use(function timeLog(req, res, next){
     });
 
     router.get('/:terminal', getPrices);
+    router.get('/headers/all', getHeaders);
+    router.post('/header/add', addHeader);
+    router.post('/group/add', addGroup);
+    router.get('/group/all/:tarifario_header_id', getGroup);
     router.get('/:id/:terminal', getPrice);
     router.get('/rates/1/codes', getRates);
     router.get('/rates/1/all', getRates2);
     router.post('/price', addPrice);
+    router.post('/header', addHeader);
     router.put('/price/:id', addPrice);
     router.delete('/price/:id', deletePrice);
 
