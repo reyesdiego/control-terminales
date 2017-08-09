@@ -125,12 +125,12 @@ module.exports = function (log, app, io, oracle, params) {
                         reqGet;
                     var https = require("https");
 
-                    if (data.transporte) {
-                        if (data.transporte.camion !== undefined) {
+                    if (data.length > 0 && data[0].transporte) {
+                        if (data[0].transporte.camion !== undefined) {
                             options = {
                                 host: 'consultapme.cnrt.gob.ar',
                                 port : 443,
-                                path : `/api/vehiculo_cargas_habilitados/${data.transporte.camion.toUpperCase()}/pais/AR`,
+                                path : `/api/vehiculo_cargas_habilitados/${data[0].transporte.camion.toUpperCase()}/pais/AR`,
                                 method : 'GET',
                                 headers : {'Content-Type': 'application/json'}
                             };
@@ -147,12 +147,9 @@ module.exports = function (log, app, io, oracle, params) {
 
                                 res.on('end', () => {
                                     var result = JSON.parse(resData);
-                                    console.log(result);
                                     if (result && result.length > 0) {
-                                        console.log(result[0]);
                                         io.sockets.emit('cnrt', result[0]);
                                     } else if (result.code === 404) {
-                                        console.log(result[0]);
                                         io.sockets.emit('cnrt', result[0]);
                                     }
                                 });
@@ -209,12 +206,9 @@ module.exports = function (log, app, io, oracle, params) {
 
                             res.on('end', () => {
                                 var result = JSON.parse(resData);
-                                console.log(result);
                                 if (result && result.length > 0) {
-                                    console.log(result[0]);
                                     io.sockets.emit('cnrt', result[0]);
                                 } else if (result.code === 404) {
-                                    console.log(result[0]);
                                     io.sockets.emit('cnrt', result[0]);
                                 }
                             });
