@@ -88,7 +88,7 @@ module.exports = function (log, io, oracle) {
             .then(data => {
                 res.status(200).send(data);
             })
-        .catch(err => {
+            .catch(err => {
                 log.logger.error("%s", err);
                 res.status(500).send(err);
             });
@@ -96,8 +96,8 @@ module.exports = function (log, io, oracle) {
 
     function getClients (req, res) {
         var param = {
-                terminal: req.params.terminal
-            };
+            terminal: req.params.terminal
+        };
 
         Invoice2.getClients(param)
             .then(data => {
@@ -196,10 +196,10 @@ module.exports = function (log, io, oracle) {
         Invoice3 = new Invoice3();
 
         Invoice3.getLastInsert(terminal, lastHours)
-        .then(data => {
+            .then(data => {
                 res.status(200).send(data);
             })
-        .catch(err => {
+            .catch(err => {
                 res.status(500).send(err);
             });
     };
@@ -362,77 +362,24 @@ module.exports = function (log, io, oracle) {
     };
 
     function getRatesByContainer(req, res) {
-        var usr = req.usr,
-            paramTerminal = req.params.terminal,
-            ter,
-            _price,
-            _rates,
-            sum = {},
-            buque,
-            viaje,
-            jsonParam,
-            match;
+        var params = {};
+        var usr = req.usr;
+        var paramTerminal = req.params.terminal;
 
-        ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
+        params.terminal = (usr.role === 'agp') ? paramTerminal : usr.terminal;
 
-        _price = require('../include/price.js');
-        _rates = new _price.price(ter);
-        _rates.rates(function (err, rates) {
+        //params.currency = req.params.currency;
+        params.contenedor = req.params.container;
+        //params.buqueNombre = req.query.buque;
+        //params.viaje = req.query.viaje;
 
-            if (req.params.currency === 'PES') {
-                sum = { $cond: [
-                    {$eq: ['$codMoneda', 'PES' ]},
-                    '$detalle.items.impTot',
-                    {$multiply: ['$detalle.items.impTot', '$cotiMoneda'] }
-                ]};
-            } else if (req.params.currency === 'DOL') {
-                sum = { $cond: [
-                    {$eq: ['$codMoneda', 'DOL' ]},
-                    '$detalle.items.impTot',
-                    {$divide: ['$detalle.items.impTot', '$cotiMoneda'] }
-                ]};
-            }
-
-            match = {
-                terminal: ter,
-                'detalle.items.id' : {$in: rates},
-                'detalle.contenedor' : req.params.container
-            };
-            if (req.query.buqueNombre) {
-                match['detalle.buque.nombre'] = req.query.buqueNombre;
-            }
-            if (req.query.viaje) {
-                match['detalle.buque.viaje'] = req.query.viaje;
-            }
-
-            jsonParam = [
-                {   $match: match},
-                {$unwind : '$detalle'},
-                {$unwind : '$detalle.items'},
-                {$match : {
-                    'detalle.items.id' : {$in: rates},
-                    'detalle.contenedor' : req.params.container
-                }},
-                {$project : {terminal: 1, 'detalle.items': 1, total : sum }},
-                {
-                    $group  : {
-                        _id: {
-                            terminal: '$terminal',
-                            id: '$detalle.items.id'
-                        },
-                        cnt: { $sum: '$detalle.items.cnt'},
-                        total: {$sum: '$total'}
-                    }
-                }
-            ];
-            Invoice.aggregate(jsonParam, function (err, data) {
-                if (err) {
-                    res.status(500).send({status: 'ERROR', data: err.message });
-                } else {
-                    res.status(200).send({status: 'OK', data: data });
-                }
+        Invoice2.getRatesByContainer(params)
+        .then(data => {
+                res.status(200).send(data);
+            })
+        .catch(err => {
+                res.status(500).send(err);
             });
-        });
     }
 
     function getNoMatchesORI(req, res) {
@@ -706,7 +653,7 @@ module.exports = function (log, io, oracle) {
 
         log.time(`getCorrelative ${req.query.codTipoComprob}`);
         Invoice2.getCorrelative(param)
-        .then(data => {
+            .then(data => {
                 let result = {
                     status: 'OK',
                     totalCount: data.totalCount,
@@ -716,7 +663,7 @@ module.exports = function (log, io, oracle) {
                 io.sockets.emit('correlative_'+req.query.x, result);
                 res.status(200).send(data);
             })
-        .catch(err => {
+            .catch(err => {
                 log.logger.error("%s", err.message);
                 res.status(500).send(err);
             });
@@ -742,10 +689,10 @@ module.exports = function (log, io, oracle) {
         param.estado = req.query.estado;
 
         Invoice2.getCashbox(param)
-        .then(data => {
+            .then(data => {
                 res.status(200).send({status: 'OK', data: data.sort()});
             })
-        .catch(err => {
+            .catch(err => {
                 res.status(500).send({status: 'ERROR', data: err.message});
             });
     }
@@ -780,7 +727,7 @@ module.exports = function (log, io, oracle) {
             then(data => {
                 res.status(200).send({status:'OK', data: data});
             })
-        .catch(err => {
+            .catch(err => {
                 log.logger.error("INVOICE SET STATE %s", err.message);
                 res.status(500).send(err);
             });
@@ -912,15 +859,15 @@ module.exports = function (log, io, oracle) {
 
         var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
         var param = {
-                    terminal: ter,
-                    'detalle.buque.nombre': {$ne: null}
+            terminal: ter,
+            'detalle.buque.nombre': {$ne: null}
         };
 
         Invoice2.getShipTrips(param)
-        .then(data => {
+            .then(data => {
                 res.status(200).send(data);
             })
-        .catch(err => {
+            .catch(err => {
                 res.status(500).send(err);
             });
     };
@@ -1054,17 +1001,17 @@ module.exports = function (log, io, oracle) {
                     res.status(500).send(err);
                 });
 
-/*
-            var InvoiceMongoDB = require('../lib/invoice2.js');
-            InvoiceMongoDB = new InvoiceMongoDB();
-            InvoiceMongoDB.setResend(req.params.id, resend)
-                .then(data => {
-                    log.logger.info('UPDATE MONGO RESEND: %s - %s', resend, req.params.id);
-                })
-                .catch(err => {
-                    log.logger.error('UPDATE MONGO RESEND: %s - %s - %s', resend, req.params.id, err.message);
-                });
-*/
+            /*
+             var InvoiceMongoDB = require('../lib/invoice2.js');
+             InvoiceMongoDB = new InvoiceMongoDB();
+             InvoiceMongoDB.setResend(req.params.id, resend)
+             .then(data => {
+             log.logger.info('UPDATE MONGO RESEND: %s - %s', resend, req.params.id);
+             })
+             .catch(err => {
+             log.logger.error('UPDATE MONGO RESEND: %s - %s - %s', resend, req.params.id, err.message);
+             });
+             */
 
 
         }
@@ -1105,7 +1052,6 @@ module.exports = function (log, io, oracle) {
         var options = {};
 
         var params = {
-            terminal: req.query.terminal,
             top: req.query.top,
             order: req.query.order
         };
