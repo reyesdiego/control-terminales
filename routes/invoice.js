@@ -318,11 +318,8 @@ module.exports = function (log, io, oracle) {
                 tasaAgp: req.query.tasaAgp
             };
 
-            var Invoice3 = require('../lib/invoice2.js');
-            Invoice3 = new Invoice3(oracle);
-
             log.time("getRatesByTerminal");
-            Invoice3.getRatesByTerminal(param)
+            Invoice2.getRatesByTerminal(param)
                 .then(data => {
                     log.timeEnd("getRatesByTerminal");
                     res.status(200).send(data);
