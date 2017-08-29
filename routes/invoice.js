@@ -730,9 +730,9 @@ module.exports = function (log, io, oracle) {
             });
     }
 
-    function removeInvoices ( req, res){
+    function removeInvoices ( req, res) {
 
-        Invoice.remove({_id: req.params._id}, function (err){
+        Invoice.remove({_id: req.params._id}, function (err) {
             if (!err){
                 log.logger.info('Invoice Removed %s', req.params._id);
                 res.status(200).send({status:'OK', data: "OK"});
@@ -740,6 +740,7 @@ module.exports = function (log, io, oracle) {
                 res.status(500).send({status:'ERROR', data: "Error al intentar eliminar"});
             }
         });
+
     }
 
     /** Seneca */
@@ -753,9 +754,16 @@ module.exports = function (log, io, oracle) {
             entity: 'invoice',
             cmd: 'getByRates'
         };
+
+
+        console.log(req.body);
+
         param.rates = req.body.data;
         param.fechaInicio = req.query.fechaInicio;
         param.fechaFin = req.query.fechaFin;
+
+        console.log("query%s", JSON.stringify(req.query));
+
 
         seneca.act(param, (err, data) => {
             if (err) {
@@ -798,6 +806,32 @@ module.exports = function (log, io, oracle) {
         });
     };
 
+    let getInvoicesByGroupsPivot = (req, res) => {
+
+        var seneca = require("seneca")();
+        seneca.client({port:config.microService.statisticOracle.port, host:config.microService.statisticOracle.host, timeout:60000});
+
+        var param = {
+            role: 'statistic',
+            entity: 'invoice',
+            cmd: 'getByGroupsPivot'
+        };
+        param.groups = req.body;
+        param.fechaInicio = req.query.fechaInicio;
+        param.fechaFin = req.query.fechaFin;
+
+        seneca.act(param, (err, data) => {
+            if (err) {
+                res.status(500).send({
+                    status: "ERROR",
+                    message: err.msg,
+                    data: err
+                });
+            } else {
+                res.status(200).send(data);
+            }
+        });
+    };
 
     let getInvoicesByRatesTerminal = (req, res) => {
         var params = {};
@@ -1109,6 +1143,7 @@ module.exports = function (log, io, oracle) {
     router.get('/rates/:terminal/:container/:currency', getRatesByContainer);
     router.post('/byRates', getInvoicesByRates);
     router.post('/byRates/pivot', getInvoicesByRatesPivot);
+    router.post('/byGroups/pivot', getInvoicesByGroupsPivot);
     router.get('/noMatches/:terminal/:skip/:limit', getNoMatches);
     router.get('/correlative/:terminal', getCorrelative);
     router.get('/cashbox/:terminal', getCashbox);
@@ -1129,7 +1164,6 @@ module.exports = function (log, io, oracle) {
     router.get('/byCode', getByCode);
     router.get('/byContainer', getByContainer);
     router.get('/byContainerTotales', getTotalByContainer);
-
 
 //	app.get('/invoices/log/:seconds', function( req, res) {
 //		logInvoiceBody = 1;
