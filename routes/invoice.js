@@ -48,6 +48,7 @@ module.exports = function (log, io, oracle) {
         param.group = usr.group;
         param.resend = req.query.resend;
         param.terminal = paramTerminal;
+        param.iso3Forma = req.query.iso3Forma;
 
         if (skip >= 0 && limit >= 0) {
             param.skip = skip;

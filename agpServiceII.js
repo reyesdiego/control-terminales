@@ -21,7 +21,7 @@ var date = moment().format('DD-MM-YYYY');
 var asyncParallel = [];
 var terminalsName = ['bactssa', 't4', 'trp'];
 
-var to = ["dreyes@puertobuenosaires.gob.ar", "reclamosuct@puertobuenosaires.gob.ar"];
+var to = ["dreyes@puertobuenosaires.gob.ar", "reclamosuct@puertobuenosaires.gob.ar", "rwohlers@puertobuenosaires.gob.ar", "leonardo.ferreiro@trp.com.ar"];
 var to = ["dreyes@puertobuenosaires.gob.ar"];
 
 var sendToClient = false;
@@ -32,7 +32,7 @@ var host = config.domain;
 mongoose.connect(config.mongo.url, config.mongo.options);
 
 VouchersType.find({}, (err, vouchersDesc) => {
-    'use strict';
+
     var voucherList = {};
 
     if (err) {
@@ -216,7 +216,7 @@ VouchersType.find({}, (err, vouchersDesc) => {
                                     console.error("ERROR PARALLEL %s", err);
                                 }
                                 console.log('--------FIN %s---------', moment().format("DD-MM-YYYY"));
-                                // process.exit(1);
+                                process.exit(1);
                             });
                         });
                 }

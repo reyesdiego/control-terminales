@@ -17,8 +17,11 @@ module.exports = function (log, app, io, oracle, params) {
         unitType,
         task,
         voucherType,
+        manifest,
         gate,
         invoice,
+        ob2,
+        ISO,
         moment = require('moment');
 
     function isValidToken(req, res, next) {
@@ -81,6 +84,18 @@ module.exports = function (log, app, io, oracle, params) {
 
     voucherType = require('./voucherType')(log, oracle);
     app.use('/voucherTypes', isValidToken, voucherType);
+
+    manifest = require('./manifest')(log, oracle);
+    app.use('/manifests', isValidToken, manifest);
+
+    ISO = require('./ISO')(log, oracle);
+    app.use('/ISOS', isValidToken, ISO);
+
+    ob2 = require('./ob2')(log);
+    app.use('/ob2', isValidToken, ob2);
+
+
+    /**_____________________________________________________________________*/
 
     app.post('/sendMail', isValidToken, function (req, res) {
 
@@ -156,6 +171,9 @@ module.exports = function (log, app, io, oracle, params) {
                             });
                             reqGet.end(); // ejecuta el request
                         }
+                        if (data[0].hold) {
+                            data[0].transporte.semi = !data[0].hold.status;
+                        }
                     }
 
                     res.status(200).send({status: 'OK', data: data || []});
@@ -214,6 +232,10 @@ module.exports = function (log, app, io, oracle, params) {
                             });
                         });
                         reqGet.end(); // ejecuta el request
+
+                        if (data[0].hold) {
+                            data[0].transporte.semi = !data[0].hold.status;
+                        }
                     }
 
                     res.status(200).send({status: 'OK', data: data || []});
