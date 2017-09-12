@@ -25,10 +25,7 @@ module.exports = function (log, io, oracle) {
             limit = parseInt(req.params.limit, 10),
             skip = parseInt(req.params.skip, 10),
             ter = (usr.role === 'agp') ? paramTerminal : usr.terminal,
-            param = {},
-            inv = require('../lib/invoice.js');
-
-        inv = new inv(ter);
+            param = {};
 
         param.fechaInicio = req.query.fechaInicio;
         param.fechaFin = req.query.fechaFin;
@@ -63,15 +60,15 @@ module.exports = function (log, io, oracle) {
                 }
             });
         } else {
-            inv.getInvoicesCSV(param, function (err, result) {
-                if (err) {
-                    res.status(500).send({status: "ERROR", data: err.message});
-                } else {
+            Invoice2.getInvoicesCSV(param)
+            .then(data => {
                     res.header('content-type', 'text/csv');
                     res.header('content-disposition', 'attachment; filename=report.csv');
-                    res.status(200).send(result);
-                }
-            });
+                    res.status(200).send(data.data);
+            })
+            .catch(err => {
+                    res.status(500).send(err);
+                });
         }
     }
 
@@ -837,15 +834,22 @@ module.exports = function (log, io, oracle) {
     let getInvoicesByRatesTerminal = (req, res) => {
         var params = {};
         var options = {};
+        var moment = require("moment");
 
         params.terminal = req.params.terminal;
 
-        if (req.query.year) {
-            params.year = parseInt(req.query.year);
+        if (req.query.fechaInicio && req.query.fechaFin) {
+            params.fechaInicio = moment(req.query.fechaInicio).format("YYYY-MM-DD");
+            params.fechaFin = moment(req.query.fechaFin).format("YYYY-MM-DD");
+        } else {
+            if (req.query.year) {
+                params.year = parseInt(req.query.year);
+            }
+            if (req.query.month) {
+                params.month = parseInt(req.query.month);
+            }
         }
-        if (req.query.month) {
-            params.month = parseInt(req.query.month);
-        }
+
         if (req.query.output === 'csv') {
             options.output = 'csv';
         }
