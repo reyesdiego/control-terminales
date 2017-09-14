@@ -16,7 +16,7 @@ module.exports = (log, oracle) => {
         .then (data => {
             res.status(200).send(data);
         })
-        .catch(err => {
+        .catch (err => {
                 res.status(500).send(err);
             });
     };
@@ -27,7 +27,7 @@ module.exports = (log, oracle) => {
             .then (data => {
             res.status(200).send(data);
         })
-            .catch(err => {
+            .catch (err => {
                 res.status(500).send(err);
             });
     };
@@ -53,10 +53,37 @@ module.exports = (log, oracle) => {
                 res.status(500).send(err);
             });
     };
+
+    let getISO4 = (req, res) => {
+
+        ISO.getISO4()
+            .then (data => {
+            res.status(200).send(data);
+        })
+            .catch(err => {
+                res.status(500).send(err);
+            });
+    };
+
+    let getISO = (req, res) => {
+
+        var iso = req.params.ISO;
+
+        ISO.getISO(iso)
+            .then (data => {
+            res.status(200).send(data);
+        })
+            .catch (err => {
+                res.status(500).send(err);
+            });
+    };
+
     router.get('/ISO1', getISO1);
     router.get('/ISO2', getISO2);
     router.get('/ISO3', getISO3);
     router.get('/ISO3Formas', getISO3Formas);
+    router.get('/ISO4', getISO4);
+    router.get('/ISO/:ISO', getISO);
 
     return router;
 };
