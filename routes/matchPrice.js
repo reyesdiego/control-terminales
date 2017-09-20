@@ -1,7 +1,7 @@
 /**
  * Created by Diego Reyes on 2/18/14.
  */
-module.exports = function (log, oracle) {
+module.exports = (log, oracle) => {
     'use strict';
 
     var express = require('express'),
@@ -11,7 +11,7 @@ module.exports = function (log, oracle) {
     var MatchPrice = require('../lib/matchPrice2.js');
     MatchPrice = new MatchPrice(oracle);
 
-    function getMatchPrices(req, res) {
+    let getMatchPrices = (req, res) => {
 
         var param = {
             terminal: req.params.terminal,
@@ -24,17 +24,18 @@ module.exports = function (log, oracle) {
 
         log.time("getMatchPrices");
         MatchPrice.getMatchPrices(param)
-        .then(data => {
+            .then(data => {
                 var response;
 
                 if (req.query.output === 'csv') {
-                    response = "CODIGO|PRECIO|FECHA|UNIDAD|ASOCIADO|DESCRIPCION\n";
+                    response = "CODIGO|PRECIO|FECHA|DESCRIPCION|ASOCIADO\n";
 
                     data.data.forEach(item => {
                         let matches = '';
-                        if (item.matches !== undefined && item.matches !== null && item.matches.length > 0) {
-                            if (item.matches[0].match.length > 0) {
-                                matches = item.matches[0].match.join('-').toString();
+                        if (item.matches !== undefined && item.matches !== null) {
+                            if (item.matches.match.length > 0) {
+                                item.matches.match.forEach(i => (matches += i.code + '-'));
+                                matches = matches.substr(0, matches.length - 1);
                             } else {
                                 matches = "";
                             }
@@ -46,11 +47,9 @@ module.exports = function (log, oracle) {
                             "|" +
                             moment(item.from).format("YYYY-MM-DD") +
                             "|" +
-                            item.unit +
+                            item.description.split("\n").join(" ") +
                             "|" +
                             matches +
-                            "|" +
-                            item.description.split("\n").join(" ") +
                             "\n";
                     });
                     res.header('content-type', 'text/csv');
@@ -58,14 +57,14 @@ module.exports = function (log, oracle) {
                     res.status(200).send(response);
                 } else {
                     data.time = log.timeEnd("getMatchPrices");
-                    res.send(data);
+                    res.status(200).send(data);
                 }
             })
-        .catch(err => {
-                res.send(err);
+            .catch(err => {
+                res.status(500).send(err);
             });
 
-    }
+    };
 
     function getMatchPricesPrice (req, res) {
 
