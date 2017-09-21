@@ -29,15 +29,19 @@ module.exports = (server, log) => {
         socket.on('login', (user, cb) => {
             var logged = addOnline(socket.id, user);
             Account.findOne({user: user}, (err, loggedUser) => {
-                loggedUser.lastLogin = new Date();
-                loggedUser.save((err, userSaved) => {
-                    socket.broadcast.emit('loggedIn', loggedUser);
-                    log.logger.info('Socket Client Logged In: %s - %s - %s.', socket.id, user, socket.client.conn.remoteAddress);
+                if (loggedUser) {
+                    loggedUser.lastLogin = new Date();
+                    loggedUser.save((err, userSaved) => {
+                        socket.broadcast.emit('loggedIn', loggedUser);
+                        log.logger.info('Socket Client Logged In: %s - %s - %s.', socket.id, user, socket.client.conn.remoteAddress);
 
-                    if (cb) {
-                        return cb(logged);
-                    }
-                });
+                        if (cb) {
+                            return cb(logged);
+                        }
+                    });
+                } else {
+                    if (cb) return cb(logged);
+                }
             });
         });
 
