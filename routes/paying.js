@@ -315,7 +315,7 @@ module.exports = (log, oracle) => {
     router.get('/getPrePayment/:terminal', getPrePayment);
 
     router.post('/prePayment', addPrePayment);
-    router.delete('/prePayment/:_id', deletePrePayment);
+    router.post('/prePayment/:_id', deletePrePayment);
     router.put('/payment', setPayment);
     router.put('/addToPrePayment/:terminal', add2PrePayment);
 
