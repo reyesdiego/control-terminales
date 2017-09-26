@@ -18,7 +18,7 @@ module.exports = function (log, io, oracle) {
     Invoice2 = new Invoice2(oracle);
 
     //GET - Return all invoice in the DB
-    function getInvoices(req, res) {
+    let getInvoices = (req, res) => {
 
         var usr = req.usr,
             paramTerminal = req.params.terminal,
@@ -51,7 +51,7 @@ module.exports = function (log, io, oracle) {
             param.skip = skip;
             param.limit = limit;
             log.time("getInvoices");
-            Invoice2.getInvoices(param, function (err, result) {
+            Invoice2.getInvoices(param, (err, result) => {
                 if (err) {
                     res.status(500).send({status: "ERROR", data: err.message});
                 } else {
@@ -70,7 +70,7 @@ module.exports = function (log, io, oracle) {
                     res.status(500).send(err);
                 });
         }
-    }
+    };
 
     function getInvoice(req, res) {
         var usr = req.usr,
