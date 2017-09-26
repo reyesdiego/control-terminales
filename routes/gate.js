@@ -2,7 +2,7 @@
  * Created by Diego Reyes on 3/21/14.
  */
 
-module.exports = function (log, oracle) {
+module.exports = (log, oracle) => {
     'use strict';
 
     var express = require('express'),
@@ -104,8 +104,8 @@ module.exports = function (log, oracle) {
 
     let getGatesByHour = (req, res) => {
 
-        var seneca = require("seneca")({timeout: config.microService.statisticOracle.timeout});
-        seneca.client(config.microService.statisticOracle.port, config.microService.statisticOracle.host);
+        var seneca = require("seneca")();
+        seneca.client({port:config.microService.statisticOracle.port, host:config.microService.statisticOracle.host, timeout:60000});
 
         var param = {
             role: "statistic",
@@ -144,8 +144,8 @@ module.exports = function (log, oracle) {
 
     let getGatesByMonth = (req, res) => {
 
-        var seneca = require("seneca")({timeout: config.microService.statisticOracle.timeout});
-        seneca.client(config.microService.statisticOracle.port, config.microService.statisticOracle.host);
+        var seneca = require("seneca")();
+        seneca.client({port:config.microService.statisticOracle.port, host:config.microService.statisticOracle.host, timeout:60000});
 
         var param = {
             role: "statistic",
@@ -216,7 +216,7 @@ module.exports = function (log, oracle) {
         } else {
             res.status(400).send({status: 'ERROR', message: 'El ruta es inválida', data: []});
         }
-    }
+    };
 
     let getLastInsert = (req, res) => {
         var terminal = req.params.terminal;
