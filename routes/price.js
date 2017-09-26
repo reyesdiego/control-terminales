@@ -2,14 +2,13 @@
  * Created by Administrator on 1/10/14.
  */
 
-module.exports = function (log, oracle) {
+module.exports = (log, oracle) => {
     'use strict';
 
     var express = require('express'),
         router = express.Router(),
         util = require('util'),
         moment = require('moment'),
-        mail = require("../include/emailjs"),
         config = require('../config/config.js');
 
     var Price = require('../lib/price.js');
