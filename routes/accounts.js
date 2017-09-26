@@ -122,7 +122,6 @@ module.exports = function (log, app, passport) {
     app.get('/agp/accounts', function (req, res) {
         var incomingToken = req.headers.token,
             project,
-            accounts,
             Enumerable = require('linq');
 
         Account.verifyToken(incomingToken, function (err, usr) {
@@ -144,30 +143,31 @@ module.exports = function (log, app, passport) {
                         status: true,
                         date_created: true,
                         'token.date_created': true,
-                        lastLogin : true,
+                        lastLogin: true,
                         acceso: true,
                         emailToApp: true
                     };
 
-                    accounts = Account.find({}, project);
-                    accounts.lean();
-                    accounts.exec(function (err, data) {
-                        var result;
-                        if (err) {
-                            res.status(500).json({status: "ERROR", data: err.message});
-                        } else {
-                            result = Enumerable.from(data)
-                                .select(function (item) {
-                                    let sql = `value, idx=>value.user==="${item.user}"`;
-                                    let join = Enumerable.from(global.cache.online).where(sql).toArray();
-                                    if (join.length > 0) {
-                                        item.online = true;
-                                    }
-                                    return item;
-                                }).toArray();
-                            res.status(200).json({status: 'OK', data: result});
-                        }
-                    });
+                    Account.find({}, project)
+                        .sort({full_name: 1})
+                        .lean()
+                        .exec((err, data) => {
+                            var result;
+                            if (err) {
+                                res.status(500).json({status: "ERROR", data: err.message});
+                            } else {
+                                result = Enumerable.from(data)
+                                    .select(item => {
+                                        let sql = `value, idx=>value.user==="${item.user}"`;
+                                        let join = Enumerable.from(global.cache.online).where(sql).toArray();
+                                        if (join.length > 0) {
+                                            item.online = true;
+                                        }
+                                        return item;
+                                    }).toArray();
+                                res.status(200).json({status: 'OK', data: result});
+                            }
+                        });
                 } else {
                     res.status(403).json({status: "ERROR", data: "No posee permisos para requerir estos datos"});
                 }
