@@ -11,8 +11,7 @@ module.exports = function (log, io, oracle) {
         util = require('util'),
         moment = require('moment'),
         config = require('../config/config.js'),
-        Invoice = require('../models/invoice.js'),
-        MatchPrice = require('../models/matchPrice.js');
+        Invoice = require('../models/invoice.js');
 
     var Invoice2 = require('../lib/invoice2.js');
     Invoice2 = new Invoice2(oracle);
@@ -44,7 +43,7 @@ module.exports = function (log, io, oracle) {
         param.order = req.query.order;
         param.group = usr.group;
         param.resend = req.query.resend;
-        param.terminal = paramTerminal;
+        param.terminal = ter;
         param.iso3Forma = req.query.iso3Forma;
 
         if (skip >= 0 && limit >= 0) {
@@ -368,101 +367,15 @@ module.exports = function (log, io, oracle) {
         //params.buqueNombre = req.query.buque;
         //params.viaje = req.query.viaje;
 
+        log.time("getRatesByContainer");
         Invoice2.getRatesByContainer(params)
         .then(data => {
+                log.timeEnd("getRatesByContainer");
                 res.status(200).send(data);
             })
         .catch(err => {
                 res.status(500).send(err);
             });
-    }
-
-    function getNoMatchesORI(req, res) {
-
-        var paramTerminal = req.params.terminal,
-            skip = parseInt(req.params.skip, 10),
-            limit = parseInt(req.params.limit, 10),
-            param = [
-                {
-                    $match: {terminal: paramTerminal }
-                },
-                {$unwind: '$match'},
-                {$project: {match: '$match', _id: 0}}
-            ],
-            s,
-            parametro,
-            fecha,
-            match = {
-                terminal: paramTerminal
-            },
-            inv;
-
-        s = MatchPrice.aggregate(param);
-        s.exec(function (err, noMatches) {
-            if (!err) {
-                var arrResult = noMatches.map(item => {
-                    return item.match;
-                });
-
-                if (req.query.fechaInicio || req.query.fechaFin) {
-                    match["fecha.emision"] = {};
-                    if (req.query.fechaInicio) {
-                        fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
-                        match["fecha.emision"].$gte = fecha;
-                    }
-                    if (req.query.fechaFin) {
-                        fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
-                        match["fecha.emision"].$lte = fecha;
-                    }
-                }
-
-                parametro = [
-                    { $match: match},
-                    { $unwind: "$detalle"},
-                    { $unwind: "$detalle.items"},
-                    { $project: { code: '$detalle.items.id'}},
-                    { $match: {code: {$nin: arrResult}}},
-                    { $group: {_id: { _id: "$_id"}}},
-                    { $skip : skip},
-                    { $limit : limit}
-                ];
-
-                inv = Invoice.aggregate(parametro);
-
-                inv.exec((err, data) => {
-                    var ids = data.map(item => {
-                        return  item._id._id;
-                    });
-                    if (!err) {
-                        if (data.length > 0) {
-                            inv._pipeline.splice(6, 2);
-                            inv.group({_id: null, cnt: {$sum: 1}});
-                            inv.exec((err, data2) => {
-
-                                Invoice.find({_id : {$in: ids}}, (err, invoices) => {
-                                    var cnt = data2[0].cnt,
-                                        pageCount = data.length,
-                                        result = {
-                                            status: 'OK',
-                                            totalCount: cnt,
-                                            pageCount: (limit > pageCount) ? limit : pageCount,
-                                            page: skip,
-                                            data: invoices
-                                        };
-                                    res.status(200).send(result);
-                                });
-
-                            });
-                        } else {
-                            res.status(200).send({ status: 'OK', data: null });
-                        }
-                    }
-                });
-            } else {
-                log.logger.error('%s', err);
-                res.status(500).send({status: 'ERROR', data: err.message});
-            }
-        });
     }
 
     function getNoMatches(req, res) {
@@ -489,133 +402,9 @@ module.exports = function (log, io, oracle) {
             });
     }
 
-    function getCorrelativeORI(req, res) {
-        var usr = req.usr,
-            fecha,
-            param = {},
-            cashBoxes,
-            cashboxExecs,
-            contadorFaltantesTotal,
-            async;
-
-        log.time("totalTime");
-
-        if (usr.role === 'agp') {
-            param.terminal = req.params.terminal;
-        } else {
-            param.terminal = usr.terminal;
-        }
-
-        if (req.query.fechaInicio || req.query.fechaFin) {
-            param["fecha.emision"] = {};
-            if (req.query.fechaInicio) {
-                fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
-                param["fecha.emision"].$gte = fecha;
-            }
-            if (req.query.fechaFin) {
-                fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
-                param["fecha.emision"].$lte = fecha;
-            }
-        }
-        cashBoxes = [];
-        if (req.query.nroPtoVenta) {
-            cashBoxes = req.query.nroPtoVenta.split(',');
-        } else {
-            log.logger.error("El nro de punto de venta no ha sido enviado");
-            res.status(403).send({status: "ERROR", data: "El nro de punto de venta no ha sido enviado" });
-        }
-        if (req.query.codTipoComprob) {
-            param.codTipoComprob = parseInt(req.query.codTipoComprob, 10);
-        }
-
-        cashboxExecs = [];
-        contadorFaltantesTotal = 0;
-
-        cashBoxes.forEach(function (cash) {
-            //funcion que calcula la correlatividad por cada caja que sera ejecutada en paralelo async
-            var cashboxExec = function (callback) {
-                var invoices,
-                    logTimeBase;
-                param.nroPtoVenta = parseInt(cash, 10);
-
-                invoices = Invoice.find(param, {nroComprob: 1, 'fecha.emision': 1, _id: 0});
-                invoices.sort({nroComprob: 1});
-                invoices.lean();
-
-                invoices.exec(function (err, invoicesData) {
-                    var fecha,
-                        faltantes = [],
-                        control = 0,
-                        contadorFaltantes = 0,
-                        result,
-                        dif,
-                        item2Add,
-                        i,
-                        len;
-
-                    if (!err) {
-                        invoicesData.forEach(function (invoice) {
-                            if (control === 0) {
-                                control = invoice.nroComprob;
-                            } else {
-                                control += 1;
-                                if (control !== invoice.nroComprob) {
-                                    fecha = moment(invoice.fecha.emision).format("YYYY-MM-DD");
-                                    if (invoice.nroComprob - control > 3) {
-                                        dif = (invoice.nroComprob) - control;
-                                        contadorFaltantes+= dif;
-                                        item2Add = util.format('[%d a %d] (%d)', control, (invoice.nroComprob - 1), dif);
-                                        faltantes.push({n: item2Add, d: fecha});
-                                    } else {
-                                        len=invoice.nroComprob;
-                                        for (i=control; i<len; i++) {
-                                            faltantes.push({n: i.toString(), d: fecha});
-                                            contadorFaltantes++;
-                                        }
-                                    }
-                                    control = invoice.nroComprob;
-                                }
-                            }
-                        });
-                        contadorFaltantesTotal += contadorFaltantes;
-                        result = {
-                            status: 'OK',
-                            nroPtoVenta: cash,
-                            totalCount: contadorFaltantes,
-                            data: faltantes
-                        };
-                        //io.sockets.emit('correlative', result);
-                        io.sockets.emit('correlative_'+req.query.x, result);
-                        return callback(null, result);
-                    } else {
-                        log.logger.error("%s", err.message);
-                        res.status(500).send({status: "ERROR", data: {name: err.name, message: err.message} });
-                    }
-                });
-            };
-
-            cashboxExecs.push(cashboxExec);
-        });
-
-        async = require('async');
-        async.parallel(cashboxExecs, function (err, results) {
-            var response = {
-                status: "OK",
-                totalCount: contadorFaltantesTotal,
-                data: results,
-                time: log.timeEnd("totalTime")
-            };
-            res.status(200).send(response);
-
-        });
-
-    }
-
     function getCorrelative(req, res) {
         var usr = req.usr,
             fecha;
-
-        log.time(`getCorrelative ${req.query.codTipoComprob}`);
 
         if (req.query.codTipoComprob === undefined) {
             log.logger.error("El Tipo de Comprobante no ha sido enviado");
@@ -646,14 +435,14 @@ module.exports = function (log, io, oracle) {
             param.codTipoComprob = parseInt(req.query.codTipoComprob, 10);
         }
 
-        log.time(`getCorrelative ${req.query.codTipoComprob}`);
+        log.time(`getCorrelative Pto Venta ${req.query.codTipoComprob}`);
         Invoice2.getCorrelative(param)
             .then(data => {
                 let result = {
                     status: 'OK',
                     totalCount: data.totalCount,
                     data: data.data,
-                    time: log.timeEnd(`getCorrelative ${req.query.codTipoComprob}`)
+                    time: log.timeEnd(`getCorrelative Pto Venta ${req.query.codTipoComprob}`)
                 };
                 io.sockets.emit('correlative_'+req.query.x, result);
                 res.status(200).send(data);
@@ -804,6 +593,7 @@ module.exports = function (log, io, oracle) {
         });
     };
 
+    /** Seneca */
     let getInvoicesByGroupsPivot = (req, res) => {
 
         var seneca = require("seneca")();
@@ -834,7 +624,6 @@ module.exports = function (log, io, oracle) {
     let getInvoicesByRatesTerminal = (req, res) => {
         var params = {};
         var options = {};
-        var moment = require("moment");
 
         params.terminal = req.params.terminal;
 
@@ -960,6 +749,46 @@ module.exports = function (log, io, oracle) {
         });
 
     }
+
+    let getTotales = (req, res) => {
+
+        var usr = req.usr,
+            paramTerminal = req.params.terminal,
+            ter = (usr.role === 'agp') ? paramTerminal : usr.terminal,
+            param = {};
+
+        param.fechaInicio = req.query.fechaInicio;
+        param.fechaFin = req.query.fechaFin;
+        param.nroPtoVenta = req.query.nroPtoVenta;
+        param.codTipoComprob = req.query.codTipoComprob;
+        param.nroComprobante = req.query.nroComprobante;
+        param.razonSocial = req.query.razonSocial;
+        param.documentoCliente = req.query.documentoCliente;
+        param.contenedor = req.query.contenedor;
+        param.buqueNombre = req.query.buqueNombre;
+        param.viaje = req.query.viaje;
+        param.code = req.query.code;
+        param.payment = req.query.payment;
+        param.rates = req.query.rates;
+        param.estado = req.query.estado;
+        param.order = req.query.order;
+        param.group = usr.group;
+        param.resend = req.query.resend;
+        param.terminal = ter;
+        param.iso3Forma = req.query.iso3Forma;
+
+        log.time("getTotales");
+        Invoice2.getTotales(param)
+            .then(data => {
+                log.timeEnd("getTotales");
+                res.status(200).send(data);
+            })
+            .catch(err => {
+                log.timeEnd("getTotales");
+                res.status(500).send(err);
+            });
+
+    };
 
     let getTotals = (req, res) => {
         var paramTerminal = req.query.terminal,
@@ -1161,6 +990,7 @@ module.exports = function (log, io, oracle) {
     router.get('/:terminal/shipContainers', getShipContainers);
     router.get('/:terminal/byRates', getInvoicesByRatesTerminal);
     router.get('/containersNoRates/:terminal', getContainersNoRates);
+    router.get('/totales', getTotales);
     router.get('/totalClient', getTotals);
     router.get('/totalClientTop', getTotals);
     router.put('/setState/:terminal/:_id', addState);
