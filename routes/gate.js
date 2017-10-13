@@ -142,6 +142,88 @@ module.exports = (log, oracle) => {
         });
     };
 
+    let getGatesByHourMov = (req, res) => {
+
+        var seneca = require("seneca")();
+        seneca.client({port:config.microService.statisticOracle.port, host:config.microService.statisticOracle.host, timeout:60000});
+
+        var param = {
+            role: "statistic",
+            cmd: "getCountByHourMov",
+            entity: "gate"
+        };
+
+        param.terminal = req.params.terminal;
+
+        if (req.query.fechaInicio) {
+            param.fechaInicio = moment(req.query.fechaInicio, ['YYYY-MM-DD']).format('YYYY-MM-DD');
+        }
+
+        if (req.query.fechaFin) {
+            param.fechaFin = moment(req.query.fechaFin, ['YYYY-MM-DD']).add(1, 'days').format('YYYY-MM-DD');
+        }
+
+        if (req.query.fecha !== undefined) {
+            param.fechaInicio = moment(req.query.fecha, ['YYYY-MM-DD']).format('YYYY-MM-DD');
+            param.fechaFin = moment(param.fechaInicio).add(1, 'days').format('YYYY-MM-DD');
+        }
+
+        log.time("getByHourMov");
+        seneca.act(param, (err, data) => {
+            if (err) {
+                err.time = log.timeEnd("getByHourMov");
+                res.status(500).send({
+                    status: "ERROR",
+                    message: err.msg,
+                    data: err
+                });
+            } else {
+                data.time = log.timeEnd("getByHourMov");
+                res.status(200).send(data);
+            }
+        });
+    };
+
+    let getGatesByDay = (req, res) => {
+
+        var seneca = require("seneca")();
+        seneca.client({port:config.microService.statisticOracle.port, host:config.microService.statisticOracle.host, timeout:60000});
+
+        var param = {
+            role: "statistic",
+            cmd: "getCountByDay",
+            entity: "gate"
+        };
+
+        if (req.query.fechaInicio) {
+            param.fechaInicio = moment(req.query.fechaInicio, ['YYYY-MM-DD']).format('YYYY-MM-DD');
+        }
+
+        if (req.query.fechaFin) {
+            param.fechaFin = moment(req.query.fechaFin, ['YYYY-MM-DD']).add(1, 'days').format('YYYY-MM-DD');
+        }
+
+        if (req.query.fecha !== undefined) {
+            param.fechaInicio = moment(req.query.fecha, ['YYYY-MM-DD']).format('YYYY-MM-DD');
+            param.fechaFin = moment(param.fechaInicio).add(1, 'days').format('YYYY-MM-DD');
+        }
+
+        log.time("getByDay");
+        seneca.act(param, (err, data) => {
+            if (err) {
+                err.time = log.timeEnd("getByDay");
+                res.status(500).send({
+                    status: "ERROR",
+                    message: err.msg,
+                    data: err
+                });
+            } else {
+                data.time = log.timeEnd("getByDay");
+                res.status(200).send(data);
+            }
+        });
+    };
+
     let getGatesByMonth = (req, res) => {
 
         var seneca = require("seneca")();
@@ -174,6 +256,81 @@ module.exports = (log, oracle) => {
 
     };
 
+    let getGatesByType = (req, res) => {
+        var usr = req.usr,
+            fecha,
+            param = {};
+
+        if (req.query.fechaInicio || req.query.fechaFin) {
+            param.gateTimestamp = {};
+            if (req.query.fechaInicio) {
+                fecha = moment(req.query.fechaInicio, ['YYYY-MM-DD HH:mm Z']).toDate();
+                param.fechaInicio = fecha;
+            }
+            if (req.query.fechaFin) {
+                fecha = moment(req.query.fechaFin, ['YYYY-MM-DD HH:mm Z']).toDate();
+                param.fechaFin = fecha;
+            }
+        }
+
+        if (req.query.contenedor) {
+            param.contenedor = req.query.contenedor;
+        }
+
+        if (req.query.buqueNombre) {
+            param.buque = req.query.buqueNombre;
+        }
+
+        if (req.query.viaje) {
+            param.viaje = req.query.viaje;
+        }
+
+        if (req.query.carga) {
+            param.carga = req.query.carga;
+        }
+
+        if (req.query.tren) {
+            param.tren = req.query.tren;
+        }
+
+        if (req.query.onlyTrains === '1') {
+            param.tren = {$exists: true};
+            if (req.query.tren) {
+                param.tren = req.query.tren;
+            }
+        }
+
+        if (req.query.patenteCamion) {
+            param.patenteCamion = req.query.patenteCamion;
+        }
+
+        if (req.query.ontime === '1') {
+            param.ontime = req.query.ontime;
+        } else if (req.query.ontime === '0') {
+            param.ontime = req.query.ontime;
+        }
+
+        if (req.query.size) {
+            param.size = req.query.size;
+        }
+
+        if (usr.role === 'agp') {
+            param.terminal = req.params.terminal;
+        } else {
+            param.terminal = usr.terminal;
+        }
+
+        log.time("getByType");
+        Gate.getByType(param)
+        .then(data => {
+                log.timeEnd("getByType");
+                res.status(200).send(data);
+            })
+        .catch(err => {
+                res.status(500).send(err);
+            });
+    };
+
     let getDistincts = (req, res) => {
 
         var usr = req.usr,
@@ -197,20 +354,20 @@ module.exports = (log, oracle) => {
 
         if (param.distinct !== '') {
 
-            log.time("getDistincts");
+            log.time("getDistincts " + param.distinct);
             Gate.getDistinct(param)
             .then(data => {
                     res.status(200).send({
                         status: 'OK',
                         totalCount: data.length,
-                        time: log.timeEnd("getDistincts"),
+                        time: log.timeEnd("getDistincts " + param.distinct),
                         data: data.sort()
                     });
                 })
             .catch(err => {
                     res.status(500).send({
                         status: 'ERROR',
-                        time: log.timeEnd("getDistincts"),
+                        time: log.timeEnd("getDistincts" + req.route.path),
                         data: err.message});
                 });
         } else {
@@ -476,7 +633,10 @@ router.use(function timeLog(req, res, next){
 
     router.get('/:terminal/:skip/:limit', getGates);
     router.get('/ByHour', getGatesByHour);
+    router.get('/:terminal/ByHourMov', getGatesByHourMov);
+    router.get('/ByDay', getGatesByDay);
     router.get('/ByMonth', getGatesByMonth);
+    router.get('/:terminal/ByType', getGatesByType);
     router.get('/:terminal/missingGates/:skip/:limit', getMissingGates);
     router.get('/:terminal/missingInvoices', getMissingInvoices);
     router.get('/:terminal/missingAppointments', getMissingAppointments);
