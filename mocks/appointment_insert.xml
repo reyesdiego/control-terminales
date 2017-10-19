@@ -32,6 +32,6 @@
   <option name="haveTextToSend" value="true" />
   <option name="haveFileToSend" value="false" />
   <option name="isFileUpload" value="false" />
-  <option name="textToSend" value="{ &#9;&quot;buque&quot;:&quot;x&quot;, &#9;&quot;viaje&quot;:&quot;x1&quot;, &#9;&quot;contenedor&quot;:&quot;CAXU1234567&quot;, &#9;&quot;inicio&quot;:&quot;2015-06-02T10:00:00Z&quot;, &#9;&quot;fin&quot;:&quot;2015-06-02T12:00:00Z&quot;, &#9;&quot;mov&quot;: &quot;IMPO&quot;, &quot;alta&quot;: &quot;2015-06-02T08:00:00Z&quot;, &#9;&quot;email&quot;:&quot;dreyes@puertobuenosaires.gob.ar&quot;, &quot;disponibles_t1&quot;:2 }" />
+  <option name="textToSend" value="{ &#9;&quot;buque&quot;:&quot;x&quot;, &#9;&quot;viaje&quot;:&quot;x1&quot;, &#9;&quot;contenedor&quot;:&quot;PITU1234567&quot;, &#9;&quot;inicio&quot;:&quot;2017-08-09T10:00:00Z&quot;, &#9;&quot;fin&quot;:&quot;2017-08-09T12:00:00Z&quot;, &#9;&quot;mov&quot;: &quot;IMPO&quot;, &quot;alta&quot;: &quot;2017-08-07T08:00:00Z&quot;, &#9;&quot;email&quot;:&quot;dreyes@puertobuenosaires.gob.ar&quot;, &quot;disponibles_t1&quot;:2 }" />
   <option name="filesToSend" value="" />
 </RestClientRequest>

@@ -11,7 +11,8 @@ var https = require("https");
 options = {
     host: 'consultapme.cnrt.gob.ar',
     port : 443,
-    path : '/api/vehiculo_cargas_habilitados/FVO243/pais/AR',
+    //path : '/api/vehiculo_cargas_habilitados/FVO243/pais/AR', //SI TIENE
+    path : '/api/vehiculo_cargas_habilitados/BDM361/pais/AR',
     method : 'GET',
     headers : {'Content-Type': 'application/json'}
 };

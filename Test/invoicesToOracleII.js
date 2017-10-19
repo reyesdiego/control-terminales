@@ -35,7 +35,7 @@ oracle.createPool({
                     gap = 30,
                     i;
 
-                for (i = 0; i < 22; i++) {
+                for (i = 0; i < 20; i++) {
                     counter.push({skip: i * gap, limit: gap});
                 }
                 i = 0;
@@ -43,7 +43,7 @@ oracle.createPool({
                 async.eachSeries(counter, function (rango, asyncCallback_round) {
 
                         invoices = Invoice.find({
-                            nroComprob: {$gte:  1163 , $lte:  1168 }, nroPtoVenta: 29, terminal: "BACTSSA", codTipoComprob: 3
+                            nroComprob: {$gte:  110   , $lte:  110    }, nroPtoVenta: 50, terminal: "TRP", codTipoComprob: 6
                             //nroComprob: {$in: [239731 , 239734 , 239737 , 239741 , 239768 , 239772 , 240175 , 240219 , 240572 , 240643 , 240646 , 240648] }, nroPtoVenta: 5, terminal: "TERMINAL4", codTipoComprob: 1
 
                             //'fecha.emision': { $gte: moment("2016-08-01").toDate(), $lt: moment("2016-09-01").toDate()}
@@ -164,6 +164,7 @@ oracle.createPool({
                                                         "(ID," +
                                                         "INVOICE_HEADER_ID," +
                                                         "CONTENEDOR," +
+                                                        "ISO," +
                                                         "IMO," +
                                                         "BUQUE_CODIGO," +
                                                         "BUQUE_NOMBRE," +
@@ -178,6 +179,7 @@ oracle.createPool({
                                                         "invoices_seq.nextval," +
                                                         ":INVOICE_HEADER_ID, " +
                                                         ":CONTENEDOR, " +
+                                                        ":ISO, " +
                                                         ":IMO, " +
                                                         ":BUQUE_CODIGO, " +
                                                         ":BUQUE_NOMBRE, " +
@@ -191,6 +193,7 @@ oracle.createPool({
                                                     param = {
                                                         INVOICE_HEADER_ID: result.outBinds.outputId[0],
                                                         CONTENEDOR: detalle.contenedor,
+                                                        ISO: detalle.iso,
                                                         IMO: (detalle.IMO !== undefined) ? detalle.IMO : 0,
                                                         BUQUE_CODIGO: detalle.buque.codigo,
                                                         BUQUE_NOMBRE: detalle.buque.nombre,
