@@ -48,7 +48,7 @@ oracle.oracledb.createPool({
         oracle.pool = pool;
 
         if (err) {
-            log.logger.error('Oracle: %s', err.message);
+            log.logger.error('Oracle not connected: %s', err.message);
         } else {
             log.logger.info("Oracle Connected to Database. Versión %s", oracle.oracledb.oracleClientVersion);
         }

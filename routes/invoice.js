@@ -312,8 +312,21 @@ module.exports = function (log, io, oracle) {
                 fechaInicio: req.query.fechaInicio,
                 fechaFin: req.query.fechaFin,
                 period: req.query.period,
-                tasaAgp: req.query.tasaAgp
-            };
+                tasaAgp: req.query.tasaAgp,
+                nroPtoVenta: req.query.nroPtoVenta,
+                codTipoComprob: req.query.codTipoComprob,
+                nroComprobante: req.query.nroComprobante,
+                razonSocial: req.query.razonSocial,
+                documentoCliente: req.query.documentoCliente,
+                resend: req.query.resend,
+                estado: req.query.estado,
+                contenedor: req.query.contenedor,
+                buqueNombre: req.query.buqueNombre,
+                viaje: req.query.viaje,
+                code: req.query.code,
+                iso3Forma: req.query.iso3Forma
+
+        };
 
             log.time("getRatesByTerminal");
             Invoice2.getRatesByTerminal(param)
