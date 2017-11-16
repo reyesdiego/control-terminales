@@ -1,21 +1,19 @@
 /**
  * Created by Diego Reyes on 3/21/14.
  */
+"use strict";
 
 module.exports = log => {
-    'use strict';
 
-    var express = require('express'),
+    var express = require("express"),
         router = express.Router(),
-        moment = require('moment'),
-        Account = require('../models/account'),
-        //Appointment = require('../models/appointment.js'),
-        //Invoice = require('../models/invoice.js'),
-        config = require('../config/config.js'),
-        util = require('util'),
-        linq = require('linq');
+        moment = require("moment"),
+        Account = require("../models/account"),
+        config = require("../config/config.js"),
+        util = require("util"),
+        linq = require("linq");
 
-    var AppointmentLib = require('../lib/appointment.js');
+    var AppointmentLib = require("../lib/appointment.js");
     AppointmentLib = new AppointmentLib();
 
     function getAppointments(req, res) {
@@ -43,7 +41,7 @@ module.exports = log => {
                 log.timeEnd("getAppointments");
                 res.status(200).send(data);
             })
-        .catch(err => {
+            .catch(err => {
                 log.logger.error("Error: %s", err.error);
                 res.status(500).send(err);
             });
@@ -52,8 +50,8 @@ module.exports = log => {
 
     let getAppointmentById = (req, res) => {
 
-        if ( req.params._id === undefined) {
-            res.status(400).send({status: 'ERROR', data: 'Debe proveer el dato del id para obtener el turnos.'});
+        if (req.params._id === undefined) {
+            res.status(400).send({ status: "ERROR", data: "Debe proveer el dato del id para obtener el turnos." });
         } else {
 
             AppointmentLib.getById(req.params._id)
@@ -61,14 +59,14 @@ module.exports = log => {
                     res.status(200).send(data);
                 })
                 .catch(err => {
-                    res.status(500).send({status: 'ERROR', data: err.message});
+                    res.status(500).send({ status: "ERROR", data: err.message });
                 });
         }
     };
 
     function getAppointmentsByHour(req, res) {
 
-        var seneca = require("seneca")({timeout: config.microService.statisticMongo.timeout});
+        var seneca = require("seneca")({ timeout: config.microService.statisticMongo.timeout });
         seneca.client(config.microService.statisticMongo.port, config.microService.statisticMongo.host);
 
         var usr = req.usr;
@@ -89,8 +87,8 @@ module.exports = log => {
         }
 
         if (req.query.fecha !== undefined) {
-            param.fechaInicio = moment(moment(req.query.fecha, ['YYYY-MM-DD'])).toDate();
-            param.fechaFin = moment(param.fechaInicio).add(1, 'days').toDate();
+            param.fechaInicio = moment(moment(req.query.fecha, ["YYYY-MM-DD"])).toDate();
+            param.fechaFin = moment(param.fechaInicio).add(1, "days").toDate();
         }
 
         seneca.act(param, (err, data) => {
@@ -104,7 +102,7 @@ module.exports = log => {
 
     let getAppointmentsByDay = (req, res) => {
 
-        var seneca = require("seneca")({timeout: config.microService.statisticMongo.timeout});
+        var seneca = require("seneca")({ timeout: config.microService.statisticMongo.timeout });
         seneca.client(config.microService.statisticMongo.port, config.microService.statisticMongo.host);
 
         var usr = req.usr;
@@ -125,8 +123,8 @@ module.exports = log => {
         }
 
         if (req.query.fecha !== undefined) {
-            param.fechaInicio = moment(moment(req.query.fecha, ['YYYY-MM-DD'])).toDate();
-            param.fechaFin = moment(param.fechaInicio).add(1, 'days').toDate();
+            param.fechaInicio = moment(moment(req.query.fecha, ["YYYY-MM-DD"])).toDate();
+            param.fechaFin = moment(param.fechaInicio).add(1, "days").toDate();
         }
 
         seneca.act(param, (err, data) => {
@@ -140,7 +138,7 @@ module.exports = log => {
 
     function getAppointmentsByMonth(req, res) {
 
-        var seneca = require("seneca")({timeout: config.microService.statisticMongo.timeout});
+        var seneca = require("seneca")({ timeout: config.microService.statisticMongo.timeout });
         seneca.client(config.microService.statisticMongo.port, config.microService.statisticMongo.host);
 
         var date;
@@ -151,9 +149,9 @@ module.exports = log => {
             entity: "appointment"
         };
 
-        date = moment().subtract(moment().date() - 1, 'days').format('YYYY-MM-DD');
+        date = moment().subtract(moment().date() - 1, "days").format("YYYY-MM-DD");
         if (req.query.fecha !== undefined) {
-            date = moment(req.query.fecha, 'YYYY-MM-DD').format('YYYY-MM-DD');
+            date = moment(req.query.fecha, "YYYY-MM-DD").format("YYYY-MM-DD");
         }
         var monthsAgo = 4;
         if (req.query.monthsAgo) {
@@ -178,18 +176,18 @@ module.exports = log => {
 
     function getByContainer(req, res) {
         var params = {
-                email: req.query.email,
-                _id: req.query._id,
-                contenedor: req.params.container
-            };
+            email: req.query.email,
+            _id: req.query._id,
+            contenedor: req.params.container
+        };
 
         AppointmentLib.getByContainer(params)
             .then(data => {
                 if (data.data.length === 1) {
                     let turno = data.data[0];
-                    Account.findOne({full_name : {$nin: ["Daniel Bruzon"]}, terminal: turno.terminal}, (err, account) => {
+                    Account.findOne({ full_name: { $nin: ["Daniel Bruzon"] }, terminal: turno.terminal }, (err, account) => {
                         turno.full_name = account.full_name;
-                        res.render('comprobanteTurno.jade', turno, (err, html) => {
+                        res.render("comprobanteTurno.jade", turno, (err, html) => {
                             res.status(200).send(html);
                         });
                     });
@@ -205,7 +203,7 @@ module.exports = log => {
     let getByPatente = (req, res) => {
         var param = {
             patenteCamion: req.params.patente.toUpperCase(),
-            inicio: {$gte: moment(moment().format("YYYY-MM-DD")).toDate()}
+            inicio: { $gte: moment(moment().format("YYYY-MM-DD")).toDate() }
         };
 
         AppointmentLib.getByPatente(param)
@@ -220,31 +218,31 @@ module.exports = log => {
     let getDistincts = (req, res) => {
 
         var usr = req.usr,
-            distinct = '',
+            distinct = "",
             params = {};
 
-        if (req.route.path === '/:terminal/ships') {
-            params.distinct = 'buque';
+        if (req.route.path === "/:terminal/ships") {
+            params.distinct = "buque";
         }
 
-        if (usr.role === 'agp') {
+        if (usr.role === "agp") {
             params.terminal = req.params.terminal;
         } else {
             params.terminal = usr.terminal;
         }
 
-        if (params.distinct !== '') {
+        if (params.distinct !== "") {
             log.time("getDistincts " + params.distinct);
             AppointmentLib.getDistinct(params.distinct, params, (err, data) => {
                 log.time("getDistincts " + params.distinct);
                 if (err) {
-                    res.status(500).send({status: 'ERROR', data: err});
+                    res.status(500).send({ status: "ERROR", data: err });
                 } else {
-                    res.status(200).send({status: 'OK', totalCount: data.length, data: data.sort()});
+                    res.status(200).send({ status: "OK", totalCount: data.length, data: data.sort() });
                 }
             });
         } else {
-            res.status(400).send({status: 'ERROR', message: 'El ruta es inválida', data: []});
+            res.status(400).send({ status: "ERROR", message: "El ruta es inválida", data: [] });
         }
     };
 
@@ -252,18 +250,18 @@ module.exports = log => {
         var usr = req.usr,
             param = {};
 
-        if (usr.role === 'agp') {
+        if (usr.role === "agp") {
             param.terminal = req.params.terminal;
         } else {
             param.terminal = usr.terminal;
         }
 
         AppointmentLib.getMissingAppointments(param)
-        .then(data => {
+            .then(data => {
                 res.status(200).send(data);
                 res.flush();
             })
-        .catch(err => {
+            .catch(err => {
                 res.status(500).send(err);
             });
     }
@@ -275,16 +273,16 @@ module.exports = log => {
      });
      */
 
-    router.get('/ById/:_id', getAppointmentById);
-    router.get('/ByHour', getAppointmentsByHour);
-    router.get('/ByMonth', getAppointmentsByMonth);
-    router.get('/ByDay', getAppointmentsByDay);
-    router.get('/:terminal/:skip/:limit', getAppointments);
-    router.get('/:terminal/containers', getDistincts);
-    router.get('/:terminal/ships', getDistincts);
-    router.get('/container/:container', getByContainer);
-    router.get('/:terminal/missingAppointments', getMissingAppointments);
-    router.get('/patente/:patente', getByPatente);
+    router.get("/ById/:_id", getAppointmentById);
+    router.get("/ByHour", getAppointmentsByHour);
+    router.get("/ByMonth", getAppointmentsByMonth);
+    router.get("/ByDay", getAppointmentsByDay);
+    router.get("/:terminal/:skip/:limit", getAppointments);
+    router.get("/:terminal/containers", getDistincts);
+    router.get("/:terminal/ships", getDistincts);
+    router.get("/container/:container", getByContainer);
+    router.get("/:terminal/missingAppointments", getMissingAppointments);
+    router.get("/patente/:patente", getByPatente);
 
     return router;
 };
