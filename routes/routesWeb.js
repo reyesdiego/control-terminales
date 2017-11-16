@@ -1,9 +1,10 @@
 /**
  * Created by diego on 3/9/15.
  */
+"use strict";
 
 module.exports = function (log, app, io, oracle, params) {
-    'use strict';
+   
     var serverMain,
         state,
         match,
@@ -22,17 +23,17 @@ module.exports = function (log, app, io, oracle, params) {
         invoice,
         ob2,
         ISO,
-        moment = require('moment');
+        moment = require("moment");
 
     function isValidToken(req, res, next) {
 
-        var Account = require('../models/account.js'),
+        var Account = require("../models/account.js"),
             incomingToken = req.headers.token;
 
         Account.verifyToken(incomingToken, (err, usr) => {
             if (err) {
                 log.logger.error(err);
-                res.status(403).send({status: 'ERROR', data: err});
+                res.status(403).send({status: "ERROR", data: err});
             } else {
                 req.usr = usr;
                 next();
@@ -40,64 +41,64 @@ module.exports = function (log, app, io, oracle, params) {
         });
     }
 
-    serverMain = require('./server')(log, params);
-    app.use('/', serverMain);
+    serverMain = require("./server")(log, params);
+    app.use("/", serverMain);
 
-    appointment = require('./appointment')(log);
-    app.use('/appointments', isValidToken, appointment);
+    appointment = require("./appointment.js")(log);
+    app.use("/appointments", isValidToken, appointment);
 
-    appointmentEmailQueue = require('./appointmentEmailQueue')(log);
-    app.use('/appointmentEmailQueues', isValidToken, appointmentEmailQueue);
+    appointmentEmailQueue = require("./appointmentEmailQueue")(log);
+    app.use("/appointmentEmailQueues", isValidToken, appointmentEmailQueue);
 
-    comment = require('./comment')(log, oracle);
-    app.use('/comments', isValidToken, comment);
+    comment = require("./comment")(log, oracle);
+    app.use("/comments", isValidToken, comment);
 
-    docType = require('./docType')(log);
-    app.use('/docTypes', docType);
+    docType = require("./docType")(log);
+    app.use("/docTypes", docType);
 
-    gate = require('./gate')(log, oracle);
-    app.use('/gates', isValidToken, gate);
+    gate = require("./gate")(log, oracle);
+    app.use("/gates", isValidToken, gate);
 
-    invoice = require('./invoice')(log, io, oracle);
-    app.use('/invoices', isValidToken, invoice);
+    invoice = require("./invoice")(log, io, oracle);
+    app.use("/invoices", isValidToken, invoice);
 
-    mat = require('./mat')(log);
-    app.use('/mats', isValidToken, mat);
+    mat = require("./mat")(log);
+    app.use("/mats", isValidToken, mat);
 
-    match = require('./matchPrice')(log, oracle);
-    app.use('/matchPrices', isValidToken, match);
+    match = require("./matchPrice")(log, oracle);
+    app.use("/matchPrices", isValidToken, match);
 
-    paying = require('./paying')(log, oracle);
-    app.use('/paying', isValidToken, paying);
+    paying = require("./paying")(log, oracle);
+    app.use("/paying", isValidToken, paying);
 
-    price = require('./price')(log, oracle);
-    app.use('/prices', isValidToken, price);
+    price = require("./price")(log, oracle);
+    app.use("/prices", isValidToken, price);
 
-    state = require('./state')(log);
-    app.use('/states', state);
+    state = require("./state")(log);
+    app.use("/states", state);
 
-    task = require('./task')(log);
-    app.use('/tasks', isValidToken, task);
+    task = require("./task")(log);
+    app.use("/tasks", isValidToken, task);
 
-    unitType = require('./unitType')(log);
-    app.use('/unitTypes', unitType);
+    unitType = require("./unitType")(log);
+    app.use("/unitTypes", unitType);
 
-    voucherType = require('./voucherType')(log, oracle);
-    app.use('/voucherTypes', isValidToken, voucherType);
+    voucherType = require("./voucherType")(log, oracle);
+    app.use("/voucherTypes", isValidToken, voucherType);
 
-    manifest = require('./manifest')(log, oracle);
-    app.use('/manifests', isValidToken, manifest);
+    manifest = require("./manifest")(log, oracle);
+    app.use("/manifests", isValidToken, manifest);
 
-    ISO = require('./ISO')(log, oracle);
-    app.use('/ISOS', isValidToken, ISO);
+    ISO = require("./ISO")(log, oracle);
+    app.use("/ISOS", isValidToken, ISO);
 
-    ob2 = require('./ob2')(log);
-    app.use('/ob2', isValidToken, ob2);
+    ob2 = require("./ob2")(log);
+    app.use("/ob2", isValidToken, ob2);
 
 
     /**_____________________________________________________________________*/
 
-    app.post('/sendMail', isValidToken, function (req, res) {
+    app.post("/sendMail", isValidToken, function (req, res) {
 
         var config = require("../config/config.js");
         var mail = require("../include/emailjs");
@@ -119,13 +120,13 @@ module.exports = function (log, app, io, oracle, params) {
         });
     });
 
-    app.get('/containerTurno/:container', (req, res) => {
-        var Appointment = require('../models/appointment.js');
+    app.get("/containerTurno/:container", (req, res) => {
+        var Appointment = require("../models/appointment.js");
         var param = {};
 
         param.contenedor = req.params.container.toUpperCase();
         param.inicio = {$gte: moment(moment().format("YYYY-MM-DD")).toDate()};
-        param['status.status'] = {$ne: 9};
+        param["status.status"] = {$ne: 9};
 
         Appointment
             .find(param)
@@ -133,7 +134,7 @@ module.exports = function (log, app, io, oracle, params) {
             .lean()
             .exec((err, data) => {
                 if (err) {
-                    res.status(500).send({status: 'ERROR', data: err.message});
+                    res.status(500).send({status: "ERROR", data: err.message});
                 } else {
 
                     var options,
@@ -143,29 +144,29 @@ module.exports = function (log, app, io, oracle, params) {
                     if (data.length > 0 && data[0].transporte) {
                         if (data[0].transporte.camion !== undefined) {
                             options = {
-                                host: 'consultapme.cnrt.gob.ar',
+                                host: "consultapme.cnrt.gob.ar",
                                 port : 443,
                                 path : `/api/vehiculo_cargas_habilitados/${data[0].transporte.camion.toUpperCase()}/pais/AR`,
-                                method : 'GET',
-                                headers : {'Content-Type': 'application/json'}
+                                method : "GET",
+                                headers : {"Content-Type": "application/json"}
                             };
 
                             reqGet = https.request(options, res => {
-                                var resData = '';
-                                res.on('data', d => {
+                                var resData = "";
+                                res.on("data", d => {
                                     resData += d;
                                 });
 
-                                res.on('error', (err) => {
-                                    console.error('ERROR RESPONSE CNRT %s', err);
+                                res.on("error", (err) => {
+                                    console.error("ERROR RESPONSE CNRT %s", err);
                                 });
 
-                                res.on('end', () => {
+                                res.on("end", () => {
                                     var result = JSON.parse(resData);
                                     if (result && result.length > 0) {
-                                        io.sockets.emit('cnrt', result[0]);
+                                        io.sockets.emit("cnrt", result[0]);
                                     } else if (result.code === 404) {
-                                        io.sockets.emit('cnrt', result[0]);
+                                        io.sockets.emit("cnrt", result[0]);
                                     }
                                 });
                             });
@@ -176,27 +177,27 @@ module.exports = function (log, app, io, oracle, params) {
                         }
                     }
 
-                    res.status(200).send({status: 'OK', data: data || []});
+                    res.status(200).send({status: "OK", data: data || []});
                 }
             });
     });
 
-    app.get('/camionTurno/:camion', (req, res) => {
-        var Appointment = require('../models/appointment.js');
+    app.get("/camionTurno/:camion", (req, res) => {
+        var Appointment = require("../models/appointment.js");
         var param = {};
         var async = require("async");
 
-        param['transporte.camion'] = req.params.camion.toUpperCase();
+        param["transporte.camion"] = req.params.camion.toUpperCase();
         param.inicio = {$gte: moment(moment().format("YYYY-MM-DD")).toDate()};
 
-        param['status.status'] = {$ne: 9};
+        param["status.status"] = {$ne: 9};
         Appointment
             .find(param)
             .sort({_id: -1})
             .lean()
             .exec((err, data) => {
                 if (err) {
-                    res.status(500).send({status: 'ERROR', data: err.message});
+                    res.status(500).send({status: "ERROR", data: err.message});
                 } else {
 
                     if (data.length > 0) {
@@ -205,29 +206,29 @@ module.exports = function (log, app, io, oracle, params) {
 
                         var https = require("https");
                         options = {
-                            host: 'consultapme.cnrt.gob.ar',
+                            host: "consultapme.cnrt.gob.ar",
                             port : 443,
                             path : `/api/vehiculo_cargas_habilitados/${req.params.camion.toUpperCase()}/pais/AR`,
-                            method : 'GET',
-                            headers : {'Content-Type': 'application/json'}
+                            method : "GET",
+                            headers : {"Content-Type": "application/json"}
                         };
 
                         reqGet = https.request(options, res => {
-                            var resData = '';
-                            res.on('data', d => {
+                            var resData = "";
+                            res.on("data", d => {
                                 resData += d;
                             });
 
-                            res.on('error', (err) => {
-                                console.error('ERROR RESPONSE CNRT %s', err);
+                            res.on("error", (err) => {
+                                console.error("ERROR RESPONSE CNRT %s", err);
                             });
 
-                            res.on('end', () => {
+                            res.on("end", () => {
                                 var result = JSON.parse(resData);
                                 if (result && result.length > 0) {
-                                    io.sockets.emit('cnrt', result[0]);
+                                    io.sockets.emit("cnrt", result[0]);
                                 } else if (result.code === 404) {
-                                    io.sockets.emit('cnrt', result[0]);
+                                    io.sockets.emit("cnrt", result[0]);
                                 }
                             });
                         });
@@ -238,41 +239,41 @@ module.exports = function (log, app, io, oracle, params) {
                         }
                     }
 
-                    res.status(200).send({status: 'OK', data: data || []});
+                    res.status(200).send({status: "OK", data: data || []});
                 }
             });
     });
 
-    app.get('/containerTurnoList', (req, res) => {
-        var Appointment = require('../models/appointment.js');
+    app.get("/containerTurnoList", (req, res) => {
+        var Appointment = require("../models/appointment.js");
         var param = {};
 
         param.inicio = {$gte: moment(moment().format("YYYY-MM-DD")).toDate()};
-        param['status.status'] = {$ne: 9};
+        param["status.status"] = {$ne: 9};
 
-        Appointment.distinct('contenedor', param)
+        Appointment.distinct("contenedor", param)
             .exec((err, data) => {
                 if (err) {
-                    res.status(500).send({status: 'ERROR', data: err.message});
+                    res.status(500).send({status: "ERROR", data: err.message});
                 } else {
-                    res.status(200).send({status: 'OK', totalCount: data.length, data: data || []});
+                    res.status(200).send({status: "OK", totalCount: data.length, data: data || []});
                 }
             });
     });
 
-    app.get('/camionTurnoList', (req, res) => {
-        var Appointment = require('../models/appointment.js');
+    app.get("/camionTurnoList", (req, res) => {
+        var Appointment = require("../models/appointment.js");
         var param = {};
 
         param.inicio = {$gte: moment(moment().format("YYYY-MM-DD")).toDate()};
-        param['status.status'] = {$ne: 9};
+        param["status.status"] = {$ne: 9};
 
-        Appointment.distinct('transporte.camion', param)
+        Appointment.distinct("transporte.camion", param)
             .exec((err, data) => {
                 if (err) {
-                    res.status(500).send({status: 'ERROR', data: err.message});
+                    res.status(500).send({status: "ERROR", data: err.message});
                 } else {
-                    res.status(200).send({status: 'OK', totalCount: data.length, data: data || []});
+                    res.status(200).send({status: "OK", totalCount: data.length, data: data || []});
                 }
             });
     });

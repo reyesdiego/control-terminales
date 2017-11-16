@@ -17,7 +17,7 @@ module.exports = (log, oracle) => {
 
     Gate = new Gate(oracle);
 
-    let getGates = (req, res) => {
+    let getGates = async (req, res) => {
 
         var usr = req.usr,
             fecha,
@@ -91,20 +91,21 @@ module.exports = (log, oracle) => {
         param.order = req.query.order;
 
         log.time("getGates");
-        Gate.getGates(param)
-            .then(data => {
-                data.time = log.timeEnd("getGates");
-                res.status(200).send(data);
-            })
-            .catch(err => {
-                err.time = log.timeEnd("getGates");
-                res.status(500).send(err);
-            });
+        try {
+            let data = await Gate.getGates(param);
+            data.time = log.timeEnd("getGates");
+            res.status(200).send(data);
+        } catch (err) {
+            err.time = log.timeEnd("getGates");
+            res.status(500).send(err);
+        }
+
     };
 
     let getGatesByHour = (req, res) => {
 
         var seneca = require("seneca")();
+
         seneca.client({port:config.microService.statisticOracle.port, host:config.microService.statisticOracle.host, timeout:60000});
 
         var param = {

@@ -2,7 +2,7 @@
  * Created by diego on 11/19/14.
  */
 
-module.exports = function (log, oracle) {
+module.exports = (log, oracle) => {
     'use strict';
 
     var express = require('express'),
@@ -13,9 +13,9 @@ module.exports = function (log, oracle) {
     var Registro1SumImpoMani = require('../../lib/afip/registro1_sumImpoMani.js');
     Registro1SumImpoMani = new Registro1SumImpoMani(oracle);
 
-    function getRegistro1_sumimpomani(req, res) {
+    let getRegistro1_sumimpomani = (req, res) => {
 
-        oracle.pool.getConnection(function (err, connection) {
+        oracle.pool.getConnection((err, connection) => {
             var strWhere = '',
                 skip,
                 limit,
@@ -30,43 +30,48 @@ module.exports = function (log, oracle) {
 
                 skip = parseInt(req.params.skip, 10);
                 limit = parseInt(req.params.limit, 10);
-                strSql = "SELECT * FROM " +
-                            " (SELECT " +
-                            "   ID, " +
-                            "   TIPOREGISTRO, " +
-                            "   SUMARIA, " +
-                            "   SUM_ANIO, " +
-                            "   SUM_ADUANA, " +
-                            "   SUM_TIPO, " +
-                            "   SUM_NRO, " +
-                            "   SUM_LETRA_CTRL, " +
-                            "   CUITATA, " +
-                            "   NOMBREATA, " +
-                            "   ESTADO, " +
-                            "   FECHAREGISTRO, " +
-                            "   FECHAARRIBO, " +
-                            "   TRANSPORTEVACIO, " +
-                            "   PAISPROCEDENCIA, " +
-                            "   TRANSPORTISTA, " +
-                            "   PAISTRANSPORTISTA, " +
-                            "   COMENTARIO, " +
-                            "   IMPO_EXPO, " +
-                            "   DESCONSOLIDADO, " +
-                            "   TITULO, " +
-                            "   MERCADERIAABORDO, " +
-                            "   VIA, " +
-                            "   NACIONALIDADMEDIOTRANSPORTE, " +
-                            "   LUGAROPERATIVO, " +
-                            "   LUGARDEGIRO, " +
-                            "   NOMBREBUQUE, " +
-                            "   CODPROCESO, " +
-                            "   MANI_CONSOL, " +
-                            "   BANDERA_NROBUQUE, " +
-                            "   REGISTRADO_POR, " +
-                            "   REGISTRADO_EN, " +
-                            "   ROW_NUMBER() OVER ( ORDER BY " + orderBy + " ) R " +
-                            "   FROM V_REGISTRO1_SUMIMPOMANI %s ) " +
-                            "WHERE R BETWEEN :1 and :2";
+                strSql = `SELECT *
+                        FROM
+                             (SELECT
+                                   ID,
+                                   TIPOREGISTRO,
+                                   SUMARIA,
+                                   SUM_ANIO,
+                                   SUM_ADUANA,
+                                   SUM_TIPO,
+                                   SUM_NRO,
+                                   SUM_LETRA_CTRL,
+                                   CUITATA,
+                                   NOMBREATA,
+                                   ESTADO,
+                                   FECHAREGISTRO,
+                                   FECHAARRIBO,
+                                   TRANSPORTEVACIO,
+                                   PAISPROCEDENCIA,
+                                   TRANSPORTISTA,
+                                   PAISTRANSPORTISTA,
+                                   COMENTARIO,
+                                   IMPO_EXPO,
+                                   DESCONSOLIDADO,
+                                   TITULO,
+                                   MERCADERIAABORDO,
+                                   VIA,
+                                   NACIONALIDADMEDIOTRANSPORTE,
+                                   LUGAROPERATIVO,
+                                   LUGARDEGIRO,
+                                   L.DESCRIPTION AS LUGARDEGIRO_DESC,
+                                   NOMBREBUQUE,
+                                   CODPROCESO,
+                                   MANI_CONSOL,
+                                   BANDERA_NROBUQUE,
+                                   REGISTRADO_POR,
+                                   REGISTRADO_EN,
+                                   ROW_NUMBER() OVER ( ORDER BY " + orderBy + " ) R
+                               FROM V_REGISTRO1_SUMIMPOMANI
+                                   LEFT JOIN LUGAR_GIRO L ON L.ID = LUGARDEGIRO
+                               %s
+                         )
+                        WHERE R BETWEEN :1 and :2`;
 
                 if (req.query.buqueNombre || req.query.fechaInicio || req.query.fechaFin || req.query.sumaria) {
                     strWhere += " WHERE ";
@@ -91,7 +96,7 @@ module.exports = function (log, oracle) {
                 strWhere = strWhere.substr(0, strWhere.length - 4);
                 strSql = util.format(strSql, strWhere);
 
-                connection.execute(strSql, [skip + 1, skip + limit], function (err, data) {
+                connection.execute(strSql, [skip + 1, skip + limit], (err, data) => {
                     if (err) {
                         oracle.doRelease(connection);
                         res.status(500).json({ status: 'ERROR', data: err.message });
@@ -101,7 +106,7 @@ module.exports = function (log, oracle) {
                             strSql += util.format(" %s", strWhere);
                         }
 
-                        connection.execute(strSql, [], function (err, dataCount) {
+                        connection.execute(strSql, [], (err, dataCount) => {
                             var total,
                                 result;
                             if (err) {
@@ -125,7 +130,7 @@ module.exports = function (log, oracle) {
             }
 
         });
-    }
+    };
 
     function getDistinct(req, res) {
 
@@ -160,45 +165,55 @@ module.exports = function (log, oracle) {
     }
 
     function getByContenedor(req, res) {
-        oracle.pool.getConnection(function (err, connection) {
-            var strSql,
-                result;
-            if (err) {
-                console.log(err, "Error acquiring from pool.");
-                res.status(500).json({ status: 'ERROR', data: err });
-            } else {
-                strSql = 'SELECT r1.SUMARIA, ' +
-                    'SUBSTR( r1.SUMARIA, 0, 2) as SUM_ANIO, ' +
-                    'SUBSTR( r1.SUMARIA, 3, 3) as SUM_ADUANA, ' +
-                    'SUBSTR( r1.SUMARIA, 6, 4) as SUM_TIPO, ' +
-                    'SUBSTR( r1.SUMARIA, 10, 6) as SUM_NRO, ' +
-                    'SUBSTR( r1.SUMARIA, 16, 1) as SUM_LETRA_CTRL, ' +
-                    'r2.CONOCIMIENTO, FECHAREGISTRO, FECHAARRIBO, NOMBREBUQUE BUQUE, PESO, p1.NAME P_PROCEDENCIA,' +
-                    'r1.REGISTRADO_POR, r1.REGISTRADO_EN ' +
-                    'FROM REGISTRO1_SUMIMPOMANI r1 ' +
-                    'INNER JOIN REGISTRO2_SUMIMPOMANI r2 ON r1.SUMARIA = r2.SUMARIA ' +
-                    'INNER JOIN REGISTRO3_SUMIMPOMANI r3 ON r1.SUMARIA = r3.SUMARIA AND r2.CONOCIMIENTO = r3.CONOCIMIENTO ' +
-                    'INNER JOIN COUNTRIES p1 on p1.ID = PAISPROCEDENCIA ' +
-                    'WHERE r2.CONOCIMIENTO IN ( ' +
-                    '   SELECT CONOCIMIENTO ' +
-                    '   FROM REGISTRO4_SUMIMPOMANI ' +
-                    '   WHERE CONTENEDOR = :1 )';
+        if (oracle.pool) {
+            oracle.pool.getConnection(function (err, connection) {
+                var strSql,
+                    result;
+                if (err) {
+                    console.log(err, "Error acquiring from pool.");
+                    res.status(500).json({ status: 'ERROR', data: err });
+                } else {
+                    strSql =`SELECT r1.SUMARIA,
+                            SUBSTR( r1.SUMARIA, 0, 2) as SUM_ANIO,
+                            SUBSTR( r1.SUMARIA, 3, 3) as SUM_ADUANA,
+                            SUBSTR( r1.SUMARIA, 6, 4) as SUM_TIPO,
+                            SUBSTR( r1.SUMARIA, 10, 6) as SUM_NRO,
+                            SUBSTR( r1.SUMARIA, 16, 1) as SUM_LETRA_CTRL,
+                            L.DESCRIPTION AS LUGARDEGIRO_DESC,
+                            r2.CONOCIMIENTO, FECHAREGISTRO, FECHAARRIBO, NOMBREBUQUE BUQUE, PESO, p1.NAME P_PROCEDENCIA,
+                            r1.REGISTRADO_POR, r1.REGISTRADO_EN
+                         FROM REGISTRO1_SUMIMPOMANI r1
+                            INNER JOIN REGISTRO2_SUMIMPOMANI r2 ON r1.SUMARIA = r2.SUMARIA
+                            INNER JOIN REGISTRO3_SUMIMPOMANI r3 ON r1.SUMARIA = r3.SUMARIA AND r2.CONOCIMIENTO = r3.CONOCIMIENTO
+                            INNER JOIN COUNTRIES p1 on p1.ID = PAISPROCEDENCIA
+                            LEFT JOIN LUGAR_GIRO L ON L.ID = r1.LUGARDEGIRO
+                         WHERE r2.CONOCIMIENTO IN (
+                                                   SELECT CONOCIMIENTO
+                                                   FROM REGISTRO4_SUMIMPOMANI
+                                                   WHERE CONTENEDOR = :1 )`;
 
-                connection.execute(strSql, [req.params.contenedor], function (err, data) {
-                    if (err) {
-                        oracle.doRelease(connection);
-                        res.status(500).send({ status: 'ERROR', data: err.message });
-                    } else {
-                        oracle.doRelease(connection);
-                        result = {
-                            status: 'OK',
-                            data: data.rows
-                        };
-                        res.status(200).json(result);
-                    }
-                });
-            }
-        });
+                    connection.execute(strSql, [req.params.contenedor], (err, data) => {
+                        if (err) {
+                            log.logger.error("Error %s", err.message);
+                            oracle.doRelease(connection);
+                            res.status(500).send({ status: 'ERROR', data: err.message });
+                        } else {
+                            oracle.doRelease(connection);
+                            result = {
+                                status: 'OK',
+                                data: data.rows
+                            };
+                            res.status(200).json(result);
+                        }
+                    });
+                }
+            });
+        } else {
+            res.status(500).send({
+                status: "ERROR",
+                message: "Error en el Servidor de Base de Datos"
+            });
+        }
     }
 
     let getShipsTrips = (req, res) => {
@@ -221,5 +236,6 @@ module.exports = function (log, oracle) {
     router.get('/sumariaImpo/:contenedor', getByContenedor);
     router.get('/registro1_sumimpomani/shipstrips', getShipsTrips);
     router.get('/registro1_sumimpomani/buques', getDistinct);
+
     return router;
 };

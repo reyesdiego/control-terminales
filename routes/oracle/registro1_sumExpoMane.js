@@ -89,7 +89,7 @@ module.exports = function (log, oracle) {
                 strWhere = strWhere.substr(0, strWhere.length - 4);
                 strSql = util.format(strSql, strWhere);
 
-                connection.execute(strSql, [skip + 1, skip + limit], function (err, data) {
+                connection.execute(strSql, [skip + 1, skip + limit], (err, data) => {
                     if (err) {
                         oracle.doRelease(connection);
                         res.status(500).json({ status: 'ERROR', data: err.message });
@@ -114,7 +114,7 @@ module.exports = function (log, oracle) {
                                     pageCount : (limit > total) ? total : limit,
                                     data: data.rows
                                 };
-                                res.status(200).json(result);
+                                res.status(200).send(result);
                             }
                         });
                     }
@@ -167,52 +167,59 @@ module.exports = function (log, oracle) {
                     res.status(200).json(result);
                 }
             });
-
         });
-
     }
 
     function getByContenedor(req, res) {
-        oracle.pool.getConnection(function (err, connection) {
-            var strSql,
-                result;
+        if (oracle.pool) {
+            oracle.pool.getConnection(function (err, connection) {
+                var strSql,
+                    result;
 
-            if (err) {
-                console.log(err, "Error acquiring from pool.");
-                res.status(500).json({ status: 'ERROR', data: err });
-            } else {
-                strSql = 'SELECT r1.SUMARIA, ' +
-                    'SUBSTR( r1.SUMARIA, 0, 2) as SUM_ANIO, ' +
-                    'SUBSTR( r1.SUMARIA, 3, 3) as SUM_ADUANA, ' +
-                    'SUBSTR( r1.SUMARIA, 6, 4) as SUM_TIPO, ' +
-                    'SUBSTR( r1.SUMARIA, 10, 6) as SUM_NRO, ' +
-                    'SUBSTR( r1.SUMARIA, 16, 1) as SUM_LETRA_CTRL, ' +
-                    'r2.CONOCIMIENTO, FECHAREGISTRO, FECHAARRIBO, NOMBREBUQUE BUQUE, PESO, p1.NAME P_PROCEDENCIA,' +
-                    'r1.REGISTRADO_POR, r1.REGISTRADO_EN ' +
-                    'FROM REGISTRO1_SUMEXPOMANE r1 ' +
-                    'INNER JOIN REGISTRO2_SUMEXPOMANE r2 ON r1.SUMARIA = r2.SUMARIA ' +
-                    'INNER JOIN REGISTRO3_SUMEXPOMANE r3 ON r1.SUMARIA = r3.SUMARIA AND r2.CONOCIMIENTO = r3.CONOCIMIENTO ' +
-                    'INNER JOIN COUNTRIES p1 on p1.ID = PAISPROCEDENCIA ' +
-                    'WHERE r2.CONOCIMIENTO IN ( ' +
-                    '   SELECT CONOCIMIENTO ' +
-                    '   FROM REGISTRO4_SUMEXPOMANE ' +
-                    '   WHERE CONTENEDOR = :1 )';
+                if (err) {
+                    console.log(err, "Error acquiring from pool.");
+                    res.status(500).json({ status: 'ERROR', data: err });
+                } else {
+                    strSql =`SELECT r1.SUMARIA,
+                                SUBSTR( r1.SUMARIA, 0, 2) as SUM_ANIO,
+                                SUBSTR( r1.SUMARIA, 3, 3) as SUM_ADUANA,
+                                SUBSTR( r1.SUMARIA, 6, 4) as SUM_TIPO,
+                                SUBSTR( r1.SUMARIA, 10, 6) as SUM_NRO,
+                                SUBSTR( r1.SUMARIA, 16, 1) as SUM_LETRA_CTRL,
+                                r2.CONOCIMIENTO, FECHAREGISTRO, FECHAARRIBO, NOMBREBUQUE BUQUE, PESO, p1.NAME P_PROCEDENCIA,
+                                r1.REGISTRADO_POR, r1.REGISTRADO_EN
+                             FROM REGISTRO1_SUMEXPOMANE r1
+                                INNER JOIN REGISTRO2_SUMEXPOMANE r2 ON r1.SUMARIA = r2.SUMARIA
+                                INNER JOIN REGISTRO3_SUMEXPOMANE r3 ON r1.SUMARIA = r3.SUMARIA AND r2.CONOCIMIENTO = r3.CONOCIMIENTO
+                                INNER JOIN COUNTRIES p1 on p1.ID = PAISPROCEDENCIA
+                             WHERE r2.CONOCIMIENTO IN (
+                                                   SELECT CONOCIMIENTO
+                                                   FROM REGISTRO4_SUMEXPOMANE
+                                                   WHERE CONTENEDOR = :1 )`;
+                    console.log(strSql);
 
-                connection.execute(strSql, [req.params.contenedor], function (err, data) {
-                    if (err) {
-                        oracle.doRelease(connection);
-                        res.status(500).send({ status: 'ERROR', data: err.message });
-                    } else {
-                        oracle.doRelease(connection);
-                        result = {
-                            status: 'OK',
-                            data: data.rows
-                        };
-                        res.status(200).json(result);
-                    }
-                });
-            }
-        });
+                    connection.execute(strSql, [req.params.contenedor], function (err, data) {
+                        if (err) {
+                            log.logger.error("Error %s", err.message);
+                            oracle.doRelease(connection);
+                            res.status(500).send({ status: 'ERROR', data: err.message });
+                        } else {
+                            oracle.doRelease(connection);
+                            result = {
+                                status: 'OK',
+                                data: data.rows
+                            };
+                            res.status(200).json(result);
+                        }
+                    });
+                }
+            });
+        } else {
+            res.status(500).send({
+                status: "ERROR",
+                message: "Error en el Servidor de Base de Datos"
+            });
+        }
     }
 
     // Se deja comentado el middleware ya que no tiene utilidad hasta este momento
