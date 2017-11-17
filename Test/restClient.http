@@ -1,0 +1,32 @@
+
+// login para usuario, obtengo token
+POST http://10.10.0.223:8090/login
+Content-Type: application/json
+
+{
+    "email": "dreyes@puertobuenosaires.gob.ar",
+    "password": "123456"
+}
+
+// turno activo para camion
+GET http://10.10.0.223:8090/zap/turno/patente/EDI084
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIiLCJwYXNzd29yZCI6IjEyMzQ1NiIsImlhdCI6MTUxMDkzMjMwNSwiZXhwIjoxNTExMDE4NzA1fQ.b0wVJBPhwESNhfmDh_SU5YVs1pqCyrqgDQsRnAiZ-H8
+// cnrt activo para camion
+GET http://10.10.0.223:8090/zap/cnrt/patente/EDI084
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIiLCJwYXNzd29yZCI6IjEyMzQ1NiIsImlhdCI6MTUxMDkzMjMwNSwiZXhwIjoxNTExMDE4NzA1fQ.b0wVJBPhwESNhfmDh_SU5YVs1pqCyrqgDQsRnAiZ-H8
+// cnrt para chofer
+GET http://10.10.0.223:8090/zap/cnrt/chofer/4159980
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIiLCJwYXNzd29yZCI6IjEyMzQ1NiIsImlhdCI6MTUxMDkzMjMwNSwiZXhwIjoxNTExMDE4NzA1fQ.b0wVJBPhwESNhfmDh_SU5YVs1pqCyrqgDQsRnAiZ-H8
+// cnrt para chofer habilitado
+GET http://10.10.0.223:8090/zap/cnrt/chofer/habilitado/4159980
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIiLCJwYXNzd29yZCI6IjEyMzQ1NiIsImlhdCI6MTUxMDkzMjMwNSwiZXhwIjoxNTExMDE4NzA1fQ.b0wVJBPhwESNhfmDh_SU5YVs1pqCyrqgDQsRnAiZ-H8
+// listado de contenedores con turno activo del dia de hoy
+GET http://10.10.0.223:8090/containerTurnoList
+// listado de camiones con turno activo del dia de hoy
+GET http://10.10.0.223:8090/camionTurnoList
+// listado de contenedores con turno activo del dia de hoy ZAP
+GET http://10.10.0.223:8090/zap/turnos/contenedores
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIiLCJwYXNzd29yZCI6IjEyMzQ1NiIsImlhdCI6MTUxMDkzMjMwNSwiZXhwIjoxNTExMDE4NzA1fQ.b0wVJBPhwESNhfmDh_SU5YVs1pqCyrqgDQsRnAiZ-H8
+// listado de camiones con turno activo del dia de hoy ZAP
+GET http://10.10.0.223:8090/zap/turnos/camiones
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIiLCJwYXNzd29yZCI6IjEyMzQ1NiIsImlhdCI6MTUxMDkzMjMwNSwiZXhwIjoxNTExMDE4NzA1fQ.b0wVJBPhwESNhfmDh_SU5YVs1pqCyrqgDQsRnAiZ-H8
