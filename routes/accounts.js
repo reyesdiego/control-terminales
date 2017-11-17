@@ -2,14 +2,14 @@
  * @module Accounts
  */
 
-module.exports = function (log, app, passport) {
-    'use strict';
+module.exports = (log, app, passport) => {
+    "use strict";
 
-    var path = require('path'),
-        config = require(path.join(__dirname, '..', '/config/config.js')),
-        Account = require(path.join(__dirname, '..', '/models/account')),
-        flash = require(path.join(__dirname, '..', '/include/utils')).flash,
-        util = require('util'),
+    var path = require("path"),
+        config = require(path.join(__dirname, "..", "/config/config.js")),
+        Account = require(path.join(__dirname, "..", "/models/account")),
+        flash = require(path.join(__dirname, "..", "/include/utils")).flash,
+        util = require("util"),
         mail = require("../include/emailjs");
 
     function enableAccount(req, res, enable, callback) {
@@ -17,10 +17,10 @@ module.exports = function (log, app, passport) {
         Account.verifyToken(incomingToken, function (err, usr) {
             if (err) {
                 log.logger.error(usr);
-                res.status(403).json({status: 'ERROR', data: err});
+                res.status(403).json({ status: "ERROR", data: err });
             } else {
-                if (usr.terminal === 'AGP' && usr.group === 'ADMIN') {
-                    Account.findOne({_id: req.params.id}, function (err, user) {
+                if (usr.terminal === "AGP" && usr.group === "ADMIN") {
+                    Account.findOne({ _id: req.params.id }, function (err, user) {
                         if (err) {
                             return callback(err);
                         } else {
@@ -28,9 +28,9 @@ module.exports = function (log, app, passport) {
                             user.save(function (err, userUpd) {
                                 if (err !== null) {
                                     log.logger.error("Error en Enable/Disable Account %s", err.message);
-                                    res.status(500).json({status: 'ERROR', data: err.message});
+                                    res.status(500).json({ status: "ERROR", data: err.message });
                                 } else {
-                                    if (typeof callback === 'function') {
+                                    if (typeof callback === "function") {
                                         return callback(userUpd);
                                     }
                                 }
@@ -48,42 +48,40 @@ module.exports = function (log, app, passport) {
      * @param {Object} req the request object
      * @param {Object} res the response object
      */
-    app.post('/agp/register', function (req, res) {
+    app.post("/agp/register", function (req, res) {
 
-        var name = req.body.full_name,
-            email = req.body.email,
-            password = req.body.password,
-            terminal = req.body.terminal,
-            user = new Account(
-                {
-                    firstname : req.body.firstname,
-                    lastname : req.body.lastname,
-                    full_name: name,
-                    email: email,
-                    password: req.body.password,
-                    user: req.body.user,
-                    role: req.body.role,
-                    terminal: terminal,
-                    status: false
-                }
-            ),
-            message;
+        const name = req.body.full_name;
+        const email = req.body.email;
+        const password = req.body.password;
+        const user = new Account(
+            {
+                firstname: req.body.firstname,
+                lastname: req.body.lastname,
+                full_name: name,
+                email: email,
+                password: req.body.password,
+                user: req.body.user,
+                role: req.body.role,
+                terminal: req.body.terminal,
+                status: false
+            });
+        let message;
 
         /*Passport method injection*/
-        Account.register(user, password, function (error, account) {
+        Account.register(user, password, (error, account) => {
             var mailer,
                 emailConfig,
                 url;
 
             if (error) {
-                if (error.name === 'BadRequestError' && error.message && error.message.indexOf('exists') > -1) {
-                    message = flash("ERROR", 'El email ya existe.');
-                } else if (error.name === 'BadRequestError' && error.message && error.message.indexOf('argument not set')) {
-                    message =  flash("ERROR", 'It looks like you\'re missing a required argument. Try again.');
-                } else if (error.name === 'MongoError' && error.message.indexOf('duplicate')) {
-                    message = flash("ERROR", 'El usuario ya existe.');
+                if (error.name === "BadRequestError" && error.message && error.message.indexOf("exists") > -1) {
+                    message = flash("ERROR", "El email ya existe.");
+                } else if (error.name === "BadRequestError" && error.message && error.message.indexOf("argument not set")) {
+                    message = flash("ERROR", "It looks like you're missing a required argument. Try again.");
+                } else if (error.name === "MongoError" && error.message.indexOf("duplicate")) {
+                    message = flash("ERROR", "El usuario ya existe.");
                 } else {
-                    message = flash("ERROR", 'Ha ocurrido un error en la llamada.');
+                    message = flash("ERROR", "Ha ocurrido un error en la llamada.");
                 }
                 res.status(500).send(message);
             } else {
@@ -94,10 +92,10 @@ module.exports = function (log, app, passport) {
                 emailConfig = Object.create(config.email);
                 emailConfig.throughBcc = false;
                 mailer = new mail.mail(emailConfig);
-                url = util.format('http://%s:%s', config.domain, config.server_port_web);
-                res.render('registerUser.jade', {url: url, salt: user.salt, full_name: user.full_name, user: user.user, password: user.password}, function (errJade, html) {
+                url = util.format("http://%s:%s", config.domain, config.server_port_web);
+                res.render("registerUser.jade", { url: url, salt: user.salt, full_name: user.full_name, user: user.user, password: user.password }, function (errJade, html) {
                     html = {
-                        data : html,
+                        data: html,
                         alternative: true
                     };
                     mailer.send(user.email, "Solicitud de registro", html, function (errMail, messageBack) {
@@ -107,9 +105,9 @@ module.exports = function (log, app, passport) {
                             emailDelivered: false
                         };
                         if (errMail) {
-                            log.logger.error('Account INS: %s, NO se envió mail a %s', user.user, user.email);
+                            log.logger.error("Account INS: %s, NO se envió mail a %s", user.user, user.email);
                         } else {
-                            log.logger.insert('Account INS: %s, se envió mail a %s', user.user, user.email);
+                            log.logger.insert("Account INS: %s, se envió mail a %s", user.user, user.email);
                             result.emailDelivered = true;
                         }
                         res.status(200).send(result);
@@ -119,20 +117,20 @@ module.exports = function (log, app, passport) {
         });
     });
 
-    app.get('/agp/accounts', function (req, res) {
+    app.get("/agp/accounts", function (req, res) {
         var incomingToken = req.headers.token,
             project,
-            Enumerable = require('linq');
+            Enumerable = require("linq");
 
         Account.verifyToken(incomingToken, function (err, usr) {
             if (err) {
                 log.logger.error(err);
-                res.status(403).json({status: 'ERROR', data: err});
+                res.status(403).json({ status: "ERROR", data: err });
             } else {
-                if (usr.terminal === 'AGP' && usr.group === 'ADMIN') {
+                if (usr.terminal === "AGP" && usr.group === "ADMIN") {
                     project = {
-                        firstname : true,
-                        lastname : true,
+                        firstname: true,
+                        lastname: true,
                         full_name: true,
                         email: true,
                         //password: false,
@@ -142,19 +140,19 @@ module.exports = function (log, app, passport) {
                         terminal: true,
                         status: true,
                         date_created: true,
-                        'token.date_created': true,
+                        "token.date_created": true,
                         lastLogin: true,
                         acceso: true,
                         emailToApp: true
                     };
 
                     Account.find({}, project)
-                        .sort({full_name: 1})
+                        .sort({ full_name: 1 })
                         .lean()
                         .exec((err, data) => {
                             var result;
                             if (err) {
-                                res.status(500).json({status: "ERROR", data: err.message});
+                                res.status(500).json({ status: "ERROR", data: err.message });
                             } else {
                                 result = Enumerable.from(data)
                                     .select(item => {
@@ -165,30 +163,30 @@ module.exports = function (log, app, passport) {
                                         }
                                         return item;
                                     }).toArray();
-                                res.status(200).json({status: 'OK', data: result});
+                                res.status(200).json({ status: "OK", data: result });
                             }
                         });
                 } else {
-                    res.status(403).json({status: "ERROR", data: "No posee permisos para requerir estos datos"});
+                    res.status(403).json({ status: "ERROR", data: "No posee permisos para requerir estos datos" });
                 }
             }
         });
     });
 
-    app.put('/agp/account/:id/enable', function (req, res) {
-        var message = '',
+    app.put("/agp/account/:id/enable", function (req, res) {
+        var message = "",
             mailer,
             emailConfig;
 
         enableAccount(req, res, true, function (user) {
             var sendMail = config.email;
 
-            message = flash('OK', user);
+            message = flash("OK", user);
 
             if (sendMail) {
-                res.render('enableUser.jade', {full_name: user.full_name, user: user.user, password: user.password}, function (err, html) {
+                res.render("enableUser.jade", { full_name: user.full_name, user: user.user, password: user.password }, function (err, html) {
                     html = {
-                        data : html,
+                        data: html,
                         alternative: true
                     };
                     emailConfig = Object.create(config.email);
@@ -196,43 +194,43 @@ module.exports = function (log, app, passport) {
                     mailer = new mail.mail(emailConfig);
 
                     mailer.send(user.email, "Usuario aprobado", html, function (err, messageBack) {
-                        log.logger.update('Account ENABLE: %s, se envió mail a %s', user.user, user.email);
+                        log.logger.update("Account ENABLE: %s, se envió mail a %s", user.user, user.email);
                         res.status(200).send(message);
                     });
                 });
             } else {
-                log.logger.update('Account ENABLE: %s', user.email);
+                log.logger.update("Account ENABLE: %s", user.email);
                 res.status(200).send(message);
             }
         });
     });
 
-    app.put('/agp/account/:id/disable', function (req, res) {
+    app.put("/agp/account/:id/disable", function (req, res) {
         enableAccount(req, res, false, function (user) {
-            log.logger.update('Account DISABLED: %s', user.email);
-            res.status(200).json({status: 'OK', data: user});
+            log.logger.update("Account DISABLED: %s", user.email);
+            res.status(200).json({ status: "OK", data: user });
         });
     });
 
-    app.put('/agp/account/:id/tasks', function (req, res) {
+    app.put("/agp/account/:id/tasks", function (req, res) {
         var incomingToken = req.headers.token;
         Account.verifyToken(incomingToken, function (err, usr) {
             if (err) {
                 log.logger.error(usr);
-                res.status(403).json({status: 'ERROR', data: err});
+                res.status(403).json({ status: "ERROR", data: err });
             } else {
-                if (usr.terminal.toUpperCase() === 'AGP' && usr.group.toUpperCase() === 'ADMIN') {
-                    Account.findOne({_id: req.params.id}, function (err, user) {
+                if (usr.terminal.toUpperCase() === "AGP" && usr.group.toUpperCase() === "ADMIN") {
+                    Account.findOne({ _id: req.params.id }, function (err, user) {
                         if (err) {
-                            res.status(403).json({status: 'ERROR', data: err.message});
+                            res.status(403).json({ status: "ERROR", data: err.message });
                         } else {
                             user.acceso = req.body.acceso;
                             user.save(function (err, userUpd) {
                                 if (err !== null) {
                                     log.logger.error("Error en seteo de tareas para la cuenta. %s", err.message);
-                                    res.status(500).json({status: 'ERROR', data: err.message});
+                                    res.status(500).json({ status: "ERROR", data: err.message });
                                 } else {
-                                    res.status(200).json({status: 'OK', data: userUpd});
+                                    res.status(200).json({ status: "OK", data: userUpd });
                                 }
                             });
                         }
@@ -242,25 +240,25 @@ module.exports = function (log, app, passport) {
         });
     });
 
-    app.put('/agp/account/:id/emailToApp', function (req, res) {
+    app.put("/agp/account/:id/emailToApp", function (req, res) {
         var incomingToken = req.headers.token;
         Account.verifyToken(incomingToken, function (err, usr) {
             if (err) {
                 log.logger.error(usr);
-                res.status(403).json({status: 'ERROR', data: err});
+                res.status(403).json({ status: "ERROR", data: err });
             } else {
-                if (usr.terminal.toUpperCase() === 'AGP' && usr.group.toUpperCase() === 'ADMIN') {
-                    Account.findOne({_id: req.params.id}, function (err, user) {
+                if (usr.terminal.toUpperCase() === "AGP" && usr.group.toUpperCase() === "ADMIN") {
+                    Account.findOne({ _id: req.params.id }, function (err, user) {
                         if (err) {
-                            res.status(403).json({status: 'ERROR', data: err.message});
+                            res.status(403).json({ status: "ERROR", data: err.message });
                         } else {
                             user.emailToApp = req.body.emailToApp;
                             user.save(function (err, userUpd) {
                                 if (err !== null) {
                                     log.logger.error("Error en seteo de las notificaciones de la cuenta. %s", err.message);
-                                    res.status(500).json({status: 'ERROR', data: err.message});
+                                    res.status(500).json({ status: "ERROR", data: err.message });
                                 } else {
-                                    res.status(200).json({status: 'OK', data: userUpd});
+                                    res.status(200).json({ status: "OK", data: userUpd });
                                 }
                             });
                         }
@@ -270,7 +268,7 @@ module.exports = function (log, app, passport) {
         });
     });
 
-    app.get('/agp/account/token', function (req, res) {
+    app.get("/agp/account/token", function (req, res) {
 
         var result,
             emailConfig,
@@ -278,9 +276,9 @@ module.exports = function (log, app, passport) {
             url,
             user;
 
-        Account.findAll({salt: req.query.salt}, function (err, users) {
+        Account.findAll({ salt: req.query.salt }, function (err, users) {
             if (err) {
-                res.status(500).send({status: "ERROR", data: err});
+                res.status(500).send({ status: "ERROR", data: err });
             } else {
                 if (users[0].status) {
                     result = {
@@ -296,8 +294,8 @@ module.exports = function (log, app, passport) {
                     mailer = new mail.mail(emailConfig);
 
                     user = users[0];
-                    url = util.format('http://%s:%s', config.domain, config.server_port_web);
-                    res.render('registerUser.jade', {
+                    url = util.format("http://%s:%s", config.domain, config.server_port_web);
+                    res.render("registerUser.jade", {
                         url: url,
                         salt: user.salt,
                         full_name: user.full_name,
@@ -315,9 +313,9 @@ module.exports = function (log, app, passport) {
                                 emailDelivered: false
                             };
                             if (errMail) {
-                                log.logger.error('Account Register by Page: %s, NO se envió mail a %s. %s', user.user, user.email, errMail.data);
+                                log.logger.error("Account Register by Page: %s, NO se envió mail a %s. %s", user.user, user.email, errMail.data);
                             } else {
-                                log.logger.insert('Account Register by Page: %s, se envió mail a %s', user.user, user.email);
+                                log.logger.insert("Account Register by Page: %s, se envió mail a %s", user.user, user.email);
                                 result.emailDelivered = true;
                             }
                             res.status(200).send(result);
@@ -335,17 +333,17 @@ module.exports = function (log, app, passport) {
      * @param {Object} req the request object
      * @param {Object} res the response object
      */
-    app.post('/login', function (req, res) {
+    app.post("/login", function (req, res) {
 
         var json = req.body,
-            errMsg = '';
+            errMsg = "";
 
         if (json.email !== undefined) {
-            Account.login(json.email, json.password, function (err, usersToken) {
+            Account.login(json.email, json.password, (err, usersToken) => {
                 if (err) {
                     errMsg = err.message;
                     log.logger.error(errMsg);
-                    res.status(403).json({status: "ERROR", code: err.code, message: err.message, data: err.data});
+                    res.status(403).json({ status: "ERROR", code: err.code, message: err.message, data: err.data });
                 } else {
                     if (usersToken.status) {
                         res.status(200).json({
@@ -366,41 +364,41 @@ module.exports = function (log, app, passport) {
         } else {
             errMsg = util.format("Debe proveerse un usuario o email");
             log.logger.error(errMsg);
-            res.status(400).json({status: "ERROR", data: errMsg});
+            res.status(400).json({ status: "ERROR", data: errMsg });
         }
     });
 
-    app.post('/agp/password', function (req, res) {
+    app.post("/agp/password", function (req, res) {
         if (req.body.email !== undefined) {
             Account.password(req.body.email, req.body.password, req.body.newPass, function (err, result) {
 
                 if (err) {
                     log.logger.error("El password de %s ha producido un error: %s.", req.body.email, err.message);
-                    res.status(500).json({status: "ERROR", data: err.message});
+                    res.status(500).json({ status: "ERROR", data: err.message });
                 } else {
                     log.logger.info("El password de %s ha cambiado satisfactoriamente.", req.body.email);
-                    res.status(200).json({status: "OK", data: result});
+                    res.status(200).json({ status: "OK", data: result });
                 }
             });
         } else {
-            res.status(200).json({error: 'AuthError'});
+            res.status(200).json({ error: "AuthError" });
         }
     });
 
     //app.post('/token/', passport.authenticate('local', {session: false}), function(req, res) {
-    app.get('/agp/token', function (req, res) {
+    app.get("/agp/token", function (req, res) {
 
         if (req.query.salt !== undefined) {
-            Account.findAll({salt: req.query.salt}, function (err, data) {
+            Account.findAll({ salt: req.query.salt }, function (err, data) {
                 var user = data[0];
                 Account.createUserToken(user.email, function (err, html) {
                     if (err) {
-                        res.status(500).json({status: "ERROR", data: 'Hubo un problema al generar el token'});
+                        res.status(500).json({ status: "ERROR", data: "Hubo un problema al generar el token" });
                     } else {
-                        res.render('tokenUser.jade', {full_name: user.full_name, user: user.user, password: user.password}, function(err, html) {
+                        res.render("tokenUser.jade", { full_name: user.full_name, user: user.user, password: user.password }, function (err, html) {
                             var mailer = new mail.mail(config.email),
                                 htmlMail = {
-                                    data : "<html><body><p>El usuario " + user.user + " ha solicitado ingreso al sistema.</p></body></html>",
+                                    data: "<html><body><p>El usuario " + user.user + " ha solicitado ingreso al sistema.</p></body></html>",
                                     alternative: true
                                 };
                             mailer.send("dreyes@puertobuenosaires.gob.ar", "Nuevo usuario para IIT", htmlMail, function () {
@@ -415,20 +413,20 @@ module.exports = function (log, app, passport) {
 
     });
 
-    app.get('/logout', function (req, res) {
+    app.get("/logout", function (req, res) {
         req.logout();
     });
 
-    app.post('/agp/resetPassword/:email', function (req, res) {
+    app.post("/agp/resetPassword/:email", function (req, res) {
 
-        if (req.params.email !== null && req.params.email !== '') {
+        if (req.params.email !== null && req.params.email !== "") {
             Account.findUserByEmailOnly(req.params.email, function (err, user) {
-                var message = '',
-                    msg = '',
-                    newPass = '';
+                var message = "",
+                    msg = "",
+                    newPass = "";
 
                 if (err) {
-                    msg = util.format('Ha ocurrido un error al intentar resetar el password: %s', err.message);
+                    msg = util.format("Ha ocurrido un error al intentar resetar el password: %s", err.message);
                     message = flash("ERROR", msg);
                     res.status(500).json(message);
                 } else {
@@ -436,7 +434,7 @@ module.exports = function (log, app, passport) {
                     if (user !== null) {
 
                         //genero random de 8 letras
-                        for (var i=0; i<9; i++){
+                        for (var i = 0; i < 9; i++) {
                             var ascii = Math.random();
                             ascii = ascii * (90 - 65) + 65;
                             ascii = parseInt(ascii, 10);
@@ -447,21 +445,21 @@ module.exports = function (log, app, passport) {
                         }
 
                         user.password = newPass;
-                        user.save (function (err, userUpd, rowAffected){
+                        user.save(function (err, userUpd, rowAffected) {
                             var mailer = new mail.mail(config.email);
                             var html = {
-                                    data : "<html><body><p>Ud. a solicitado el cambio de Clave en la página de Control de Información de Terminales portuarias.</p><p>El nuevo password temporal es: <span color=blue><b>" + newPass + "</b></span></p></body></html>",
-                                    alternative: true
-                                };
-                            mailer.send(user.email, "Cambio de Clave", html, function(){
-                                log.logger.update('Account UPD: %s, se envío el cambio de clave correctamente.', user.email);
+                                data: "<html><body><p>Ud. a solicitado el cambio de Clave en la página de Control de Información de Terminales portuarias.</p><p>El nuevo password temporal es: <span color=blue><b>" + newPass + "</b></span></p></body></html>",
+                                alternative: true
+                            };
+                            mailer.send(user.email, "Cambio de Clave", html, function () {
+                                log.logger.update("Account UPD: %s, se envío el cambio de clave correctamente.", user.email);
                             });
-                            var result = {email: userUpd.email, full_name: userUpd.full_name, terminal: userUpd.terminal};
-                            var message = flash('OK', result);
+                            var result = { email: userUpd.email, full_name: userUpd.full_name, terminal: userUpd.terminal };
+                            var message = flash("OK", result);
                             res.status(200).send(message);
                         });
                     } else {
-                        msg = util.format('La cuenta de correo %s no ha sido registrada.', req.params.email);
+                        msg = util.format("La cuenta de correo %s no ha sido registrada.", req.params.email);
                         message = flash("ERROR", msg);
                         res.status(500).json(message);
                     }
@@ -471,22 +469,22 @@ module.exports = function (log, app, passport) {
         }
     });
 
-    app.get('/reset/:id', function (req, res) {
-        console.log('GOT IN /reset/:id...');
+    app.get("/reset/:id", function (req, res) {
+        console.log("GOT IN /reset/:id...");
         var token = req.params.id,
             messages = flash(null, null);
 
         if (!token) {
-            console.log('Issue getting reset :id');
+            console.log("Issue getting reset :id");
         }
         else {
-            console.log('In ELSE ... good to go.');
+            console.log("In ELSE ... good to go.");
             //TODO
 
             //1. find user with reset_token == token .. no match THEN error
             //2. check now.getTime() < reset_link_expires_millis
             //3. if not expired, present reset password page/form
-            res.render('resetpass', messages);
+            res.render("resetpass", messages);
         }
     });
 

@@ -1,58 +1,66 @@
-var mongoose = require('mongoose'),
-    _ = require('underscore')._,
+"use strict";
+
+var mongoose = require("mongoose"),
+    _ = require("underscore")._,
     Schema = mongoose.Schema,
-    path = require('path'),
-    config = require(path.join(__dirname, '..', '/config/config.js')),
-    passportLocalMongoose = require('passport-local-mongoose'),
-    crypto = require('crypto'),
-    jwt = require('jwt-simple'),
-    tokenSecret = 'put-a-$Ecr3t-h3re';
+    path = require("path"),
+    config = require(path.join(__dirname, "..", "/config/config.js")),
+    passportLocalMongoose = require("passport-local-mongoose"),
+    crypto = require("crypto"),
+    jwt = require("jwt-simple");
+
+const jwttoken = require("jsonwebtoken");
+const tokenSecret = "put-a-$Ecr3t-h3re";
 
 var Token = new Schema({
-    token: {type: String},
-    date_created: {type: Date, default: Date.now}
+    token: { type: String },
+    date_created: { type: Date, default: Date.now }
 });
 
 Token.methods.hasExpired = function () {
-    'use strict';
     var now = new Date();
     return (now.getTime() - this.date_created.getTime()) > config.ttl;
 };
 
-var TokenModel = mongoose.model('Token', Token),
+var TokenModel = mongoose.model("Token", Token),
     Account = new Schema({
         email: { type: String, required: true, lowercase: true, index: { unique: true } },
-        password: { type: String},
-        terminal: {type: String, required: true, uppercase: true, enum: ['BACTSSA', 'TRP', 'TERMINAL4', 'AGP']},
-        role: {type: String},
-        user: {type: String},
-        group: {type: String},
-        full_name: {type: String, required: true},
-        date_created: {type: Date, default: Date.now},
-        token: {type: Object},
+        password: { type: String },
+        terminal: { type: String, required: true, uppercase: true, enum: ["BACTSSA", "TRP", "TERMINAL4", "AGP"] },
+        role: { type: String },
+        user: { type: String },
+        group: { type: String },
+        full_name: { type: String, required: true },
+        date_created: { type: Date, default: Date.now },
+        token: { type: Object },
         //For reset we use a reset token with an expiry (which must be checked)
-        reset_token: {type: String},
-        reset_token_expires_millis: {type: Number},
-        status: {type: Boolean},
-        acceso: [{type: String}],
-        lastLogin: {type: Date},
-        emailToApp: {type: Object}
+        reset_token: { type: String },
+        reset_token_expires_millis: { type: Number },
+        status: { type: Boolean },
+        acceso: [{ type: String }],
+        lastLogin: { type: Date },
+        emailToApp: { type: Object }
     });
 
-Account.plugin(passportLocalMongoose, {usernameField: 'email'});
+Account.plugin(passportLocalMongoose, { usernameField: "email" });
 
 Account.statics.encode = function (data) {
-    'use strict';
     return jwt.encode(data, tokenSecret);
 };
 
 Account.statics.decode = function (data) {
-    'use strict';
     return jwt.decode(data, tokenSecret);
 };
 
+Account.statics.createToken = function (payload, options = { expiresIn: 30 }) {
+    return new Promise((resolve, reject) => {
+        jwt.sign(payload, tokenSecret, { expiresIn: options.expiresIn }, (token) => {
+            resolve(token);
+        });
+    });
+};
+
 Account.statics.verifyToken = function (incomingToken, cb) {
-    'use strict';
     var err,
         decoded;
 
@@ -60,17 +68,18 @@ Account.statics.verifyToken = function (incomingToken, cb) {
         try {
             decoded = jwt.decode(incomingToken, tokenSecret);
         } catch (e) {
-            err = {code: "AGP-0015", message: 'Error al decodificar el Token.' + e.message};
+            err = { code: "AGP-0015", message: "Error al decodificar el Token." + e.message };
             return cb(err);
         }
+
         //Now do a lookup on that email in mongodb ... if exists it's a real user
         if (decoded && decoded.email) {
-            this.findOne({email: decoded.email}, (err, usr) => {
+            this.findOne({ email: decoded.email }, (err, usr) => {
                 if (err) {
-                    err = {message: 'Issue finding user.', data: err};
+                    err = { message: "Issue finding user.", data: err };
                     return cb(err);
                 } else if (!usr) {
-                    err = {message: 'El Usuario no existe.'};
+                    err = { message: "El Usuario no existe." };
                     return cb(err);
                 } else if (incomingToken === usr.token.token) {
                     if (cb !== undefined) {
@@ -87,70 +96,126 @@ Account.statics.verifyToken = function (incomingToken, cb) {
                             emailToApp: usr.emailToApp || []
                         });
                     }
-                }// else {
-//                    cb(new Error('Token does not match.'), null);
-//                }
+                } else {
+                    cb({ code: "AGP-0014", message: "El Token es vacio o invalido" }, null);
+                }
             });
         } else {
-            err = {code: "AGP-0014", message: 'El Token es vacio o invalido'};
+            err = { code: "AGP-0014", message: "El Token es vacio o invalido" };
             return cb(err);
         }
     } else {
-        err = {code: "AGP-0014", message: 'El Token es vacio o invalido'};
+        err = { code: "AGP-0014", message: "El Token es vacio o invalido" };
+        return cb(err);
+    }
+};
+
+Account.statics.verifyTokenZap = function (incomingToken, cb) {
+    var err,
+        decoded;
+
+    if (incomingToken !== undefined && incomingToken !== null) {
+
+        jwttoken.verify(incomingToken, tokenSecret, (err, tokenData) => {
+            if (err) {
+                err = { code: "AGP-0016", message: `El Token ha expirado ${err.expiredAt}` };
+                return cb(err);
+            } else {
+                //Now do a lookup on that email in mongodb ... if exists it's a real user
+                if (tokenData && tokenData.email) {
+                    this.findOne({ email: tokenData.email }, (err, usr) => {
+                        if (err) {
+                            err = { message: "Issue finding user.", data: err };
+                            return cb(err);
+                        } else if (!usr) {
+                            err = { message: "El Usuario no existe." };
+                            return cb(err);
+                        } else {
+                            if (cb !== undefined) {
+                                return cb(false, {
+                                    _id: usr._id,
+                                    terminal: usr.terminal,
+                                    email: usr.email,
+                                    user: usr.user,
+                                    group: usr.group,
+                                    token: usr.token,
+                                    date_created: usr.date_created,
+                                    full_name: usr.full_name,
+                                    role: usr.role,
+                                    emailToApp: usr.emailToApp || []
+                                });
+                            }
+                        }
+                    });
+                } else {
+                    err = { code: "AGP-0014", message: "El Token es vacio o invalido" };
+                    return cb(err);
+                }
+            }
+        });
+
+    } else {
+        err = { code: "AGP-0014", message: "El Token es vacio o invalido" };
         return cb(err);
     }
 };
 
 Account.statics.login = function (username, password, cb) {
-    'use strict';
-    var errMsg = '',
+    var errMsg = "",
         user;
-    if (username !== undefined && username !== '' && password !== undefined && password !== '') {
+    if (username !== undefined && username !== "" && password !== undefined && password !== "") {
         this.findOne({
-            $or: [{email: username}, {user: username}],
+            $or: [{ email: username }, { user: username }],
             password: password
-        }, function (err, user) {
+        },
+        (err, account) => {
+            let user = {
+                _id: account._id,
+                acceso: account.acceso,
+                role: account.role,
+                email: account.email,
+                user: account.user,
+                group: account.group,
+                terminal: account.terminal,
+                date_created: account.date_created,
+                full_name: account.full_name,
+                emailToApp: account.emailToApp,
+                status: account.status,
+                salt: account.salt,
+                token: ""
+            };
             if (err) {
                 return cb(err, null);
-            } else if (user) {
+            } else if (user && user.terminal !== "ZAP") {
 
-                user = {
-                    _id : user._id,
-                    acceso: user.acceso,
-                    role: user.role,
-                    email: user.email,
-                    user: user.user,
-                    group: user.group,
-                    terminal: user.terminal,
-                    token: user.token,
-                    date_created: user.date_created,
-                    full_name: user.full_name,
-                    emailToApp: user.emailToApp,
-                    status: user.status,
-                    salt: user.salt
-                };
+                user.token = account.token;
+
                 if (user.token !== undefined) {
                     return cb(false, user);
                 } else {
-                    errMsg = 'El usuario no ha validado su cuenta para ingresar el sistema. Verifique su cuenta de correo.';
-                    return cb({code: "ACC-0003", message: errMsg, data: user});
+                    errMsg = "El usuario no ha validado su cuenta para ingresar el sistema. Verifique su cuenta de correo.";
+                    return cb({ code: "ACC-0003", message: errMsg, data: user });
                 }
+            } if (user.terminal === "ZAP") {
+                jwttoken.sign({ email: account.email, password: password }, tokenSecret, { expiresIn: "1 day" }, (token) => {
+                    user.token = token;
+                    return cb(false, user);
+                });
             } else {
-                errMsg = 'Usuario o Contraseña incorrectos';
-                return cb({code: "ACC-0001", message: errMsg});
+                errMsg = "Usuario o Contraseña incorrectos";
+                return cb({ code: "ACC-0001", message: errMsg });
             }
         });
     } else {
-        errMsg = 'Usuario o Contraseña no pueden ser vacios';
-        return cb({code: "ACC-0002", message: errMsg});
+        errMsg = "Usuario y/o Contraseña no pueden ser vacios";
+        return cb({ code: "ACC-0002", message: errMsg });
     }
 };
 
 Account.statics.password = function (email, password, newPassword, cb) {
-    'use strict';
-    if (email !== undefined && email !== '' && password !== undefined && password !== '' && newPassword !== undefined) {
+    if (email !== undefined && email !== "" && password !== undefined && password !== "" && newPassword !== undefined) {
         this.update({
-            $or: [{email: email}, {user: email}],
+            $or: [{ email: email }, { user: email }],
             password: password
         },
             {
@@ -164,39 +229,36 @@ Account.statics.password = function (email, password, newPassword, cb) {
                     if (rowsAffected === 1) {
                         return cb(null, "El cambio de Contraseña ha sido exitoso.");
                     } else {
-                        return cb({message: "Usuario o Contraseña incorrectos."});
+                        return cb({ message: "Usuario o Contraseña incorrectos." });
                     }
                 }
-            }
-            );
+            });
     } else {
-        var errMsg = 'Usuario o Contraseña incorrectos.';
+        var errMsg = "Usuario o Contraseña incorrectos.";
         console.log(errMsg);
-        return cb({error: errMsg});
+        return cb({ error: errMsg });
     }
 };
 
 Account.statics.findUser = function (email, token, cb) {
-    'use strict';
     var self = this;
-    self.findOne({$or: [{email: email}, {user: email}]}, function (err, usr) {
+    self.findOne({ $or: [{ email: email }, { user: email }] }, function (err, usr) {
         if (err || !usr) {
             return cb(err, null);
         } else if (token === usr.token.token) {
-            return cb(false, {email: usr.email, user: usr.user, token: usr.token, date_created: usr.date_created, full_name: usr.full_name});
+            return cb(false, { email: usr.email, user: usr.user, token: usr.token, date_created: usr.date_created, full_name: usr.full_name });
         } else {
-            return cb(new Error('Token does not match.'), null);
+            return cb(new Error("Token does not match."), null);
         }
     });
 };
 
 Account.statics.findAll = function (param, project, cb) {
-    'use strict';
     var self = this,
         projectAux = {},
         result;
 
-    if (typeof project === 'function') {
+    if (typeof project === "function") {
         cb = project;
     } else {
         projectAux = project;
@@ -205,7 +267,7 @@ Account.statics.findAll = function (param, project, cb) {
     result = this.find(param, projectAux);
     result.exec(function (err, data) {
         if (!err) {
-            if (typeof cb === 'function') {
+            if (typeof cb === "function") {
                 return cb(err, data);
             }
         }
@@ -213,10 +275,9 @@ Account.statics.findAll = function (param, project, cb) {
 };
 
 Account.statics.findUserByEmailOnly = function (email, cb) {
-    'use strict';
     var self = this;
 
-    this.findOne({email: email}, function(err, usr) {
+    this.findOne({ email: email }, function (err, usr) {
         if (err) {
             return cb(err, null);
         } else {
@@ -226,15 +287,14 @@ Account.statics.findUserByEmailOnly = function (email, cb) {
 };
 
 Account.statics.createUserToken = function (email, cb) {
-    'use strict';
     var self = this;
-    this.findOne({email: email}, function (err, usr) {
+    this.findOne({ email: email }, function (err, usr) {
         if (err || !usr) {
-            console.log('err');
+            console.log("err");
         }
         //Create a token and add to user and save
-        var token = self.encode({email: email});
-        usr.token = new TokenModel({token: token});
+        var token = self.encode({ email: email });
+        usr.token = new TokenModel({ token: token });
         usr.save(function (err, usr) {
             if (err) {
                 return cb(err, null);
@@ -247,37 +307,35 @@ Account.statics.createUserToken = function (email, cb) {
 };
 
 Account.statics.generateResetToken = function (email, cb) {
-    'use strict';
     console.log("in generateResetToken....");
-    this.findUserByEmailOnly(email, function(err, user) {
+    this.findUserByEmailOnly(email, function (err, user) {
         if (err) {
             return cb(err, null);
         } else if (user) {
             //Generate reset token and URL link; also, create expiry for reset token
-            user.reset_token = require('crypto').randomBytes(32).toString('hex');
+            user.reset_token = require("crypto").randomBytes(32).toString("hex");
             var now = new Date(),
                 expires = new Date(now.getTime() + (config.resetTokenExpiresMinutes * 60 * 1000)).getTime();
             user.reset_token_expires_millis = expires;
             user.save();
-            if (typeof cb  === 'function') {
+            if (typeof cb === "function") {
                 return cb(false, user);
             }
         } else {
-            if (typeof cb  === 'function') {
-                return cb(new Error('No user with that email found.'), null);
+            if (typeof cb === "function") {
+                return cb(new Error("No user with that email found."), null);
             }
         }
     });
 };
 
 Account.statics.findEmailToApp = function (nameApp) {
-    'use strict';
     return new Promise((resolve, reject) => {
         var result = [];
 
         var param = JSON.parse(`{"emailToApp.${nameApp}": true}`);
 
-        this.find(param, {_id: 0, email: 1})
+        this.find(param, { _id: 0, email: 1 })
             .exec((err, data) => {
                 if (err) {
                     reject(err);
@@ -286,7 +344,7 @@ Account.statics.findEmailToApp = function (nameApp) {
                     //for (var i = 0, len = data.length; i < len; i++) {
                     //    result.push(data[i].email);
                     //}
-                    resolve({status: 'OK' , data: result});
+                    resolve({ status: "OK", data: result });
                 }
             });
     });
@@ -299,4 +357,4 @@ Account.statics.findEmailToAppByUser = function (user, app, cb) {
     });
 };
 */
-module.exports = mongoose.model('accounts', Account);
+module.exports = mongoose.model("accounts", Account);
