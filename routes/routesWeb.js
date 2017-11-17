@@ -13,6 +13,7 @@ module.exports = function (log, app, io, oracle, params) {
         price,
         comment,
         appointment,
+        appointmentLib,
         appointmentEmailQueue,
         docType,
         unitType,
@@ -23,6 +24,7 @@ module.exports = function (log, app, io, oracle, params) {
         invoice,
         ob2,
         ISO,
+        zap,
         moment = require("moment");
 
     function isValidToken(req, res, next) {
@@ -41,6 +43,22 @@ module.exports = function (log, app, io, oracle, params) {
         });
     }
 
+    function isValidTokenZap(req, res, next) {
+        
+        var Account = require("../models/account.js"),
+            incomingToken = req.headers.token;
+
+        Account.verifyTokenZap(incomingToken, (err, usr) => {
+            if (err) {
+                log.logger.error(err);
+                res.status(403).send({status: "ERROR", data: err});
+            } else {
+                req.usr = usr;
+                next();
+            }
+        });
+    }
+        
     serverMain = require("./server")(log, params);
     app.use("/", serverMain);
 
@@ -95,6 +113,9 @@ module.exports = function (log, app, io, oracle, params) {
     ob2 = require("./ob2")(log);
     app.use("/ob2", isValidToken, ob2);
 
+    zap = require("./zap")(log);
+    app.use("/zap", isValidTokenZap, zap);
+
 
     /**_____________________________________________________________________*/
 
@@ -107,7 +128,7 @@ module.exports = function (log, app, io, oracle, params) {
         var html = {
             data : param.html,
             alternative: true
-        }
+        };
 
         mail = new mail.mail(config.email);
 
@@ -244,38 +265,27 @@ module.exports = function (log, app, io, oracle, params) {
             });
     });
 
-    app.get("/containerTurnoList", (req, res) => {
-        var Appointment = require("../models/appointment.js");
-        var param = {};
-
-        param.inicio = {$gte: moment(moment().format("YYYY-MM-DD")).toDate()};
-        param["status.status"] = {$ne: 9};
-
-        Appointment.distinct("contenedor", param)
-            .exec((err, data) => {
-                if (err) {
-                    res.status(500).send({status: "ERROR", data: err.message});
-                } else {
-                    res.status(200).send({status: "OK", totalCount: data.length, data: data || []});
-                }
-            });
+    app.get("/containerTurnoList", async (req, res) => {
+        appointmentLib = require("../lib/appointment.js");
+        appointmentLib = new appointmentLib();
+        try {
+            let result = await appointmentLib.getContainersActive();
+            res.status(200).send(result);
+        } catch (err) {
+            res.status(500).send({status: "ERROR", data: err.message});
+        }
     });
 
-    app.get("/camionTurnoList", (req, res) => {
-        var Appointment = require("../models/appointment.js");
-        var param = {};
+    app.get("/camionTurnoList", async (req, res) => {
+        appointmentLib = require("../lib/appointment.js");
+        appointmentLib = new appointmentLib();
 
-        param.inicio = {$gte: moment(moment().format("YYYY-MM-DD")).toDate()};
-        param["status.status"] = {$ne: 9};
-
-        Appointment.distinct("transporte.camion", param)
-            .exec((err, data) => {
-                if (err) {
-                    res.status(500).send({status: "ERROR", data: err.message});
-                } else {
-                    res.status(200).send({status: "OK", totalCount: data.length, data: data || []});
-                }
-            });
+        try {
+            let result = await appointmentLib.getPatentesActive();
+            res.status(200).send(result);
+        } catch (err) {
+            res.status(500).send({status: "ERROR", data: err.message});
+        }
     });
 
 };
