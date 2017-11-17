@@ -10,10 +10,27 @@ module.exports = function (log, io, oracle) {
         mail = require("../../include/emailjs"),
         moment = require('moment'),
         config = require('../../config/config.js'),
-        Invoice = require('../../models/invoice.js'),
+        //Invoice = require('../../models/invoice.js'),
         logInvoiceBody = false;
 
-    function validateSanitize (req, res, next) {
+    function promisify(err, data) {
+        return new Promise((resolve, reject) => {
+            if (err) {
+                reject(err);
+            } else {
+                if (data.status === 'OK') {
+                    resolve({status: "OK",
+                        data: data.data});
+                } else {
+                    reject({status: "ERROR",
+                        message: data.message,
+                        data: data.data});
+                }
+            }
+        });
+    }
+
+    let validateSanitize = (req, res, next) => {
         var errors,
             Validr = require('../../include/validation.js'),
             validate = new Validr.validation(req.postData);
@@ -109,15 +126,15 @@ module.exports = function (log, io, oracle) {
             res.status(400).send({
                 status: "ERROR",
                 message: "Error en la validacion del Invoice",
-                data: util.inspect(errors)
+                data: errors
             });
         } else {
             next();
         }
 
-    }
+    };
 
-    function receiveInvoice(req, res, next) {
+    let receiveInvoice = (req, res, next) => {
 
         var postData = '',
             mailer,
@@ -144,11 +161,12 @@ module.exports = function (log, io, oracle) {
 
                     req.postData = JSON.parse(postData);
                     req.postData.usr = req.usr;
+                    req.postData.terminal = req.usr.terminal;
                     next();
 
                 } catch (errParsing) {
-                    strBody = util.format("Parsing JSON: [%s], JSON:%s", errParsing.toString(), postData);
-                    strSubject = util.format("AGP - %s - ERROR", req.usr.terminal);
+                    strBody = `Parsing JSON: [${errParsing.toString()}], JSON: ${postData}`;
+                    strSubject = `AGP - ${req.usr.terminal} - ERROR`;
 
                     log.logger.error(strBody);
                     mailer = new mail.mail(config.email);
@@ -159,9 +177,9 @@ module.exports = function (log, io, oracle) {
             });
         }
 
-    }
+    };
 
-    function add (req, res) {
+    let add = (req, res) => {
         var Invoice = require('../../lib/invoice2.js');
         var InvoiceM,
             InvoiceO;
@@ -196,7 +214,71 @@ module.exports = function (log, io, oracle) {
             }
         });
 
-    }
+    };
+
+    let addMicro = (req, res) => {
+
+        var invoice;
+
+        var senecaOracle = require("seneca")({timeout: config.microService.impactOracle.timeout});
+        senecaOracle.client(config.microService.impactOracle.port, config.microService.impactOracle.host);
+
+        var senecaMongo = require("seneca")({timeout: config.microService.impactMongo.timeout});
+        senecaMongo.client(config.microService.impactMongo.port, config.microService.impactMongo.host);
+
+        var param = {
+            role: "impact",
+            cmd: "add",
+            entity: "invoice",
+            invoice: JSON.parse(JSON.stringify(req.postData))
+        };
+
+        senecaOracle.act(param, (err, data) => {
+            promisify(err, data)
+                .then( data => {
+                    var invoice;
+                    console.log(err)
+                    invoice = data.data;
+                    var socketMsg = {
+                        status: 'OK',
+                        data : {
+                            terminal : invoice.terminal,
+                            _id: invoice._id,
+                            //emision : invoice.fecha.emision,
+                            codTipoComprob : invoice.codTipoComprob,
+                            razon: invoice.razon,
+                            nroComprob: invoice.nroComprob
+                        }
+                    };
+                    io.emit('invoice', socketMsg);
+
+                    let result = data;
+                    log.logger.insert("Invoice ORA INS: %s - %s - Tipo: %s Nro: %s - %s", invoice._id, invoice.terminal, invoice.codTipoComprob, invoice.nroComprob, invoice.fechaEmision.toString());
+
+                    res.status(200).send(result);
+                })
+                .catch(err => {
+                    log.logger.error("Invoice ORA INS: %s, %s", err.message, JSON.stringify(err.data));
+                    res.status(500).send(err);
+                });
+        });
+
+        senecaMongo.act(param, (err, data) => {
+            promisify(err, data)
+                .then( data => {
+                    var invoice = data.data;
+
+                    let result = data;
+                    console.log(data)
+                    log.logger.insert("Invoice MongoDB INS: %s - %s - Tipo: %s Nro: %s - %s", invoice._id, invoice.terminal, invoice.codTipoComprob, invoice.nroComprob/*, invoice.fechaEmision.toString()*/);
+                })
+                .catch(err => {
+                    console.error(err)
+                    log.logger.error("Invoice MongoDB INS: %s, %s", err.message, JSON.stringify(err.data));
+                });
+        });
+
+    };
 
     /*
      router.use(function timeLog(req, res, next){
@@ -205,8 +287,8 @@ module.exports = function (log, io, oracle) {
      });
      */
 
-//    router.post('/', receiveInvoice, validateSanitize, addInvoice);
     router.post('/', receiveInvoice, validateSanitize, add);
+    //router.post('/', receiveInvoice, validateSanitize, addMicro);
 
     return router;
 };
