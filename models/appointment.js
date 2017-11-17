@@ -3,7 +3,7 @@
  */
 "use strict";
 
-var mongoose = require('mongoose');
+var mongoose = require("mongoose");
 
 var appointment = new mongoose.Schema({
     terminal: {type: String, required: true},
@@ -23,7 +23,7 @@ var appointment = new mongoose.Schema({
     },
     inicio: {type: Date, required: true},
     fin: {type: Date},
-    mov: {type: String, enum: ['IMPO', 'EXPO', 'VACIO_OUT', 'VACIO_IN']},
+    mov: {type: String, enum: ["IMPO", "EXPO", "VACIO_OUT", "VACIO_IN"]},
     alta: {type: Date},
     shipTrip: {
         altaInicio: {type: Number},
@@ -35,15 +35,15 @@ var appointment = new mongoose.Schema({
     email: {type: String, lowercase: true},
     emailStatus: {type: Boolean},
     verifica: {type: Date},
-    verifica_turno: {type: String, enum: ['MA', 'TA']},
-    verifica_tipo: {type: String, enum: ['PISO', 'CAMION']},
+    verifica_turno: {type: String, enum: ["MA", "TA"]},
+    verifica_tipo: {type: String, enum: ["PISO", "CAMION"]},
     status: {
         status: {type: Number}, //0 Enabled 9 Canceled
         date: {type: Date}
     }
 });
 
-appointment.pre('save', function (next, done) {
+appointment.pre("save", function (next, done) {
 
     var moment = require("moment");
 
@@ -63,7 +63,7 @@ appointment.pre('save', function (next, done) {
 
 
 //appointment.pre('save', function (next, done) {
-    /*
+/*
     var self = this;
     var moment = require("moment"),
         alta,
@@ -93,4 +93,4 @@ appointment.pre('save', function (next, done) {
 //    next();
 //});
 
-module.exports = mongoose.model('appointments', appointment);
+module.exports = mongoose.model("appointments", appointment);
