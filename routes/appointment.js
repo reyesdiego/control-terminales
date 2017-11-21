@@ -9,12 +9,10 @@ module.exports = log => {
         router = express.Router(),
         moment = require("moment"),
         Account = require("../models/account"),
-        config = require("../config/config.js"),
-        util = require("util"),
-        linq = require("linq");
+        config = require("../config/config.js");
 
-    var AppointmentLib = require("../lib/appointment.js");
-    AppointmentLib = new AppointmentLib();
+    var Appointment = require("../lib/appointment.js");
+    Appointment = new Appointment();
 
     function getAppointments(req, res) {
 
@@ -36,7 +34,7 @@ module.exports = log => {
         };
 
         log.time("getAppointments");
-        AppointmentLib.getAppointments(params, options)
+        Appointment.getAppointments(params, options)
             .then(data => {
                 log.timeEnd("getAppointments");
                 res.status(200).send(data);
@@ -54,7 +52,7 @@ module.exports = log => {
             res.status(400).send({ status: "ERROR", data: "Debe proveer el dato del id para obtener el turnos." });
         } else {
 
-            AppointmentLib.getById(req.params._id)
+            Appointment.getById(req.params._id)
                 .then(data => {
                     res.status(200).send(data);
                 })
@@ -181,7 +179,7 @@ module.exports = log => {
             contenedor: req.params.container
         };
 
-        AppointmentLib.getByContainer(params)
+        Appointment.getByContainer(params)
             .then(data => {
                 if (data.data.length === 1) {
                     let turno = data.data[0];
@@ -206,7 +204,7 @@ module.exports = log => {
             inicio: { $gte: moment(moment().format("YYYY-MM-DD")).toDate() }
         };
 
-        AppointmentLib.getByPatente(param)
+        Appointment.getByPatente(param)
             .then(data => {
                 res.status(200).send(data);
             })
@@ -233,7 +231,7 @@ module.exports = log => {
 
         if (params.distinct !== "") {
             log.time("getDistincts " + params.distinct);
-            AppointmentLib.getDistinct(params.distinct, params, (err, data) => {
+            Appointment.getDistinct(params.distinct, params, (err, data) => {
                 log.time("getDistincts " + params.distinct);
                 if (err) {
                     res.status(500).send({ status: "ERROR", data: err });
@@ -256,7 +254,7 @@ module.exports = log => {
             param.terminal = usr.terminal;
         }
 
-        AppointmentLib.getMissingAppointments(param)
+        Appointment.getMissingAppointments(param)
             .then(data => {
                 res.status(200).send(data);
                 res.flush();
@@ -265,13 +263,6 @@ module.exports = log => {
                 res.status(500).send(err);
             });
     }
-
-    /*
-     router.use(function timeLog(req, res, next){
-     log.logger.info('Time: %s', Date.now());
-     next();
-     });
-     */
 
     router.get("/ById/:_id", getAppointmentById);
     router.get("/ByHour", getAppointmentsByHour);
