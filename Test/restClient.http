@@ -1,6 +1,6 @@
 
 // login para usuario, obtengo token
-POST http://10.10.0.223:8090/login
+POST http://190.221.146.245:8090/login
 Content-Type: application/json
 
 {
@@ -8,25 +8,42 @@ Content-Type: application/json
     "password": "123456"
 }
 
-// turno activo para camion
-GET http://10.10.0.223:8090/zap/turno/patente/EDI084
-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIiLCJwYXNzd29yZCI6IjEyMzQ1NiIsImlhdCI6MTUxMDkzMjMwNSwiZXhwIjoxNTExMDE4NzA1fQ.b0wVJBPhwESNhfmDh_SU5YVs1pqCyrqgDQsRnAiZ-H8
+// turno activo para un camion
+GET http://190.221.146.245:8090/zap/turno/patente/AS987FF
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
+// turno activo para un contenedor
+GET http://190.221.146.245:8090/zap/turno/contenedor/HASU1016369
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
 // cnrt activo para camion
-GET http://10.10.0.223:8090/zap/cnrt/patente/EDI084
-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIiLCJwYXNzd29yZCI6IjEyMzQ1NiIsImlhdCI6MTUxMDkzMjMwNSwiZXhwIjoxNTExMDE4NzA1fQ.b0wVJBPhwESNhfmDh_SU5YVs1pqCyrqgDQsRnAiZ-H8
+GET http://190.221.146.245:8090/zap/cnrt/patente/FVO243
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
 // cnrt para chofer
-GET http://10.10.0.223:8090/zap/cnrt/chofer/4159980
-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIiLCJwYXNzd29yZCI6IjEyMzQ1NiIsImlhdCI6MTUxMDkzMjMwNSwiZXhwIjoxNTExMDE4NzA1fQ.b0wVJBPhwESNhfmDh_SU5YVs1pqCyrqgDQsRnAiZ-H8
+GET http://190.221.146.245:8090/zap/cnrt/chofer/4159980
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
 // cnrt para chofer habilitado
-GET http://10.10.0.223:8090/zap/cnrt/chofer/habilitado/4159980
-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIiLCJwYXNzd29yZCI6IjEyMzQ1NiIsImlhdCI6MTUxMDkzMjMwNSwiZXhwIjoxNTExMDE4NzA1fQ.b0wVJBPhwESNhfmDh_SU5YVs1pqCyrqgDQsRnAiZ-H8
+GET http://190.221.146.245:8090/zap/cnrt/chofer/habilitado/4159980
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
 // listado de contenedores con turno activo del dia de hoy
-GET http://10.10.0.223:8090/containerTurnoList
+GET http://190.221.146.245:8090/containerTurnoList
 // listado de camiones con turno activo del dia de hoy
-GET http://10.10.0.223:8090/camionTurnoList
+GET http://190.221.146.245:8090/camionTurnoList
 // listado de contenedores con turno activo del dia de hoy ZAP
-GET http://10.10.0.223:8090/zap/turnos/contenedores
-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIiLCJwYXNzd29yZCI6IjEyMzQ1NiIsImlhdCI6MTUxMDkzMjMwNSwiZXhwIjoxNTExMDE4NzA1fQ.b0wVJBPhwESNhfmDh_SU5YVs1pqCyrqgDQsRnAiZ-H8
+GET http://190.221.146.245:8090/zap/turnos/contenedores
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
 // listado de camiones con turno activo del dia de hoy ZAP
-GET http://10.10.0.223:8090/zap/turnos/camiones
-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIiLCJwYXNzd29yZCI6IjEyMzQ1NiIsImlhdCI6MTUxMDkzMjMwNSwiZXhwIjoxNTExMDE4NzA1fQ.b0wVJBPhwESNhfmDh_SU5YVs1pqCyrqgDQsRnAiZ-H8
+GET http://190.221.146.245:8090/zap/turnos/camiones
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
+//insert un Chofer en la base de datos
+POST http://10.10.0.223:8090/zap/chofer
+Content-Type: application/json
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
+
+{
+    "_id": 23250578,
+    "lastname": "REYES",
+    "firstname": "DIEGO",
+    "mobile": "1568736699"
+}
+// obtiene un chofer por dni de ZAP
+GET http://10.10.0.223:8090/zap/chofer/23250578
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw

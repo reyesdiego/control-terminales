@@ -10,37 +10,71 @@ module.exports = log => {
         moment = require("moment"),
         linq = require("linq");
 
-    var AppointmentLib = require("../lib/appointment.js");
-    AppointmentLib = new AppointmentLib();
+    var Appointment = require("../lib/appointment.js");
+    Appointment = new Appointment();
+
+    let Driver = require("../lib/driver.js");
+    Driver = new Driver();
+
+    const addDriver = async (req, res) => {
+        try {
+            const result = await Driver.add(req.body);
+            res.status(200).send(result);
+        } catch (err) {
+            console.log(err);
+            res.status(500).send(err);
+        }
+    };
+
+    const getDriverById = async (req, res) => {
+        try {
+            const result = await Driver.getById(req.params.dni);
+            res.status(200).send(result);
+        } catch (err) {
+            console.log(err);
+            res.status(500).send(err);
+        }
+    };
+
+    const getByContenedor = async (req, res) => {
+        var param = {
+            contenedor: req.params.contenedor.toUpperCase(),
+            inicio: { $gte: moment(moment().format("YYYY-MM-DD")).toDate() }
+        };
+        try {
+            const result = await Appointment.getByContainer(param);
+            res.status(200).send(result);
+        } catch (err) {
+            console.error(err)
+            res.status(500).send(err);
+        };
+    };
 
     const getContenedoresActivos = async (req, res) => {
         try {
-            const result = await AppointmentLib.getContainersActive();
+            const result = await Appointment.getContainersActive();
             res.status(200).send(result);
         } catch (err) {
             res.status(500).send(err);
         }
     };
 
-    let getByPatente = (req, res) => {
+    const getByPatente = async (req, res) => {
         var param = {
             patenteCamion: req.params.patente.toUpperCase(),
             inicio: { $gte: moment(moment().format("YYYY-MM-DD")).toDate() }
         };
-        log.time("getByPatente");
-        AppointmentLib.getByPatente(param)
-            .then(data => {
-                log.timeEnd("getByPatente");
-                res.status(200).send(data);
-            })
-            .catch(err => {
-                res.status(500).send(err);
-            });
+        try {
+            const result = await Appointment.getByPatente(param);
+            res.status(200).send(result);
+        } catch (err) {
+            res.status(500).send(err);
+        };
     };
 
     const getPatentesActivos = async (req, res) => {
         try {
-            const result = await AppointmentLib.getPatentesActive();
+            const result = await Appointment.getPatentesActive();
             res.status(200).send(result);
         } catch (err) {
             res.status(500).send(err);
@@ -53,7 +87,7 @@ module.exports = log => {
             inicio: { $gte: moment(moment().format("YYYY-MM-DD")).toDate() }
         };
         log.time("getByPatente");
-        AppointmentLib.getByPatente(param)
+        Appointment.getByPatente(param)
             .then(data => {
                 log.timeEnd("getByPatente");
                 res.status(200).send(data);
@@ -215,12 +249,18 @@ module.exports = log => {
     };
 
     router.get("/historico/patente/:patente", getByHistoricoPatente);
+
     router.get("/turno/patente/:patente", getByPatente);
+    router.get("/turno/contenedor/:contenedor", getByContenedor);
+    router.get("/turnos/contenedores", getContenedoresActivos);
+    router.get("/turnos/camiones", getPatentesActivos);
+
     router.get("/cnrt/patente/:patente", getCnrtByPatente);
     router.get("/cnrt/chofer/:dni", getCnrtByDni);
     router.get("/cnrt/chofer/habilitado/:dni", getCnrtByDniHabilitado);
-    router.get("/turnos/contenedores", getContenedoresActivos);
-    router.get("/turnos/camiones", getPatentesActivos);
+    
+    router.post("/chofer", addDriver);
+    router.get("/chofer/:dni", getDriverById);
     
     return router;
 };
