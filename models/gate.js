@@ -1,23 +1,26 @@
 /**
  * Created by Diego Reyes on 3/21/14.
  */
-var mongoose = require('mongoose');
 
-var gate = new mongoose.Schema({
-    terminal: {type: String},
-    buque: {type: String},
-    viaje: {type: String},
-    contenedor: {type: String},
-    mov: {type: String, enum: ['IMPO', 'EXPO', 'PASO']},
-    tipo: {type: String, enum: ['IN', 'OUT']},
-    carga: {type: String, enum: ['NO', 'LL', 'VA']},
-    patenteCamion: {type: String},
-    tren: {type: String},
-    gateTimestamp: {type: Date, required: true},
-    turnoInicio: {type: Date},
-    turnoFin: {type: Date},
-    largo: {type: Number},
-    iso: {type: String}
+"use strict";
+
+const mongoose = require("mongoose");
+
+const gate = new mongoose.Schema({
+    terminal: { type: String },
+    buque: { type: String },
+    viaje: { type: String },
+    contenedor: { type: String },
+    mov: { type: String, enum: ["IMPO", "EXPO", "PASO"] },
+    tipo: { type: String, enum: ["IN", "OUT"] },
+    carga: { type: String, enum: ["NO", "LL", "VA"] },
+    patenteCamion: { type: String },
+    tren: { type: String },
+    gateTimestamp: { type: Date, required: true },
+    turnoInicio: { type: Date },
+    turnoFin: { type: Date },
+    largo: { type: Number },
+    iso: { type: String }
 });
 /*
 gate.index({
@@ -31,7 +34,6 @@ gate.index({
 }, {unique: true});
 */
 gate.statics.insert = function (gate, cb) {
-    'use strict';
     if (gate !== undefined) {
         this.create(gate, function (err, data) {
             if (!err) {
@@ -41,6 +43,6 @@ gate.statics.insert = function (gate, cb) {
             }
         });
     }
-}
+};
 
-module.exports = mongoose.model('gates', gate);
+module.exports = mongoose.model("gates", gate);
