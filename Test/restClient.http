@@ -16,6 +16,8 @@ GET http://190.221.146.245:8090/zap/turno/contenedor/HASU1016369
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
 // cnrt activo para camion
 GET http://190.221.146.245:8090/zap/cnrt/patente/FVO243
+// cnrt activo para trailer
+GET http://190.221.146.245:8090/zap/cnrt/patente/playo/FVO243
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
 // cnrt para chofer
 GET http://190.221.146.245:8090/zap/cnrt/chofer/4159980
@@ -34,16 +36,81 @@ token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVu
 GET http://190.221.146.245:8090/zap/turnos/camiones
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
 //insert un Chofer en la base de datos
-POST http://10.10.0.223:8090/zap/chofer
+POST http://190.221.146.245:8090/zap/chofer
 Content-Type: application/json
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
 
 {
-    "_id": 23250578,
-    "lastname": "REYES",
-    "firstname": "DIEGO",
+    "_id": 29753088,
+    "lastname": "CELOTTO",
+    "firstname": "PAMELA",
     "mobile": "1568736699"
 }
 // obtiene un chofer por dni de ZAP
-GET http://10.10.0.223:8090/zap/chofer/23250578
+GET http://190.221.146.245:8090/zap/chofer/23250578
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
+//insert un Camion en la base de datos
+POST http://190.221.146.245:8090/zap/camion
+Content-Type: application/json
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
+
+{
+    "_id": "NIS628",
+    "axis": 1,
+    "year": 2006
+}
+// obtiene un camion por patente de ZAP
+GET http://190.221.146.245:8090/zap/camion/NIS628
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
+//insert un Trailer en la base de datos
+POST http://190.221.146.245:8090/zap/playo
+Content-Type: application/json
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
+
+{
+    "_id": "ADE373",
+    "axis": 3,
+    "year": 1995
+}
+// obtiene un playo por patente de ZAP
+GET http://190.221.146.245:8090/zap/playo/ADE373
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
+//insert un TruckHistory en la base de datos
+POST http://190.221.146.245:8090/zap/historico
+Content-Type: application/json
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
+
+{
+    "_id": "NIS628",
+    "trailerId":  "SET847",
+    "driverId": 29753088
+}
+// obtiene un Historico de camion por patente de ZAP
+GET http://190.221.146.245:8090/zap/historico/ADE373
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
+
+//insert de Gate IN
+POST http://190.221.146.245:8080/gate
+Content-Type: application/json
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
+
+{ 
+    "mov": "IMPO", 
+    "tipo": "IN", 
+    "carga": "LL", 
+    "patenteCamion": "WWW333", 
+    "gateTimestamp":"2017-11-24T07:00:00.000Z"
+}
+
+//insert de Gate OUT
+POST http://190.221.146.245:8080/gate
+Content-Type: application/json
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
+
+{ 
+    "mov": "IMPO", 
+    "tipo": "OUT", 
+    "carga": "LL", 
+    "patenteCamion": "WWW333", 
+    "gateTimestamp":"2017-11-24T08:00:00.000Z"
+}
