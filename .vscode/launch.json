@@ -10,7 +10,16 @@
             "name": "Web Server API",
             "program": "${workspaceFolder}/mainWeb.js",
             "env": {
-                "NODE_ENV": "production"
+                "NODE_ENV": "development"
+            }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Ter Server API",
+            "program": "${workspaceFolder}/mainTer.js",
+            "env": {
+                "NODE_ENV": "development"
             }
         }
     ]
