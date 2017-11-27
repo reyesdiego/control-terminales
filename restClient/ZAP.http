@@ -86,7 +86,7 @@ token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVu
     "driverId": 29753088
 }
 // obtiene un Historico de camion por patente de ZAP
-GET http://190.221.146.245:8090/zap/historico/ADE373
+GET http://190.221.146.245:8090/zap/historico/camion/NIS628
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
 
 //insert de Gate IN
