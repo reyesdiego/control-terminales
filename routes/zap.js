@@ -63,6 +63,18 @@ module.exports = log => {
         }
     };
 
+    const getTruckHistory = async (req, res) => {
+
+        try {
+            const result = await truckHistory.getById(req.params.patente.toUpperCase())
+            res.status(200).send(result);
+        } catch (err) {
+            console.error(err);
+            res.status(500).send(err);
+        }
+
+    };
+
     const getTruckByPlate = async (req, res) => {
         try {
             const result = await truck.getById(req.params.patente);
@@ -135,20 +147,6 @@ module.exports = log => {
         }
     };
         
-    let getByHistoricoPatente = (req, res) => {
-        var param = {
-            patenteCamion: req.params.patente.toUpperCase(),
-            inicio: { $gte: moment(moment().format("YYYY-MM-DD")).toDate() }
-        };
-        appointment.getByPatente(param)
-            .then(data => {
-                res.status(200).send(data);
-            })
-            .catch(err => {
-                res.status(500).send(err);
-            });
-    };
-
     let getCnrtByPatente = (req, res) => {
 
         const dominio = req.params.patente.toUpperCase();
@@ -301,7 +299,7 @@ module.exports = log => {
     };
 
     router.post("/historico", addTruckHistory);
-    router.get("/historico/camion/:patente", getByHistoricoPatente);
+    router.get("/historico/camion/:patente", getTruckHistory);
 
     router.get("/turno/patente/:patente", getByPatente);
     router.get("/turno/contenedor/:contenedor", getByContenedor);
