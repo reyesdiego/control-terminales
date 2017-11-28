@@ -3,21 +3,20 @@
  */
 
 module.exports = (log, oracle) => {
-    'use strict';
+    "use strict";
 
-    var express = require('express'),
+    var express = require("express"),
         router = express.Router(),
-        util = require('util'),
-        moment = require('moment'),
-        config = require('../config/config.js');
+        util = require("util"),
+        config = require("../config/config.js");
 
-    var Price = require('../lib/price.js');
+    var Price = require("../lib/price.js");
 
     function getPrices(req, res) {
 
         var usr = req.usr,
             paramTerminal = req.params.terminal,
-            ter = (usr.role === 'agp') ? paramTerminal : usr.terminal,
+            ter = (usr.role === "agp") ? paramTerminal : usr.terminal,
             param = {};
 
         param.code = req.query.code;
@@ -29,8 +28,8 @@ module.exports = (log, oracle) => {
             .then(data => {
                 res.status(200).send(data);
             })
-        .catch(err => {
-                log.logger.error('Error: %s', err.message);
+            .catch(err => {
+                log.logger.error("Error: %s", err.message);
                 res.status(500).send(err);
             });
     }
@@ -38,7 +37,7 @@ module.exports = (log, oracle) => {
     function getPrice(req, res) {
         var usr = req.usr,
             paramTerminal = req.params.terminal,
-            ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
+            ter = (usr.role === "agp") ? paramTerminal : usr.terminal;
 
         let price = new Price(ter, oracle);
         price.getPrice(req.params.id)
@@ -46,7 +45,7 @@ module.exports = (log, oracle) => {
                 res.status(200).send(data);
             })
             .catch(err => {
-                log.logger.error('Error: %s', err.message);
+                log.logger.error("Error: %s", err.message);
                 res.status(500).send(err);
             });
     }
@@ -56,7 +55,7 @@ module.exports = (log, oracle) => {
         let price = new Price(oracle);
         price.getRates(function (err, data) {
             if (err) {
-                log.logger.error('Error: %s', err.message);
+                log.logger.error("Error: %s", err.message);
                 res.status(500).send(err);
             } else {
                 res.status(200).send(data);
@@ -64,10 +63,10 @@ module.exports = (log, oracle) => {
         });
     }
 
-    function getHeaders (req, res) {
+    function getHeaders(req, res) {
         var usr = req.usr,
             paramTerminal = req.params.terminal,
-            ter = (usr.role === 'agp') ? paramTerminal : usr.terminal,
+            ter = (usr.role === "agp") ? paramTerminal : usr.terminal,
             param = {};
 
         let price = new Price(ter, oracle);
@@ -77,7 +76,7 @@ module.exports = (log, oracle) => {
                 res.status(200).send(data);
             })
             .catch(err => {
-                log.logger.error('Error: %s', err.message);
+                log.logger.error("Error: %s", err.message);
                 res.status(500).send(err);
             });
     }
@@ -85,7 +84,7 @@ module.exports = (log, oracle) => {
     let getGroup = (req, res) => {
         var usr = req.usr,
             paramTerminal = req.params.terminal,
-            ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
+            ter = (usr.role === "agp") ? paramTerminal : usr.terminal;
 
         let price = new Price(ter, oracle);
 
@@ -94,7 +93,7 @@ module.exports = (log, oracle) => {
                 res.status(200).send(data);
             })
             .catch(err => {
-                log.logger.error('Error: %s', err.message);
+                log.logger.error("Error: %s", err.message);
                 res.status(500).send(err);
             });
     };
@@ -104,7 +103,7 @@ module.exports = (log, oracle) => {
 
         var params = req.body;
         var paramTerminal = usr.terminal,
-            ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
+            ter = (usr.role === "agp") ? paramTerminal : usr.terminal;
 
         let price = new Price(ter, oracle);
 
@@ -122,7 +121,7 @@ module.exports = (log, oracle) => {
 
         var params = req.body;
         var paramTerminal = usr.terminal,
-            ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
+            ter = (usr.role === "agp") ? paramTerminal : usr.terminal;
 
         let price = new Price(ter, oracle);
 
@@ -137,14 +136,14 @@ module.exports = (log, oracle) => {
 
     function getRates2(req, res) {
 
-        if (req.usr.terminal !== 'AGP') {
-            res.status(403).send({status: "ERROR", data: "No posee permisos para acceder a estos datos."});
+        if (req.usr.terminal !== "AGP") {
+            res.status(403).send({ status: "ERROR", data: "No posee permisos para acceder a estos datos." });
             return;
         }
         let price = new Price(oracle);
         price.rates(true, function (err, data) {
             if (err) {
-                res.status(500).send({status: "ERROR", message: err.message});
+                res.status(500).send({ status: "ERROR", message: err.message });
             } else {
                 res.status(200).send(data);
             }
@@ -156,11 +155,11 @@ module.exports = (log, oracle) => {
         var usr = req.usr;
         var moment = require("moment");
         var paramTerminal = usr.terminal,
-            ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
+            ter = (usr.role === "agp") ? paramTerminal : usr.terminal;
 
         try {
             if (req.body.topPrices === undefined || req.body.topPrices.length < 1) {
-                res.status(400).send({status: "ERROR", data: "Debe proveer un precio válido."});
+                res.status(400).send({ status: "ERROR", data: "Debe proveer un precio válido." });
                 return;
             }
             req.body.topPrices.forEach(item => {
@@ -170,7 +169,7 @@ module.exports = (log, oracle) => {
             var priceORA = new Price(ter, oracle);
             var priceMongo = new Price(ter);
 
-            if (req.method === 'POST') {
+            if (req.method === "POST") {
 
                 let param = {
                     terminal: req.body.terminal,
@@ -195,7 +194,7 @@ module.exports = (log, oracle) => {
                                 var priceNew = priceAdded.data;
                                 notificador.notificaAddPrice(notificaLogin.data.token, {
                                     date: moment().format("DD-MM-YYYY"),
-                                    description: `Código: ${priceNew.code} - Descripción: ${priceNew.description} - Precio: ${priceNew.topPrices[priceNew.topPrices.length-1].price} ${priceNew.topPrices[priceNew.topPrices.length-1].currency} - Terminal: ${priceAdded.data.terminal}`
+                                    description: `Código: ${priceNew.code} - Descripción: ${priceNew.description} - Precio: ${priceNew.topPrices[priceNew.topPrices.length - 1].price} ${priceNew.topPrices[priceNew.topPrices.length - 1].currency} - Terminal: ${priceAdded.data.terminal}`
                                 })
                                     .then(data => {
                                         log.logger.insert("Price INS Notificó");
@@ -210,7 +209,7 @@ module.exports = (log, oracle) => {
 
                         res.status(200).send(priceAdded);
                     })
-                    .catch(err =>  {
+                    .catch(err => {
                         log.logger.error("Price ORA INS:%s ", err.message);
                         res.status(500).send(err);
                     });
@@ -220,7 +219,7 @@ module.exports = (log, oracle) => {
                     .then(priceAdded => {
                         log.logger.insert("Price MongoDb INS:%s - %s", priceAdded.data._id, priceAdded.data.terminal);
                     })
-                    .catch(err =>  {
+                    .catch(err => {
                         log.logger.error("Price MongoDb INS %s", err.message);
                     });
 
@@ -254,9 +253,9 @@ module.exports = (log, oracle) => {
                                     .where("x=>x.new")
                                     .select(item => (item.code))
                                     .toArray()
-                                    .join('-');
+                                    .join("-");
 
-                                if (asocs !== '') {
+                                if (asocs !== "") {
                                     /** Envia al Notificador aviso de las nuevas Asociaciones en la Tarifa/Servicio*/
                                     var notificador = require("../include/notificador.js");
                                     notificador.login(config.notificador.user, config.notificador.password)
@@ -264,7 +263,7 @@ module.exports = (log, oracle) => {
                                             var priceUpd = priceUpdated.data;
                                             notificador.notificaAddPriceMatch(notificaLogin.data.token, {
                                                 date: moment().format("DD-MM-YYYY"),
-                                                description: `Código: ${priceUpd.code} - Descripción: ${priceUpd.description} - Precio: ${priceUpd.topPrices[priceUpd.topPrices.length-1].price} ${priceUpd.topPrices[priceUpd.topPrices.length-1].currency} - Asociaciones: ${asocs} - Terminal: ${priceUpd.terminal}`
+                                                description: `Código: ${priceUpd.code} - Descripción: ${priceUpd.description} - Precio: ${priceUpd.topPrices[priceUpd.topPrices.length - 1].price} ${priceUpd.topPrices[priceUpd.topPrices.length - 1].currency} - Asociaciones: ${asocs} - Terminal: ${priceUpd.terminal}`
                                             })
                                                 .then(data => {
                                                     log.logger.insert("Price INS Notificó");
@@ -280,14 +279,14 @@ module.exports = (log, oracle) => {
                                 res.status(200).send(priceUpdated);
                             })
                             .catch(err => {
-                                log.logger.error('Error Price ORA UPD: %s - %s', err.message, usr.terminal);
+                                log.logger.error("Error Price ORA UPD: %s - %s", err.message, usr.terminal);
                                 res.status(500).send(err);
                             });
 
                         /** Se hace la misma operacion de Update en Mongodb **/
                         price = price.data;
                         //Price MongoDB
-                        priceMongo.getPrices({code: price.code, terminal: ter})
+                        priceMongo.getPrices({ code: price.code, terminal: ter })
                             .then(prices => {
 
                                 prices = prices.data;
@@ -309,13 +308,14 @@ module.exports = (log, oracle) => {
                                             log.logger.update("Price UPD:%s - %s", data.data._id, usr.terminal);
                                         })
                                         .catch(err => {
-                                            log.logger.error('Error Price UPD: %s - %s', err.message, usr.terminal);
+                                            log.logger.error("Error Price UPD: %s - %s", err.message, usr.terminal);
                                         });
-                                }});
+                                }
+                            });
                     });
             }
         } catch (error) {
-            res.status(500).send({"status": "ERROR", "data": "Error en addPrice " + error.message});
+            res.status(500).send({ "status": "ERROR", "data": "Error en addPrice " + error.message });
         }
     }
 
@@ -323,12 +323,12 @@ module.exports = (log, oracle) => {
         var usr = req.usr;
 
         var paramTerminal = usr.terminal,
-            ter = (usr.role === 'agp') ? paramTerminal : usr.terminal;
+            ter = (usr.role === "agp") ? paramTerminal : usr.terminal;
 
         let priceORA = new Price(ter, oracle);
 
         priceORA.getPrice(req.params.id)
-        .then(price => {
+            .then(price => {
                 price = price.data;
                 priceORA.delete(price._id)
                     .then(data => {
@@ -340,8 +340,8 @@ module.exports = (log, oracle) => {
                     });
 
                 let priceMongo = new Price(ter);
-                priceMongo.getPrices({code: price.code, terminal: ter})
-                .then(prices => {
+                priceMongo.getPrices({ code: price.code, terminal: ter })
+                    .then(prices => {
                         prices = prices.data;
                         if (prices.length > 0) {
                             priceMongo.delete(prices[0]._id)
@@ -354,42 +354,42 @@ module.exports = (log, oracle) => {
                     });
 
             })
-        .catch(err => {
+            .catch(err => {
                 res.status(400).send(err);
             });
     }
 
-/*
-router.use(function timeLog(req, res, next){
-    log.logger.info('Time: %s', Date.now());
-    next();
-});
-*/
+    /*
+    router.use(function timeLog(req, res, next){
+        log.logger.info('Time: %s', Date.now());
+        next();
+    });
+    */
 
-    router.param('terminal', function (req, res, next, terminal) {
+    router.param("terminal", function (req, res, next, terminal) {
         var usr = req.usr;
 
-        if (usr.terminal !== 'AGP' && usr.terminal !== terminal) {
-            var errMsg = util.format('%s', 'La terminal recibida por parámetro es inválida para el token.');
+        if (usr.terminal !== "AGP" && usr.terminal !== terminal) {
+            var errMsg = util.format("%s", "La terminal recibida por parámetro es inválida para el token.");
             log.logger.error(errMsg);
-            res.status(403).send({status: 'ERROR', data: errMsg});
+            res.status(403).send({ status: "ERROR", data: errMsg });
         } else {
             next();
         }
     });
 
-    router.get('/:terminal', getPrices);
-    router.get('/headers/all', getHeaders);
-    router.post('/header/add', addHeader);
-    router.post('/group/add', addGroup);
-    router.get('/group/all/:tarifario_header_id', getGroup);
-    router.get('/:id/:terminal', getPrice);
-    router.get('/rates/1/codes', getRates);
-    router.get('/rates/1/all', getRates2);
-    router.post('/price', addPrice);
-    router.post('/header', addHeader);
-    router.put('/price/:id', addPrice);
-    router.delete('/price/:id', deletePrice);
+    router.get("/:terminal", getPrices);
+    router.get("/headers/all", getHeaders);
+    router.post("/header/add", addHeader);
+    router.post("/group/add", addGroup);
+    router.get("/group/all/:tarifario_header_id", getGroup);
+    router.get("/:id/:terminal", getPrice);
+    router.get("/rates/1/codes", getRates);
+    router.get("/rates/1/all", getRates2);
+    router.post("/price", addPrice);
+    router.post("/header", addHeader);
+    router.put("/price/:id", addPrice);
+    router.delete("/price/:id", deletePrice);
 
     return router;
 
