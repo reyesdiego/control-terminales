@@ -1,0 +1,7 @@
+
+//Obtiene el precio por price
+GET http://terminales.puertobuenosaires.gob.ar:8090/prices/27905/TRP
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRycF9zZXJ2aWNpb19hZ3BAdHJwLmNvbS5hciJ9.Li-IVe4B29QaW2L0GPsfXEwHeVR7thZ7r6VFKqAC4b8
+//Obtiene el precio por price
+GET http://10.10.0.223:8090/prices/27905/TRP
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRycF9zZXJ2aWNpb19hZ3BAdHJwLmNvbS5hciJ9.Li-IVe4B29QaW2L0GPsfXEwHeVR7thZ7r6VFKqAC4b8
