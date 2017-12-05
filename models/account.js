@@ -9,7 +9,6 @@ var mongoose = require("mongoose"),
     crypto = require("crypto"),
     jwt = require("jwt-simple");
 
-const jwttoken = require("jsonwebtoken");
 const tokenSecret = "put-a-$Ecr3t-h3re";
 
 var Token = new Schema({
@@ -186,7 +185,7 @@ Account.statics.login = function (username, password, cb) {
             };
             if (err) {
                 return cb(err, null);
-            } else if (user && user.terminal !== "ZAP") {
+            } else if (user) {
 
                 user.token = account.token;
 
@@ -196,11 +195,6 @@ Account.statics.login = function (username, password, cb) {
                     errMsg = "El usuario no ha validado su cuenta para ingresar el sistema. Verifique su cuenta de correo.";
                     return cb({ code: "ACC-0003", message: errMsg, data: user });
                 }
-            } if (user.terminal === "ZAP") {
-                jwttoken.sign({ email: account.email, password: password }, tokenSecret, { expiresIn: "1 day" }, (token) => {
-                    user.token = token;
-                    return cb(false, user);
-                });
             } else {
                 errMsg = "Usuario o Contraseña incorrectos";
                 return cb({ code: "ACC-0001", message: errMsg });
@@ -218,21 +212,21 @@ Account.statics.password = function (email, password, newPassword, cb) {
             $or: [{ email: email }, { user: email }],
             password: password
         },
-            {
-                $set: { password: newPassword }
-            },
-            null,
-            function (err, rowsAffected, user) {
-                if (err) {
-                    return cb(err, null);
+        {
+            $set: { password: newPassword }
+        },
+        null,
+        function (err, rowsAffected, user) {
+            if (err) {
+                return cb(err, null);
+            } else {
+                if (rowsAffected === 1) {
+                    return cb(null, "El cambio de Contraseña ha sido exitoso.");
                 } else {
-                    if (rowsAffected === 1) {
-                        return cb(null, "El cambio de Contraseña ha sido exitoso.");
-                    } else {
-                        return cb({ message: "Usuario o Contraseña incorrectos." });
-                    }
+                    return cb({ message: "Usuario o Contraseña incorrectos." });
                 }
-            });
+            }
+        });
     } else {
         var errMsg = "Usuario o Contraseña incorrectos.";
         console.log(errMsg);

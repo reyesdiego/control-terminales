@@ -114,7 +114,7 @@ module.exports = function (log, app, io, oracle, params) {
     app.use("/ob2", isValidToken, ob2);
 
     zap = require("./zap")(log);
-    app.use("/zap", isValidTokenZap, zap);
+    app.use("/zap", isValidToken, zap);
 
 
     /**_____________________________________________________________________*/
