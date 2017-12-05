@@ -58,7 +58,7 @@ module.exports = (log, oracle) => {
         }
 
         if (req.query.onlyTrains === '1') {
-            param.tren = {$exists: true};
+            param.tren = { $exists: true };
             if (req.query.tren) {
                 param.tren = req.query.tren;
             }
@@ -102,11 +102,96 @@ module.exports = (log, oracle) => {
 
     };
 
+    let getGatesInOrOut = async (req, res) => {
+
+        var usr = req.usr,
+            fecha,
+            param = {};
+
+        if (req.query.fechaInicio || req.query.fechaFin) {
+            param.gateTimestamp = {};
+            if (req.query.fechaInicio) {
+                fecha = moment(req.query.fechaInicio, ['YYYY-MM-DD HH:mm Z']).toDate();
+                param.gateTimestamp.$gte = fecha;
+                param.fechaInicio = fecha;
+            }
+            if (req.query.fechaFin) {
+                fecha = moment(req.query.fechaFin, ['YYYY-MM-DD HH:mm Z']).toDate();
+                param.gateTimestamp.$lt = fecha;
+                param.fechaFin = fecha;
+            }
+        }
+
+        if (req.query.contenedor) {
+            param.contenedor = req.query.contenedor;
+        }
+
+        if (req.query.buqueNombre) {
+            param.buque = req.query.buqueNombre;
+        }
+
+        if (req.query.viaje) {
+            param.viaje = req.query.viaje;
+        }
+
+        if (req.query.carga) {
+            param.carga = req.query.carga;
+        }
+
+        if (req.query.tren) {
+            param.tren = req.query.tren;
+        }
+
+        if (req.query.onlyTrains === '1') {
+            param.tren = { $exists: true };
+            if (req.query.tren) {
+                param.tren = req.query.tren;
+            }
+        }
+
+        if (req.query.patenteCamion) {
+            param.patenteCamion = req.query.patenteCamion;
+        }
+
+        if (req.query.ontime === '1') {
+            param.ontime = req.query.ontime;
+            param.$where = 'this.gateTimestamp>=this.turnoInicio && this.gateTimestamp<=this.turnoFin';
+        } else if (req.query.ontime === '0') {
+            param.ontime = req.query.ontime;
+            param.$where = 'this.gateTimestamp<this.turnoInicio || this.gateTimestamp>this.turnoFin';
+        }
+
+        if (req.query.size) {
+            param.size = req.query.size;
+        }
+
+        if (usr.role === 'agp') {
+            param.terminal = req.params.terminal;
+        } else {
+            param.terminal = usr.terminal;
+        }
+
+        param.limit = parseInt(req.params.limit, 10);
+        param.skip = parseInt(req.params.skip, 10);
+        param.order = req.query.order;
+
+        log.time("getGatesInOrOut");
+        try {
+            let data = await Gate.getGatesInOrOut(param);
+            data.time = log.timeEnd("getGatesInOrOut");
+            res.status(200).send(data);
+        } catch (err) {
+            err.time = log.timeEnd("getGatesInOrOut");
+            res.status(500).send(err);
+        }
+
+    };
+
     let getGatesByHour = (req, res) => {
 
         var seneca = require("seneca")();
 
-        seneca.client({port:config.microService.statisticOracle.port, host:config.microService.statisticOracle.host, timeout:60000});
+        seneca.client({ port: config.microService.statisticOracle.port, host: config.microService.statisticOracle.host, timeout: 60000 });
 
         var param = {
             role: "statistic",
@@ -146,7 +231,7 @@ module.exports = (log, oracle) => {
     let getGatesByHourMov = (req, res) => {
 
         var seneca = require("seneca")();
-        seneca.client({port:config.microService.statisticOracle.port, host:config.microService.statisticOracle.host, timeout:60000});
+        seneca.client({ port: config.microService.statisticOracle.port, host: config.microService.statisticOracle.host, timeout: 60000 });
 
         var param = {
             role: "statistic",
@@ -188,7 +273,7 @@ module.exports = (log, oracle) => {
     let getGatesByDay = (req, res) => {
 
         var seneca = require("seneca")();
-        seneca.client({port:config.microService.statisticOracle.port, host:config.microService.statisticOracle.host, timeout:60000});
+        seneca.client({ port: config.microService.statisticOracle.port, host: config.microService.statisticOracle.host, timeout: 60000 });
 
         var param = {
             role: "statistic",
@@ -228,7 +313,7 @@ module.exports = (log, oracle) => {
     let getGatesByMonth = (req, res) => {
 
         var seneca = require("seneca")();
-        seneca.client({port:config.microService.statisticOracle.port, host:config.microService.statisticOracle.host, timeout:60000});
+        seneca.client({ port: config.microService.statisticOracle.port, host: config.microService.statisticOracle.host, timeout: 60000 });
 
         var param = {
             role: "statistic",
@@ -295,7 +380,7 @@ module.exports = (log, oracle) => {
         }
 
         if (req.query.onlyTrains === '1') {
-            param.tren = {$exists: true};
+            param.tren = { $exists: true };
             if (req.query.tren) {
                 param.tren = req.query.tren;
             }
@@ -323,11 +408,11 @@ module.exports = (log, oracle) => {
 
         log.time("getByType");
         Gate.getByType(param)
-        .then(data => {
+            .then(data => {
                 log.timeEnd("getByType");
                 res.status(200).send(data);
             })
-        .catch(err => {
+            .catch(err => {
                 res.status(500).send(err);
             });
     };
@@ -357,7 +442,7 @@ module.exports = (log, oracle) => {
 
             log.time("getDistincts " + param.distinct);
             Gate.getDistinct(param)
-            .then(data => {
+                .then(data => {
                     res.status(200).send({
                         status: 'OK',
                         totalCount: data.length,
@@ -365,14 +450,15 @@ module.exports = (log, oracle) => {
                         data: data.sort()
                     });
                 })
-            .catch(err => {
+                .catch(err => {
                     res.status(500).send({
                         status: 'ERROR',
                         time: log.timeEnd("getDistincts" + req.route.path),
-                        data: err.message});
+                        data: err.message
+                    });
                 });
         } else {
-            res.status(400).send({status: 'ERROR', message: 'El ruta es inválida', data: []});
+            res.status(400).send({ status: 'ERROR', message: 'El ruta es inválida', data: [] });
         }
     };
 
@@ -417,12 +503,12 @@ module.exports = (log, oracle) => {
 
         log.time("getMissingGates");
         Gate.getMissingGates(param)
-        .then(data => {
+            .then(data => {
                 data.time = log.timeEnd("getMissingGates");
                 res.status(200).send(data);
                 res.flush();
             })
-        .catch(err => {
+            .catch(err => {
                 err.time = log.timeEnd("getMissingGates");
                 res.status(500).send(err);
             });
@@ -543,12 +629,12 @@ module.exports = (log, oracle) => {
 
         log.time("getMissingGates");
         Gate.getMissingInvoices(param)
-        .then(data => {
+            .then(data => {
                 data.time = log.timeEnd("getMissingGates");
                 res.status(200).send(data);
                 res.flush();
             })
-        .catch(err => {
+            .catch(err => {
                 err.time = log.timeEnd("getMissingGates");
                 res.status(500).send(err);
             });
@@ -581,7 +667,7 @@ module.exports = (log, oracle) => {
             }
         }
 
-        Gate.find(param, {contenedor: 1, gateTimestamp: 1, _id: 0}, function (err, gates) {
+        Gate.find(param, { contenedor: 1, gateTimestamp: 1, _id: 0 }, function (err, gates) {
             if (err) {
                 res._status(500).send({
                     status: "ERROR",
@@ -589,7 +675,7 @@ module.exports = (log, oracle) => {
                 });
             } else {
                 delete param.gateTimestamp;
-                Appointment.distinct('contenedor', param,  function (err, appointmens) {
+                Appointment.distinct('contenedor', param, function (err, appointmens) {
                     var result;
                     if (err) {
                         res._status(500).send({
@@ -613,12 +699,12 @@ module.exports = (log, oracle) => {
         });
     };
 
-/*
-router.use(function timeLog(req, res, next){
-    log.logger.info('Time: %s', Date.now());
-    next();
-});
-*/
+    /*
+    router.use(function timeLog(req, res, next){
+        log.logger.info('Time: %s', Date.now());
+        next();
+    });
+    */
 
     router.param('terminal', function (req, res, next, terminal) {
         var usr = req.usr;
@@ -626,13 +712,14 @@ router.use(function timeLog(req, res, next){
         if (usr.terminal !== 'AGP' && usr.terminal !== terminal) {
             var errMsg = util.format('%s', 'La terminal recibida por parámetro es inválida para el token.');
             log.logger.error(errMsg);
-            res.status(403).send({status: 'ERROR', data: errMsg});
+            res.status(403).send({ status: 'ERROR', data: errMsg });
         } else {
             next();
         }
     });
 
     router.get('/:terminal/:skip/:limit', getGates);
+    router.get('/IN/:terminal/:skip/:limit', getGatesInOrOut);
     router.get('/ByHour', getGatesByHour);
     router.get('/:terminal/ByHourMov', getGatesByHourMov);
     router.get('/ByDay', getGatesByDay);
