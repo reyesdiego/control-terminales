@@ -8,7 +8,7 @@
  
 const mongoose = require("mongoose");
 const truckHistory = new mongoose.Schema({
-    _id: {type: String, ref: "trucks"},
+    _id: {type: String, ref: "truck"},
     trailerId: {type: String, ref: "trailer"},
     driverId: {type: Number, ref: "driver"},
     trailers: [{type: String, ref: "trailer"}],
