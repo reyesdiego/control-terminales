@@ -8,6 +8,14 @@ Content-Type: application/json
     "password": "123456"
 }
 
+POST http://10.10.0.223:8090/login
+Content-Type: application/json
+
+{
+    "email": "dreyes@puertobuenosaires.gob.ar",
+    "password": "123456"
+}
+
 // turno activo para un camion
 GET http://190.221.146.245:8090/zap/turno/patente/AS987FF
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
@@ -86,11 +94,10 @@ token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVu
     "driverId": 29753088
 }
 // obtiene un Historico de camion por patente de ZAP
-GET http://190.221.146.245:8090/zap/historico/camion/NIS628
+GET http://10.10.0.223:8090/zap/historico/camion/NIS628
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
-
 //insert de Gate IN
-POST http://190.221.146.245:8080/gate
+POST http://10.10.0.223:8080/gate
 Content-Type: application/json
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
 
@@ -99,11 +106,10 @@ token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVu
     "tipo": "IN", 
     "carga": "LL", 
     "patenteCamion": "WWW333", 
-    "gateTimestamp":"2017-11-24T07:00:00.000Z"
+    "gateTimestamp":"2017-11-29T07:00:00.000Z"
 }
-
 //insert de Gate OUT
-POST http://190.221.146.245:8080/gate
+POST http://10.10.0.223:8080/gate
 Content-Type: application/json
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
 
@@ -112,5 +118,9 @@ token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVu
     "tipo": "OUT", 
     "carga": "LL", 
     "patenteCamion": "WWW333", 
-    "gateTimestamp":"2017-11-24T08:00:00.000Z"
+    "gateTimestamp":"2017-11-29T08:00:00.000Z"
 }
+//get Gates of the day
+GET http://10.10.0.223:8090/gates/IN/ZAP/0/10000
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
+

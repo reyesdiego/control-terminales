@@ -1,0 +1,2 @@
+GET http://10.10.0.223:8090/invoices/invoice/35196138
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNvcG9ydGVfY3RzQGJhY3Rzc2EuY29tLmFyIn0.bBSqdwesWimlT8rFGA7sKLKbPdxauY8HdrTTt7BLpBU
