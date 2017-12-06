@@ -333,38 +333,41 @@ module.exports = (log, app, passport) => {
      * @param {Object} req the request object
      * @param {Object} res the response object
      */
-    app.post("/login", function (req, res) {
+    app.post("/login", async (req, res) => {
 
         var json = req.body,
-            errMsg = "";
+            errMsg = "",
+            result;
 
         if (json.email !== undefined) {
-            Account.login(json.email, json.password, (err, usersToken) => {
-                if (err) {
-                    errMsg = err.message;
-                    log.logger.error(errMsg);
-                    res.status(403).json({ status: "ERROR", code: err.code, message: err.message, data: err.data });
+            try {
+                result = await Account.login(json.email, json.password);
+                /**
+                 * status es la propiedad del user si está o no activado
+                */
+                if (result.status) {
+                    res.status(200).send({
+                        status: "OK",
+                        data: result
+                    });
                 } else {
-                    if (usersToken.status) {
-                        res.status(200).json({
-                            status: "OK",
-                            data: usersToken
-                        });
-                    } else {
-                        errMsg = util.format("El usuario %s no se encuentra habilitado para utilizar el sistema. Debe contactar al administrador.", usersToken.email);
-                        res.status(403).json({
-                            status: "ERROR",
-                            code: "ACC-0004",
-                            message: errMsg,
-                            data: errMsg
-                        });
-                    }
+                    errMsg = `El usuario ${usersToken.email} no se encuentra habilitado para utilizar el sistema. Debe contactar al administrador.`;
+                    res.status(403).send({
+                        status: "ERROR",
+                        code: "ACC-0004",
+                        message: errMsg,
+                        data: errMsg
+                    });
                 }
-            });
+            } catch (err) {
+                errMsg = err.message;
+                log.logger.error(errMsg);
+                res.status(403).json({ status: "ERROR", code: err.code, message: err.message, data: err.data });
+            }
         } else {
-            errMsg = util.format("Debe proveerse un usuario o email");
+            errMsg = "Debe proveerse un usuario o email";
             log.logger.error(errMsg);
-            res.status(400).json({ status: "ERROR", data: errMsg });
+            res.status(400).send({ status: "ERROR", data: errMsg });
         }
     });
 

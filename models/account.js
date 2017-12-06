@@ -10,6 +10,7 @@ var mongoose = require("mongoose"),
     jwt = require("jwt-simple");
 
 const tokenSecret = "put-a-$Ecr3t-h3re";
+const self = this;
 
 var Token = new Schema({
     token: { type: String },
@@ -159,51 +160,56 @@ Account.statics.verifyTokenZap = function (incomingToken, cb) {
     }
 };
 
-Account.statics.login = function (username, password, cb) {
-    var errMsg = "",
-        user;
-    if (username !== undefined && username !== "" && password !== undefined && password !== "") {
-        this.findOne({
-            $or: [{ email: username }, { user: username }],
-            password: password
-        },
-        (err, account) => {
-            let user = {
-                _id: account._id,
-                acceso: account.acceso,
-                role: account.role,
-                email: account.email,
-                user: account.user,
-                group: account.group,
-                terminal: account.terminal,
-                date_created: account.date_created,
-                full_name: account.full_name,
-                emailToApp: account.emailToApp,
-                status: account.status,
-                salt: account.salt,
-                token: ""
-            };
-            if (err) {
-                return cb(err, null);
-            } else if (user) {
+Account.statics.login = function (username, password) {
+    return new Promise((resolve, reject) => {
+        var errMsg = "";
+        if (username !== undefined && username !== "" && password !== undefined && password !== "") {
+            this.findOne({
+                $or: [{ email: username }, { user: username }]
+            },
+            (err, account) => {
+                let user = {};
+                if (err) {
+                    return reject(err);
+                } else if (account) {
 
-                user.token = account.token;
-
-                if (user.token !== undefined) {
-                    return cb(false, user);
+                    if (account.password === password) {
+                        user = {
+                            _id: account._id,
+                            acceso: account.acceso,
+                            role: account.role,
+                            email: account.email,
+                            user: account.user,
+                            group: account.group,
+                            terminal: account.terminal,
+                            date_created: account.date_created,
+                            full_name: account.full_name,
+                            emailToApp: account.emailToApp,
+                            status: account.status,
+                            salt: account.salt,
+                            token: account.token
+                        };
+        
+                        if (user.token !== undefined) {
+                            return resolve(user);
+                        } else {
+                            errMsg = "El usuario no ha validado su cuenta para ingresar el sistema. Verifique su cuenta de correo.";
+                            return reject({ code: "ACC-0003", message: errMsg, data: user });
+                        }
+                    } else {
+                        errMsg = "La Clave ingresada es incorrecta.";
+                        return reject({ code: "ACC-0001", message: errMsg });
+                    }
                 } else {
-                    errMsg = "El usuario no ha validado su cuenta para ingresar el sistema. Verifique su cuenta de correo.";
-                    return cb({ code: "ACC-0003", message: errMsg, data: user });
+                    errMsg = "El Usuario no existe en el Sistema.";
+                    return reject({ code: "ACC-0001", message: errMsg });
                 }
-            } else {
-                errMsg = "Usuario o Contraseña incorrectos";
-                return cb({ code: "ACC-0001", message: errMsg });
-            }
-        });
-    } else {
-        errMsg = "Usuario y/o Contraseña no pueden ser vacios";
-        return cb({ code: "ACC-0002", message: errMsg });
-    }
+            });
+        } else {
+            errMsg = "Usuario y/o Contraseña no pueden ser vacios";
+            return reject({ code: "ACC-0002", message: errMsg });
+        }
+    });
 };
 
 Account.statics.password = function (email, password, newPassword, cb) {
@@ -212,21 +218,21 @@ Account.statics.password = function (email, password, newPassword, cb) {
             $or: [{ email: email }, { user: email }],
             password: password
         },
-        {
-            $set: { password: newPassword }
-        },
-        null,
-        function (err, rowsAffected, user) {
-            if (err) {
-                return cb(err, null);
-            } else {
-                if (rowsAffected === 1) {
-                    return cb(null, "El cambio de Contraseña ha sido exitoso.");
+            {
+                $set: { password: newPassword }
+            },
+            null,
+            function (err, rowsAffected, user) {
+                if (err) {
+                    return cb(err, null);
                 } else {
-                    return cb({ message: "Usuario o Contraseña incorrectos." });
+                    if (rowsAffected === 1) {
+                        return cb(null, "El cambio de Contraseña ha sido exitoso.");
+                    } else {
+                        return cb({ message: "Usuario o Contraseña incorrectos." });
+                    }
                 }
-            }
-        });
+            });
     } else {
         var errMsg = "Usuario o Contraseña incorrectos.";
         console.log(errMsg);
