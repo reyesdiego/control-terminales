@@ -3,27 +3,26 @@
  *
  * @module Routes
  */
-module.exports = function (log, io, oracle) {
-    'use strict';
+module.exports = function(log, io, oracle) {
+    "use strict";
 
-    var express = require('express'),
+    var express = require("express"),
         router = express.Router(),
-        util = require('util'),
-        moment = require('moment'),
-        config = require('../config/config.js'),
-        Invoice = require('../models/invoice.js');
+        util = require("util"),
+        moment = require("moment"),
+        config = require("../config/config.js"),
+        Invoice = require("../models/invoice.js");
 
-    var Invoice2 = require('../lib/invoice2.js');
+    var Invoice2 = require("../lib/invoice2.js");
     Invoice2 = new Invoice2(oracle);
 
     //GET - Return all invoice in the DB
     let getInvoices = (req, res) => {
-
         var usr = req.usr,
             paramTerminal = req.params.terminal,
             limit = parseInt(req.params.limit, 10),
             skip = parseInt(req.params.skip, 10),
-            ter = (usr.role === 'agp') ? paramTerminal : usr.terminal,
+            ter = usr.role === "agp" ? paramTerminal : usr.terminal,
             param = {};
 
         param.fechaInicio = req.query.fechaInicio;
@@ -52,7 +51,9 @@ module.exports = function (log, io, oracle) {
             log.time("getInvoices");
             Invoice2.getInvoices(param, (err, result) => {
                 if (err) {
-                    res.status(500).send({status: "ERROR", data: err.message});
+                    res
+                        .status(500)
+                        .send({ status: "ERROR", data: err.message });
                 } else {
                     result.time = log.timeEnd("getInvoices");
                     res.status(200).send(result);
@@ -60,12 +61,15 @@ module.exports = function (log, io, oracle) {
             });
         } else {
             Invoice2.getInvoicesCSV(param)
-            .then(data => {
-                    res.header('content-type', 'text/csv');
-                    res.header('content-disposition', 'attachment; filename=report.csv');
+                .then(data => {
+                    res.header("content-type", "text/csv");
+                    res.header(
+                        "content-disposition",
+                        "attachment; filename=report.csv"
+                    );
                     res.status(200).send(data.data);
-            })
-            .catch(err => {
+                })
+                .catch(err => {
                     res.status(500).send(err);
                 });
         }
@@ -77,7 +81,7 @@ module.exports = function (log, io, oracle) {
                 _id: req.params.id
             };
 
-        if (usr.role !== 'agp') {
+        if (usr.role !== "agp") {
             param.terminal = usr.terminal;
         }
 
@@ -91,7 +95,7 @@ module.exports = function (log, io, oracle) {
             });
     }
 
-    function getClients (req, res) {
+    function getClients(req, res) {
         var param = {
             terminal: req.params.terminal
         };
@@ -106,7 +110,7 @@ module.exports = function (log, io, oracle) {
             });
     }
 
-    function getContainers (req, res) {
+    function getContainers(req, res) {
         var param = {
             terminal: req.params.terminal
         };
@@ -122,13 +126,11 @@ module.exports = function (log, io, oracle) {
     }
 
     function getCounts(req, res) {
-
         var param = {};
 
         param.fecha = req.query.fecha;
 
-        Invoice2.getCounts(param, function (err, data) {
-
+        Invoice2.getCounts(param, function(err, data) {
             if (err) {
                 log.logger.error(err);
                 res.status(500).send(err);
@@ -139,9 +141,11 @@ module.exports = function (log, io, oracle) {
     }
 
     let getCountByDate = (req, res) => {
-
         var seneca = require("seneca")();
-        seneca.client(config.microService.statisticOracle.port, config.microService.statisticOracle.host);
+        seneca.client(
+            config.microService.statisticOracle.port,
+            config.microService.statisticOracle.host
+        );
 
         var param = {
             role: "statistic",
@@ -162,9 +166,11 @@ module.exports = function (log, io, oracle) {
     };
 
     let getCountByMonth = (req, res) => {
-
         var seneca = require("seneca")();
-        seneca.client(config.microService.statisticOracle.port, config.microService.statisticOracle.host);
+        seneca.client(
+            config.microService.statisticOracle.port,
+            config.microService.statisticOracle.host
+        );
 
         var param = {
             role: "statistic",
@@ -189,7 +195,7 @@ module.exports = function (log, io, oracle) {
         var terminal = req.params.terminal;
         var lastHours = req.query.lastHours;
 
-        var Invoice3 = require('../lib/invoice2.js');
+        var Invoice3 = require("../lib/invoice2.js");
         Invoice3 = new Invoice3();
 
         Invoice3.getLastInsert(terminal, lastHours)
@@ -202,13 +208,11 @@ module.exports = function (log, io, oracle) {
     };
 
     function getNoRates(req, res) {
-
         var terminal = req.params.terminal,
-            Invoice = require('../lib/invoice2.js'),
+            Invoice = require("../lib/invoice2.js"),
             invoice,
             fecha,
             param = {};
-
 
         param.skip = parseInt(req.params.skip, 10);
         param.limit = parseInt(req.params.limit, 10);
@@ -216,11 +220,15 @@ module.exports = function (log, io, oracle) {
 
         if (req.query.fechaInicio || req.query.fechaFin) {
             if (req.query.fechaInicio) {
-                fecha = moment(moment(req.query.fechaInicio, 'YYYY-MM-DD')).toDate();
+                fecha = moment(
+                    moment(req.query.fechaInicio, "YYYY-MM-DD")
+                ).toDate();
                 param.fechaInicio = fecha;
             }
             if (req.query.fechaFin) {
-                fecha = moment(moment(req.query.fechaFin, 'YYYY-MM-DD')).toDate();
+                fecha = moment(
+                    moment(req.query.fechaFin, "YYYY-MM-DD")
+                ).toDate();
                 param.fechaFin = fecha;
             }
         }
@@ -233,80 +241,93 @@ module.exports = function (log, io, oracle) {
         }
         invoice = new Invoice();
 
-        invoice.getNoRates(param, function (err, invoices) {
+        invoice.getNoRates(param, function(err, invoices) {
             if (err) {
                 res.status(500).send(err);
             } else {
                 res.status(200).send(invoices);
             }
         });
-
     }
 
     function getRatesTotal(req, res) {
-
-        var today = moment(moment().format('YYYY-MM-DD')).toDate(),
-            tomorrow = moment(moment().format('YYYY-MM-DD')).add(1, 'days').toDate(),
+        var today = moment(moment().format("YYYY-MM-DD")).toDate(),
+            tomorrow = moment(moment().format("YYYY-MM-DD"))
+                .add(1, "days")
+                .toDate(),
             _price,
             _rates,
             sum = {},
             jsonParam;
 
         if (req.query.fecha !== undefined) {
-            today = moment(req.query.fecha, 'YYYY-MM-DD').toDate();
-            tomorrow = moment(req.query.fecha, 'YYYY-MM-DD').add(1, 'days').toDate();
+            today = moment(req.query.fecha, "YYYY-MM-DD").toDate();
+            tomorrow = moment(req.query.fecha, "YYYY-MM-DD")
+                .add(1, "days")
+                .toDate();
         }
 
-        _price = require('../include/price.js');
+        _price = require("../include/price.js");
         _rates = new _price.price();
-        _rates.rates(function (err, rates) {
-
-            if (req.params.currency === 'PES') {
-                sum = { $cond: [
-                    {$eq: ['$codMoneda', 'PES' ]},
-                    '$detalle.items.impTot',
-                    {$multiply: ['$detalle.items.impTot', '$cotiMoneda'] }
-                ]};
-            } else if (req.params.currency === 'DOL') {
-                sum = { $cond: [
-                    {$eq: ['$codMoneda', 'DOL' ]},
-                    '$detalle.items.impTot',
-                    {$divide: ['$detalle.items.impTot', '$cotiMoneda'] }
-                ]};
+        _rates.rates(function(err, rates) {
+            if (req.params.currency === "PES") {
+                sum = {
+                    $cond: [
+                        { $eq: ["$codMoneda", "PES"] },
+                        "$detalle.items.impTot",
+                        { $multiply: ["$detalle.items.impTot", "$cotiMoneda"] }
+                    ]
+                };
+            } else if (req.params.currency === "DOL") {
+                sum = {
+                    $cond: [
+                        { $eq: ["$codMoneda", "DOL"] },
+                        "$detalle.items.impTot",
+                        { $divide: ["$detalle.items.impTot", "$cotiMoneda"] }
+                    ]
+                };
             }
 
             jsonParam = [
-                {$match : {'fecha.emision': {$gte: today, $lt: tomorrow}}},
-                {$unwind : '$detalle'},
-                {$unwind : '$detalle.items'},
-                {$match : {'detalle.items.id' : {$in: rates}}},
-                {$project : {terminal: 1, 'detalle.items': 1, "total" : sum }},
-                {$group  : {
-                    _id: { terminal: '$terminal'},
-                    cnt: { $sum: 1},
-                    total: {$sum: '$total'}
-                }}
+                { $match: { "fecha.emision": { $gte: today, $lt: tomorrow } } },
+                { $unwind: "$detalle" },
+                { $unwind: "$detalle.items" },
+                { $match: { "detalle.items.id": { $in: rates } } },
+                { $project: { terminal: 1, "detalle.items": 1, total: sum } },
+                {
+                    $group: {
+                        _id: { terminal: "$terminal" },
+                        cnt: { $sum: 1 },
+                        total: { $sum: "$total" }
+                    }
+                }
             ];
-            Invoice.aggregate(jsonParam, function (err, data) {
+            Invoice.aggregate(jsonParam, function(err, data) {
                 if (err) {
-                    res.status(500).send({status: 'ERROR', data: err.message });
+                    res
+                        .status(500)
+                        .send({ status: "ERROR", data: err.message });
                 } else {
-                    res.status(200)
-                        .send({
-                            status: 'OK',
-                            data: data
-                        });
+                    res.status(200).send({
+                        status: "OK",
+                        data: data
+                    });
                 }
             });
         });
     }
 
     function getRatesLiquidacion(req, res) {
-
         var param;
 
-        if (req.query.fechaInicio === undefined || req.query.fechaFin === undefined) {
-            res.status(401).send({status: "ERROR", message: "Debe proveer parametros de fecha"});
+        if (
+            req.query.fechaInicio === undefined ||
+            req.query.fechaFin === undefined
+        ) {
+            res.status(401).send({
+                status: "ERROR",
+                message: "Debe proveer parametros de fecha"
+            });
         } else {
             param = {
                 fechaInicio: req.query.fechaInicio,
@@ -325,8 +346,7 @@ module.exports = function (log, io, oracle) {
                 viaje: req.query.viaje,
                 code: req.query.code,
                 iso3Forma: req.query.iso3Forma
-
-        };
+            };
 
             log.time("getRatesByTerminal");
             Invoice2.getRatesByTerminal(param)
@@ -338,21 +358,27 @@ module.exports = function (log, io, oracle) {
                     res.status(500).send(err);
                 });
         }
-
     }
 
     let getRatesPeriod = (req, res) => {
-
         var param;
 
-        if (req.query.fechaInicio === undefined || req.query.fechaFin === undefined) {
-            res.status(401).send({status: "ERROR", message: "Debe proveer parametros de fecha"});
+        if (
+            req.query.fechaInicio === undefined ||
+            req.query.fechaFin === undefined
+        ) {
+            res.status(401).send({
+                status: "ERROR",
+                message: "Debe proveer parametros de fecha"
+            });
         } else {
             let path = req.route.path;
             param = {
                 fechaInicio: req.query.fechaInicio,
                 fechaFin: req.query.fechaFin,
-                period: path.substr(path.lastIndexOf('/')+1, path.length).toLowerCase(),
+                period: path
+                    .substr(path.lastIndexOf("/") + 1, path.length)
+                    .toLowerCase(),
                 tasaAgp: req.query.tasaAgp
             };
 
@@ -373,7 +399,7 @@ module.exports = function (log, io, oracle) {
         var usr = req.usr;
         var paramTerminal = req.params.terminal;
 
-        params.terminal = (usr.role === 'agp') ? paramTerminal : usr.terminal;
+        params.terminal = usr.role === "agp" ? paramTerminal : usr.terminal;
 
         //params.currency = req.params.currency;
         params.contenedor = req.params.container;
@@ -382,18 +408,17 @@ module.exports = function (log, io, oracle) {
 
         log.time("getRatesByContainer");
         Invoice2.getRatesByContainer(params)
-        .then(data => {
+            .then(data => {
                 log.timeEnd("getRatesByContainer");
                 res.status(200).send(data);
             })
-        .catch(err => {
+            .catch(err => {
                 res.status(500).send(err);
             });
     }
 
     function getNoMatches(req, res) {
-
-        var param ={
+        var param = {
             terminal: req.params.terminal,
             skip: parseInt(req.params.skip, 10),
             limit: parseInt(req.params.limit, 10),
@@ -404,10 +429,10 @@ module.exports = function (log, io, oracle) {
             code: req.query.code
         };
 
-        log.time('invoice - getNoMatches');
+        log.time("invoice - getNoMatches");
         Invoice2.getNoMatches(param)
             .then(data => {
-                log.timeEnd('invoice - getNoMatches');
+                log.timeEnd("invoice - getNoMatches");
                 res.status(200).send(data);
             })
             .catch(err => {
@@ -421,12 +446,15 @@ module.exports = function (log, io, oracle) {
 
         if (req.query.codTipoComprob === undefined) {
             log.logger.error("El Tipo de Comprobante no ha sido enviado");
-            res.status(403).send({status: "ERROR", data: "El Tipo de Comprobante no ha sido enviado" });
+            res.status(403).send({
+                status: "ERROR",
+                data: "El Tipo de Comprobante no ha sido enviado"
+            });
         }
 
         var param = {};
 
-        if (usr.role === 'agp') {
+        if (usr.role === "agp") {
             param.terminal = req.params.terminal;
         } else {
             param.terminal = usr.terminal;
@@ -434,13 +462,13 @@ module.exports = function (log, io, oracle) {
 
         if (req.query.fechaInicio || req.query.fechaFin) {
             if (req.query.fechaInicio) {
-                fecha = moment(req.query.fechaInicio, 'YYYY-MM-DD').toDate();
+                fecha = moment(req.query.fechaInicio, "YYYY-MM-DD").toDate();
                 param.fechaInicio = fecha;
             } else {
-                param.fechaInicio = moment("2000-01-01", 'YYYY-MM-DD').toDate();
+                param.fechaInicio = moment("2000-01-01", "YYYY-MM-DD").toDate();
             }
             if (req.query.fechaFin) {
-                fecha = moment(req.query.fechaFin, 'YYYY-MM-DD').toDate();
+                fecha = moment(req.query.fechaFin, "YYYY-MM-DD").toDate();
                 param.fechaFin = fecha;
             }
         }
@@ -452,25 +480,27 @@ module.exports = function (log, io, oracle) {
         Invoice2.getCorrelative(param)
             .then(data => {
                 let result = {
-                    status: 'OK',
+                    status: "OK",
                     totalCount: data.totalCount,
                     data: data.data,
-                    time: log.timeEnd(`getCorrelative Pto Venta ${req.query.codTipoComprob}`)
+                    time: log.timeEnd(
+                        `getCorrelative Pto Venta ${req.query.codTipoComprob}`
+                    )
                 };
-                io.sockets.emit('correlative_'+req.query.x, result);
+                io.sockets.emit("correlative_" + req.query.x, result);
                 res.status(200).send(data);
             })
             .catch(err => {
                 log.logger.error("%s", err.message);
                 res.status(500).send(err);
             });
-
     }
 
     function getCashbox(req, res) {
         var param = {};
 
-        param.terminal = (req.usr.role === 'agp') ? req.params.terminal : req.usr.terminal;
+        param.terminal =
+            req.usr.role === "agp" ? req.params.terminal : req.usr.terminal;
         param.fechaInicio = req.query.fechaInicio;
         param.fechaFin = req.query.fechaFin;
         param.nroPtoVenta = req.query.nroPtoVenta;
@@ -487,31 +517,33 @@ module.exports = function (log, io, oracle) {
 
         Invoice2.getCashbox(param)
             .then(data => {
-                res.status(200).send({status: 'OK', data: data.sort()});
+                res.status(200).send({ status: "OK", data: data.sort() });
             })
             .catch(err => {
-                res.status(500).send({status: 'ERROR', data: err.message});
+                res.status(500).send({ status: "ERROR", data: err.message });
             });
     }
 
-    function updateInvoice (req, res) {
-
+    function updateInvoice(req, res) {
         var usr = req.usr,
             errMsg;
 
-        var param = {_id: req.params._id, terminal: req.params.terminal};
-        Invoice.findOneAndUpdate(param, { $set: req.body}, null, function (err, data) {
-            if  (err) {
+        var param = { _id: req.params._id, terminal: req.params.terminal };
+        Invoice.findOneAndUpdate(param, { $set: req.body }, null, function(
+            err,
+            data
+        ) {
+            if (err) {
                 errMsg = util.format("%s", err.error);
                 log.logger.error(errMsg);
-                res.status(500).send({status: "ERROR", message: errMsg});
+                res.status(500).send({ status: "ERROR", message: errMsg });
             } else {
-                res.status(200).send({"status": "OK", "data": data});
+                res.status(200).send({ status: "OK", data: data });
             }
         });
     }
 
-    function addState (req, res) {
+    function addState(req, res) {
         var usr = req.usr;
 
         var param = {
@@ -520,9 +552,9 @@ module.exports = function (log, io, oracle) {
             invoiceId: req.params._id,
             estado: req.body.estado
         };
-        Invoice2.addState(param).
-            then(data => {
-                res.status(200).send({status:'OK', data: data});
+        Invoice2.addState(param)
+            .then(data => {
+                res.status(200).send({ status: "OK", data: data });
             })
             .catch(err => {
                 log.logger.error("INVOICE SET STATE %s", err.message);
@@ -530,31 +562,35 @@ module.exports = function (log, io, oracle) {
             });
     }
 
-    function removeInvoices ( req, res) {
-
-        Invoice.remove({_id: req.params._id}, function (err) {
-            if (!err){
-                log.logger.info('Invoice Removed %s', req.params._id);
-                res.status(200).send({status:'OK', data: "OK"});
+    function removeInvoices(req, res) {
+        Invoice.remove({ _id: req.params._id }, function(err) {
+            if (!err) {
+                log.logger.info("Invoice Removed %s", req.params._id);
+                res.status(200).send({ status: "OK", data: "OK" });
             } else {
-                res.status(500).send({status:'ERROR', data: "Error al intentar eliminar"});
+                res.status(500).send({
+                    status: "ERROR",
+                    data: "Error al intentar eliminar"
+                });
             }
         });
-
     }
 
     /** Seneca */
     let getInvoicesByRates = (req, res) => {
-
-        var seneca = require("seneca")({timeout: config.microService.statisticOracle.timeout});
-        seneca.client(config.microService.statisticOracle.port, config.microService.statisticOracle.host);
+        var seneca = require("seneca")({
+            timeout: config.microService.statisticOracle.timeout
+        });
+        seneca.client(
+            config.microService.statisticOracle.port,
+            config.microService.statisticOracle.host
+        );
 
         var param = {
-            role: 'statistic',
-            entity: 'invoice',
-            cmd: 'getByRates'
+            role: "statistic",
+            entity: "invoice",
+            cmd: "getByRates"
         };
-
 
         console.log(req.body);
 
@@ -563,7 +599,6 @@ module.exports = function (log, io, oracle) {
         param.fechaFin = req.query.fechaFin;
 
         console.log("query%s", JSON.stringify(req.query));
-
 
         seneca.act(param, (err, data) => {
             if (err) {
@@ -580,14 +615,18 @@ module.exports = function (log, io, oracle) {
 
     /** Seneca */
     let getInvoicesByRatesPivot = (req, res) => {
-
-        var seneca = require("seneca")({timeout: config.microService.statisticOracle.timeout});
-        seneca.client({port: config.microService.statisticOracle.port, host: config.microService.statisticOracle.host} );
+        var seneca = require("seneca")({
+            timeout: config.microService.statisticOracle.timeout
+        });
+        seneca.client({
+            port: config.microService.statisticOracle.port,
+            host: config.microService.statisticOracle.host
+        });
 
         var param = {
-            role: 'statistic',
-            entity: 'invoice',
-            cmd: 'getByRatesPivot'
+            role: "statistic",
+            entity: "invoice",
+            cmd: "getByRatesPivot"
         };
         param.rates = req.body;
         param.fechaInicio = req.query.fechaInicio;
@@ -608,14 +647,17 @@ module.exports = function (log, io, oracle) {
 
     /** Seneca */
     let getInvoicesByGroupsPivot = (req, res) => {
-
         var seneca = require("seneca")();
-        seneca.client({port:config.microService.statisticOracle.port, host:config.microService.statisticOracle.host, timeout:60000});
+        seneca.client({
+            port: config.microService.statisticOracle.port,
+            host: config.microService.statisticOracle.host,
+            timeout: 60000
+        });
 
         var param = {
-            role: 'statistic',
-            entity: 'invoice',
-            cmd: 'getByGroupsPivot'
+            role: "statistic",
+            entity: "invoice",
+            cmd: "getByGroupsPivot"
         };
         param.groups = req.body;
         param.fechaInicio = req.query.fechaInicio;
@@ -641,7 +683,9 @@ module.exports = function (log, io, oracle) {
         params.terminal = req.params.terminal;
 
         if (req.query.fechaInicio && req.query.fechaFin) {
-            params.fechaInicio = moment(req.query.fechaInicio).format("YYYY-MM-DD");
+            params.fechaInicio = moment(req.query.fechaInicio).format(
+                "YYYY-MM-DD"
+            );
             params.fechaFin = moment(req.query.fechaFin).format("YYYY-MM-DD");
         } else {
             if (req.query.year) {
@@ -652,20 +696,23 @@ module.exports = function (log, io, oracle) {
             }
         }
 
-        if (req.query.output === 'csv') {
-            options.output = 'csv';
+        if (req.query.output === "csv") {
+            options.output = "csv";
         }
-        if (req.query.tarifa === 'agp') {
-            options.tarifa = 'agp';
+        if (req.query.tarifa === "agp") {
+            options.tarifa = "agp";
         }
 
         log.time("getInvoicesByRatesTerminal");
         Invoice2.getInvoicesByRatesTerminal(params, options)
             .then(data => {
                 log.timeEnd("getInvoicesByRatesTerminal");
-                if (options.output === 'csv') {
-                    res.header('content-type', 'text/csv');
-                    res.header('content-disposition', 'attachment; filename=report.csv');
+                if (options.output === "csv") {
+                    res.header("content-type", "text/csv");
+                    res.header(
+                        "content-disposition",
+                        "attachment; filename=report.csv"
+                    );
                     res.status(200).send(data.data);
                 } else {
                     res.status(200).send(data);
@@ -676,7 +723,7 @@ module.exports = function (log, io, oracle) {
             });
     };
 
-    function getShips (req, res) {
+    function getShips(req, res) {
         var param = {
             terminal: req.params.terminal
         };
@@ -695,10 +742,10 @@ module.exports = function (log, io, oracle) {
         var usr = req.usr;
         var paramTerminal = req.params.terminal;
 
-        var ter = (usr.role === 'agp')?paramTerminal:usr.terminal;
+        var ter = usr.role === "agp" ? paramTerminal : usr.terminal;
         var param = {
             terminal: ter,
-            'detalle.buque.nombre': {$ne: null}
+            "detalle.buque.nombre": { $ne: null }
         };
 
         Invoice2.getShipTrips(param)
@@ -711,14 +758,13 @@ module.exports = function (log, io, oracle) {
     };
 
     let getShipContainers = (req, res) => {
-
         var usr = req.usr,
             ter,
             param;
 
-        log.time('getShipContainers');
+        log.time("getShipContainers");
 
-        ter = (usr.role === 'agp')?req.params.terminal:usr.terminal;
+        ter = usr.role === "agp" ? req.params.terminal : usr.terminal;
         param = {
             terminal: ter,
             buque: req.query.buqueNombre,
@@ -728,7 +774,7 @@ module.exports = function (log, io, oracle) {
         Invoice2.getShipContainers(param)
             .then(data => {
                 if (data !== undefined) {
-                    data.time = log.timeEnd('getShipContainers');
+                    data.time = log.timeEnd("getShipContainers");
                 }
                 res.status(200).send(data);
             })
@@ -738,10 +784,9 @@ module.exports = function (log, io, oracle) {
             });
     };
 
-    function getContainersNoRates (req, res) {
-
+    function getContainersNoRates(req, res) {
         var usr = req.usr;
-        var ter = (usr.role === 'agp') ? req.params.terminal : usr.terminal;
+        var ter = usr.role === "agp" ? req.params.terminal : usr.terminal;
         var params = {
             terminal: ter,
             fechaInicio: req.query.fechaInicio,
@@ -751,23 +796,21 @@ module.exports = function (log, io, oracle) {
             viaje: req.query.viaje
         };
 
-        log.time('getContainersNoRates');
+        log.time("getContainersNoRates");
         Invoice2.getContainersNoRates(params, (err, data) => {
             if (err) {
                 res.status(500).json(err);
             } else {
-                log.timeEnd('getContainersNoRates');
+                log.timeEnd("getContainersNoRates");
                 res.status(200).json(data);
             }
         });
-
     }
 
     let getTotales = (req, res) => {
-
         var usr = req.usr,
             paramTerminal = req.params.terminal,
-            ter = (usr.role === 'agp') ? paramTerminal : usr.terminal,
+            ter = usr.role === "agp" ? paramTerminal : usr.terminal,
             param = {};
 
         param.fechaInicio = req.query.fechaInicio;
@@ -800,13 +843,12 @@ module.exports = function (log, io, oracle) {
                 log.timeEnd("getTotales");
                 res.status(500).send(err);
             });
-
     };
 
     let getTotals = (req, res) => {
         var paramTerminal = req.query.terminal,
-            fechaInicio = moment(moment("2014-08-01").format('YYYY-MM-DD')),
-            fechaFin = moment(moment().format('YYYY-MM-DD')),
+            fechaInicio = moment(moment("2014-08-01").format("YYYY-MM-DD")),
+            fechaFin = moment(moment().format("YYYY-MM-DD")),
             params = {},
             options = {};
 
@@ -824,7 +866,7 @@ module.exports = function (log, io, oracle) {
         }
 
         if (req.query.clients) {
-            if (typeof req.query.clients  === 'string') {
+            if (typeof req.query.clients === "string") {
                 params.clients = [req.query.clients];
             } else {
                 params.clients = req.query.clients;
@@ -839,16 +881,19 @@ module.exports = function (log, io, oracle) {
         if (req.query.campo) {
             params.campo = req.query.campo;
         }
-        if (req.query.output === 'csv') {
-            options.output = 'csv';
+        if (req.query.output === "csv") {
+            options.output = "csv";
         }
         log.time("getTotalByClient");
         Invoice2.getTotalByClient(params, options)
             .then(data => {
                 log.timeEnd("getTotalByClient");
-                if (options.output === 'csv') {
-                    res.header('content-type', 'text/csv');
-                    res.header('content-disposition', 'attachment; filename=report.csv');
+                if (options.output === "csv") {
+                    res.header("content-type", "text/csv");
+                    res.header(
+                        "content-disposition",
+                        "attachment; filename=report.csv"
+                    );
                     res.status(200).send(data.data);
                 } else {
                     res.status(200).send(data);
@@ -865,17 +910,26 @@ module.exports = function (log, io, oracle) {
 
         if (resend !== 0 && resend !== 1) {
             res.status(400).send({
-                status: 'ERROR',
-                message: 'El parámetro resend debe ser 0 o 1'
+                status: "ERROR",
+                message: "El parámetro resend debe ser 0 o 1"
             });
         } else {
             Invoice2.setResend(id, resend)
                 .then(data => {
-                    log.logger.info('UPDATE ORA RESEND: %s - %s', resend, req.params.id);
+                    log.logger.info(
+                        "UPDATE ORA RESEND: %s - %s",
+                        resend,
+                        req.params.id
+                    );
                     res.status(200).send(data);
                 })
                 .catch(err => {
-                    log.logger.error('UPDATE ORA RESEND: %s - %s - %s', resend, req.params.id, err.message);
+                    log.logger.error(
+                        "UPDATE ORA RESEND: %s - %s - %s",
+                        resend,
+                        req.params.id,
+                        err.message
+                    );
                     res.status(500).send(err);
                 });
 
@@ -890,8 +944,6 @@ module.exports = function (log, io, oracle) {
              log.logger.error('UPDATE MONGO RESEND: %s - %s - %s', resend, req.params.id, err.message);
              });
              */
-
-
         }
     };
 
@@ -926,7 +978,6 @@ module.exports = function (log, io, oracle) {
     };
 
     let getTotalByContainer = (req, res) => {
-
         var options = {};
 
         var params = {
@@ -941,8 +992,8 @@ module.exports = function (log, io, oracle) {
             params.fechaFin = req.query.fechaFin;
         }
 
-        if (req.query.output === 'csv') {
-            options.output = 'csv';
+        if (req.query.output === "csv") {
+            options.output = "csv";
         }
         log.time("getTotalByContainer");
         Invoice2.getTotalByContainer(params, options)
@@ -955,6 +1006,15 @@ module.exports = function (log, io, oracle) {
             });
     };
 
+    const getHeaderDetail = async (req, res) => {
+        try {
+            let result = await Invoice2.getHeaderDetail({},{skip: req.query.skip, limit: req.query.limit});
+            res.status(200).send(result);
+        } catch (err) {
+            console.error(err)
+            res.status(500).send(err);
+        }
+    };
     /*
      router.use(function timeLog(req, res, next){
      log.logger.info('Time: %s', Date.now());
@@ -962,68 +1022,70 @@ module.exports = function (log, io, oracle) {
      });
      */
 
-    router.param('terminal', function (req, res, next, terminal) {
+    router.param("terminal", function(req, res, next, terminal) {
         var usr = req.usr,
             errMsg;
 
-        if (usr.terminal !== 'AGP' && usr.terminal !== terminal) {
-            errMsg = util.format('%s', 'La terminal recibida por parámetro es inválida para el token.');
+        if (usr.terminal !== "AGP" && usr.terminal !== terminal) {
+            errMsg = util.format(
+                "%s",
+                "La terminal recibida por parámetro es inválida para el token."
+            );
             log.logger.error(errMsg);
-            res.status(500).send({status: 'ERROR', data: errMsg});
+            res.status(500).send({ status: "ERROR", data: errMsg });
         } else {
             next();
         }
     });
 
-    router.get('/:terminal/down', getInvoices);
-    router.get('/:terminal/:skip/:limit', getInvoices);
-    router.get('/invoice/:id', getInvoice);
-    router.get('/counts', getCounts);
-    router.get('/countsByDate', getCountByDate);
-    router.get('/countsByMonth', getCountByMonth);
-    router.get('/noRates/:terminal/:skip/:limit', getNoRates);
-    router.get('/ratesTotal/:currency', getRatesTotal);
-    router.get('/rates', getRatesLiquidacion);
-    router.get('/rates/date', getRatesPeriod);
-    router.get('/rates/month', getRatesPeriod);
-    router.get('/rates/year', getRatesPeriod);
-    router.get('/rates/:terminal/:container/:currency', getRatesByContainer);
-    router.post('/byRates', getInvoicesByRates);
-    router.post('/byRates/pivot', getInvoicesByRatesPivot);
-    router.post('/byGroups/pivot', getInvoicesByGroupsPivot);
-    router.get('/noMatches/:terminal/:skip/:limit', getNoMatches);
-    router.get('/correlative/:terminal', getCorrelative);
-    router.get('/cashbox/:terminal', getCashbox);
-    router.put('/invoice/:terminal/:_id', updateInvoice);
-    router.delete('/:_id', removeInvoices);
-    router.get('/:terminal/ships', getShips);
-    router.get('/:terminal/containers', getContainers);
-    router.get('/:terminal/clients', getClients);
-    router.get('/:terminal/shipTrips', getShipTrips);
-    router.get('/:terminal/shipContainers', getShipContainers);
-    router.get('/:terminal/byRates', getInvoicesByRatesTerminal);
-    router.get('/containersNoRates/:terminal', getContainersNoRates);
-    router.get('/totales', getTotales);
-    router.get('/totalClient', getTotals);
-    router.get('/totalClientTop', getTotals);
-    router.put('/setState/:terminal/:_id', addState);
-    router.put('/setResend/:id', setResend);
-    router.get('/lastInsert/:terminal', getLastInsert);
-    router.get('/byCode', getByCode);
-    router.get('/byContainer', getByContainer);
-    router.get('/byContainerTotales', getTotalByContainer);
-
-//	app.get('/invoices/log/:seconds', function( req, res) {
-//		logInvoiceBody = 1;
-//		log.logger.info("Loguear invoiceBody en insert Habilitado.")
-//
-//		setTimeout(function(){
-//			log.logger.info("Loguear invoiceBody en insert Deshabilitado.")
-//			logInvoiceBody = 0;
-//		}, req.params.seconds);
-//
-//		res.status(200).send();
-//	})
-
+    router.get("/:terminal/down", getInvoices);
+    router.get("/:terminal/:skip/:limit", getInvoices);
+    router.get("/invoice/:id", getInvoice);
+    router.get("/counts", getCounts);
+    router.get("/countsByDate", getCountByDate);
+    router.get("/countsByMonth", getCountByMonth);
+    router.get("/noRates/:terminal/:skip/:limit", getNoRates);
+    router.get("/ratesTotal/:currency", getRatesTotal);
+    router.get("/rates", getRatesLiquidacion);
+    router.get("/rates/date", getRatesPeriod);
+    router.get("/rates/month", getRatesPeriod);
+    router.get("/rates/year", getRatesPeriod);
+    router.get("/rates/:terminal/:container/:currency", getRatesByContainer);
+    router.post("/byRates", getInvoicesByRates);
+    router.post("/byRates/pivot", getInvoicesByRatesPivot);
+    router.post("/byGroups/pivot", getInvoicesByGroupsPivot);
+    router.get("/noMatches/:terminal/:skip/:limit", getNoMatches);
+    router.get("/correlative/:terminal", getCorrelative);
+    router.get("/cashbox/:terminal", getCashbox);
+    router.put("/invoice/:terminal/:_id", updateInvoice);
+    router.delete("/:_id", removeInvoices);
+    router.get("/:terminal/ships", getShips);
+    router.get("/:terminal/containers", getContainers);
+    router.get("/:terminal/clients", getClients);
+    router.get("/:terminal/shipTrips", getShipTrips);
+    router.get("/:terminal/shipContainers", getShipContainers);
+    router.get("/:terminal/byRates", getInvoicesByRatesTerminal);
+    router.get("/containersNoRates/:terminal", getContainersNoRates);
+    router.get("/totales", getTotales);
+    router.get("/totalClient", getTotals);
+    router.get("/totalClientTop", getTotals);
+    router.put("/setState/:terminal/:_id", addState);
+    router.put("/setResend/:id", setResend);
+    router.get("/lastInsert/:terminal", getLastInsert);
+    router.get("/byCode", getByCode);
+    router.get("/byContainer", getByContainer);
+    router.get("/byContainerTotales", getTotalByContainer);
+    router.get("/header_detail", getHeaderDetail)
+    //	app.get('/invoices/log/:seconds', function( req, res) {
+    //		logInvoiceBody = 1;
+    //		log.logger.info("Loguear invoiceBody en insert Habilitado.")
+    //
+    //		setTimeout(function(){
+    //			log.logger.info("Loguear invoiceBody en insert Deshabilitado.")
+    //			logInvoiceBody = 0;
+    //		}, req.params.seconds);
+    //
+    //		res.status(200).send();
+    //	})
     return router;
 };
