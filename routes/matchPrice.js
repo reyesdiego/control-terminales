@@ -2,17 +2,16 @@
  * Created by Diego Reyes on 2/18/14.
  */
 module.exports = (log, oracle) => {
-    'use strict';
+    "use strict";
 
-    var express = require('express'),
+    var express = require("express"),
         router = express.Router(),
-        util = require('util'),        moment = require('moment');
+        moment = require("moment");
 
-    var MatchPrice = require('../lib/matchPrice2.js');
+    var MatchPrice = require("../lib/matchPrice2.js");
     MatchPrice = new MatchPrice(oracle);
 
     let getMatchPrices = (req, res) => {
-
         var param = {
             terminal: req.params.terminal,
             user: req.usr,
@@ -27,20 +26,26 @@ module.exports = (log, oracle) => {
             .then(data => {
                 var response;
 
-                if (req.query.output === 'csv') {
+                if (req.query.output === "csv") {
                     response = "CODIGO|PRECIO|FECHA|DESCRIPCION|ASOCIADO\n";
 
                     data.data.forEach(item => {
-                        let matches = '';
-                        if (item.matches !== undefined && item.matches !== null) {
+                        let matches = "";
+                        if (
+                            item.matches !== undefined &&
+                            item.matches !== null
+                        ) {
                             if (item.matches.match.length > 0) {
-                                item.matches.match.forEach(i => (matches += i.code + '-'));
+                                item.matches.match.forEach(
+                                    i => (matches += i.code + "-")
+                                );
                                 matches = matches.substr(0, matches.length - 1);
                             } else {
                                 matches = "";
                             }
                         }
-                        response = response +
+                        response =
+                            response +
                             item.code +
                             "|" +
                             item.price +
@@ -52,8 +57,11 @@ module.exports = (log, oracle) => {
                             matches +
                             "\n";
                     });
-                    res.header('content-type', 'text/csv');
-                    res.header('content-disposition', 'attachment; filename=report.csv');
+                    res.header("content-type", "text/csv");
+                    res.header(
+                        "content-disposition",
+                        "attachment; filename=report.csv"
+                    );
                     res.status(200).send(response);
                 } else {
                     data.time = log.timeEnd("getMatchPrices");
@@ -63,15 +71,14 @@ module.exports = (log, oracle) => {
             .catch(err => {
                 res.status(500).send(err);
             });
-
     };
 
-    function getMatchPricesPrice (req, res) {
-
-            var usr = req.usr,
-                param = {
-                    terminal: (usr.role === 'agp') ? req.params.terminal : usr.terminal
-                };
+    function getMatchPricesPrice(req, res) {
+        var usr = req.usr,
+            param = {
+                terminal:
+                    usr.role === "agp" ? req.params.terminal : usr.terminal
+            };
 
         if (req.query.code) {
             param.code = req.query.code;
@@ -83,10 +90,10 @@ module.exports = (log, oracle) => {
             }
         }
         MatchPrice.getPricesTerminal(param)
-        .then(data => {
+            .then(data => {
                 res.status(200).send(data);
             })
-        .catch(err => {
+            .catch(err => {
                 res.status(500).send(err);
             });
     }
@@ -108,7 +115,7 @@ module.exports = (log, oracle) => {
             });
     }
 
-    function getNoMatches (req, res) {
+    function getNoMatches(req, res) {
         var params = {
             terminal: req.params.terminal,
             fechaInicio: req.query.fechaInicio,
@@ -116,19 +123,18 @@ module.exports = (log, oracle) => {
             code: req.query.code,
             razonSocial: req.query.razonSocial
         };
-        log.time('matchPrice - getNoMatches');
+        log.time("matchPrice - getNoMatches");
         MatchPrice.getNoMatches(params)
-        .then(data => {
-                log.timeEnd('matchPrice - getNoMatches');
+            .then(data => {
+                log.timeEnd("matchPrice - getNoMatches");
                 res.status(200).send(data);
             })
-        .catch(err => {
+            .catch(err => {
                 res.status(500).send(err);
             });
     }
 
-    function addMatchPrice (req, res) {
-
+    function addMatchPrice(req, res) {
         var params = {
             price: req.body._idPrice,
             terminal: req.body.terminal,
@@ -136,10 +142,10 @@ module.exports = (log, oracle) => {
         };
 
         MatchPrice.add(params)
-        .then(data => {
+            .then(data => {
                 res.status(200).send(data);
             })
-        .catch(err => {
+            .catch(err => {
                 res.status(500).send(err);
             });
     }
@@ -151,14 +157,13 @@ module.exports = (log, oracle) => {
     });
     */
 
-    router.get('/:terminal', getMatchPrices);
-    router.get('/price/:terminal', getMatchPricesPrice);
-    router.get('/matches/:terminal', getMatches);
-    router.get('/matches/all', getMatches);
-    router.get('/noMatches/:terminal', getNoMatches);
-    router.post('/matchprice', addMatchPrice);
-    router.put('/matchprice', addMatchPrice);
+    router.get("/:terminal", getMatchPrices);
+    router.get("/price/:terminal", getMatchPricesPrice);
+    router.get("/matches/:terminal", getMatches);
+    router.get("/matches/all", getMatches);
+    router.get("/noMatches/:terminal", getNoMatches);
+    router.post("/matchprice", addMatchPrice);
+    router.put("/matchprice", addMatchPrice);
 
     return router;
-
 };
