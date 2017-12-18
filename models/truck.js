@@ -8,9 +8,10 @@
 
 const mongoose = require("mongoose");
 const truck = new mongoose.Schema({
-    _id: {type: String},
-    year: {type: Number},
-    axis: {type: Number}
+    _id: { type: String },
+    trade: { type: String },
+    color: { type: Number },
+    axis: { type: Number }
 });
 
 module.exports = mongoose.model("truck", truck);
