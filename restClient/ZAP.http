@@ -5,7 +5,7 @@ Content-Type: application/json
 
 {
     "email": "dreyes@puertobuenosaires.gob.ar",
-    "password": "123456"
+    "password": "12345"
 }
 
 POST http://10.10.0.223:8090/login
@@ -13,7 +13,7 @@ Content-Type: application/json
 
 {
     "email": "dreyes@puertobuenosaires.gob.ar",
-    "password": "123456"
+    "password": "12345"
 }
 
 // turno activo para un camion
@@ -123,4 +123,9 @@ token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVu
 //get Gates of the day
 GET http://10.10.0.223:8090/gates/IN/ZAP/0/10000
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
+
+
+
+GET http://terminales.puertobuenosaires.gob.ar:8090/invoices/BACTSSA/0/10?fechaInicio=2017-05-01&fechaFin=2017-05-05
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6Im5vcmVwbHlAcHVlcnRvYnVlbm9zYWlyZXMuZ29iLmFyIn0.g4d2NfkU5vIYfkG2QuEsKpTiT_-jpYLK5QGriiKa4Ck
 

@@ -1,13 +1,14 @@
-GET http://10.10.0.223:8090/invoices/invoice/35196138
+GET http://terminales.puertobuenosaires.gob.ar:8090/ISOS/ISO1
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNvcG9ydGVfY3RzQGJhY3Rzc2EuY29tLmFyIn0.bBSqdwesWimlT8rFGA7sKLKbPdxauY8HdrTTt7BLpBU
 
-GET http://10.10.0.223:8090/invoices/BACTSSA/down?fechaInicio=2017-12-01&fechaFin=2017-12-02
+GET http://terminales.puertobuenosaires.gob.ar:8090/ISOS/ISO2
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNvcG9ydGVfY3RzQGJhY3Rzc2EuY29tLmFyIn0.bBSqdwesWimlT8rFGA7sKLKbPdxauY8HdrTTt7BLpBU
 
-GET http://10.10.0.223:8090/invoices/header_detail?skip=0&limit=500&fechaInicio=2017-12-01&fechaFin=2017-12-02
+GET http://terminales.puertobuenosaires.gob.ar:8090/ISOS/ISO3
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNvcG9ydGVfY3RzQGJhY3Rzc2EuY29tLmFyIn0.bBSqdwesWimlT8rFGA7sKLKbPdxauY8HdrTTt7BLpBU
 
-GET http://terminales.puertobuenosaires.gob.ar:8090/invoices/header_detail?skip=0&limit=500&fechaInicio=2017-12-01&fechaFin=2017-12-02
+GET http://terminales.puertobuenosaires.gob.ar:8090/ISOS/ISO4
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNvcG9ydGVfY3RzQGJhY3Rzc2EuY29tLmFyIn0.bBSqdwesWimlT8rFGA7sKLKbPdxauY8HdrTTt7BLpBU
 
-
+GET http://terminales.puertobuenosaires.gob.ar:8090/ISOS/ISO3Formas
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNvcG9ydGVfY3RzQGJhY3Rzc2EuY29tLmFyIn0.bBSqdwesWimlT8rFGA7sKLKbPdxauY8HdrTTt7BLpBU

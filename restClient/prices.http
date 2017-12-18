@@ -5,3 +5,9 @@ token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRycF9zZXJ2aWNpb19hZ3BA
 //Obtiene el precio por price
 GET http://10.10.0.223:8090/prices/27905/TRP
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRycF9zZXJ2aWNpb19hZ3BAdHJwLmNvbS5hciJ9.Li-IVe4B29QaW2L0GPsfXEwHeVR7thZ7r6VFKqAC4b8
+//Obtiene listado de tarifas por terminal
+GET http://10.10.0.223:8090/prices/BACTSSA
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNvcG9ydGVfY3RzQGJhY3Rzc2EuY29tLmFyIn0.bBSqdwesWimlT8rFGA7sKLKbPdxauY8HdrTTt7BLpBU
+//Obtiene listado de tarifas por terminal
+GET http://10.10.0.223:8090/matchprices/BACTSSA
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNvcG9ydGVfY3RzQGJhY3Rzc2EuY29tLmFyIn0.bBSqdwesWimlT8rFGA7sKLKbPdxauY8HdrTTt7BLpBU

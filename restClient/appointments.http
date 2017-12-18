@@ -1,3 +1,17 @@
 // obtiene un chofer por dni de ZAP
-GET http://10.10.0.223:8090/appointments/BACTSSA/0/10?fechaInicio=2017-01-01
+GET http://190.221.146.245:8090/appointments/BACTSSA/0/10?fechaInicio=2017-01-01
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
+
+POST http://190.221.146.245:8080/appointment
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
+Content-Type: application/json
+
+{
+    "inicio": "2017-12-14T12:00:00.000-03:00",
+    "fin": "2017-12-14T12:00:00.000-03:00",
+    "alta": "2017-12-14T12:00:00.000-03:00",
+    "contenedor": "HASU1016369",
+    "disponibles_t1": 1
+}
+
+GET http://190.221.146.245:8080
