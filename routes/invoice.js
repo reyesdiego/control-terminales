@@ -1007,11 +1007,22 @@ module.exports = function(log, io, oracle) {
     };
 
     const getHeaderDetail = async (req, res) => {
+        let param = {};
         try {
-            let result = await Invoice2.getHeaderDetail({},{skip: req.query.skip, limit: req.query.limit});
+            if (req.query.fechaInicio) {
+                param.fechaInicio = req.query.fechaInicio;
+            }
+            if (req.query.fechaFin) {
+                param.fechaFin = req.query.fechaFin;
+            }
+
+            let result = await Invoice2.getHeaderDetail(param, {
+                skip: req.query.skip,
+                limit: req.query.limit
+            });
             res.status(200).send(result);
         } catch (err) {
-            console.error(err)
+            console.error(err);
             res.status(500).send(err);
         }
     };
