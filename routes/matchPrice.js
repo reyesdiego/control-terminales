@@ -75,7 +75,7 @@ module.exports = (log, oracle) => {
 
     let getMatchPricesNoAgrupado = (req, res) => {
         var param = {
-            terminal: req.params.terminal,
+            terminal: (req.params.terminal === "all") ? undefined : req.params.terminal,
             user: req.usr,
             code: req.query.code,
             onlyRates: req.query.onlyRates
