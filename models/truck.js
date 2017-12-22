@@ -10,7 +10,7 @@ const mongoose = require("mongoose");
 const truck = new mongoose.Schema({
     _id: { type: String },
     trade: { type: String },
-    color: { type: Number },
+    color: { type: String },
     axis: { type: Number }
 });
 
