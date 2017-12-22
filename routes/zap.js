@@ -84,6 +84,15 @@ module.exports = log => {
         }
     };
 
+    const getTrades = async (req, res) => {
+        try {
+            const result = await truck.getTrades();
+            res.status(200).send(result);
+        } catch (err) {
+            res.status(500).send(err);
+        }
+    };
+
     const addTrailer = async (req, res) => {
         try {
             const result = await trailer.add(req.body);
@@ -315,6 +324,7 @@ module.exports = log => {
     router.get("/chofer/:dni", getDriverById);
     
     router.post("/camion", addTruck);
+    router.get("/camionesmarcas", getTrades);
     router.get("/camion/:patente", getTruckByPlate);
 
     router.post("/playo", addTrailer);
