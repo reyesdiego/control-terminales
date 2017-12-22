@@ -11,3 +11,6 @@ token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNvcG9ydGVfY3RzQGJhY3Rz
 //Obtiene listado de tarifas por terminal
 GET http://10.10.0.223:8090/matchprices/BACTSSA
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNvcG9ydGVfY3RzQGJhY3Rzc2EuY29tLmFyIn0.bBSqdwesWimlT8rFGA7sKLKbPdxauY8HdrTTt7BLpBU
+//Obtiene listado de tarifas por terminal sin agrupar por tarifa terminal
+GET http://10.10.0.223:8090/matchprices/noagrupado/BACTSSA
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNvcG9ydGVfY3RzQGJhY3Rzc2EuY29tLmFyIn0.bBSqdwesWimlT8rFGA7sKLKbPdxauY8HdrTTt7BLpBU

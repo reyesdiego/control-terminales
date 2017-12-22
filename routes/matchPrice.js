@@ -73,6 +73,25 @@ module.exports = (log, oracle) => {
             });
     };
 
+    let getMatchPricesNoAgrupado = (req, res) => {
+        var param = {
+            terminal: req.params.terminal,
+            user: req.usr,
+            code: req.query.code,
+            onlyRates: req.query.onlyRates
+        };
+
+        log.time("getMatchPricesNoAprupado");
+        MatchPrice.getMatchPricesNoAgrupado(param)
+            .then(data => {
+                data.time = log.timeEnd("getMatchPricesNoAprupado");
+                res.status(200).send(data);
+            })
+            .catch(err => {
+                res.status(500).send(err);
+            });
+    };
+
     function getMatchPricesPrice(req, res) {
         var usr = req.usr,
             param = {
@@ -158,6 +177,7 @@ module.exports = (log, oracle) => {
     */
 
     router.get("/:terminal", getMatchPrices);
+    router.get("/noagrupado/:terminal", getMatchPricesNoAgrupado);
     router.get("/price/:terminal", getMatchPricesPrice);
     router.get("/matches/:terminal", getMatches);
     router.get("/matches/all", getMatches);
