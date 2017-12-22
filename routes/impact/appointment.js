@@ -2,23 +2,23 @@
  * Created by diego on 7/3/15.
  */
 module.exports = function (log, io, oracle) {
-    'use strict';
+    "use strict";
 
-    var express = require('express'),
+    var express = require("express"),
         router = express.Router(),
-        moment = require('moment'),
-        Appointment = require('../../models/appointment.js'),
-        AppointmentEmailQueue = require('../../models/appointmentEmailQueue.js'),
+        moment = require("moment"),
+        Appointment = require("../../models/appointment.js"),
+        AppointmentEmailQueue = require("../../models/appointmentEmailQueue.js"),
         mail = require("../../include/emailjs"),
-        config = require('../../config/config.js');
+        config = require("../../config/config.js");
 
     function validateSanitize(req, res, next) {
-        var util = require('util');
+        var util = require("util");
         var errors;
-        var Validr = require('../../include/validation.js');
+        var Validr = require("../../include/validation.js");
         var validate = new Validr.validation(req.body, {
             isContainer: function (container) {
-                return container === undefined || container === null || container === '' || /\D{4}\d{7}/.test(container);
+                return container === undefined || container === null || container === "" || /\D{4}\d{7}/.test(container);
             }
         });
 
@@ -30,56 +30,56 @@ module.exports = function (log, io, oracle) {
         //    .validate('viaje', 'viaje is required.')
         //    .isLength(1);
         validate
-            .validate('mov', {
-                isLenght: 'mov is required.',
-                isIn: 'mov must be in "IMPO", "EXPO", "VACIO_IN" or "VACIO_OUT" values.'
+            .validate("mov", {
+                isLenght: "mov is required.",
+                isIn: "mov must be in \"IMPO\", \"EXPO\", \"VACIO_IN\" or \"VACIO_OUT\" values."
             }, {ignoreEmpty: true})
             .isLength(1)
-            .isIn(['EXPO', 'IMPO', 'VACIO_IN', 'VACIO_OUT']);
+            .isIn(["EXPO", "IMPO", "VACIO_IN", "VACIO_OUT"]);
         validate
-            .validate('inicio', {
-                isLength: 'inicio is required.',
-                isDate: 'inicio must be a valid date'
+            .validate("inicio", {
+                isLength: "inicio is required.",
+                isDate: "inicio must be a valid date"
             })
             .isLength(1)
             .isDate();
         validate
-            .validate('fin', {
-                isLength: 'fin is required.',
-                isDate: 'fin must be a valid date'
+            .validate("fin", {
+                isLength: "fin is required.",
+                isDate: "fin must be a valid date"
             })
             .isLength(1)
             .isDate();
         validate
-            .validate('alta', {
-                isLength: 'alta is required.',
-                isDate: 'alta must be a valid date'
+            .validate("alta", {
+                isLength: "alta is required.",
+                isDate: "alta must be a valid date"
             })
             .isLength(1)
             .isDate();
         validate
-            .validate('disponibles_t1', 'disponible_t1 must be an integer')
+            .validate("disponibles_t1", "disponible_t1 must be an integer")
             .isInt();
         validate
-            .validate('user', {
-                isIn: 'user must be in "CLIENTE" or "TERMINAL" values.'
+            .validate("user", {
+                isIn: "user must be in \"CLIENTE\" or \"TERMINAL\" values."
             }, {ignoreEmpty: true})
             .isLength(1)
-            .isIn(['CLIENTE', 'TERMINAL']);
+            .isIn(["CLIENTE", "TERMINAL"]);
         validate
-            .validate('verifica', 'verifica must be a valid date', {ignoreEmpty: true})
+            .validate("verifica", "verifica must be a valid date", {ignoreEmpty: true})
             .isDate();
         validate
-            .validate('verifica_turno', 'verifica_turno must be in "MA" or "TA" values.', {ignoreEmpty: true})
-            .isIn(['MA', 'TA']);
+            .validate("verifica_turno", "verifica_turno must be in \"MA\" or \"TA\" values.", {ignoreEmpty: true})
+            .isIn(["MA", "TA"]);
         validate
-            .validate('verifica_tipo', 'verifica_tipo must be in "PISO" or "CAMION" values.', {ignoreEmpty: true})
-            .isIn(['PISO', 'CAMION']);
+            .validate("verifica_tipo", "verifica_tipo must be in \"PISO\" or \"CAMION\" values.", {ignoreEmpty: true})
+            .isIn(["PISO", "CAMION"]);
         validate
-            .validate('email', 'email must be a valid email account.', {ignoreEmpty: true})
+            .validate("email", "email must be a valid email account.", {ignoreEmpty: true})
             .isEmail();
         validate
-            .validate('contenedor', 'container is not valid', {ignoreEmpty: true})
+            .validate("contenedor", "container is not valid", {ignoreEmpty: true})
             .isContainer();
 
         errors = validate.validationErrors();
@@ -120,7 +120,7 @@ module.exports = function (log, io, oracle) {
             emailConfig,
             subject;
 
-        res.render('comprobanteTurno.jade', appointmentEmail, (err, html) => {
+        res.render("comprobanteTurno.jade", appointmentEmail, (err, html) => {
             if (err) {
                 log.logger.error("Se produjo un error en la creacion del comprobante, Email No enviado. %s", err.message);
                 res.end();
@@ -130,7 +130,7 @@ module.exports = function (log, io, oracle) {
                     alternative: true
                 };
 
-                if (appointmentEmail.email !== undefined && appointmentEmail.email !== '' && appointmentEmail.email !== null) {
+                if (appointmentEmail.email !== undefined && appointmentEmail.email !== "" && appointmentEmail.email !== null) {
                     //Successfully appointment inserted
                     emailConfig = Object.create(config.emailTurnos);
                     emailConfig.throughBcc = false;
@@ -140,26 +140,26 @@ module.exports = function (log, io, oracle) {
                     mailer.send(appointmentEmail.email, subject, html, (err1, emailData) => {
                         if (err1) {
 
-                            if (err1.code === 'AGP-0001') {
-                                log.logger.error('No envió email a Cliente %s, Cuenta no valida. %s, %s', appointmentEmail.email, appointmentEmail.contenedor, err1.data);
+                            if (err1.code === "AGP-0001") {
+                                log.logger.error("No envió email a Cliente %s, Cuenta no valida. %s, %s", appointmentEmail.email, appointmentEmail.contenedor, err1.data);
                                 res.end();
-                            } else if (err1.code === 'AGP-0008') {
-                                log.logger.error('No envió email a Cliente %s, Desahibilado por Config. %s, %s', appointmentEmail.email, appointmentEmail.contenedor, err1.data);
+                            } else if (err1.code === "AGP-0008") {
+                                log.logger.error("No envió email a Cliente %s, Desahibilado por Config. %s, %s", appointmentEmail.email, appointmentEmail.contenedor, err1.data);
                                 res.end();
                             } else {
-                                log.logger.error('Envío de email a cliente : %s, %s, %j, %s', appointmentEmail.email, appointmentEmail.contenedor, err1, err1);
+                                log.logger.error("Envío de email a cliente : %s, %s, %j, %s", appointmentEmail.email, appointmentEmail.contenedor, err1, err1);
                                 mailer = new mail.mail(emailConfig);
                                 mailer.send(appointmentEmail.email, subject, html, err2 => {
                                     if (err2) {
                                         addAppointmentEmailQueue(appointmentEmail, err => {
                                             if (err) {
-                                                log.logger.error('REENVIO - a: %s, No ha sido encolado, no se reenviara nuevamente. %s, %j, %s', appointmentEmail.email, appointmentEmail.contenedor, err2, err2);
+                                                log.logger.error("REENVIO - a: %s, No ha sido encolado, no se reenviara nuevamente. %s, %j, %s", appointmentEmail.email, appointmentEmail.contenedor, err2, err2);
                                             } else {
-                                                log.logger.error('REENVIO - a: %s, se encola en base de datos. - %s, %j, %s', appointmentEmail.email, appointmentEmail.contenedor, err2, err2);
+                                                log.logger.error("REENVIO - a: %s, se encola en base de datos. - %s, %j, %s", appointmentEmail.email, appointmentEmail.contenedor, err2, err2);
                                             }
                                         });
                                     } else {
-                                        log.logger.info('REENVIO - Confirmación enviada correctamente, %s, se envió mail a %s - %s', appointmentEmail.full_name, appointmentEmail.email, appointmentEmail.contenedor);
+                                        log.logger.info("REENVIO - Confirmación enviada correctamente, %s, se envió mail a %s - %s", appointmentEmail.full_name, appointmentEmail.email, appointmentEmail.contenedor);
                                         Appointment.update({_id: appointmentEmail._id}, {$set: {emailStatus: true}}, (err, data) => {
                                             res.end();
                                         });
@@ -169,7 +169,7 @@ module.exports = function (log, io, oracle) {
                             }
                         } else {
 
-                            log.logger.info('Confirmación enviada correctamente, %s, se envió mail a %s - %s - %s', appointmentEmail.full_name, appointmentEmail.email, appointmentEmail.contenedor, appointmentEmail._id.toString());
+                            log.logger.info("Confirmación enviada correctamente, %s, se envió mail a %s - %s - %s", appointmentEmail.full_name, appointmentEmail.email, appointmentEmail.contenedor, appointmentEmail._id.toString());
                             Appointment.update({_id: appointmentEmail._id}, {$set: {emailStatus: true}}, (err, data) => {
                                 res.end();
                             });
@@ -186,7 +186,7 @@ module.exports = function (log, io, oracle) {
             appointment2insert = req.body,
             errMsg;
 
-        var Appointment = require('../../lib/appointment.js');
+        var Appointment = require("../../lib/appointment.js");
         Appointment = new Appointment();
 
         appointment2insert.terminal = usr.terminal;
@@ -216,7 +216,7 @@ module.exports = function (log, io, oracle) {
                 str = `Appointment INS: ${appointment.terminal} - Alta: ${appointment.alta} - ${appointment._id} - ${appointment.contenedor}`;
                 log.logger.insert(str);
 
-                io.emit('appointment', appointment);
+                io.emit("appointment", appointment);
 
                 res.status(200).send(data);
 
@@ -249,7 +249,7 @@ module.exports = function (log, io, oracle) {
             appointment2insert = req.body,
             errMsg;
 
-        var Appointment = require('../../lib/appointment.js');
+        var Appointment = require("../../lib/appointment.js");
         Appointment = new Appointment();
 
         appointment2insert.terminal = usr.terminal;
@@ -309,7 +309,7 @@ module.exports = function (log, io, oracle) {
 
     let setTransporte = (req, res) => {
         var params = {};
-        var Appointment = require('../../lib/appointment.js');
+        var Appointment = require("../../lib/appointment.js");
         Appointment = new Appointment();
 
         if (req.body.patenteCamion) {
@@ -347,7 +347,7 @@ module.exports = function (log, io, oracle) {
 
     let setCancel = (req, res) => {
         var params = {};
-        var Appointment = require('../../lib/appointment.js');
+        var Appointment = require("../../lib/appointment.js");
         Appointment = new Appointment();
 
         if (req.body._id) {
@@ -370,15 +370,15 @@ module.exports = function (log, io, oracle) {
 
     let setHold = (req, res) => {
         var params = {};
-        var Appointment = require('../../lib/appointment.js');
+        var Appointment = require("../../lib/appointment.js");
         Appointment = new Appointment();
 
         if (req.body._id) {
             params._id = req.body._id;
         }
-        if (req.route.path === '/release') {
+        if (req.route.path === "/release") {
             params.hold = false;
-        } else if (req.route.path === '/hold') {
+        } else if (req.route.path === "/hold") {
             params.hold = true;
         }
 
@@ -403,12 +403,12 @@ module.exports = function (log, io, oracle) {
      });
      */
 
-    router.post('/', validateSanitize, addAppointment, reportClient);
-    router.put('/', updateAppointment, reportClient);
-    router.put('/cancel', setCancel);
-    router.put('/patente', setTransporte);
-    router.put('/release', setHold);
-    router.put('/hold', setHold);
+    router.post("/", validateSanitize, addAppointment, reportClient);
+    router.put("/", updateAppointment, reportClient);
+    router.put("/cancel", setCancel);
+    router.put("/patente", setTransporte);
+    router.put("/release", setHold);
+    router.put("/hold", setHold);
 
     return router;
 };
