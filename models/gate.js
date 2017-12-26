@@ -20,7 +20,8 @@ const gate = new mongoose.Schema({
     turnoInicio: { type: Date },
     turnoFin: { type: Date },
     largo: { type: Number },
-    iso: { type: String }
+    iso: { type: String },
+    dastino: { type: String}
 });
 /*
 gate.index({
