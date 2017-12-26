@@ -120,6 +120,15 @@ module.exports = log => {
         }
     };
 
+    const getTrailerTypes = async (req, res) => {
+        try {
+            const result = await trailer.getTypes();
+            res.status(200).send(result);
+        } catch (err) {
+            res.status(500).send(err);
+        }
+    };
+
     const getByContenedor = async (req, res) => {
         var param = {
             contenedor: req.params.contenedor.toUpperCase(),
@@ -338,6 +347,7 @@ module.exports = log => {
     router.get("/camion/:patente", getTruckByPlate);
 
     router.post("/playo", addTrailer);
+    router.get("/playotypes", getTrailerTypes);
     router.get("/playo/:patente", getTrailerByPlate);
 
     return router;
