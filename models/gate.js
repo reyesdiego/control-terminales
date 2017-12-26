@@ -11,7 +11,7 @@ const gate = new mongoose.Schema({
     buque: { type: String },
     viaje: { type: String },
     contenedor: { type: String },
-    mov: { type: String, enum: ["IMPO", "EXPO", "PASO", "ESTACIONA", "CARGAGRAL"] },
+    mov: { type: String, enum: ["IMPO", "EXPO", "PASO", "ESTACIONA", "CARGAGRAL", "VACIORET", "VACIODEV"] },
     tipo: { type: String, enum: ["IN", "OUT"] },
     carga: { type: String, enum: ["NO", "LL", "VA"] },
     patenteCamion: { type: String },
