@@ -17,6 +17,19 @@ module.exports = (log, oracle) => {
 
     Gate = new Gate(oracle);
 
+    let getById = async (req, res) => {
+        const id = req.params.id;
+        log.time("getGateByID");
+        try {
+            let data = await Gate.getById(id);
+            data.time = log.timeEnd("getGateByID");
+            res.status(200).send(data);
+        } catch (err) {
+            err.time = log.timeEnd("getGateByID");
+            res.status(500).send(err);
+        }
+    };
+
     let getGates = async (req, res) => {
 
         var usr = req.usr,
@@ -699,6 +712,25 @@ module.exports = (log, oracle) => {
         });
     };
 
+    let setStatus = async (req, res) => {
+        const data = req.body;
+        try {
+            const result = await Gate.setStatus(data.id, data.status);
+            res.status(200).send({
+                status: "OK",
+                data: result
+            });
+        } catch (err) {
+            res.status(500).send({
+                status: "ERROR",
+                message: err.message,
+                data: err
+            })
+        }
+
+
+    };
+
     /*
     router.use(function timeLog(req, res, next){
         log.logger.info('Time: %s', Date.now());
@@ -718,6 +750,7 @@ module.exports = (log, oracle) => {
         }
     });
 
+    router.get('/ById/:id', getById);
     router.get('/:terminal/:skip/:limit', getGates);
     router.get('/IN/:terminal/:skip/:limit', getGatesInOrOut);
     router.get('/ByHour', getGatesByHour);
@@ -731,6 +764,7 @@ module.exports = (log, oracle) => {
     router.get('/:terminal/ships', getDistincts);
     router.get('/:terminal/trains', getDistincts);
     router.get('/lastInsert/:terminal', getLastInsert);
+    router.post('/setStatus', setStatus);
 
     return router;
 };
