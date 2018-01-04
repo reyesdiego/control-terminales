@@ -17,5 +17,6 @@ Content-Type: application/json
     "email": "mfarias@puertobuenosaires.gob.ar"
 }
 
-GET http://10.10.0.223:8090/appointments/byDay?fechaInicio=2017-12-23&fechaFin=2017-12-23
+//GET http://10.10.0.223:8090/appointments/byDay?fechaInicio=2017-12-23&fechaFin=2017-12-23
+GET http://190.221.146.245:8090/appointments/byDay?fechaInicio=2017-12-27&fechaFin=2017-12-27
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNvcG9ydGVfY3RzQGJhY3Rzc2EuY29tLmFyIn0.bBSqdwesWimlT8rFGA7sKLKbPdxauY8HdrTTt7BLpBU
