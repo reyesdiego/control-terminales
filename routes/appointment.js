@@ -264,6 +264,18 @@ module.exports = log => {
             });
     }
 
+    router.param("terminal", function (req, res, next, terminal) {
+        var usr = req.usr;
+
+        if (usr.terminal !== "AGP" && usr.terminal !== terminal) {
+            var errMsg = "La terminal recibida por parámetro es inválida para el token.";
+            log.logger.error(errMsg);
+            res.status(403).send({ status: "ERROR", data: errMsg });
+        } else {
+            next();
+        }
+    });
+
     router.get("/ById/:_id", getAppointmentById);
     router.get("/ByHour", getAppointmentsByHour);
     router.get("/ByMonth", getAppointmentsByMonth);
