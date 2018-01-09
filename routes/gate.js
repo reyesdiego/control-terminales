@@ -62,6 +62,10 @@ module.exports = (log, oracle) => {
             param.viaje = req.query.viaje;
         }
 
+        if (req.query.mov) {
+            param.mov = req.query.mov;
+        }
+
         if (req.query.carga) {
             param.carga = req.query.carga;
         }
