@@ -109,9 +109,21 @@ module.exports = (log, oracle) => {
 
         log.time("getGates");
         try {
-            let data = await Gate.getGates(param);
-            data.time = log.timeEnd("getGates");
-            res.status(200).send(data);
+
+            if (param.skip >= 0 && param.limit >= 0) {
+                let data = await Gate.getGates(param);
+                data.time = log.timeEnd("getGates");
+                res.status(200).send(data);
+            } else {
+                let data = await Gate.getGatesCSV(param);
+                data.time = log.timeEnd("getGates");
+                res.header("content-type", "text/csv");
+                res.header(
+                    "content-disposition",
+                    "attachment; filename=report.csv"
+                );
+                res.status(200).send(data.data);
+            }
         } catch (err) {
             err.time = log.timeEnd("getGates");
             res.status(500).send(err);
@@ -756,6 +768,7 @@ module.exports = (log, oracle) => {
 
     router.get('/ById/:id', getById);
     router.get('/:terminal/:skip/:limit', getGates);
+    router.get('/:terminal/down', getGates);
     router.get('/IN/:terminal/:skip/:limit', getGatesInOrOut);
     router.get('/ByHour', getGatesByHour);
     router.get('/:terminal/ByHourMov', getGatesByHourMov);
