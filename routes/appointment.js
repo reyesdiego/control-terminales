@@ -1,6 +1,7 @@
 /**
  * Created by Diego Reyes on 3/21/14.
  */
+//@ts-check
 "use strict";
 
 module.exports = log => {
@@ -11,8 +12,8 @@ module.exports = log => {
         Account = require("../models/account"),
         config = require("../config/config.js");
 
-    var Appointment = require("../lib/appointment.js");
-    Appointment = new Appointment();
+    var _Appointment = require("../lib/appointment.js");
+    const Appointment = new _Appointment();
 
     function getAppointments(req, res) {
 

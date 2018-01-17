@@ -1,6 +1,7 @@
 /**
  * Created by diego on 3/9/15.
  */
+//@ts-check
 "use strict";
 
 module.exports = function (log, app, io, oracle, params) {
@@ -113,33 +114,11 @@ module.exports = function (log, app, io, oracle, params) {
     ob2 = require("./ob2")(log);
     app.use("/ob2", isValidToken, ob2);
 
-    zap = require("./zap")(log);
+    zap = require("./zap")(log, io);
     app.use("/zap", isValidToken, zap);
 
 
     /**_____________________________________________________________________*/
-
-    app.post("/sendMail", isValidToken, function (req, res) {
-
-        var config = require("../config/config.js");
-        var mail = require("../include/emailjs");
-
-        var param = req.body;
-        var html = {
-            data : param.html,
-            alternative: true
-        };
-
-        mail = new mail.mail(config.email);
-
-        mail.send(param.to, param.subject, html, function (err, data) {
-            if (err) {
-                res.status(500).send(err);
-            } else {
-                res.status(200).send(data);
-            }
-        });
-    });
 
     app.get("/containerTurno/:container", (req, res) => {
         var Appointment = require("../models/appointment.js");

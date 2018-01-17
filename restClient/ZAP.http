@@ -134,5 +134,7 @@ token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVu
 GET http://10.10.0.223:8090/gates/IN/ZAP/0/10000
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
 
-
+//ask for a truck
+POST http://10.10.0.223:8090/zap/pedircamion
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
 

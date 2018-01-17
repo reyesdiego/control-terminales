@@ -4,7 +4,7 @@
 // @ts-check
  "use strict";
 
-module.exports = log => {
+module.exports = (log, socket) => {
 
     var express = require("express"),
         router = express.Router(),
@@ -174,7 +174,7 @@ module.exports = log => {
         }
     };
         
-    let getCnrtByPatente = (req, res) => {
+    const getCnrtByPatente = (req, res) => {
 
         const dominio = req.params.patente.toUpperCase();
         var https = require("https");
@@ -224,7 +224,7 @@ module.exports = log => {
 
     };
 
-    let getCnrtByDni = (req, res) => {
+    const getCnrtByDni = (req, res) => {
         
         const dni = req.params.dni;
         var https = require("https");
@@ -274,7 +274,7 @@ module.exports = log => {
         
     };
         
-    let getCnrtByDniHabilitado = (req, res) => {
+    const getCnrtByDniHabilitado = (req, res) => {
         
         const dni = req.params.dni;
         var https = require("https");
@@ -325,6 +325,12 @@ module.exports = log => {
         
     };
 
+    const requestTruck = (req, res) => {
+        const param = req.body;
+        socket.emit('requestTruck', param.license);
+        res.end();
+    }
+
     router.post("/historico", addTruckHistory);
     router.get("/historico/camion/:patente", getTruckHistory);
 
@@ -350,5 +356,6 @@ module.exports = log => {
     router.get("/playotypes", getTrailerTypes);
     router.get("/playo/:patente", getTrailerByPlate);
 
+    router.post("/pedircamion", requestTruck);
     return router;
 };
