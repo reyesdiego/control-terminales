@@ -26,9 +26,14 @@ module.exports = (log, socket) => {
     const Trailer = require("../lib/trailer.js");
     const trailer = new Trailer();
 
-    const addDriver = async (req, res) => {
+    const addOrUpdateDriver = async (req, res) => {
         try {
-            const result = await driver.add(req.body);
+            let result;
+            if (req.method === 'POST') {
+                result = await driver.add(req.body);
+            } else {
+                result = await driver.update(req.body);
+            }
             res.status(200).send(result);
         } catch (err) {
             res.status(500).send(err);
@@ -44,9 +49,14 @@ module.exports = (log, socket) => {
         }
     };
 
-    const addTruck = async (req, res) => {
+    const addOrUpdateTruck = async (req, res) => {
         try {
-            const result = await truck.add(req.body);
+            let result;
+            if (req.method === 'POST') {
+                result = await truck.add(req.body);
+            } else {
+                result = await truck.update(req.body);
+            }
             res.status(200).send(result);
         } catch (err) {
             res.status(500).send(err);
@@ -344,10 +354,12 @@ module.exports = (log, socket) => {
     router.get("/cnrt/chofer/:dni", getCnrtByDni);
     router.get("/cnrt/chofer/habilitado/:dni", getCnrtByDniHabilitado);
     
-    router.post("/chofer", addDriver);
+    router.post("/chofer", addOrUpdateDriver);
+    router.put("/chofer", addOrUpdateDriver);
     router.get("/chofer/:dni", getDriverById);
     
-    router.post("/camion", addTruck);
+    router.post("/camion", addOrUpdateTruck);
+    router.put("/camion", addOrUpdateTruck);
     router.get("/camionesmarcas", getTrades);
     router.get("/colors", getColors);
     router.get("/camion/:patente", getTruckByPlate);
