@@ -743,10 +743,24 @@ module.exports = (log, oracle) => {
                 data: err
             })
         }
-
-
     };
 
+    let deleteGate = async (req, res) => {
+        const data = req.body;
+        try {
+            const result = await Gate.delete(data.id);
+            res.status(200).send({
+                status: "OK",
+                data: result
+            });
+        } catch (err) {
+            res.status(500).send({
+                status: "ERROR",
+                message: err.message,
+                data: err
+            })
+        }
+    };
     /*
     router.use(function timeLog(req, res, next){
         log.logger.info('Time: %s', Date.now());
@@ -782,6 +796,7 @@ module.exports = (log, oracle) => {
     router.get('/:terminal/trains', getDistincts);
     router.get('/lastInsert/:terminal', getLastInsert);
     router.post('/setStatus', setStatus);
+    router.post('/delete', deleteGate);
 
     return router;
 };
