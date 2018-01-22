@@ -748,17 +748,10 @@ module.exports = (log, oracle) => {
     let deleteGate = async (req, res) => {
         const data = req.body;
         try {
-            const result = await Gate.delete(data.id);
-            res.status(200).send({
-                status: "OK",
-                data: result
-            });
+            const result = await Gate.delete(data._id);
+            res.status(200).send(result);
         } catch (err) {
-            res.status(500).send({
-                status: "ERROR",
-                message: err.message,
-                data: err
-            })
+            res.status(500).send(err)
         }
     };
     /*
