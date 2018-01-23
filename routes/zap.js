@@ -337,7 +337,8 @@ module.exports = (log, socket) => {
 
     const requestTruck = (req, res) => {
         const param = req.body;
-        socket.emit('requestTruck', param.license);
+        const user = req.usr;
+        socket.emit('requestTruck', {camion: param.license, terminal: user.terminal});
         res.end();
     }
 
