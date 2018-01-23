@@ -338,7 +338,13 @@ module.exports = (log, socket) => {
     const requestTruck = (req, res) => {
         const param = req.body;
         const user = req.usr;
-        socket.emit('requestTruck', {camion: param.license, terminal: user.terminal});
+        socket.emit('requestTruck', {camion: param.patenteCamion, terminal: user.terminal});
+        res.end();
+    }
+    const requestTrucks = (req, res) => {
+        const param = req.body;
+        const user = req.usr;
+        socket.emit('requestTrucks', {cantidad: param.cantidad, camiones: param.patentesCamiones, terminal: user.terminal});
         res.end();
     }
 
@@ -370,5 +376,6 @@ module.exports = (log, socket) => {
     router.get("/playo/:patente", getTrailerByPlate);
 
     router.post("/pedircamion", requestTruck);
+    router.post("/pedircamiones", requestTrucks);
     return router;
 };
