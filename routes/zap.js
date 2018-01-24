@@ -4,11 +4,12 @@
 // @ts-check
  "use strict";
 
-module.exports = (log, socket) => {
+module.exports = (log, socket, oracle) => {
 
     var express = require("express"),
         router = express.Router(),
         moment = require("moment"),
+        async = require("async"),
         linq = require("linq");
 
     const Appointment = require("../lib/appointment.js");
@@ -25,6 +26,9 @@ module.exports = (log, socket) => {
 
     const Trailer = require("../lib/trailer.js");
     const trailer = new Trailer();
+
+    const Gate = require("../lib/gate.js");
+    const gate = new Gate(oracle);
 
     const addOrUpdateDriver = async (req, res) => {
         try {
@@ -335,17 +339,45 @@ module.exports = (log, socket) => {
         
     };
 
-    const requestTruck = (req, res) => {
-        const param = req.body;
-        const user = req.usr;
-        socket.emit('requestTruck', {camion: param.patenteCamion, terminal: user.terminal});
-        res.end();
-    }
     const requestTrucks = (req, res) => {
         const param = req.body;
         const user = req.usr;
-        socket.emit('requestTrucks', {cantidad: param.cantidad, camiones: param.patentesCamiones, terminal: user.terminal});
-        res.end();
+        let camiones = req.body.camiones;
+        let tasks = [];
+        
+        if (camiones.length > 0) {
+            tasks = camiones.map(camion => (callback => {
+                gate.getGatesInOrOut({terminal: "ZAP", patenteCamion: param.patenteCamion}, {skip:0, limit: 1000})
+                .then(data => {
+                    if (data.data.length === 1) {
+                        socket.emit('requestTruck', {camion: camion, terminal: user.terminal});
+                        gate.setStatus(data.data[0]._id, data.data[0].status + 10);
+                        callback();
+                    }
+                    res.end();
+                })
+                .catch(err => {
+                    callback(err);
+                });
+            }));
+            console.info(tasks)
+            async.parallel(tasks, (err, data) => {
+                res.status(200).send({
+                    status: "OK",
+                    message: `Se han solitidado ${param.cantidad} camiones.`,
+                    data: camiones
+                })
+                })
+        } else {
+            socket.emit('requestTruck', {cantidad: param.cantidad, terminal: user.terminal});
+            res.status(200).send({
+                status: "OK",
+                message: `Se han solitidado ${param.cantidad} camiones.`,
+                data: camiones
+            })
+        }
+
+
     }
 
     router.post("/historico", addTruckHistory);
@@ -375,7 +407,6 @@ module.exports = (log, socket) => {
     router.get("/playotypes", getTrailerTypes);
     router.get("/playo/:patente", getTrailerByPlate);
 
-    router.post("/pedircamion", requestTruck);
     router.post("/pedircamiones", requestTrucks);
     return router;
 };

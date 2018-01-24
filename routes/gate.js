@@ -135,7 +135,8 @@ module.exports = (log, oracle) => {
 
         var usr = req.usr,
             fecha,
-            param = {};
+            param = {},
+            options = {};
 
         if (req.query.fechaInicio || req.query.fechaFin) {
             param.gateTimestamp = {};
@@ -200,13 +201,13 @@ module.exports = (log, oracle) => {
             param.terminal = usr.terminal;
         }
 
-        param.limit = parseInt(req.params.limit, 10);
-        param.skip = parseInt(req.params.skip, 10);
-        param.order = req.query.order;
+        options.limit = parseInt(req.params.limit, 10);
+        options.skip = parseInt(req.params.skip, 10);
+        options.order = req.query.order;
 
         log.time("getGatesInOrOut");
         try {
-            let data = await Gate.getGatesInOrOut(param);
+            let data = await Gate.getGatesInOrOut(param, options);
             data.time = log.timeEnd("getGatesInOrOut");
             res.status(200).send(data);
         } catch (err) {
