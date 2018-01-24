@@ -152,5 +152,6 @@ Content-Type: application/json
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6Im5vcmVwbHlAcHVlcnRvYnVlbm9zYWlyZXMuZ29iLmFyIn0.g4d2NfkU5vIYfkG2QuEsKpTiT_-jpYLK5QGriiKa4Ck
 
 {
-    "camiones": ["GER123"]
+    "camiones": ["GER123"],
+    "cantidad": 1
 }

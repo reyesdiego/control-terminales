@@ -347,20 +347,19 @@ module.exports = (log, socket, oracle) => {
         
         if (camiones.length > 0) {
             tasks = camiones.map(camion => (callback => {
-                gate.getGatesInOrOut({terminal: "ZAP", patenteCamion: param.patenteCamion}, {skip:0, limit: 1000})
+
+                gate.getGatesInOrOut({terminal: "ZAP", patenteCamion: camion}, {skip:0, limit: 1000})
                 .then(data => {
                     if (data.data.length === 1) {
                         socket.emit('requestTruck', {camion: camion, terminal: user.terminal});
                         gate.setStatus(data.data[0]._id, data.data[0].status + 10);
-                        callback();
                     }
-                    res.end();
+                    callback();
                 })
                 .catch(err => {
                     callback(err);
                 });
             }));
-            console.info(tasks)
             async.parallel(tasks, (err, data) => {
                 res.status(200).send({
                     status: "OK",
