@@ -15,13 +15,17 @@ const gate = new mongoose.Schema({
     tipo: { type: String, enum: ["IN", "OUT"] },
     carga: { type: String, enum: ["NO", "LL", "VA"] },
     patenteCamion: { type: String },
+    patenteAcoplado: { type: String },
+    dni: { type: Number },
     tren: { type: String },
     gateTimestamp: { type: Date, required: true },
     turnoInicio: { type: Date },
     turnoFin: { type: Date },
     largo: { type: Number },
     iso: { type: String },
-    dastino: { type: String}
+    destino: { type: String },
+    status: { type: Number },
+    pedido: { type: Boolean}
 });
 /*
 gate.index({
