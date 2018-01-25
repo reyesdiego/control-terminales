@@ -352,7 +352,7 @@ module.exports = (log, socket, oracle) => {
                 .then(data => {
                     if (data.data.length === 1) {
                         socket.emit('requestTruck', {camion: camion, terminal: user.terminal});
-                        gate.setPedido(data.data[0]._id, data.data[0].status + 10);
+                        gate.setPedido(data.data[0]._id);
                     }
                     callback();
                 })
