@@ -18,7 +18,7 @@
     "mongoose": "^4.4.0",
     "morgan": "^1.7.0",
     "multer": "^1.1.0",
-    "oracledb": "^1.13.1",
+    "oracledb": "^2.0.15",
     "os-utils": "0.0.14",
     "passport": "0.1.18",
     "passport-local": "0.1.6",
