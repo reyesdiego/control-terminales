@@ -60,14 +60,29 @@ module.exports = function(log, io, oracle) {
                 }
             });
         } else {
+            log.time("getInvoicesCSV");
             Invoice2.getInvoicesCSV(param)
                 .then(data => {
+                                                                        
+                    const fs = require("fs");
+
+                    let ws = fs.createWriteStream(`${__dirname}/${"pepe"}.csv`);
+                    ws.on("finish", () => {
+                        log.timeEnd("getInvoicesCSV");
+                        res.download(`${__dirname}/${"pepe"}.csv`);
+                    });
+                                           
                     res.header("content-type", "text/csv");
                     res.header(
                         "content-disposition",
                         "attachment; filename=report.csv"
                     );
-                    res.status(200).send(data.data);
+//                    res.status(200).send(data.data);
+
+                    ws.write(data.data);
+                    ws.end();
+
+
                 })
                 .catch(err => {
                     res.status(500).send(err);
@@ -592,13 +607,9 @@ module.exports = function(log, io, oracle) {
             cmd: "getByRates"
         };
 
-        console.log(req.body);
-
         param.rates = req.body.data;
         param.fechaInicio = req.query.fechaInicio;
         param.fechaFin = req.query.fechaFin;
-
-        console.log("query%s", JSON.stringify(req.query));
 
         seneca.act(param, (err, data) => {
             if (err) {
