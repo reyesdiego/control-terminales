@@ -44,6 +44,15 @@ module.exports = (log, socket, oracle) => {
         }
     };
 
+    const getCamionesDisponibles = async (req, res) => {
+        try {
+            const result = await gate.getCamionesDisponibles(req.params.destino);
+            res.status(200).send(result);
+        } catch (err) {
+            res.status(500).send(err);
+        }
+    };
+
     const getDriverById = async (req, res) => {
         try {
             const result = await driver.getById(req.params.dni);
@@ -401,6 +410,7 @@ module.exports = (log, socket, oracle) => {
     router.get("/camionesmarcas", getTrades);
     router.get("/colors", getColors);
     router.get("/camion/:patente", getTruckByPlate);
+    router.get("/camionesDisponibles/:destino", getCamionesDisponibles);
 
     router.post("/playo", addTrailer);
     router.get("/playotypes", getTrailerTypes);
