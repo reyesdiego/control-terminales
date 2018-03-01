@@ -162,11 +162,7 @@ module.exports = log => {
 
         seneca.act(param, (err, data) => {
             if (err) {
-                res.status(500).send({
-                    status: "ERROR",
-                    message: err.msg,
-                    data: err
-                });
+                res.status(500).send(err);
             } else {
                 res.status(200).send(data);
             }
