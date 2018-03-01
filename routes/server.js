@@ -3,19 +3,19 @@
  */
 
 module.exports = function (log, params) {
-    'use strict';
+    "use strict";
 
-    var express = require('express'),
+    var express = require("express"),
         router = express.Router(),
-        moment = require('moment'),
-        fs = require('fs'),
-        os = require('os'),
+        moment = require("moment"),
+        fs = require("fs"),
+        os = require("os"),
         numCpus,
         paramsIndex;
 
-    router.get('/', function (req, res) {
+    router.get("/", function (req, res) {
 
-        var util = require('util'),
+        var util = require("util"),
             memory = process.memoryUsage(),
             heapUsed = (memory.heapUsed / 1024 / 1024).toFixed(2) + " MB",
             heapTotal = (memory.heapTotal / 1024 / 1024).toFixed(2) + " MB",
@@ -45,21 +45,21 @@ module.exports = function (log, params) {
             };
         }
 
-        res.render('index', paramsIndex);
+        res.render("index", paramsIndex);
 
     });
 
-    router.get('/log', function (req, res, next) {
+    router.get("/log", function (req, res, next) {
 
-        var filename = 'log/nohup.out';
-        res.writeHead(200, {'Content-Type': 'text/html'});
-        res.write('<html><body>');
-        res.write('<br/><center><p><a name="top" style="font-size: 22px" href="#bottom">Ir a fin de pagina</a></p></center>');
+        var filename = "log/nohup.out";
+        res.writeHead(200, {"Content-Type": "text/html"});
+        res.write("<html><body>");
+        res.write("<br/><center><p><a name=\"top\" style=\"font-size: 22px\" href=\"#bottom\">Ir a fin de pagina</a></p></center>");
 
         fs.exists(filename, function (exists) {
             if (exists) {
                 // serve file
-                var lazy = require("lazy")
+                var lazy = require("lazy");
                 new lazy(fs.createReadStream(filename))
                     .lines
                     .forEach(function(line){
@@ -69,33 +69,32 @@ module.exports = function (log, params) {
                         else
                             res.write(line.toString()+"<br/>");
 
-                    }
-                ).on('pipe', function(){
-                        res.write('<center><p><a name="bottom" style="font-size: 22px" href="#top">Ir a inicio de pagina</a></p></center>');
-                        res.write('</body></html>');
+                    }).on("pipe", function(){
+                        res.write("<center><p><a name=\"bottom\" style=\"font-size: 22px\" href=\"#top\">Ir a inicio de pagina</a></p></center>");
+                        res.write("</body></html>");
                         res.end();
                     });
             } else {
                 res.write("<h1>No se encuentra Log</h1>");
-                res.write('</body></html>');
+                res.write("</body></html>");
                 res.end();
             }
         });
     });
 
     var files=[];
-    router.get('/log2', function(req, res) {
+    router.get("/log2", function(req, res) {
         var params,
             lazy;
 
         if (req.query.filename === undefined){
-            log.getFiles(function (files){
+            log.getFiles(function (err, files){
                 params = {
                     moment: moment,
                     json:[],
                     files: files
                 };
-                res.render('log', params);
+                res.render("log", params);
             });
         } else {
             fs.exists(req.query.filename, function(exists){
@@ -113,9 +112,9 @@ module.exports = function (log, params) {
                         .forEach(function(line){
                             params.json.push(JSON.parse(line.toString()));
                         }
-                    ).on('pipe', function(){
+                    ).on("pipe", function(){
                             params.json.reverse();
-                            res.render('log', params);
+                            res.render("log", params);
                         });
                 } else {
                     res.end();
