@@ -2,14 +2,14 @@
  * Created by diego on 7/3/15.
  */
 module.exports = function (log, io, oracle) {
-    'use strict';
+    "use strict";
 
-    var express = require('express'),
+    var express = require("express"),
         router = express.Router(),
-        util = require('util'),
+        util = require("util"),
         mail = require("../../include/emailjs"),
-        moment = require('moment'),
-        config = require('../../config/config.js'),
+        moment = require("moment"),
+        config = require("../../config/config.js"),
         //Invoice = require('../../models/invoice.js'),
         logInvoiceBody = false;
 
@@ -18,7 +18,7 @@ module.exports = function (log, io, oracle) {
             if (err) {
                 reject(err);
             } else {
-                if (data.status === 'OK') {
+                if (data.status === "OK") {
                     resolve({status: "OK",
                         data: data.data});
                 } else {
@@ -32,91 +32,91 @@ module.exports = function (log, io, oracle) {
 
     let validateSanitize = (req, res, next) => {
         var errors,
-            Validr = require('../../include/validation.js'),
+            Validr = require("../../include/validation.js"),
             validate = new Validr.validation(req.postData);
 
         validate
-            .validate('fechaEmision', {
-                isLength: 'fechaEmision is required.',
-                isDate: 'fechaEmision must be a valid date.'
+            .validate("fechaEmision", {
+                isLength: "fechaEmision is required.",
+                isDate: "fechaEmision must be a valid date."
             })
             .isLength(1)
             .isDate();
         validate
-            .validate('fechaVcto', 'fechaVcto must be a valid date.', {ignoreEmpty: true})
+            .validate("fechaVcto", "fechaVcto must be a valid date.", {ignoreEmpty: true})
             .isDate();
         validate
-            .validate('fechaServDesde', 'fechaServDesde must be a valid date.', {ignoreEmpty: true})
+            .validate("fechaServDesde", "fechaServDesde must be a valid date.", {ignoreEmpty: true})
             .isDate();
         validate
-            .validate('fechaServHasta', 'fechaServHasta must be a valid date.', {ignoreEmpty: true})
+            .validate("fechaServHasta", "fechaServHasta must be a valid date.", {ignoreEmpty: true})
             .isDate();
         validate
-            .validate('fechaVctoPago', 'fechaVctoPago must be a valid date.', {ignoreEmpty: true})
+            .validate("fechaVctoPago", "fechaVctoPago must be a valid date.", {ignoreEmpty: true})
             .isDate();
         validate
-            .validate('nroComprob', {
-                isNumeric: 'nroComprob must be integer greater or equal to 0.',
-                isInt: 'nroComprob must be integer greater or equal to 0.',
-                isLength: 'nroComprob is required.'
+            .validate("nroComprob", {
+                isNumeric: "nroComprob must be integer greater or equal to 0.",
+                isInt: "nroComprob must be integer greater or equal to 0.",
+                isLength: "nroComprob is required."
             })
             .isNumeric()
             .isInt({min: 0})
             .isLength(1);
         validate
-            .validate('codTipoComprob', {
+            .validate("codTipoComprob", {
               //  isInt: 'codTipoComprob must be integer',
-                isLength: 'codTipoComprob is required.'
+                isLength: "codTipoComprob is required."
             })
             //.isInt({min: 0})
             .isLength(1);
         validate
-            .validate('nroPtoVenta', 'nroPtoVenta is required.', {ignoreEmpty: true})
+            .validate("nroPtoVenta", "nroPtoVenta is required.", {ignoreEmpty: true})
             .isInt({min: 0});
         validate
-            .validate('nroDoc', 'nroDoc is required.', {ignoreEmpty: true})
+            .validate("nroDoc", "nroDoc is required.", {ignoreEmpty: true})
             .isInt({min: 0});
         validate
-            .validate('razon', 'razon is required.')
+            .validate("razon", "razon is required.")
             .isLength(1)
             .trim();
         validate
-            .validate('codMoneda', {
-                isLength: 'codMoneda is required.',
-                isIn: 'codMoneda must be in "PES" or "DOL" or "EUR" values'
+            .validate("codMoneda", {
+                isLength: "codMoneda is required.",
+                isIn: "codMoneda must be in \"PES\" or \"DOL\" or \"EUR\" values"
             })
             .isLength(1)
-            .isIn(['PES', 'DOL', 'EUR']);
+            .isIn(["PES", "DOL", "EUR"]);
         validate
-            .validate('cotiMoneda', {
-                isLength: 'cotiMoneda is required.',
-                isFloat: 'cotiMoneda must be a float greater equal than 1'
+            .validate("cotiMoneda", {
+                isLength: "cotiMoneda is required.",
+                isFloat: "cotiMoneda must be a float greater equal than 1"
             })
             .isLength(1)
             .isFloat({min: 1});
 
         validate
-            .validate('impGrav', 'impGrav must be a float.', {ignoreEmpty: true})
+            .validate("impGrav", "impGrav must be a float.", {ignoreEmpty: true})
             .isFloat();
         validate
-            .validate('impNoGrav', 'impNoGrav must be a float.', {ignoreEmpty: true})
+            .validate("impNoGrav", "impNoGrav must be a float.", {ignoreEmpty: true})
             .isFloat();
         validate
-            .validate('impExento', 'impExento must be a float.', {ignoreEmpty: true})
+            .validate("impExento", "impExento must be a float.", {ignoreEmpty: true})
             .isFloat();
         validate
-            .validate('impIva', 'impIva must be a float.', {ignoreEmpty: true})
+            .validate("impIva", "impIva must be a float.", {ignoreEmpty: true})
             .isFloat();
         validate
-            .validate('impOtrosTrib', 'impOtrosTrib must be a float.', {ignoreEmpty: true})
+            .validate("impOtrosTrib", "impOtrosTrib must be a float.", {ignoreEmpty: true})
             .isFloat();
         validate
-            .validate('impSubtot', 'impSubtot must be a float.', {ignoreEmpty: true})
+            .validate("impSubtot", "impSubtot must be a float.", {ignoreEmpty: true})
             .isFloat();
         validate
-            .validate('impTotal', {
-                isLength: 'impTotal is required.',
-                isFloat: 'impTotal must be a float.'
+            .validate("impTotal", {
+                isLength: "impTotal is required.",
+                isFloat: "impTotal must be a float."
             })
             .isLength(1)
             .isFloat();
@@ -136,7 +136,7 @@ module.exports = function (log, io, oracle) {
 
     let receiveInvoice = (req, res, next) => {
 
-        var postData = '',
+        var postData = "",
             mailer,
             strBody,
             strSubject,
@@ -180,7 +180,7 @@ module.exports = function (log, io, oracle) {
     };
 
     let add = (req, res) => {
-        var Invoice = require('../../lib/invoice2.js');
+        var Invoice = require("../../lib/invoice2.js");
         var InvoiceM,
             InvoiceO;
 
@@ -240,7 +240,7 @@ module.exports = function (log, io, oracle) {
                     console.log(err)
                     invoice = data.data;
                     var socketMsg = {
-                        status: 'OK',
+                        status: "OK",
                         data : {
                             terminal : invoice.terminal,
                             _id: invoice._id,
@@ -250,7 +250,7 @@ module.exports = function (log, io, oracle) {
                             nroComprob: invoice.nroComprob
                         }
                     };
-                    io.emit('invoice', socketMsg);
+                    io.emit("invoice", socketMsg);
 
                     let result = data;
                     log.logger.insert("Invoice ORA INS: %s - %s - Tipo: %s Nro: %s - %s", invoice._id, invoice.terminal, invoice.codTipoComprob, invoice.nroComprob, invoice.fechaEmision.toString());
@@ -287,7 +287,7 @@ module.exports = function (log, io, oracle) {
      });
      */
 
-    router.post('/', receiveInvoice, validateSanitize, add);
+    router.post("/", receiveInvoice, validateSanitize, add);
     //router.post('/', receiveInvoice, validateSanitize, addMicro);
 
     return router;
