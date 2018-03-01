@@ -3,12 +3,12 @@
  */
 
 var log4njs = function (options) {
-    'use strict';
+    "use strict";
 
     var self = this,
-        moment  = require('moment'),
-        winston = require('winston'),
-        fs      = require('fs'),
+        moment  = require("moment"),
+        winston = require("winston"),
+        fs      = require("fs"),
         elapsed = 0,
         logger,
         config,
@@ -31,34 +31,41 @@ var log4njs = function (options) {
             delete: 9
         },
         colors: {
-            silly: 'magenta',
-            verbose: 'cyan',
-            info: 'green',
-            data: 'grey',
-            warn: 'yellow',
-            debug: 'blue',
-            error: 'red',
-            insert: 'yellow',
-            update: 'green',
-            delete: 'red'
+            silly: "magenta",
+            verbose: "cyan",
+            info: "green",
+            data: "grey",
+            warn: "yellow",
+            debug: "blue",
+            error: "red",
+            insert: "yellow",
+            update: "green",
+            delete: "red"
         }
     };
 
     transports = [];
     if (options.toConsole) {
         transports.push(new (winston.transports.Console)({
-            level: 'silly',
+            level: "silly",
             colorize: true,
             raw: false,
             timestamp: function () {
-                return moment().format("YYYY-MM-DDThh:mm:ss.SSS") + ' | ' + process.pid;
+                return moment().format("YYYY-MM-DDThh:mm:ss.SSS") + " | " + process.pid;
             }
         }));
     }
 
     if (options.toFile) {
+
+        let existe = fs.existsSync(options.path);
+        console.log(existe);
+        if (!existe) {
+            fs.mkdirSync(options.path);
+        }
+
         transports.push(new (winston.transports.File)({
-            level: 'silly',
+            level: "silly",
             filename: options.path + options.filename,
             json: false,
             formatter: function (options) {
@@ -87,17 +94,17 @@ var log4njs = function (options) {
     self.toFile = options.toFile;
 
     self.getFiles = function (callback) {
-        var pathFilename = '',
+        var pathFilename = "",
             stats;
-        if (callback !== undefined && typeof(callback) === 'function') {
+        if (callback !== undefined && typeof(callback) === "function") {
             var logFiles = [];
             fs.readdir(self.path, function (err, files) {
                 if (err) {
                     console.log(err);
-                    return;
+                    return callback(err);
                 }
                 files.forEach(function (item) {
-                    pathFilename = self.path + '/' + item;
+                    pathFilename = self.path + "/" + item;
                     stats = fs.statSync(pathFilename);
                     logFiles.push({title: item, mtime: stats.mtime, url: pathFilename});
                 });
@@ -116,7 +123,7 @@ var log4njs = function (options) {
                     return result;
                 });
 
-                return callback(logFiles);
+                return callback(undefined, logFiles);
             });
         }
     };
