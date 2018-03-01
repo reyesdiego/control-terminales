@@ -16,3 +16,33 @@ token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNvcG9ydGVfY3RzQGJhY3Rz
 GET http://terminales.puertobuenosaires.gob.ar:8090/vouchertypes
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNvcG9ydGVfY3RzQGJhY3Rzc2EuY29tLmFyIn0.bBSqdwesWimlT8rFGA7sKLKbPdxauY8HdrTTt7BLpBU
 
+//insert INVOICE
+POST http://10.10.0.223:8080/invoice
+Content-Type: text/plain
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNvcG9ydGVfY3RzQGJhY3Rzc2EuY29tLmFyIn0.bBSqdwesWimlT8rFGA7sKLKbPdxauY8HdrTTt7BLpBU
+
+{
+    "fechaVcto":"2018/02/09",
+    "codMoneda":"DOL",
+    "detalle":[{"iso":"22G1","buqueId":"21803.0","fecha":"2018/01/23","items":[{"id":"158","impUnit":52.92,"uniMed":7,"cnt":1,"impTot":52.92}],"IMO":0,"contenedor":"EITU0008237","viaje":"275AAW","buqueDesc":"CMA CGM CARL ANTOINE"}],"impIva":11.11,"nroDoc":"30503612891","cotiMoneda":19.9,"impTotal":64.03,"codAutoriz":0,"codTipoAutoriz":0,
+    "nroPtoVenta": 1000,
+    "codConcepto":"",
+    "impExento":0,
+    "fechaServDesde":"2018/01/25",
+    "impOtrosTrib":0,
+    "fechaServHasta":"2018/01/25",
+    "razon":"BGH SA",
+    "nroComprob":12663,
+    "impSubtot":52.92,
+    "codTipoDoc":1,
+    "clienteId":0,
+    "fechaVctoPago":"2018/02/09",
+    "fechaEmision":"2018/02/28",
+    "impNoGrav":0,
+    "codTipoComprob": 666,
+    "impGrav":52.92,
+    "terminal":"BACTSSA"
+}
+
+GET http://terminales.puertobuenosaires.gob.ar:8090/invoices/cashbox/TRP?fechaInicio=2018-02-21T00:00:00.000-03:00&filtroOrdenAnterior=fecha.emision&order=[{"fecha.emision":1}]
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6Im5vcmVwbHlAcHVlcnRvYnVlbm9zYWlyZXMuZ29iLmFyIn0.g4d2NfkU5vIYfkG2QuEsKpTiT_-jpYLK5QGriiKa4Ck
