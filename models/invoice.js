@@ -1,7 +1,7 @@
 /**
  * Created by Administrator on 1/10/14.
  */
-var mongoose = require('mongoose'),
+var mongoose = require("mongoose"),
     Schema   = mongoose.Schema;
 
 var detalleSchema = new Schema({
@@ -27,7 +27,7 @@ var detalleSchema = new Schema({
 
 var invoiceSchema = new Schema({
     terminal: {type: String, required: true},
-    tipo: {type: String, enum: ['EXPO', 'IMPO']},
+    tipo: {type: String, enum: ["EXPO", "IMPO"]},
     codTipoComprob: {type: Number, required: true},
     nroPtoVenta: {type: Number},
     nroComprob: {type: Number, required: true},
@@ -47,7 +47,7 @@ var invoiceSchema = new Schema({
         total: {type: Number, required: true}
     },
     total: {type: Number},
-    codMoneda: {type: String, required: true, enum: ['PES', 'DOL', 'EUR']},
+    codMoneda: {type: String, required: true, enum: ["PES", "DOL", "EUR"]},
     cotiMoneda: {type: Number, required: true, min: 1},
     observa: {type: String },
     codConcepto: {type: Number },
@@ -67,48 +67,50 @@ var invoiceSchema = new Schema({
     }],
     estado : [
         {
-            estado : {type: String, default: 'Y',
+            estado : {type: String, default: "Y",
                 enum: [
-                    'R', //Error
-                    'Y', //Sin Ver
-                    'G', //OK
-                    'C', //Revisar
-                    'T' //Error en resultado
+                    "R", //Error
+                    "Y", //Sin Ver
+                    "G", //OK
+                    "C", //Revisar
+                    "T" //Error en resultado
                 ]},
             grupo : {type: String },
             user : {type: String}
         }
     ],
     resend: {type: Number, enum:[0, 1]},
-    comment: [{type: mongoose.Schema.ObjectId, ref: 'comments' }],
-    payment: {type: mongoose.Schema.ObjectId, ref: 'payings' }
+    comment: [{type: mongoose.Schema.ObjectId, ref: "comments" }],
+    payment: {type: mongoose.Schema.ObjectId, ref: "payings" }
 });
 
 invoiceSchema.index({nroPtoVenta: 1, codTipoComprob: 1, nroComprob: 1, terminal: 1}, {unique: true});
 
-invoiceSchema.pre('save', function (next, done) {
-    'use strict';
+invoiceSchema.pre("save", function (next, done) {
+    "use strict";
     var self = this;
 
     if (self.isNew) {
         self.total = self.importe.total;
         if (self.cotiMoneda && self.codMoneda) {
-            if (self.codMoneda === 'DOL') {
+            if (self.codMoneda === "DOL") {
                 if (self.cotiMoneda <= 1) {
                     //next(new Error("La cotización del dolar debe ser mayor a Uno (1)."));
                     next();
                 } else {
                     self.total = self.importe.total * self.cotiMoneda;
                 }
-            } else if (self.codMoneda === 'PES' && self.cotiMoneda !== 1) {
+            } else if (self.codMoneda === "PES" && self.cotiMoneda !== 1) {
                 next(new Error("La cotización del peso debe ser Uno (1)."));
             }
         }
-        var VoucherType = require('../models/voucherType.js');
+        var VoucherType = require("../models/voucherType.js");
         VoucherType.findOne({_id: self.codTipoComprob}, {type: true, _id: false})
             .lean()
             .exec((err, voucherType) => {
-                self.total = self.total * voucherType.type;
+                if (voucherType) {
+                    self.total = self.total * voucherType.type;
+                }
                 next();
             });
     } else {
@@ -117,8 +119,8 @@ invoiceSchema.pre('save', function (next, done) {
 
 });
 
-detalleSchema.pre('save', function (next, done) {
-    'use strict';
+detalleSchema.pre("save", function (next, done) {
+    "use strict";
     var codigo = 0,
         nombre = 0,
         viaje = 0,
@@ -126,7 +128,7 @@ detalleSchema.pre('save', function (next, done) {
 
     if (this.isNew) {
 
-        if (this.buque && this.__parent.terminal !== 'TRP') {
+        if (this.buque && this.__parent.terminal !== "TRP") {
             if (this.buque.codigo !== undefined && this.buque.nombre !== undefined) {
 
     //          var fecha = 0;
@@ -160,4 +162,4 @@ detalleSchema.pre('save', function (next, done) {
 
 });
 
-module.exports = mongoose.model('invoices', invoiceSchema);
+module.exports = mongoose.model("invoices", invoiceSchema);
