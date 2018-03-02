@@ -41,7 +41,7 @@ token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVu
 GET http://190.221.146.245:8090/zap/cnrt/chofer/habilitado/4159980
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
 // listado de contenedores con turno activo del dia de hoy
-GET http://190.221.146.245:8090/containerTurnoList
+GET http://10.10.0.223:8090/containerTurnoList
 // listado de marcas de camiones 
 GET http://190.221.146.245:8090/zap/camionesmarcas
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
@@ -65,7 +65,7 @@ token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVu
     "mobile": "1568736699"
 }
 // obtiene un chofer por dni de ZAP
-GET http://190.221.146.245:8090/zap/chofer/23250578
+GET http://10.10.0.223:8090/zap/chofer/23250578
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImRyZXllc0BwdWVydG9idWVub3NhaXJlcy5nb2IuYXIifQ.gOR1Il1M24klHcq8OqhH1QKxQJvNvsHpNx-r0v7lrrw
 //insert un Camion en la base de datos
 POST http://190.221.146.245:8090/zap/camion
