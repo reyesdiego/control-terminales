@@ -59,7 +59,6 @@ var log4njs = function (options) {
     if (options.toFile) {
 
         let existe = fs.existsSync(options.path);
-        console.log(existe);
         if (!existe) {
             fs.mkdirSync(options.path);
         }
