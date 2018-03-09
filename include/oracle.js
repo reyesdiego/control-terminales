@@ -2,9 +2,10 @@
  * Created by diego on 1/16/15.
  */
 
+"use strict";
+
 var oracleUtils = function () {
-    'use strict';
-    this.oracledb = require('oracledb');
+    this.oracledb = require("'oracledb");
     this.oracledb.maxRows = 2000;
     this.oracledb.outFormat = this.oracledb.OBJECT;
     //this.oracledb.outFormat = this.oracledb.ARRAY;
@@ -15,13 +16,14 @@ oracleUtils.prototype = {
 
     error: function (error) {
         var msg = error.message;
-        var pro = msg.indexOf('ORA-');
+        //var pro = msg.indexOf('ORA-');
+        var pro = msg.split(":");
         var codeEnd;
         var result = {
-                code: '',
-                message: ''
-            };
-
+            code: pro[0],
+            message: pro[1]
+        };
+        /*
         if (pro >= 0) {
             codeEnd = msg.indexOf(':');
             result = {
@@ -29,11 +31,11 @@ oracleUtils.prototype = {
                 message: msg
             };
         }
+        */
         return result;
     },
 
     doRelease: function (connection) {
-        'use strict';
         if (connection) {
             connection.release(err => {
                 if (err) {
@@ -43,23 +45,22 @@ oracleUtils.prototype = {
         }
     },
     orderBy : function (order) {
-        'use strict';
-        var orderBy = '',
-            orderType = 'ASC';
+        var orderBy = "",
+            orderType = "ASC";
         if (order) {
 
             order = JSON.parse(order);
 
             for (var i= 0, len = order.length; i < len; i++)
                 for (var prop in order[i]){
-                    if (order[i][prop] === -1) orderType = 'DESC';
-                    orderBy = prop + ' ' + orderType;
+                    if (order[i][prop] === -1) orderType = "DESC";
+                    orderBy = prop + " " + orderType;
                 }
         } else {
-            orderBy = 'ID ASC';
+            orderBy = "ID ASC";
         }
         return orderBy;
     }
-}
+};
 
 module.exports = oracleUtils;
