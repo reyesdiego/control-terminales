@@ -46,3 +46,13 @@ token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNvcG9ydGVfY3RzQGJhY3Rz
 
 GET http://terminales.puertobuenosaires.gob.ar:8090/invoices/cashbox/TRP?fechaInicio=2018-02-21T00:00:00.000-03:00&filtroOrdenAnterior=fecha.emision&order=[{"fecha.emision":1}]
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6Im5vcmVwbHlAcHVlcnRvYnVlbm9zYWlyZXMuZ29iLmFyIn0.g4d2NfkU5vIYfkG2QuEsKpTiT_-jpYLK5QGriiKa4Ck
+
+
+// TRP eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InRycF9zZXJ2aWNpb19hZ3BAdHJwLmNvbS5hciJ9.Li-IVe4B29QaW2L0GPsfXEwHeVR7thZ7r6VFKqAC4b8
+// BACTSSA eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNvcG9ydGVfY3RzQGJhY3Rzc2EuY29tLmFyIn0.bBSqdwesWimlT8rFGA7sKLKbPdxauY8HdrTTt7BLpBU
+//insert INVOICE
+POST http://10.4.0.223:8080/invoice
+Content-Type: text/plain
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNvcG9ydGVfY3RzQGJhY3Rzc2EuY29tLmFyIn0.bBSqdwesWimlT8rFGA7sKLKbPdxauY8HdrTTt7BLpBU
+
+{"fechaVcto":"2018/03/07","codMoneda":"DOL","detalle":[{"iso":"45G1","buqueId":"21863.0","fecha":"2018/03/02","items":[{"id":"1465","impUnit":4,"uniMed":29,"cnt":16,"impTot":64},{"id":"679","impUnit":11,"uniMed":7,"cnt":1,"impTot":11},{"id":"942","impUnit":15,"uniMed":7,"cnt":1,"impTot":15},{"id":"1025","impUnit":137.59,"uniMed":7,"cnt":2,"impTot":275.18},{"id":"169","impUnit":29.4,"uniMed":7,"cnt":1,"impTot":29.4},{"id":"153","impUnit":336,"uniMed":7,"cnt":1,"impTot":336},{"id":"1147","impUnit":210,"uniMed":7,"cnt":1,"impTot":210},{"id":"2185","impUnit":10,"uniMed":7,"cnt":1,"impTot":10},{"id":"2205","impUnit":30,"uniMed":7,"cnt":1,"impTot":30},{"id":"163","impUnit":23.52,"uniMed":7,"cnt":2,"impTot":47.04}],"IMO":0,"contenedor":"EGSU9021700","viaje":"287AAW","buqueDesc":"CMA CGM JACQUES JUNIOR"}],"impIva":215.8,"nroDoc":"20179326141","cotiMoneda":20.6,"impTotal":1272.33,"codAutoriz":0,"codTipoAutoriz":0,"nroPtoVenta":29,"codConcepto":"","impExento":0,"fechaServDesde":"2018/03/07","impOtrosTrib":28.91,"fechaServHasta":"2018/03/07","razon":"VENANZI ADRIAN HUGO","nroComprob":50816,"impSubtot":1027.62,"codTipoDoc":1,"clienteId":0,"fechaVctoPago":"2018/03/07","fechaEmision":"2018/03/07","impNoGrav":0,"codTipoComprob":"1","impGrav":1027.62,"otrosTributos":[{"id":"3","desc":"INGRESOS BRUTOS ","imp":28.91,"imponible":3}]}
