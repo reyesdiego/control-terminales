@@ -1,0 +1,8 @@
+{"level":"info","message":"#9395 Nodejs v9.4.0 Running on http://localhost:8080","timestamp":"2018-03-12T13:40:11.135Z","pid":9395}
+{"level":"info","message":"Conectado al socket IO http://terminales.puertobuenosaires.gob.ar:8090","timestamp":"2018-03-12T13:40:11.174Z","pid":9395}
+{"level":"info","message":"Mongoose 4.13.9 Connected to Database. mongodb://10.1.0.60:27017/terapi","timestamp":"2018-03-12T13:40:11.240Z","pid":9395}
+{"level":"info","message":"Oracle Connected to Database. Versión 1102000400","timestamp":"2018-03-12T13:40:11.420Z","pid":9395}
+{"level":"info","message":"#10771 Nodejs v9.4.0 Running on http://localhost:8080","timestamp":"2018-03-12T14:05:48.366Z","pid":10771}
+{"level":"info","message":"Mongoose 4.13.9 Connected to Database. mongodb://10.1.0.60:27017/terapi","timestamp":"2018-03-12T14:05:48.389Z","pid":10771}
+{"level":"info","message":"Conectado al socket IO http://terminales.puertobuenosaires.gob.ar:8090","timestamp":"2018-03-12T14:05:48.404Z","pid":10771}
+{"level":"info","message":"Oracle Connected to Database. Versión 1102000400","timestamp":"2018-03-12T14:05:48.695Z","pid":10771}

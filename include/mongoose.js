@@ -2,34 +2,40 @@
  * Created by diego on 7/3/15.
  */
 module.exports = function (url, options, log) {
-    'use strict';
-    var mongoose = require('mongoose');
+    "use strict";
+    var mongoose = require("mongoose");
+
+    mongoose.Promise = Promise;
+
+    var promise;
 
     if (options) {
-        mongoose.connect(url, options);
+        options.useMongoClient = true;
+        promise = mongoose.connect(url, {useMongoClient:true});
     } else {
-        mongoose.connect(url);
+        promise = mongoose.connect(url);
     }
 
-    mongoose.connection.on('connected', function () {
+    promise.then(() => {
         log.logger.info("Mongoose %s Connected to Database. %s", mongoose.version, url);
         global.mongoose.connected = true;
     });
 
-    mongoose.connection.on('error', function (err) {
+    promise.catch(err => {
         log.logger.error("Database or Mongoose error. %s", err.stack);
     });
-    mongoose.connection.on('disconnected', function () {
-        log.logger.error("Mongoose default connection disconnected, el proceso %s se abortará", process.pid);
-        process.exit();
-    });
-
+    /*
+        mongoose.connection.on("disconnected", function () {
+            log.logger.error("Mongoose default connection disconnected, el proceso %s se abortará", process.pid);
+            process.exit();
+        });
+    */
     global.mongoose = {
         connected: false,
         version: mongoose.version
     };
 
-    process.on('SIGINT', function () {
+    process.on("SIGINT", function () {
         mongoose.connection.close(function () {
             log.logger.info("Mongoose default connection disconnected through app termination");
             process.exit();
