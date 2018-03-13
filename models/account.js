@@ -109,7 +109,7 @@ Account.statics.verifyToken = function (incomingToken, cb) {
         return cb(err);
     }
 };
-
+/*
 Account.statics.verifyTokenZap = function (incomingToken, cb) {
     var err,
         decoded;
@@ -159,7 +159,7 @@ Account.statics.verifyTokenZap = function (incomingToken, cb) {
         return cb(err);
     }
 };
-
+*/
 Account.statics.login = function (username, password) {
     return new Promise((resolve, reject) => {
         var errMsg = "";
