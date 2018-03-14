@@ -1,0 +1,78 @@
+{
+  "ttl": 3600000,
+  "resetTokenExpiresMinutes": 20,
+  "processes": 0,
+  "url": "http://10.10.0.223:8080",
+  "socket_url": "http://10.10.0.223:8090",
+  "domain": "10.10.0.223",
+  "emailTurnos": {
+    "user":    "",
+    "password": "",
+    "host":    "10.10.0.176",
+    "port": "25",
+    "domain": "",
+    "from": "Administración General de Puertos <noreply@puertobuenosaires.gob.ar>",
+    "ssl":     false,
+    "status": true,
+    "throughBcc": true
+  },
+  "email": {
+    "user":    "",
+    "password": "",
+    "host":    "10.10.0.176",
+    "port": "25",
+    "domain": "",
+    "from": "Administración General de Puertos <noreply@puertobuenosaires.gob.ar>",
+    "ssl":     false,
+    "status": true,
+    "throughBcc": true
+  },
+  "log": {
+    "path": "log/",
+    "filename": "nohup.out",
+    "toConsole": true,
+    "toFile": false
+  },
+  "mongo": {
+    "url": "mongodb://10.1.0.65:27017/terapi"
+  },
+  "mongo_url_log": "mongodb://localhost:27017/logging",
+  "mongo_opts_log": {
+    "user": "admin",
+    "pass": "Pt trend 54",
+    "auth": {"authdb": "admin"}
+  },
+  "server_port_ter": 8080,
+  "server_port_web": 8090,
+  "server_ssl_port": 443,
+  "microService": {
+    "statisticOracle": {
+      "timeout": 70000,
+      "port": 10002,
+      "host": "10.10.0.223"
+    },
+    "statisticMongo": {
+      "timeout": 60000,
+      "port": 10001,
+      "host": "10.10.0.223"
+    },
+    "impactOracle": {
+      "timeout": 60000,
+      "port": 10003,
+      "host": "10.10.0.223"
+    },
+    "impactMongo": {
+      "timeout": 60000,
+      "port": 10004,
+      "host": "10.10.0.223"
+    }
+
+  },
+  "notificador": {
+    "host": "10.10.0.223",
+    "port": 8073,
+    "user": "dreyes@puertobuenosaires.gob.ar",
+    "password": "123456"
+  }
+
+}
