@@ -10,8 +10,7 @@ module.exports = function (url, options, log) {
     var promise;
 
     if (options) {
-        options.useMongoClient = true;
-        promise = mongoose.connect(url, {useMongoClient:true});
+        promise = mongoose.connect(url, options);
     } else {
         promise = mongoose.connect(url);
     }
@@ -24,12 +23,7 @@ module.exports = function (url, options, log) {
     promise.catch(err => {
         log.logger.error("Database or Mongoose error. %s", err.stack);
     });
-    /*
-        mongoose.connection.on("disconnected", function () {
-            log.logger.error("Mongoose default connection disconnected, el proceso %s se abortará", process.pid);
-            process.exit();
-        });
-    */
+    
     global.mongoose = {
         connected: false,
         version: mongoose.version
@@ -42,5 +36,5 @@ module.exports = function (url, options, log) {
         });
     });
 
-}
+};
 
